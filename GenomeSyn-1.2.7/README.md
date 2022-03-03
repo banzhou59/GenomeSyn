@@ -27,17 +27,8 @@ $ export PATH=$current_path/mummer-4.0.0beta2:$PATH
 
 ***2. Perl and perl module***
 
-```
-$ wget https://cbi.gxu.edu.cn/rape/download_ext/localperl.zip
-$ unzip localperl.zip
-```
-
 ***3. Python and python module***
 
-```
-$ wget https://cbi.gxu.edu.cn/rape/download_ext/miniconda3.zip
-$ unzip miniconda3.zip
-```
 We have integrated the required Perl (localperl) and [SVG]( https://cpan.metacpan.org/authors/id/M/MA/MANWAR/SVG-2.85.tar.gz ) and [BioPerl]( https://cpan.metacpan.org/authors/id/C/CJ/CJFIELDS/BioPerl-1.7.8.tar.gz ) package and Python (miniconda) and [svglib]( https://files.pythonhosted.org/packages/c0/2c/5ab28095c9ce09a6d341cb37c0ad3a7ffc65e5c5f2eaa2247c085679ca2f/svglib-1.1.0.tar.gz ) packages in the GenomeSyn installation package, after the GenomeSyn installation package is decompressed, use the "source ./install.sh" command to add the environment for running GenomeSyn to run GenomeSyn.
 ```
 # add the environment variables
