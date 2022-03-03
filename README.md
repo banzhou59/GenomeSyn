@@ -9,6 +9,8 @@ An online service of GenomeSyn at: http://cbi.gxu.edu.cn/GenomeSyn/.
 ## Install
 
 GenomeSyn is an executable file written in Perl, and users can run it directly. But before using GenomeSyn, the software dependency problem needs to be solved first. Users can download sample data for testing.
+GenomeSyn 1.2 is an OSI certified open source package. You can download the current source distribution [here](https://cbi.gxu.edu.cn/GenomeSyn//download/download_pl/) or access Github.
+
 ## Dependencies 
 ***1. MUMmer***
 
