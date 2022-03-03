@@ -1,0 +1,1189 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#SUBROUTINES-METHODS">SUBROUTINES/METHODS</a></li>
+  <li><a href="#CONFIG-FILE-FORMAT">CONFIG FILE FORMAT</a></li>
+  <li><a href="#BLOCKS">BLOCKS</a></li>
+  <li><a href="#NAMED-BLOCKS">NAMED BLOCKS</a></li>
+  <li><a href="#WHITESPACE-IN-BLOCKS">WHITESPACE IN BLOCKS</a></li>
+  <li><a href="#EXPLICIT-EMPTY-BLOCKS">EXPLICIT EMPTY BLOCKS</a></li>
+  <li><a href="#IDENTICAL-OPTIONS-ARRAYS-">IDENTICAL OPTIONS (ARRAYS)</a>
+    <ul>
+      <li><a href="#FORCE-SINGLE-VALUE-ARRAYS">FORCE SINGLE VALUE ARRAYS</a></li>
+    </ul>
+  </li>
+  <li><a href="#LONG-LINES">LONG LINES</a></li>
+  <li><a href="#HERE-DOCUMENTS">HERE DOCUMENTS</a></li>
+  <li><a href="#INCLUDES">INCLUDES</a></li>
+  <li><a href="#COMMENTS">COMMENTS</a></li>
+  <li><a href="#PARSER-PLUGINS">PARSER PLUGINS</a></li>
+  <li><a href="#OBJECT-ORIENTED-INTERFACE">OBJECT ORIENTED INTERFACE</a></li>
+  <li><a href="#VARIABLE-INTERPOLATION">VARIABLE INTERPOLATION</a></li>
+  <li><a href="#EXPORTED-FUNCTIONS">EXPORTED FUNCTIONS</a></li>
+  <li><a href="#CONFIGURATION-AND-ENVIRONMENT">CONFIGURATION AND ENVIRONMENT</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#LICENSE-AND-COPYRIGHT">LICENSE AND COPYRIGHT</a></li>
+  <li><a href="#BUGS-AND-LIMITATIONS">BUGS AND LIMITATIONS</a></li>
+  <li><a href="#INCOMPATIBILITIES">INCOMPATIBILITIES</a></li>
+  <li><a href="#DIAGNOSTICS">DIAGNOSTICS</a></li>
+  <li><a href="#DEPENDENCIES">DEPENDENCIES</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Config::General - Generic Config Module</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="comment">#</span>
+ <span class="comment"># the OOP way</span>
+ <span class="keyword">use</span> <span class="variable">Config::General</span><span class="operator">;</span>
+ <span class="variable">$conf</span> <span class="operator">=</span> <span class="variable">Config::General</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">"rcfile"</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">%config</span> <span class="operator">=</span> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">getall</span><span class="operator">;</span>
+ 
+ <span class="comment">#</span>
+ <span class="comment"># the procedural way</span>
+ <span class="keyword">use</span> <span class="variable">Config::General</span> <span class="string">qw(ParseConfig SaveConfig SaveConfigString)</span><span class="operator">;</span>
+ <span class="keyword">my</span> <span class="variable">%config</span> <span class="operator">=</span> <span class="variable">ParseConfig</span><span class="operator">(</span><span class="string">"rcfile"</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module opens a config file and parses its contents for you. The <b>new</b> method requires one parameter which needs to be a filename. The method <b>getall</b> returns a hash which contains all options and its associated values of your config file.</p>
+
+<p>The format of config files supported by <b>Config::General</b> is inspired by the well known Apache config format, in fact, this module is 100% compatible to Apache configs, but you can also just use simple name/value pairs in your config files.</p>
+
+<p>In addition to the capabilities of an Apache config file it supports some enhancements such as here-documents, C-style comments or multiline options.</p>
+
+<h1 id="SUBROUTINES-METHODS">SUBROUTINES/METHODS</h1>
+
+<dl>
+
+<dt id="new-">new()</dt>
+<dd>
+
+<p>Possible ways to call <b>new()</b>:</p>
+
+<pre><code><code> <span class="variable">$conf</span> <span class="operator">=</span> <span class="variable">Config::General</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">"rcfile"</span><span class="operator">);</span>
+ 
+ <span class="variable">$conf</span> <span class="operator">=</span> <span class="variable">Config::General</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(\</span><span class="variable">%somehash</span><span class="operator">);</span>
+ 
+ <span class="variable">$conf</span> <span class="operator">=</span> <span class="variable">Config::General</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="variable">%options</span> <span class="operator">);</span> <span class="comment"># see below for description of possible options</span>
+</code></code></pre>
+
+<p>This method returns a <b>Config::General</b> object (a hash blessed into &quot;Config::General&quot; namespace. All further methods must be used from that returned object. see below.</p>
+
+<p>You can use the new style with hash parameters or the old style which is of course still supported. Possible parameters to <b>new()</b> are:</p>
+
+<p>* a filename of a configfile, which will be opened and parsed by the parser</p>
+
+<p>or</p>
+
+<p>* a hash reference, which will be used as the config.</p>
+
+<p>An alternative way to call <b>new()</b> is supplying an option- hash with one or more of the following keys set:</p>
+
+<dl>
+
+<dt id="ConfigFile"><b>-ConfigFile</b></dt>
+<dd>
+
+<p>A filename or a filehandle, i.e.:</p>
+
+<pre><code><code> -ConfigFile =&gt; &quot;rcfile&quot; or -ConfigFile =&gt; \$FileHandle</code></code></pre>
+
+</dd>
+<dt id="ConfigHash"><b>-ConfigHash</b></dt>
+<dd>
+
+<p>A hash reference, which will be used as the config, i.e.:</p>
+
+<pre><code><code> -ConfigHash =&gt; \%somehash</code></code></pre>
+
+</dd>
+<dt id="String"><b>-String</b></dt>
+<dd>
+
+<p>A string which contains a whole config, or an arrayref containing the whole config line by line. The parser will parse the contents of the string instead of a file. i.e:</p>
+
+<pre><code><code> -String =&gt; $complete_config</code></code></pre>
+
+<p>it is also possible to feed an array reference to -String:</p>
+
+<pre><code><code> -String =&gt; \@config_lines</code></code></pre>
+
+</dd>
+<dt id="AllowMultiOptions"><b>-AllowMultiOptions</b></dt>
+<dd>
+
+<p>If the value is &quot;no&quot;, then multiple identical options are disallowed. The default is &quot;yes&quot;. i.e.:</p>
+
+<pre><code><code> -AllowMultiOptions =&gt; &quot;yes&quot;</code></code></pre>
+
+<p>see <b>IDENTICAL OPTIONS</b> for details.</p>
+
+</dd>
+<dt id="LowerCaseNames"><b>-LowerCaseNames</b></dt>
+<dd>
+
+<p>If set to a true value, then all options found in the config will be converted to lowercase. This allows you to provide case-in-sensitive configs. The values of the options will <b>not</b> lowercased.</p>
+
+</dd>
+<dt id="UseApacheInclude"><b>-UseApacheInclude</b></dt>
+<dd>
+
+<p>If set to a true value, the parser will consider &quot;include ...&quot; as valid include statement (just like the well known Apache include statement).</p>
+
+</dd>
+<dt id="IncludeRelative"><b>-IncludeRelative</b></dt>
+<dd>
+
+<p>If set to a true value, included files with a relative path (i.e. &quot;cfg/blah.conf&quot;) will be opened from within the location of the configfile instead from within the location of the script($0). This works only if the configfile has a absolute pathname (i.e. &quot;/etc/main.conf&quot;).</p>
+
+<p>If the variable <b>-ConfigPath</b> has been set and if the file to be included could not be found in the location relative to the current config file, the module will search within <b>-ConfigPath</b> for the file. See the description of <b>-ConfigPath</b> for more details.</p>
+
+</dd>
+<dt id="IncludeDirectories"><b>-IncludeDirectories</b></dt>
+<dd>
+
+<p>If set to a true value, you may specify include a directory, in which case all files inside the directory will be loaded in ASCII order. Directory includes will not recurse into subdirectories. This is comparable to including a directory in Apache-style config files.</p>
+
+</dd>
+<dt id="IncludeGlob"><b>-IncludeGlob</b></dt>
+<dd>
+
+<p>If set to a true value, you may specify a glob pattern for an include to include all matching files (e.g. &lt;&lt;include conf.d/*.conf&gt;&gt;). Also note that as with standard file patterns, * will not match dot-files, so &lt;&lt;include dir/*&gt;&gt; is often more desirable than including a directory with <b>-IncludeDirectories</b>.</p>
+
+</dd>
+<dt id="IncludeAgain"><b>-IncludeAgain</b></dt>
+<dd>
+
+<p>If set to a true value, you will be able to include a sub-configfile multiple times. With the default, false, you will get a warning about duplicate includes and only the first include will succeed.</p>
+
+<p>Reincluding a configfile can be useful if it contains data that you want to be present in multiple places in the data tree. See the example under <a href="#INCLUDES">&quot;INCLUDES&quot;</a>.</p>
+
+<p>Note, however, that there is currently no check for include recursion.</p>
+
+</dd>
+<dt id="ConfigPath"><b>-ConfigPath</b></dt>
+<dd>
+
+<p>As mentioned above, you can use this variable to specify a search path for relative config files which have to be included. Config::General will search within this path for the file if it cannot find the file at the location relative to the current config file.</p>
+
+<p>To provide multiple search paths you can specify an array reference for the path. For example:</p>
+
+<pre><code><code> <span class="variable">@path</span> <span class="operator">=</span> <span class="string">qw(/usr/lib/perl /nfs/apps/lib /home/lib)</span><span class="operator">;</span>
+ <span class="operator">..</span>
+ <span class="string">-ConfigPath</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@path</span>
+</code></code></pre>
+
+</dd>
+<dt id="MergeDuplicateBlocks"><b>-MergeDuplicateBlocks</b></dt>
+<dd>
+
+<p>If set to a true value, then duplicate blocks, that means blocks and named blocks, will be merged into a single one (see below for more details on this). The default behavior of Config::General is to create an array if some junk in a config appears more than once.</p>
+
+</dd>
+<dt id="MergeDuplicateOptions"><b>-MergeDuplicateOptions</b></dt>
+<dd>
+
+<p>If set to a true value, then duplicate options will be merged. That means, if the same option occurs more than once, the last one will be used in the resulting config hash.</p>
+
+<p>Setting this option implies <b>-AllowMultiOptions == false</b> unless you set <b>-AllowMultiOptions</b> explicit to &#39;true&#39;. In this case duplicate blocks are allowed and put into an array but duplicate options will be merged.</p>
+
+</dd>
+<dt id="AutoLaunder"><b>-AutoLaunder</b></dt>
+<dd>
+
+<p>If set to a true value, then all values in your config file will be laundered to allow them to be used under a -T taint flag. This could be regarded as circumventing the purpose of the -T flag, however, if the bad guys can mess with your config file, you have problems that -T will not be able to stop. AutoLaunder will only handle a config file being read from -ConfigFile.</p>
+
+</dd>
+<dt id="AutoTrue"><b>-AutoTrue</b></dt>
+<dd>
+
+<p>If set to a true value, then options in your config file, whose values are set to true or false values, will be normalised to 1 or 0 respectively.</p>
+
+<p>The following values will be considered as <b>true</b>:</p>
+
+<pre><code><code> yes, on, 1, true</code></code></pre>
+
+<p>The following values will be considered as <b>false</b>:</p>
+
+<pre><code><code> no, off, 0, false</code></code></pre>
+
+<p>This effect is case-insensitive, i.e. both &quot;Yes&quot; or &quot;No&quot; will result in 1.</p>
+
+</dd>
+<dt id="FlagBits"><b>-FlagBits</b></dt>
+<dd>
+
+<p>This option takes one required parameter, which must be a hash reference.</p>
+
+<p>The supplied hash reference needs to define variables for which you want to preset values. Each variable you have defined in this hash-ref and which occurs in your config file, will cause this variable being set to the preset values to which the value in the config file refers to.</p>
+
+<p>Multiple flags can be used, separated by the pipe character |.</p>
+
+<p>Well, an example will clarify things:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$conf</span> <span class="operator">=</span> <span class="variable">Config::General</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+         <span class="string">-ConfigFile</span> <span class="operator">=&gt;</span> <span class="string">"rcfile"</span><span class="operator">,</span>
+         <span class="string">-FlagBits</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+              <span class="string">Mode</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                 <span class="string">CLEAR</span>    <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                 <span class="string">STRONG</span>   <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                 <span class="string">UNSECURE</span> <span class="operator">=&gt;</span> <span class="string">"32bit"</span> <span class="operator">}</span>
+         <span class="operator">}</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<p>In this example we are defining a variable named <i>&quot;Mode&quot;</i> which may contain one or more of &quot;CLEAR&quot;, &quot;STRONG&quot; and &quot;UNSECURE&quot; as value.</p>
+
+<p>The appropriate config entry may look like this:</p>
+
+<pre><code><code> # rcfile
+ Mode = CLEAR | UNSECURE</code></code></pre>
+
+<p>The parser will create a hash which will be the value of the key &quot;Mode&quot;. This hash will contain <b>all</b> flags which you have pre-defined, but only those which were set in the config will contain the pre-defined value, the other ones will be undefined.</p>
+
+<p>The resulting config structure would look like this after parsing:</p>
+
+<pre><code><code> <span class="variable">%config</span> <span class="operator">=</span> <span class="operator">(</span>
+             <span class="string">Mode</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                       <span class="string">CLEAR</span>    <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                       <span class="string">UNSECURE</span> <span class="operator">=&gt;</span> <span class="string">"32bit"</span><span class="operator">,</span>
+                       <span class="string">STRONG</span>   <span class="operator">=&gt;</span> <span class="keyword">undef</span><span class="operator">,</span>
+                     <span class="operator">}</span>
+           <span class="operator">);</span>
+</code></code></pre>
+
+<p>This method allows the user (or, the &quot;maintainer&quot; of the configfile for your application) to set multiple pre-defined values for one option.</p>
+
+<p>Please beware, that all occurrences of those variables will be handled this way, there is no way to distinguish between variables in different scopes. That means, if &quot;Mode&quot; would also occur inside a named block, it would also parsed this way.</p>
+
+<p>Values which are not defined in the hash-ref supplied to the parameter <b>-FlagBits</b> and used in the corresponding variable in the config will be ignored.</p>
+
+<p>Example:</p>
+
+<pre><code><code> # rcfile
+ Mode = BLAH | CLEAR</code></code></pre>
+
+<p>would result in this hash structure:</p>
+
+<pre><code><code>  <span class="variable">%config</span> <span class="operator">=</span> <span class="operator">(</span>
+             <span class="string">Mode</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                       <span class="string">CLEAR</span>    <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                       <span class="string">UNSECURE</span> <span class="operator">=&gt;</span> <span class="keyword">undef</span><span class="operator">,</span>
+                       <span class="string">STRONG</span>   <span class="operator">=&gt;</span> <span class="keyword">undef</span><span class="operator">,</span>
+                     <span class="operator">}</span>
+           <span class="operator">);</span>
+</code></code></pre>
+
+<p>&quot;BLAH&quot; will be ignored silently.</p>
+
+</dd>
+<dt id="DefaultConfig"><b>-DefaultConfig</b></dt>
+<dd>
+
+<p>This can be a hash reference or a simple scalar (string) of a config. This causes the module to preset the resulting config hash with the given values, which allows you to set default values for particular config options directly.</p>
+
+<p>Note that you probably want to use this with <b>-MergeDuplicateOptions</b>, otherwise a default value already in the configuration file will produce an array of two values.</p>
+
+</dd>
+<dt id="Tie"><b>-Tie</b></dt>
+<dd>
+
+<p><b>-Tie</b> takes the name of a Tie class as argument that each new hash should be based off of.</p>
+
+<p>This hash will be used as the &#39;backing hash&#39; instead of a standard Perl hash, which allows you to affect the way, variable storing will be done. You could, for example supply a tied hash, say Tie::DxHash, which preserves ordering of the keys in the config (which a standard Perl hash won&#39;t do). Or, you could supply a hash tied to a DBM file to save the parsed variables to disk.</p>
+
+<p>There are many more things to do in tie-land, see <a>tie</a> to get some interesting ideas.</p>
+
+<p>If you want to use the <b>-Tie</b> feature together with <b>-DefaultConfig</b> make sure that the hash supplied to <b>-DefaultConfig</b> must be tied to the same Tie class.</p>
+
+<p>Make sure that the hash which receives the generated hash structure (e.g. which you are using in the assignment: %hash = $config-&gt;getall()) must be tied to the same Tie class.</p>
+
+<p>Example:</p>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Config::General</span> <span class="string">qw(ParseConfig)</span><span class="operator">;</span>
+ <span class="keyword">use</span> <span class="variable">Tie::IxHash</span><span class="operator">;</span>
+ <span class="keyword">tie</span> <span class="keyword">my</span> <span class="variable">%hash</span><span class="operator">,</span> <span class="string">"Tie::IxHash"</span><span class="operator">;</span>
+ <span class="variable">%hash</span> <span class="operator">=</span> <span class="variable">ParseConfig</span><span class="operator">(</span>
+           <span class="string">-ConfigFile</span> <span class="operator">=&gt;</span> <span class="keyword">shift</span><span class="operator">(),</span>
+           <span class="string">-Tie</span> <span class="operator">=&gt;</span> <span class="string">"Tie::IxHash"</span>
+         <span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="InterPolateVars"><b>-InterPolateVars</b></dt>
+<dd>
+
+<p>If set to a true value, variable interpolation will be done on your config input. See <a href="../../../../../../public/home/fxing/.cpan/build/Config-General-2.58-YMbH9s/blib/lib/Config/General/Interpolated.html">Config::General::Interpolated</a> for more information.</p>
+
+</dd>
+<dt id="InterPolateEnv"><b>-InterPolateEnv</b></dt>
+<dd>
+
+<p>If set to a true value, environment variables can be used in configs.</p>
+
+<p>This implies <b>-InterPolateVars</b>.</p>
+
+</dd>
+<dt id="AllowSingleQuoteInterpolation"><b>-AllowSingleQuoteInterpolation</b></dt>
+<dd>
+
+<p>By default variables inside single quotes will not be interpolated. If you turn on this option, they will be interpolated as well.</p>
+
+</dd>
+<dt id="ExtendedAccess"><b>-ExtendedAccess</b></dt>
+<dd>
+
+<p>If set to a true value, you can use object oriented (extended) methods to access the parsed config. See <a href="../../../../../../public/home/fxing/.cpan/build/Config-General-2.58-YMbH9s/blib/lib/Config/General/Extended.html">Config::General::Extended</a> for more information.</p>
+
+</dd>
+<dt id="StrictObjects"><b>-StrictObjects</b></dt>
+<dd>
+
+<p>By default this is turned on, which causes Config::General to croak with an error if you try to access a non-existent key using the OOP-way (<b>-ExtendedAcess</b> enabled). If you turn <b>-StrictObjects</b> off (by setting to 0 or &quot;no&quot;) it will just return an empty object/hash/scalar. This is valid for OOP-access 8via AUTOLOAD and for the methods obj(), hash() and value().</p>
+
+</dd>
+<dt id="StrictVars"><b>-StrictVars</b></dt>
+<dd>
+
+<p>By default this is turned on, which causes Config::General to croak with an error if an undefined variable with <b>InterPolateVars</b> turned on occurs in a config. Set to <i>false</i> (i.e. 0) to avoid such error messages.</p>
+
+</dd>
+<dt id="SplitPolicy"><b>-SplitPolicy</b></dt>
+<dd>
+
+<p>You can influence the way how Config::General decides which part of a line in a config file is the key and which one is the value. By default it tries its best to guess. That means you can mix equalsign assignments and whitespace assignments.</p>
+
+<p>However, sometime you may wish to make it more strictly for some reason. In this case you can set <b>-SplitPolicy</b>. The possible values are: &#39;guess&#39; which is the default, &#39;whitespace&#39; which causes the module to split by whitespace, &#39;equalsign&#39; which causes it to split strictly by equal sign, or &#39;custom&#39;. In the latter case you must also set <b>-SplitDelimiter</b> to some regular expression of your choice. For example:</p>
+
+<pre><code><code> -SplitDelimiter =&gt; &#39;\s*:\s*&#39;</code></code></pre>
+
+<p>will cause the module to split by colon while whitespace which surrounds the delimiter will be removed.</p>
+
+<p>Please note that the delimiter used when saving a config (save_file() or save_string()) will be chosen according to the current <b>-SplitPolicy</b>. If -SplitPolicy is set to &#39;guess&#39; or &#39;whitespace&#39;, 3 spaces will be used to delimit saved options. If &#39;custom&#39; is set, then you need to set <b>-StoreDelimiter</b>.</p>
+
+</dd>
+<dt id="SplitDelimiter"><b>-SplitDelimiter</b></dt>
+<dd>
+
+<p>Set this to any arbitrary regular expression which will be used for option/value splitting. <b>-SplitPolicy</b> must be set to &#39;custom&#39; to make this work.</p>
+
+</dd>
+<dt id="StoreDelimiter"><b>-StoreDelimiter</b></dt>
+<dd>
+
+<p>You can use this parameter to specify a custom delimiter to use when saving configs to a file or string. You only need to set it if you want to store the config back to disk and if you have <b>-SplitPolicy</b> set to &#39;custom&#39;.</p>
+
+<p>Be very careful with this parameter.</p>
+
+</dd>
+<dt id="CComments"><b>-CComments</b></dt>
+<dd>
+
+<p>Config::General is able to notice c-style comments (see section COMMENTS). But for some reason you might no need this. In this case you can turn this feature off by setting <b>-CComments</b> to a false value(&#39;no&#39;, 0, &#39;off&#39;).</p>
+
+<p>By default <b>-CComments</b> is turned on.</p>
+
+</dd>
+<dt id="BackslashEscape"><b>-BackslashEscape</b></dt>
+<dd>
+
+<p><b>Deprecated Option</b>.</p>
+
+</dd>
+<dt id="SlashIsDirectory"><b>-SlashIsDirectory</b></dt>
+<dd>
+
+<p>If you turn on this parameter, a single slash as the last character of a named block will be considered as a directory name.</p>
+
+<p>By default this flag is turned off, which makes the module somewhat incompatible to Apache configs, since such a setup will be normally considered as an explicit empty block, just as XML defines it.</p>
+
+<p>For example, if you have the following config:</p>
+
+<pre><code><code> &lt;Directory /&gt;
+   Index index.awk
+ &lt;/Directory&gt;</code></code></pre>
+
+<p>you will get such an error message from the parser:</p>
+
+<pre><code><code> EndBlock &quot;&lt;/Directory&gt;&quot; has no StartBlock statement (level: 1, chunk 10)!</code></code></pre>
+
+<p>This is caused by the fact that the config chunk below will be internally converted to:</p>
+
+<pre><code><code> &lt;Directory&gt;&lt;/Directory&gt;
+   Index index.awk
+ &lt;/Directory&gt;</code></code></pre>
+
+<p>Now there is one &#39;&lt;/Directory&gt;&#39; too much. The proper solution is to use quotation to circumvent this error:</p>
+
+<pre><code><code> &lt;Directory &quot;/&quot;&gt;
+   Index index.awk
+ &lt;/Directory&gt;</code></code></pre>
+
+<p>However, a raw apache config comes without such quotes. In this case you may consider to turn on <b>-SlashIsDirectory</b>.</p>
+
+<p>Please note that this is a new option (incorporated in version 2.30), it may lead to various unexpected side effects or other failures. You&#39;ve been warned.</p>
+
+</dd>
+<dt id="ApacheCompatible"><b>-ApacheCompatible</b></dt>
+<dd>
+
+<p>Over the past years a lot of options has been incorporated into Config::General to be able to parse real Apache configs.</p>
+
+<p>The new <b>-ApacheCompatible</b> option now makes it possible to tweak all options in a way that Apache configs can be parsed.</p>
+
+<p>This is called &quot;apache compatibility mode&quot; - if you will ever have problems with parsing Apache configs without this option being set, you&#39;ll get no help by me. Thanks :)</p>
+
+<p>The following options will be set:</p>
+
+<pre><code><code> UseApacheInclude   = 1
+ IncludeRelative    = 1
+ IncludeDirectories = 1
+ IncludeGlob        = 1
+ SlashIsDirectory   = 1
+ SplitPolicy        = &#39;whitespace&#39;
+ CComments          = 0</code></code></pre>
+
+<p>Take a look into the particular documentation sections what those options are doing.</p>
+
+<p>Beside setting some options it also turns off support for explicit empty blocks.</p>
+
+</dd>
+<dt id="UTF8"><b>-UTF8</b></dt>
+<dd>
+
+<p>If turned on, all files will be opened in utf8 mode. This may not work properly with older versions of Perl.</p>
+
+</dd>
+<dt id="SaveSorted"><b>-SaveSorted</b></dt>
+<dd>
+
+<p>If you want to save configs in a sorted manner, turn this parameter on. It is not enabled by default.</p>
+
+</dd>
+<dt id="NoEscape"><b>-NoEscape</b></dt>
+<dd>
+
+<p>If you want to use the data ( scalar or final leaf ) without escaping special character, turn this parameter on. It is not enabled by default.</p>
+
+</dd>
+<dt id="NormalizeBlock"><b>-NormalizeBlock</b></dt>
+<dd>
+
+<p>Takes a subroutine reference as parameter and gets the current block or blockname passed as parameter and is expected to return it in some altered way as a scalar string. The sub will be called before anything else will be done by the module itself (e.g. interpolation).</p>
+
+<p>Example:</p>
+
+<pre><code><code> <span class="string">-NormalizeBlock</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">my</span> <span class="variable">$x</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span> <span class="variable">$x</span> <span class="operator">=~</span> <span class="regex">s/\s*$//</span><span class="operator">;</span> <span class="variable">$x</span><span class="operator">;</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>This removes trailing whitespaces of block names.</p>
+
+</dd>
+<dt id="NormalizeOption"><b>-NormalizeOption</b></dt>
+<dd>
+
+<p>Same as <b>-NormalizeBlock</b> but applied on options only.</p>
+
+</dd>
+<dt id="NormalizeValue"><b>-NormalizeValue</b></dt>
+<dd>
+
+<p>Same as <b>-NormalizeBlock</b> but applied on values only.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="getall-">getall()</dt>
+<dd>
+
+<p>Returns a hash structure which represents the whole config.</p>
+
+</dd>
+<dt id="files-">files()</dt>
+<dd>
+
+<p>Returns a list of all files read in.</p>
+
+</dd>
+<dt id="save_file-">save_file()</dt>
+<dd>
+
+<p>Writes the config hash back to the hard disk. This method takes one or two parameters. The first parameter must be the filename where the config should be written to. The second parameter is optional, it must be a reference to a hash structure, if you set it. If you do not supply this second parameter then the internal config hash, which has already been parsed, will be used.</p>
+
+<p>Please note that any occurrence of comments will be ignored by getall() and thus be lost after you call this method.</p>
+
+<p>You need also to know that named blocks will be converted to nested blocks (which is the same from the perl point of view). An example:</p>
+
+<pre><code><code> &lt;user hans&gt;
+   id 13
+ &lt;/user&gt;</code></code></pre>
+
+<p>will become the following after saving:</p>
+
+<pre><code><code> &lt;user&gt;
+   &lt;hans&gt;
+      id 13
+   &lt;/hans&gt;
+ &lt;/user&gt;</code></code></pre>
+
+<p>Example:</p>
+
+<pre><code><code> <span class="variable">$conf_obj</span><span class="operator">-&gt;</span><span class="variable">save_file</span><span class="operator">(</span><span class="string">"newrcfile"</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%config</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>or, if the config has already been parsed, or if it didn&#39;t change:</p>
+
+<pre><code><code> <span class="variable">$conf_obj</span><span class="operator">-&gt;</span><span class="variable">save_file</span><span class="operator">(</span><span class="string">"newrcfile"</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="save_string-">save_string()</dt>
+<dd>
+
+<p>This method is equivalent to the previous save_file(), but it does not store the generated config to a file. Instead it returns it as a string, which you can save yourself afterwards.</p>
+
+<p>It takes one optional parameter, which must be a reference to a hash structure. If you omit this parameter, the internal config hash, which has already been parsed, will be used.</p>
+
+<p>Example:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$content</span> <span class="operator">=</span> <span class="variable">$conf_obj</span><span class="operator">-&gt;</span><span class="variable">save_string</span><span class="operator">(\</span><span class="variable">%config</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>or:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$content</span> <span class="operator">=</span> <span class="variable">$conf_obj</span><span class="operator">-&gt;</span><span class="variable">save_string</span><span class="operator">();</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h1 id="CONFIG-FILE-FORMAT">CONFIG FILE FORMAT</h1>
+
+<p>Lines beginning with <b>#</b> and empty lines will be ignored. (see section COMMENTS!) Spaces at the beginning and the end of a line will also be ignored as well as tabulators. If you need spaces at the end or the beginning of a value you can surround it with double quotes. An option line starts with its name followed by a value. An equal sign is optional. Some possible examples:</p>
+
+<pre><code><code> user    max
+ user  = max
+ user            max</code></code></pre>
+
+<p>If there are more than one statements with the same name, it will create an array instead of a scalar. See the example below.</p>
+
+<p>The method <b>getall</b> returns a hash of all values.</p>
+
+<h1 id="BLOCKS">BLOCKS</h1>
+
+<p>You can define a <b>block</b> of options. A <b>block</b> looks much like a block in the wellknown Apache config format. It starts with &lt;<b>blockname</b>&gt; and ends with &lt;/<b>blockname</b>&gt;. An example:</p>
+
+<pre><code><code> &lt;database&gt;
+    host   = muli
+    user   = moare
+    dbname = modb
+    dbpass = D4r_9Iu
+ &lt;/database&gt;</code></code></pre>
+
+<p>Blocks can also be nested. Here is a more complicated example:</p>
+
+<pre><code><code> user   = hans
+ server = mc200
+ db     = maxis
+ passwd = D3rf$
+ &lt;jonas&gt;
+        user    = tom
+        db      = unknown
+        host    = mila
+        &lt;tablestructure&gt;
+                index   int(100000)
+                name    char(100)
+                prename char(100)
+                city    char(100)
+                status  int(10)
+                allowed moses
+                allowed ingram
+                allowed joice
+        &lt;/tablestructure&gt;
+ &lt;/jonas&gt;</code></code></pre>
+
+<p>The hash which the method <b>getall</b> returns look like that:</p>
+
+<pre><code><code> <span class="keyword">print</span> <span class="variable">Data::Dumper</span><span class="operator">(\</span><span class="variable">%hash</span><span class="operator">);</span>
+ <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">{</span>
+          <span class="string">'passwd'</span> <span class="operator">=&gt;</span> <span class="string">'D3rf$'</span><span class="operator">,</span>
+          <span class="string">'jonas'</span>  <span class="operator">=&gt;</span> <span class="operator">{</span>
+                       <span class="string">'tablestructure'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                                             <span class="string">'prename'</span> <span class="operator">=&gt;</span> <span class="string">'char(100)'</span><span class="operator">,</span>
+                                             <span class="string">'index'</span>   <span class="operator">=&gt;</span> <span class="string">'int(100000)'</span><span class="operator">,</span>
+                                             <span class="string">'city'</span>    <span class="operator">=&gt;</span> <span class="string">'char(100)'</span><span class="operator">,</span>
+                                             <span class="string">'name'</span>    <span class="operator">=&gt;</span> <span class="string">'char(100)'</span><span class="operator">,</span>
+                                             <span class="string">'status'</span>  <span class="operator">=&gt;</span> <span class="string">'int(10)'</span><span class="operator">,</span>
+                                             <span class="string">'allowed'</span> <span class="operator">=&gt;</span> <span class="operator">[</span>
+                                                            <span class="string">'moses'</span><span class="operator">,</span>
+                                                            <span class="string">'ingram'</span><span class="operator">,</span>
+                                                            <span class="string">'joice'</span><span class="operator">,</span>
+                                                          <span class="operator">]</span>
+                                           <span class="operator">}</span><span class="operator">,</span>
+                       <span class="string">'host'</span>           <span class="operator">=&gt;</span> <span class="string">'mila'</span><span class="operator">,</span>
+                       <span class="string">'db'</span>             <span class="operator">=&gt;</span> <span class="string">'unknown'</span><span class="operator">,</span>
+                       <span class="string">'user'</span>           <span class="operator">=&gt;</span> <span class="string">'tom'</span>
+                     <span class="operator">}</span><span class="operator">,</span>
+          <span class="string">'db'</span>     <span class="operator">=&gt;</span> <span class="string">'maxis'</span><span class="operator">,</span>
+          <span class="string">'server'</span> <span class="operator">=&gt;</span> <span class="string">'mc200'</span><span class="operator">,</span>
+          <span class="string">'user'</span>   <span class="operator">=&gt;</span> <span class="string">'hans'</span>
+        <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>If you have turned on <b>-LowerCaseNames</b> (see new()) then blocks as in the following example:</p>
+
+<pre><code><code> &lt;Dir&gt;
+   &lt;AttriBUTES&gt;
+     Owner  root
+   &lt;/attributes&gt;
+ &lt;/dir&gt;</code></code></pre>
+
+<p>would produce the following hash structure:</p>
+
+<pre><code><code> <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">{</span>
+          <span class="string">'dir'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                    <span class="string">'attributes'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                                     <span class="string">'owner  =&gt; "root",
+                                    }
+                   }
+         };
+ </span>
+</code></code></pre>
+
+<p>As you can see, the keys inside the config hash are normalized.</p>
+
+<p>Please note, that the above config block would result in a valid hash structure, even if <b>-LowerCaseNames</b> is not set! This is because <i>Config::General</i> does not use the block names to check if a block ends, instead it uses an internal state counter, which indicates a block end.</p>
+
+<p>If the module cannot find an end-block statement, then this block will be ignored.</p>
+
+<h1 id="NAMED-BLOCKS">NAMED BLOCKS</h1>
+
+<p>If you need multiple blocks of the same name, then you have to name every block. This works much like Apache config. If the module finds a named block, it will create a hashref with the left part of the named block as the key containing one or more hashrefs with the right part of the block as key containing everything inside the block(which may again be nested!). As examples says more than words:</p>
+
+<pre><code><code> <span class="comment"># given the following sample</span>
+ <span class="operator">&lt;</span><span class="variable">Directory</span> <span class="operator">/</span><span class="variable">usr</span><span class="operator">/</span><span class="variable">frisco</span><span class="operator">&gt;</span>
+        <span class="variable">Limit</span> <span class="variable">Deny</span>
+        <span class="variable">Options</span> <span class="variable">ExecCgi</span> <span class="variable">Index</span>
+ <span class="operator">&lt;/</span><span class="variable">Directory</span><span class="operator">&gt;</span>
+ <span class="operator">&lt;</span><span class="variable">Directory</span> <span class="operator">/</span><span class="variable">usr</span><span class="operator">/</span><span class="variable">frik</span><span class="operator">&gt;</span>
+        <span class="variable">Limit</span> <span class="variable">DenyAll</span>
+        <span class="variable">Options</span> <span class="variable">None</span>
+ <span class="operator">&lt;/</span><span class="variable">Directory</span><span class="operator">&gt;</span>
+ 
+ <span class="comment"># you will get:</span>
+ <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">{</span>
+          <span class="string">'Directory'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                           <span class="string">'/usr/frik'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                                            <span class="string">'Options'</span> <span class="operator">=&gt;</span> <span class="string">'None'</span><span class="operator">,</span>
+                                            <span class="string">'Limit'</span> <span class="operator">=&gt;</span> <span class="string">'DenyAll'</span>
+                                          <span class="operator">}</span><span class="operator">,</span>
+                           <span class="string">'/usr/frisco'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                                              <span class="string">'Options'</span> <span class="operator">=&gt;</span> <span class="string">'ExecCgi Index'</span><span class="operator">,</span>
+                                              <span class="string">'Limit'</span> <span class="operator">=&gt;</span> <span class="string">'Deny'</span>
+                                            <span class="operator">}</span>
+                         <span class="operator">}</span>
+        <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>You cannot have more than one named block with the same name because it will be stored in a hashref and therefore be overwritten if a block occurs once more.</p>
+
+<h1 id="WHITESPACE-IN-BLOCKS">WHITESPACE IN BLOCKS</h1>
+
+<p>The normal behavior of Config::General is to look for whitespace in block names to decide if it&#39;s a named block or just a simple block.</p>
+
+<p>Sometimes you may need blocknames which have whitespace in their names.</p>
+
+<p>With named blocks this is no problem, as the module only looks for the first whitespace:</p>
+
+<pre><code><code> &lt;person hugo gera&gt;
+ &lt;/person&gt;</code></code></pre>
+
+<p>would be parsed to:</p>
+
+<pre><code><code> <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">{</span>
+          <span class="string">'person'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                       <span class="string">'hugo gera'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                                      <span class="operator">}</span><span class="operator">,</span>
+                      <span class="operator">}</span>
+         <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The problem occurs, if you want to have a simple block containing whitespace:</p>
+
+<pre><code><code> &lt;hugo gera&gt;
+ &lt;/hugo gera&gt;</code></code></pre>
+
+<p>This would be parsed as a named block, which is not what you wanted. In this very case you may use quotation marks to indicate that it is not a named block:</p>
+
+<pre><code><code> &lt;&quot;hugo gera&quot;&gt;
+ &lt;/&quot;hugo gera&quot;&gt;</code></code></pre>
+
+<p>The save() method of the module inserts automatically quotation marks in such cases.</p>
+
+<h1 id="EXPLICIT-EMPTY-BLOCKS">EXPLICIT EMPTY BLOCKS</h1>
+
+<p>Beside the notation of blocks mentioned above it is possible to use explicit empty blocks.</p>
+
+<p>Normally you would write this in your config to define an empty block:</p>
+
+<pre><code><code> &lt;driver Apache&gt;
+ &lt;/driver&gt;</code></code></pre>
+
+<p>To save writing you can also write:</p>
+
+<pre><code><code> &lt;driver Apache/&gt;</code></code></pre>
+
+<p>which is the very same as above. This works for normal blocks and for named blocks.</p>
+
+<h1 id="IDENTICAL-OPTIONS-ARRAYS-">IDENTICAL OPTIONS (ARRAYS)</h1>
+
+<p>You may have more than one line of the same option with different values.</p>
+
+<p>Example: log log1 log log2 log log2</p>
+
+<p>You will get a scalar if the option occurred only once or an array if it occurred more than once. If you expect multiple identical options, then you may need to check if an option occurred more than once:</p>
+
+<pre><code><code> <span class="variable">$allowed</span> <span class="operator">=</span> <span class="variable">$hash</span><span class="operator">{</span><span class="string">jonas</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">tablestructure</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">allowed</span><span class="operator">}</span><span class="operator">;</span>
+ <span class="keyword">if</span><span class="operator">(</span><span class="keyword">ref</span><span class="operator">(</span><span class="variable">$allowed</span><span class="operator">)</span> <span class="keyword">eq</span> <span class="string">"ARRAY"</span><span class="operator">)</span> <span class="operator">{</span>
+     <span class="variable">@ALLOWED</span> <span class="operator">=</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$allowed</span><span class="operator">}</span><span class="operator">;</span>
+ <span class="keyword">else</span> <span class="operator">{</span>
+     <span class="variable">@ALLOWED</span> <span class="operator">=</span> <span class="operator">(</span><span class="variable">$allowed</span><span class="operator">);</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>The same applies to blocks and named blocks too (they are described in more detail below). For example, if you have the following config:</p>
+
+<pre><code><code> &lt;dir blah&gt;
+   user max
+ &lt;/dir&gt;
+ &lt;dir blah&gt;
+   user hannes
+ &lt;/dir&gt;</code></code></pre>
+
+<p>then you would end up with a data structure like this:</p>
+
+<pre><code><code> <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">{</span>
+          <span class="string">'dir'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                    <span class="string">'blah'</span> <span class="operator">=&gt;</span> <span class="operator">[</span>
+                                <span class="operator">{</span>
+                                  <span class="string">'user'</span> <span class="operator">=&gt;</span> <span class="string">'max'</span>
+                                <span class="operator">}</span><span class="operator">,</span>
+                                <span class="operator">{</span>
+                                  <span class="string">'user'</span> <span class="operator">=&gt;</span> <span class="string">'hannes'</span>
+                                <span class="operator">}</span>
+                              <span class="operator">]</span>
+                    <span class="operator">}</span>
+          <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>As you can see, the two identical blocks are stored in a hash which contains an array(-reference) of hashes.</p>
+
+<p>Under some rare conditions you might not want this behavior with blocks (and named blocks too). If you want to get one single hash with the contents of both identical blocks, then you need to turn the <b>new()</b> parameter <b>-MergeDuplicateBlocks</b> on (see above). The parsed structure of the example above would then look like this:</p>
+
+<pre><code><code> <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">{</span>
+          <span class="string">'dir'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                    <span class="string">'blah'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                               <span class="string">'user'</span> <span class="operator">=&gt;</span> <span class="operator">[</span>
+                                           <span class="string">'max'</span><span class="operator">,</span>
+                                           <span class="string">'hannes'</span>
+                                         <span class="operator">]</span>
+                              <span class="operator">}</span>
+                    <span class="operator">}</span>
+          <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>As you can see, there is only one hash &quot;dir-&gt;{blah}&quot; containing multiple &quot;user&quot; entries. As you can also see, turning on <b>-MergeDuplicateBlocks</b> does not affect scalar options (i.e. &quot;option = value&quot;). In fact you can tune merging of duplicate blocks and options independent from each other.</p>
+
+<p>If you don&#39;t want to allow more than one identical options, you may turn it off by setting the flag <i>AllowMultiOptions</i> in the <b>new()</b> method to &quot;no&quot;. If turned off, Config::General will complain about multiple occurring options with identical names!</p>
+
+<h2 id="FORCE-SINGLE-VALUE-ARRAYS">FORCE SINGLE VALUE ARRAYS</h2>
+
+<p>You may also force a single config line to get parsed into an array by turning on the option <b>-ForceArray</b> and by surrounding the value of the config entry by []. Example:</p>
+
+<pre><code><code> hostlist = [ foo.bar ]</code></code></pre>
+
+<p>Will be a singlevalue array entry if the option is turned on. If you want it to remain to be an array you have to turn on <b>-ForceArray</b> during save too.</p>
+
+<h1 id="LONG-LINES">LONG LINES</h1>
+
+<p>If you have a config value, which is too long and would take more than one line, you can break it into multiple lines by using the backslash character at the end of the line. The Config::General module will concatenate those lines to one single-value.</p>
+
+<p>Example:</p>
+
+<p>command = cat /var/log/secure/tripwire | \ mail <code><code>-s</code></code> &quot;report from tripwire&quot; \ honey@myotherhost.nl</p>
+
+<p>command will become: &quot;cat /var/log/secure/tripwire | mail <code><code>-s</code></code> &#39;report from twire&#39; honey@myotherhost.nl&quot;</p>
+
+<h1 id="HERE-DOCUMENTS">HERE DOCUMENTS</h1>
+
+<p>You can also define a config value as a so called &quot;here-document&quot;. You must tell the module an identifier which indicates the end of a here document. An identifier must follow a &quot;&lt;&lt;&quot;.</p>
+
+<p>Example:</p>
+
+<pre><code><code> message &lt;&lt;EOF
+   we want to
+   remove the
+   homedir of
+   root.
+ EOF</code></code></pre>
+
+<p>Everything between the two &quot;EOF&quot; strings will be in the option <i>message</i>.</p>
+
+<p>There is a special feature which allows you to use indentation with here documents. You can have any amount of whitespace or tabulators in front of the end identifier. If the module finds spaces or tabs then it will remove exactly those amount of spaces from every line inside the here-document.</p>
+
+<p>Example:</p>
+
+<pre><code><code> message &lt;&lt;EOF
+         we want to
+         remove the
+         homedir of
+         root.
+      EOF</code></code></pre>
+
+<p>After parsing, message will become:</p>
+
+<pre><code><code>   we want to
+   remove the
+   homedir of
+   root.</code></code></pre>
+
+<p>because there were the string &quot; &quot; in front of EOF, which were cut from every line inside the here-document.</p>
+
+<h1 id="INCLUDES">INCLUDES</h1>
+
+<p>You can include an external file at any position in your config file using the following statement in your config file:</p>
+
+<pre><code><code> &lt;&lt;include externalconfig.rc&gt;&gt;</code></code></pre>
+
+<p>If you turned on <b>-UseApacheInclude</b> (see <b>new()</b>), then you can also use the following statement to include an external file:</p>
+
+<pre><code><code> include externalconfig.rc</code></code></pre>
+
+<p>This file will be inserted at the position where it was found as if the contents of this file were directly at this position.</p>
+
+<p>You can also recursively include files, so an included file may include another one and so on. Beware that you do not recursively load the same file, you will end with an error message like &quot;too many open files in system!&quot;.</p>
+
+<p>By default included files with a relative pathname will be opened from within the current working directory. Under some circumstances it maybe possible to open included files from the directory, where the configfile resides. You need to turn on the option <b>-IncludeRelative</b> (see <b>new()</b>) if you want that. An example:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$conf</span> <span class="operator">=</span> <span class="variable">Config::General</span><span class="operator">(</span>
+                             <span class="string">-ConfigFile</span> <span class="operator">=&gt;</span> <span class="string">"/etc/crypt.d/server.cfg"</span>
+                             <span class="string">-IncludeRelative</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+                           <span class="operator">);</span>
+ 
+ <span class="regex">/etc/crypt</span><span class="operator">.</span><span class="variable">d</span><span class="operator">/</span><span class="variable">server</span><span class="operator">.</span><span class="variable">cfg</span><span class="operator">:</span>
+  <span class="operator">&lt;&lt;</span><span class="default">include</span> <span class="variable">acl</span><span class="operator">.</span><span class="variable">cfg</span><span class="operator">&gt;&gt;</span><span class="string">
+ </span>
+</code></code></pre>
+
+<p>In this example Config::General will try to include <i>acl.cfg</i> from <i>/etc/crypt.d</i>:</p>
+
+<pre><code><code> /etc/crypt.d/acl.cfg</code></code></pre>
+
+<p>The default behavior (if <b>-IncludeRelative</b> is <b>not</b> set!) will be to open just <i>acl.cfg</i>, wherever it is, i.e. if you did a chdir(&quot;/usr/local/etc&quot;), then Config::General will include:</p>
+
+<pre><code><code> /usr/local/etc/acl.cfg</code></code></pre>
+
+<p>Include statements can be case insensitive (added in version 1.25).</p>
+
+<p>Include statements will be ignored within C-Comments and here-documents.</p>
+
+<p>By default, a config file will only be included the first time it is referenced. If you wish to include a file in multiple places, set <b>/-IncludeAgain</b> to true. But be warned: this may lead to infinite loops, so make sure, you&#39;re not including the same file from within itself!</p>
+
+<p>Example:</p>
+
+<pre><code><code>    # main.cfg
+    &lt;object billy&gt;
+        class=Some::Class
+        &lt;printers&gt;
+            include printers.cfg
+        &lt;/printers&gt;
+        # ...
+    &lt;/object&gt;
+    &lt;object bob&gt;
+        class=Another::Class
+        &lt;printers&gt;
+            include printers.cfg
+        &lt;/printers&gt;
+        # ...
+    &lt;/object&gt;</code></code></pre>
+
+<p>Now <code><code>printers.cfg</code></code> will be include in both the <code><code>billy</code></code> and <code><code>bob</code></code> objects.</p>
+
+<p>You will have to be careful to not recursively include a file. Behaviour in this case is undefined.</p>
+
+<h1 id="COMMENTS">COMMENTS</h1>
+
+<p>A comment starts with the number sign <b>#</b>, there can be any number of spaces and/or tab stops in front of the #.</p>
+
+<p>A comment can also occur after a config statement. Example:</p>
+
+<pre><code><code> username = max  # this is the comment</code></code></pre>
+
+<p>If you want to comment out a large block you can use C-style comments. A <b>/*</b> signals the begin of a comment block and the <b>*/</b> signals the end of the comment block. Example:</p>
+
+<pre><code><code> user  = max # valid option
+ db    = tothemax
+ /*
+ user  = andors
+ db    = toand
+ */</code></code></pre>
+
+<p>In this example the second options of user and db will be ignored. Please beware of the fact, if the Module finds a <b>/*</b> string which is the start of a comment block, but no matching end block, it will ignore the whole rest of the config file!</p>
+
+<p><b>NOTE:</b> If you require the <b>#</b> character (number sign) to remain in the option value, then you can use a backslash in front of it, to escape it. Example:</p>
+
+<pre><code><code> bgcolor = \#ffffcc</code></code></pre>
+
+<p>In this example the value of $config{bgcolor} will be &quot;#ffffcc&quot;, Config::General will not treat the number sign as the begin of a comment because of the leading backslash.</p>
+
+<p>Inside here-documents escaping of number signs is NOT required!</p>
+
+<h1 id="PARSER-PLUGINS">PARSER PLUGINS</h1>
+
+<p>You can alter the behavior of the parser by supplying closures which will be called on certain hooks during config file processing and parsing.</p>
+
+<p>The general aproach works like this:</p>
+
+<pre><code><code> <span class="keyword">sub</span><span class="variable"> ck </span><span class="operator">{</span>
+  <span class="keyword">my</span><span class="operator">(</span><span class="variable">$file</span><span class="operator">,</span> <span class="variable">$base</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="string">"_open() tries </span><span class="variable">$file</span><span class="string"> ... "</span><span class="operator">;</span>
+  <span class="keyword">if</span><span class="operator">(</span><span class="variable">$file</span> <span class="operator">=~</span> <span class="regex">/blah/</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="string">"ignored\n"</span><span class="operator">;</span>
+    <span class="keyword">return</span> <span class="operator">(</span><span class="number">0</span><span class="operator">);</span>
+  <span class="operator">}</span>
+  <span class="keyword">else</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="string">"allowed\n"</span><span class="operator">;</span>
+    <span class="keyword">return</span> <span class="operator">(</span><span class="number">1</span><span class="operator">,</span> <span class="variable">@_</span><span class="operator">);</span>
+  <span class="operator">}</span>
+ <span class="operator">}</span>
+ 
+ <span class="keyword">my</span> <span class="variable">%c</span> <span class="operator">=</span> <span class="variable">ParseConfig</span><span class="operator">(</span>
+              <span class="string">-IncludeGlob</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+              <span class="string">-UseApacheInclude</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+              <span class="string">-ConfigFile</span> <span class="operator">=&gt;</span> <span class="keyword">shift</span><span class="operator">,</span>
+              <span class="string">-Plug</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">pre_open</span> <span class="operator">=&gt;</span> <span class="variable">*ck</span> <span class="operator">}</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<p>Output:</p>
+
+<pre><code><code> _open() tries cfg ... allowed
+ _open() tries x/*.conf ... allowed
+ _open() tries x/1.conf ... allowed
+ _open() tries x/2.conf ... allowed
+ _open() tries x/blah.conf ... ignored</code></code></pre>
+
+<p>As you can see, we wrote a little sub which takes a filename and a base directory as parameters. We tell Config::General via the <b>Plug</b> parameter of <b>new()</b> to call this sub everytime before it attempts to open a file.</p>
+
+<p>General processing continues as usual if the first value of the returned array is true. The second value of that array depends on the kind of hook being called.</p>
+
+<p>The following hooks are available so far:</p>
+
+<dl>
+
+<dt id="pre_open"><b>pre_open</b></dt>
+<dd>
+
+<p>Takes two parameters: filename and basedirectory.</p>
+
+<p>Has to return an array consisting of 3 values:</p>
+
+<pre><code><code> - 1 or 0 (continue processing or not)
+ - filename
+ - base directory</code></code></pre>
+
+</dd>
+<dt id="pre_read"><b>pre_read</b></dt>
+<dd>
+
+<p>Takes two parameters: the filehandle of the file to be read and an array containing the raw contents of said file.</p>
+
+<p>This hook will be applied in _read(). File contents are already available at this stage, comments will be removed, here-docs normalized and the like. This hook gets the unaltered, original contents.</p>
+
+<p>Has to return an array of 3 values:</p>
+
+<pre><code><code> - 1 or 0 (continue processing or not)
+ - the filehandle
+ - an array of strings</code></code></pre>
+
+<p>You can use this hook to apply your own normalizations or whatever.</p>
+
+<p>Be careful when returning the abort value (1st value of returned array 0), since in this case nothing else would be done on the contents. If it still contains comments or something, they will be parsed as legal config options.</p>
+
+</dd>
+<dt id="post_read"><b>post_read</b></dt>
+<dd>
+
+<p>Takes one parameter: a reference to an array containing the prepared config lines (after being processed by _read()).</p>
+
+<p>This hook will be applied in _read() when everything else has been done.</p>
+
+<p>Has to return an array of 2 values:</p>
+
+<pre><code><code> - 1 or 0 (continue processing or not) [Ignored for post hooks]
+ - a reference to an array containing the config lines</code></code></pre>
+
+</dd>
+<dt id="pre_parse_value"><b>pre_parse_value</b></dt>
+<dd>
+
+<p>Takes 2 parameters: an option name and its value.</p>
+
+<p>This hook will be applied in _parse_value() before any processing.</p>
+
+<p>Has to return an array of 3 values:</p>
+
+<pre><code><code> - 1 or 0 (continue processing or not)
+ - option name
+ - value of the option</code></code></pre>
+
+</dd>
+<dt id="post_parse_value"><b>post_parse_value</b></dt>
+<dd>
+
+<p>Almost identical to pre_parse_value, but will be applied after _parse_value() is finished and all usual processing and normalization is done.</p>
+
+</dd>
+</dl>
+
+<p>Not implemented yet: hooks for variable interpolation and block parsing.</p>
+
+<h1 id="OBJECT-ORIENTED-INTERFACE">OBJECT ORIENTED INTERFACE</h1>
+
+<p>There is a way to access a parsed config the OO-way. Use the module <b>Config::General::Extended</b>, which is supplied with the Config::General distribution.</p>
+
+<h1 id="VARIABLE-INTERPOLATION">VARIABLE INTERPOLATION</h1>
+
+<p>You can use variables inside your config files if you like. To do that you have to use the module <b>Config::General::Interpolated</b>, which is supplied with the Config::General distribution.</p>
+
+<h1 id="EXPORTED-FUNCTIONS">EXPORTED FUNCTIONS</h1>
+
+<p>Config::General exports some functions too, which makes it somewhat easier to use it, if you like this.</p>
+
+<p>How to import the functions:</p>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Config::General</span> <span class="string">qw(ParseConfig SaveConfig SaveConfigString)</span><span class="operator">;</span>
+</code></code></pre>
+
+<dl>
+
+<dt id="ParseConfig-"><b>ParseConfig()</b></dt>
+<dd>
+
+<p>This function takes exactly all those parameters, which are allowed to the <b>new()</b> method of the standard interface.</p>
+
+<p>Example:</p>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Config::General</span> <span class="string">qw(ParseConfig)</span><span class="operator">;</span>
+ <span class="keyword">my</span> <span class="variable">%config</span> <span class="operator">=</span> <span class="variable">ParseConfig</span><span class="operator">(</span><span class="string">-ConfigFile</span> <span class="operator">=&gt;</span> <span class="string">"rcfile"</span><span class="operator">,</span> <span class="string">-AutoTrue</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="SaveConfig-"><b>SaveConfig()</b></dt>
+<dd>
+
+<p>This function requires two arguments, a filename and a reference to a hash structure.</p>
+
+<p>Example:</p>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Config::General</span> <span class="string">qw(SaveConfig)</span><span class="operator">;</span>
+ <span class="operator">..</span>
+ <span class="variable">SaveConfig</span><span class="operator">(</span><span class="string">"rcfile"</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%some_hash</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="SaveConfigString-"><b>SaveConfigString()</b></dt>
+<dd>
+
+<p>This function requires a reference to a config hash as parameter. It generates a configuration based on this hash as the object-interface method <b>save_string()</b> does.</p>
+
+<p>Example:</p>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Config::General</span> <span class="string">qw(ParseConfig SaveConfigString)</span><span class="operator">;</span>
+ <span class="keyword">my</span> <span class="variable">%config</span> <span class="operator">=</span> <span class="variable">ParseConfig</span><span class="operator">(</span><span class="string">-ConfigFile</span> <span class="operator">=&gt;</span> <span class="string">"rcfile"</span><span class="operator">);</span>
+ <span class="operator">..</span> <span class="comment"># change %config something</span>
+ <span class="keyword">my</span> <span class="variable">$content</span> <span class="operator">=</span> <span class="variable">SaveConfigString</span><span class="operator">(\</span><span class="variable">%config</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h1 id="CONFIGURATION-AND-ENVIRONMENT">CONFIGURATION AND ENVIRONMENT</h1>
+
+<p>No environment variables will be used.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>I recommend you to read the following documents, which are supplied with Perl:</p>
+
+<pre><code><code> perlreftut                     Perl references short introduction
+ perlref                        Perl references, the rest of the story
+ perldsc                        Perl data structures intro
+ perllol                        Perl data structures: arrays of arrays
+
+ Config::General::Extended      Object oriented interface to parsed configs
+ Config::General::Interpolated  Allows one to use variables inside config files</code></code></pre>
+
+<h1 id="LICENSE-AND-COPYRIGHT">LICENSE AND COPYRIGHT</h1>
+
+<p>Copyright (c) 2000-2014 Thomas Linden</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="BUGS-AND-LIMITATIONS">BUGS AND LIMITATIONS</h1>
+
+<p>See rt.cpan.org for current bugs, if any.</p>
+
+<h1 id="INCOMPATIBILITIES">INCOMPATIBILITIES</h1>
+
+<p>None known.</p>
+
+<h1 id="DIAGNOSTICS">DIAGNOSTICS</h1>
+
+<p>To debug Config::General use the Perl debugger, see <a href="../../../lib/pod/perldebug.html">perldebug</a>.</p>
+
+<h1 id="DEPENDENCIES">DEPENDENCIES</h1>
+
+<p>Config::General depends on the modules <a href="../../../lib/FileHandle.html">FileHandle</a>, <a href="../../../lib/File/Spec/Functions.html">File::Spec::Functions</a>, <a href="../../../lib/File/Glob.html">File::Glob</a>, which all are shipped with Perl.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Thomas Linden &lt;tlinden |AT| cpan.org&gt;</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>2.58</p>
+
+
+</body>
+
+</html>
+
+

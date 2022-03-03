@@ -1,0 +1,466 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Creating-a-Lucy-object">Creating a Lucy object</a></li>
+      <li><a href="#Using-a-Lucy-object">Using a Lucy object</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#parse">_parse</a></li>
+      <li><a href="#get_Seq_Objs">get_Seq_Objs</a></li>
+      <li><a href="#get_Seq_Obj">get_Seq_Obj</a></li>
+      <li><a href="#get_sequence_names">get_sequence_names</a></li>
+      <li><a href="#sequence">sequence</a></li>
+      <li><a href="#quality">quality</a></li>
+      <li><a href="#avg_quality">avg_quality</a></li>
+      <li><a href="#direction">direction</a></li>
+      <li><a href="#length_raw">length_raw</a></li>
+      <li><a href="#length_clear">length_clear</a></li>
+      <li><a href="#start_clear">start_clear</a></li>
+      <li><a href="#end_clear">end_clear</a></li>
+      <li><a href="#per_GC">per_GC</a></li>
+      <li><a href="#full_length">full_length</a></li>
+      <li><a href="#polyA">polyA</a></li>
+      <li><a href="#get_rejects">get_rejects</a></li>
+      <li><a href="#Diff-for-Lucy-source-code">Diff for Lucy source code</a></li>
+      <li><a href="#This-patch-is-to-be-applied-to-lucy.c-from-the-lucy-1.19p-release">This patch is to be applied to lucy.c from the lucy-1.19p release</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Lucy - Object for analyzing the output from Lucy, a vector and quality trimming program from TIGR</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># Create the Lucy object from an existing Lucy output file</span>
+  <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'seqfile'</span> <span class="operator">=&gt;</span> <span class="string">'lucy.seq'</span><span class="operator">,</span> <span class="string">'lucy_verbose'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+  <span class="variable">$lucyObj</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Lucy</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="comment"># Get names of all sequences</span>
+  <span class="variable">$names</span> <span class="operator">=</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">get_sequence_names</span><span class="operator">();</span>
+  
+  <span class="comment">#  Print seq and qual values for sequences &gt;400 bp in order to run CAP3</span>
+  <span class="keyword">foreach</span> <span class="variable">$name</span> <span class="operator">(</span><span class="variable">@$names</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">length_clear</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">)</span> <span class="operator">&gt;</span> <span class="number">400</span><span class="operator">;</span>
+      <span class="keyword">print</span> <span class="variable">SEQ</span> <span class="string">"&gt;</span><span class="variable">$name</span><span class="string">\n"</span><span class="operator">,</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">sequence</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+      <span class="keyword">print</span> <span class="variable">QUAL</span> <span class="string">"&gt;</span><span class="variable">$name</span><span class="string">\n"</span><span class="operator">,</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">quality</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># Get an array of Bio::PrimarySeq objects</span>
+  <span class="variable">@seqObjs</span> <span class="operator">=</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">get_Seq_Objs</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::Tools::Lucy.pm provides methods for analyzing the sequence and quality values generated by Lucy program from TIGR.</p>
+
+<p>Lucy will identify vector, poly-A/T tails, and poor quality regions in a sequence. (www.genomics.purdue.edu/gcg/other/lucy.pdf)</p>
+
+<p>The input to Lucy can be the Phred sequence and quality files generated from running Phred on a set of chromatograms.</p>
+
+<p>Lucy can be obtained (free of charge to academic users) from www.tigr.org/softlab</p>
+
+<p>There are a few methods that will only be available if you make some minor changes to the source for Lucy and then recompile. The changes are in the &#39;lucy.c&#39; file and there is a diff between the original and the modified file in the Appendix</p>
+
+<p>Please contact the author of this module if you have any problems making these modifications.</p>
+
+<p>You do not have to make these modifications to use this module.</p>
+
+<h2 id="Creating-a-Lucy-object">Creating a Lucy object</h2>
+
+<pre><code><code>  <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'seqfile'</span> <span class="operator">=&gt;</span> <span class="string">'lucy.seq'</span><span class="operator">,</span> <span class="string">'adv_stderr'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span> 
+             <span class="string">'fwd_desig'</span> <span class="operator">=&gt;</span> <span class="string">'_F'</span><span class="operator">,</span> <span class="string">'rev_desig'</span> <span class="operator">=&gt;</span> <span class="string">'_R'</span><span class="operator">);</span>
+  <span class="variable">$lucyObj</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Lucy</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="Using-a-Lucy-object">Using a Lucy object</h2>
+
+<pre><code><code>  <span class="variable">You</span> <span class="variable">should</span> <span class="variable">get</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">names</span> <span class="variable">in</span> <span class="variable">order</span> <span class="variable">to</span> <span class="keyword">use</span>
+  <span class="variable">accessor</span> <span class="variable">methods</span><span class="operator">.</span>  <span class="variable">Note</span><span class="operator">:</span> <span class="variable">The</span> <span class="variable">Lucy</span> <span class="variable">binary</span> <span class="variable">program</span> <span class="variable">will</span> <span class="variable">fail</span> <span class="keyword">unless</span>
+  <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">names</span> <span class="variable">provided</span> <span class="variable">as</span> <span class="variable">input</span> <span class="variable">are</span> <span class="variable">unique</span><span class="operator">.</span>
+  
+  <span class="variable">$names_ref</span> <span class="operator">=</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">get_sequence_names</span><span class="operator">();</span>
+  
+  <span class="variable">This</span> <span class="variable">code</span> <span class="variable">snippet</span> <span class="variable">will</span> <span class="variable">produce</span> <span class="variable">a</span> <span class="variable">Fasta</span> <span class="keyword">format</span> <span class="variable">file</span> <span class="variable">with</span> <span class="variable">sequence</span>
+  <span class="variable">lengths</span> <span class="keyword">and</span> <span class="variable">%GC</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">description</span> <span class="variable">line</span><span class="operator">.</span>
+  
+  <span class="keyword">foreach</span> <span class="variable">$name</span> <span class="operator">(</span><span class="variable">@$names</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="variable">FILE</span> <span class="string">"&gt;</span><span class="variable">$name</span><span class="string">\t"</span><span class="operator">,</span>
+                 <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">length_clear</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">),</span> <span class="string">"\t"</span><span class="operator">,</span>
+                 <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">per_GC</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">,</span>
+                 <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">sequence</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  
+  <span class="variable">Print</span> <span class="variable">seq</span> <span class="keyword">and</span> <span class="variable">qual</span> <span class="keyword">values</span> <span class="keyword">for</span> <span class="variable">sequences</span> <span class="operator">&gt;</span><span class="number">400</span> <span class="variable">bp</span> <span class="variable">in</span> <span class="variable">order</span> <span class="variable">to</span> <span class="variable">assemble</span>
+  <span class="variable">them</span> <span class="variable">with</span> <span class="variable">CAP3</span> <span class="operator">(</span><span class="keyword">or</span> <span class="variable">other</span> <span class="variable">assembler</span><span class="operator">).</span>
+  
+  <span class="keyword">foreach</span> <span class="variable">$name</span> <span class="operator">(</span><span class="variable">@$names</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">length_clear</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">)</span> <span class="operator">&gt;</span> <span class="number">400</span><span class="operator">;</span>
+      <span class="keyword">print</span> <span class="variable">SEQ</span> <span class="string">"&gt;</span><span class="variable">$name</span><span class="string">\n"</span><span class="operator">,</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">sequence</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+      <span class="keyword">print</span> <span class="variable">QUAL</span> <span class="string">"&gt;</span><span class="variable">$name</span><span class="string">\n"</span><span class="operator">,</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">quality</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="variable">Get</span> <span class="variable">all</span> <span class="variable">the</span> <span class="variable">sequences</span> <span class="variable">as</span> <span class="variable">Bio::PrimarySeq</span> <span class="variable">objects</span> <span class="operator">(</span><span class="variable">eg</span><span class="operator">.,</span> <span class="keyword">for</span> <span class="keyword">use</span> <span class="variable">with</span>
+  <span class="variable">Bio::Tools::Run::StandaloneBlast</span> <span class="variable">to</span> <span class="variable">perform</span> <span class="variable">BLAST</span><span class="operator">).</span>
+  
+  <span class="variable">@seqObjs</span> <span class="operator">=</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">get_Seq_Objs</span><span class="operator">();</span>
+  
+  <span class="variable">Or</span> <span class="keyword">use</span> <span class="variable">only</span> <span class="variable">those</span> <span class="variable">sequences</span> <span class="variable">that</span> <span class="variable">are</span> <span class="variable">full</span> <span class="keyword">length</span> <span class="keyword">and</span> <span class="variable">have</span> <span class="variable">a</span> <span class="variable">Poly</span><span class="keyword">-A</span>
+  <span class="variable">tail</span><span class="operator">.</span>
+  
+  <span class="keyword">foreach</span> <span class="variable">$name</span> <span class="operator">(</span><span class="variable">@$names</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="operator">(</span><span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">full_length</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">)</span> <span class="keyword">and</span> <span class="variable">$lucy</span><span class="operator">-&gt;</span><span class="variable">polyA</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">));</span>
+      <span class="keyword">push</span> <span class="variable">@seqObjs</span><span class="operator">,</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">get_Seq_Obj</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">);</span>
+  <span class="operator">}</span>
+  
+  
+  <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">names</span> <span class="variable">of</span> <span class="variable">those</span> <span class="variable">sequences</span> <span class="variable">that</span> <span class="variable">were</span> <span class="variable">rejected</span> <span class="variable">by</span> <span class="variable">Lucy</span><span class="operator">.</span>
+  
+  <span class="variable">$rejects_ref</span> <span class="operator">=</span> <span class="variable">$lucyObj</span><span class="operator">-&gt;</span><span class="variable">get_rejects</span><span class="operator">();</span>
+  
+  <span class="variable">Print</span> <span class="variable">the</span> <span class="variable">names</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">rejects</span> <span class="keyword">and</span> <span class="number">1</span> <span class="variable">letter</span> <span class="variable">code</span> <span class="keyword">for</span> <span class="variable">reason</span> <span class="variable">they</span>
+  <span class="variable">were</span> <span class="variable">rejected</span><span class="operator">.</span>
+  
+  <span class="keyword">foreach</span> <span class="variable">$key</span> <span class="operator">(</span><span class="keyword">sort</span> <span class="keyword">keys</span> <span class="variable">%$rejects_ref</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="string">"</span><span class="variable">$key</span><span class="string">:  "</span><span class="operator">,</span> <span class="variable">$rejects_ref</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$key</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="variable">There</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">lot</span> <span class="variable">of</span> <span class="variable">other</span> <span class="variable">information</span> <span class="variable">available</span> <span class="variable">about</span> <span class="variable">the</span> <span class="variable">sequences</span>
+  <span class="variable">analyzed</span> <span class="variable">by</span> <span class="variable">Lucy</span> <span class="operator">(</span><span class="variable">see</span> <span class="variable">APPENDIX</span><span class="operator">).</span>  <span class="variable">This</span> <span class="variable">module</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">used</span> <span class="variable">with</span> <span class="variable">the</span>
+  <span class="variable">DBI</span> <span class="variable">module</span> <span class="variable">to</span> <span class="variable">store</span> <span class="variable">this</span> <span class="variable">sequence</span> <span class="variable">information</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">database</span><span class="operator">.</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Andrew G. Walsh paeruginosa@hotmail.com</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>Methods available to Lucy objects are described below. Please note that any method beginning with an underscore is considered internal and should not be called directly.</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   :  new
+ Usage   :  $lucyObj = Bio::Tools::Lucy-&gt;new(seqfile =&gt; lucy.seq, rev_desig =&gt; &#39;_R&#39;, 
+            fwd_desig =&gt; &#39;_F&#39;)
+ Function:  creates a Lucy object from Lucy analysis files
+ Returns :  reference to Bio::Tools::Lucy object
+ Args    :  seqfile     Fasta sequence file generated by Lucy
+               qualfile Quality values file generated by Lucy
+               infofile Info file created when Lucy is run with -debug 
+                     &#39;infofile&#39; option
+               stderrfile       Standard error captured from Lucy when Lucy is run 
+                         with -info option and STDERR is directed to stderrfile 
+                         (ie. lucy ... 2&gt; stderrfile).
+                         Info in this file will include sequences dropped for low 
+                         quality. If you&#39;ve modified Lucy source (see adv_stderr below), 
+                         it will also include info on which sequences were dropped because 
+                         they were vector, too short, had no insert, and whether a poly-A 
+                         tail was found (if Lucy was run with -cdna option).
+               lucy_verbose verbosity level (0-1).  
+               fwd_desig        The string used to determine whether sequence is a 
+          forward read.  
+                         The parser will assume that this match will occus at the 
+                         end of the sequence name string.
+               rev_desig        As above, for reverse reads. 
+               adv_stderr       Can be set to a true value (1).  Will only work if 
+          you have modified 
+                         the Lucy source code as outlined in DESCRIPTION and capture 
+                         the standard error from Lucy.</code></code></pre>
+
+<p>If you don&#39;t provide filenames for qualfile, infofile or stderrfile, the module will assume that .qual, .info, and .stderr are the file extensions and search in the same directory as the .seq file for these files.</p>
+
+<p>For example, if you create a Lucy object with $lucyObj = Bio::Tools::Lucy-&gt;new(seqfile =&gt;lucy.seq), the module will find lucy.qual, lucy.info and lucy.stderr.</p>
+
+<p>You can omit any or all of the quality, info or stderr files, but you will not be able to use all of the object methods (see method documentation below).</p>
+
+<h2 id="parse">_parse</h2>
+
+<pre><code><code> Title   :  _parse
+ Usage   :  n/a (internal function)
+ Function:  called by new() to parse Lucy output files
+ Returns :  nothing
+ Args    :  none</code></code></pre>
+
+<h2 id="get_Seq_Objs">get_Seq_Objs</h2>
+
+<pre><code><code> Title   :  get_Seq_Objs
+ Usage   :  $lucyObj-&gt;get_Seq_Objs()
+ Function:  returns an array of references to Bio::PrimarySeq objects 
+            where -id = &#39;sequence name&#39; and -seq = &#39;sequence&#39;
+
+ Returns :  array of Bio::PrimarySeq objects
+ Args    :  none</code></code></pre>
+
+<h2 id="get_Seq_Obj">get_Seq_Obj</h2>
+
+<pre><code><code> Title   :  get_Seq_Obj
+ Usage   :  $lucyObj-&gt;get_Seq_Obj($seqname)
+ Function:  returns reference to a Bio::PrimarySeq object where -id = &#39;sequence name&#39;
+            and -seq = &#39;sequence&#39;
+ Returns :  reference to Bio::PrimarySeq object
+ Args    :  name of a sequence </code></code></pre>
+
+<h2 id="get_sequence_names">get_sequence_names</h2>
+
+<pre><code><code> Title   :  get_sequence_names
+ Usage   :  $lucyObj-&gt;get_sequence_names
+ Function:  returns reference to an array of names of the sequences analyzed by Lucy.
+            These names are required for most of the accessor methods.  
+            Note: The Lucy binary will fail unless sequence names are unique.
+ Returns :  array reference
+ Args    :  none </code></code></pre>
+
+<h2 id="sequence">sequence</h2>
+
+<pre><code><code> Title   :  sequence
+ Usage   :  $lucyObj-&gt;sequence($seqname)
+ Function:  returns the DNA sequence of one of the sequences analyzed by Lucy.
+ Returns :  string
+ Args    :  name of a sequence                   </code></code></pre>
+
+<h2 id="quality">quality</h2>
+
+<pre><code><code> Title   :  quality
+ Usage   :  $lucyObj-&gt;quality($seqname)
+ Function:  returns the quality values of one of the sequences analyzed by Lucy.
+            This method depends on the user having provided a quality file.
+ Returns :  string
+ Args    :  name of a sequence</code></code></pre>
+
+<h2 id="avg_quality">avg_quality</h2>
+
+<pre><code><code> Title   :  avg_quality
+ Usage   :  $lucyObj-&gt;avg_quality($seqname)
+ Function:  returns the average quality value for one of the sequences analyzed by Lucy.
+ Returns :  float
+ Args    :  name of a sequence</code></code></pre>
+
+<h2 id="direction">direction</h2>
+
+<pre><code><code> Title   :  direction
+ Usage   :  $lucyObj-&gt;direction($seqname)
+ Function:  returns the direction for one of the sequences analyzed by Lucy
+            providing that &#39;fwd_desig&#39; or &#39;rev_desig&#39; were set when the
+            Lucy object was created.
+            Strings returned are: &#39;F&#39; for forward, &#39;R&#39; for reverse.  
+ Returns :  string 
+ Args    :  name of a sequence</code></code></pre>
+
+<h2 id="length_raw">length_raw</h2>
+
+<pre><code><code> Title   :  length_raw
+ Usage   :  $lucyObj-&gt;length_raw($seqname)
+ Function:  returns the length of a DNA sequence prior to quality/ vector 
+            trimming by Lucy.
+ Returns :  integer
+ Args    :  name of a sequence</code></code></pre>
+
+<h2 id="length_clear">length_clear</h2>
+
+<pre><code><code> Title   :  length_clear
+ Usage   :  $lucyObj-&gt;length_clear($seqname)
+ Function:  returns the length of a DNA sequence following quality/ vector   
+            trimming by Lucy.
+ Returns :  integer
+ Args    :  name of a sequence</code></code></pre>
+
+<h2 id="start_clear">start_clear</h2>
+
+<pre><code><code> Title   :  start_clear
+ Usage   :  $lucyObj-&gt;start_clear($seqname)
+ Function:  returns the beginning position of good quality, vector free DNA sequence 
+            determined by Lucy.
+ Returns :  integer
+ Args    :  name of a sequence</code></code></pre>
+
+<h2 id="end_clear">end_clear</h2>
+
+<pre><code><code> Title   :  end_clear
+ Usage   :  $lucyObj-&gt;end_clear($seqname)
+ Function:  returns the ending position of good quality, vector free DNA sequence
+            determined by Lucy.
+ Returns :  integer
+ Args    :  name of a sequence</code></code></pre>
+
+<h2 id="per_GC">per_GC</h2>
+
+<pre><code><code> Title   :  per_GC
+ Usage   :  $lucyObj-&gt;per_GC($seqname)
+ Function:  returns the percente of the good quality, vector free DNA sequence
+            determined by Lucy.
+ Returns :  float
+ Args    :  name of a sequence</code></code></pre>
+
+<h2 id="full_length">full_length</h2>
+
+<pre><code><code> Title   :  full_length
+ Usage   :  $lucyObj-&gt;full_length($seqname)
+ Function:  returns the truth value for whether or not the sequence read was
+            full length (ie. vector present on both ends of read).  This method
+            depends on the user having provided the &#39;info&#39; file (Lucy must be
+            run with the -debug &#39;info_filename&#39; option to get this file).
+ Returns :  boolean 
+ Args    :  name of a sequence</code></code></pre>
+
+<h2 id="polyA">polyA</h2>
+
+<pre><code><code> Title   :  polyA
+ Usage   :  $lucyObj-&gt;polyA($seqname)
+ Function:  returns the truth value for whether or not a poly-A tail was detected
+            and clipped by Lucy.  This method depends on the user having modified
+            the source for Lucy as outlined in DESCRIPTION and invoking Lucy with
+            the -cdna option and saving the standard error.
+            Note, the final sequence will not show the poly-A/T region.
+ Returns :  boolean
+ Args    :  name of a sequence</code></code></pre>
+
+<h2 id="get_rejects">get_rejects</h2>
+
+<pre><code><code> Title   :  get_rejects
+ Usage   :  $lucyObj-&gt;get_rejects()
+ Function:  returns a hash containing names of rejects and a 1 letter code for the 
+            reason Lucy rejected the sequence.
+            Q- rejected because of low quality values
+            S- sequence was short
+            V- sequence was vector 
+            E- sequence was empty
+            P- poly-A/T trimming caused sequence to be too short
+            In order to get the rejects, you must provide a file with the standard
+            error from Lucy.  You will only get the quality category rejects unless
+            you have modified the source and recompiled Lucy as outlined in DESCRIPTION.
+ Returns :  hash reference
+ Args    :  none</code></code></pre>
+
+<h2 id="Diff-for-Lucy-source-code">Diff for Lucy source code</h2>
+
+<pre><code><code>  <span class="number">352</span><span class="variable">a353</span><span class="operator">,</span><span class="number">354</span>
+  <span class="operator">&gt;</span>       <span class="regex">/* AGW added next line */</span>
+  <span class="operator">&gt;</span>       <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"Empty: %s\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span>
+  <span class="number">639</span><span class="variable">a642</span><span class="operator">,</span><span class="number">643</span>
+  <span class="operator">&gt;</span>         <span class="regex">/* AGW added next line */</span>
+  <span class="operator">&gt;</span>         <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"Short/ no insert: %s\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span>
+  <span class="number">678</span><span class="variable">c682</span><span class="operator">,</span><span class="number">686</span>
+  <span class="operator">&lt;</span>     <span class="keyword">if</span> <span class="operator">(</span><span class="variable">left</span><span class="operator">)</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">left</span><span class="operator">+=</span><span class="variable">left</span><span class="operator">;</span>
+  <span class="operator">---</span>
+  <span class="operator">&gt;</span>     <span class="keyword">if</span> <span class="operator">(</span><span class="variable">left</span><span class="operator">)</span> <span class="operator">{</span>
+  <span class="operator">&gt;</span>       <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">left</span><span class="operator">+=</span><span class="variable">left</span><span class="operator">;</span>
+  <span class="operator">&gt;</span>       <span class="regex">/*  AGW added next line */</span>
+  <span class="operator">&gt;</span>       <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"%s has PolyA (left).\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span>
+  <span class="operator">&gt;</span>     <span class="operator">}</span>
+  <span class="number">681</span><span class="variable">c689</span><span class="operator">,</span><span class="number">693</span>
+  <span class="operator">&lt;</span>     <span class="keyword">if</span> <span class="operator">(</span><span class="variable">right</span><span class="operator">)</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">right</span><span class="operator">-=</span><span class="variable">right</span><span class="operator">;</span>
+  <span class="operator">---</span>
+  <span class="operator">&gt;</span>     <span class="keyword">if</span> <span class="operator">(</span><span class="variable">right</span><span class="operator">)</span> <span class="operator">{</span>
+  <span class="operator">&gt;</span>       <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">right</span><span class="operator">-=</span><span class="variable">right</span><span class="operator">;</span>
+  <span class="operator">&gt;</span>       <span class="regex">/* AGW added next line */</span>
+  <span class="operator">&gt;</span>       <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"%s has PolyA (right).\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span>
+  <span class="operator">&gt;</span>     <span class="operator">}</span>
+  <span class="number">682</span><span class="variable">a695</span><span class="operator">,</span><span class="number">696</span>
+  <span class="operator">&gt;</span>       <span class="regex">/* AGW added next line */</span>
+  <span class="operator">&gt;</span>       <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"Dropped PolyA: %s\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span> 
+  <span class="number">734</span><span class="variable">a749</span><span class="operator">,</span><span class="number">750</span>
+  <span class="operator">&gt;</span>       <span class="regex">/* AGW added next line */</span>
+  <span class="operator">&gt;</span>       <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"Vector: %s\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="This-patch-is-to-be-applied-to-lucy.c-from-the-lucy-1.19p-release">This patch is to be applied to lucy.c from the lucy-1.19p release</h2>
+
+<pre><code><code> <span class="number">277</span><span class="variable">a278</span><span class="operator">,</span><span class="number">279</span>
+ <span class="operator">&gt;</span>       <span class="regex">/* AGW added next line */</span>
+ <span class="operator">&gt;</span>       <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"Short/ no insert: %s\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span>
+ <span class="number">588</span><span class="variable">c590</span><span class="operator">,</span><span class="number">592</span>
+ <span class="operator">&lt;</span>     <span class="keyword">if</span> <span class="operator">((</span><span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">len</span><span class="operator">=</span><span class="variable">bases</span><span class="operator">)&lt;=</span><span class="number">0</span><span class="operator">)</span>
+ <span class="operator">---</span>
+ <span class="operator">&gt;</span>     <span class="keyword">if</span> <span class="operator">((</span><span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">len</span><span class="operator">=</span><span class="variable">bases</span><span class="operator">)&lt;=</span><span class="number">0</span><span class="operator">)</span> <span class="operator">{</span>
+ <span class="operator">&gt;</span>       <span class="regex">/* AGW added next line */</span>
+ <span class="operator">&gt;</span>       <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"Empty: %s\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span>
+ <span class="number">589</span><span class="variable">a594</span>
+ <span class="operator">&gt;</span>     <span class="operator">}</span>
+ <span class="number">893</span><span class="variable">c898</span><span class="operator">,</span><span class="number">902</span>
+ <span class="operator">&lt;</span>       <span class="keyword">if</span> <span class="operator">(</span><span class="variable">left</span><span class="operator">)</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">left</span><span class="operator">+=</span><span class="variable">left</span><span class="operator">;</span>
+ <span class="operator">---</span>
+ <span class="operator">&gt;</span>       <span class="keyword">if</span> <span class="operator">(</span><span class="variable">left</span><span class="operator">)</span> <span class="operator">{</span>
+ <span class="operator">&gt;</span>         <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">left</span><span class="operator">+=</span><span class="variable">left</span><span class="operator">;</span>
+ <span class="operator">&gt;</span>         <span class="regex">/*  AGW added next line */</span>
+ <span class="operator">&gt;</span>         <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"%s has PolyA (left).\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span>
+ <span class="operator">&gt;</span>       <span class="operator">}</span>
+ <span class="number">896</span><span class="variable">c905</span><span class="operator">,</span><span class="number">909</span>
+ <span class="operator">&lt;</span>       <span class="keyword">if</span> <span class="operator">(</span><span class="variable">right</span><span class="operator">)</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">right</span><span class="operator">-=</span><span class="variable">right</span><span class="operator">;</span>
+ <span class="operator">---</span>
+ <span class="operator">&gt;</span>       <span class="keyword">if</span> <span class="operator">(</span><span class="variable">right</span><span class="operator">)</span> <span class="operator">{</span>
+ <span class="operator">&gt;</span>         <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">right</span><span class="operator">-=</span><span class="variable">right</span><span class="operator">;</span>
+ <span class="operator">&gt;</span>         <span class="regex">/*  AGW added next line */</span>
+ <span class="operator">&gt;</span>         <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"%s has PolyA (right).\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span>
+ <span class="operator">&gt;</span>         <span class="operator">}</span>
+ <span class="number">898</span><span class="variable">a912</span><span class="operator">,</span><span class="number">913</span>
+ <span class="operator">&gt;</span>         <span class="regex">/* AGW added next line */</span>
+ <span class="operator">&gt;</span>         <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"Dropped PolyA: %s\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span>
+ <span class="number">949</span><span class="variable">a965</span><span class="operator">,</span><span class="number">966</span>
+ <span class="operator">&gt;</span>         <span class="regex">/* AGW added next line */</span>
+ <span class="operator">&gt;</span>           <span class="variable">fprintf</span><span class="operator">(</span><span class="variable">stderr</span><span class="operator">,</span> <span class="string">"Vector: %s\n"</span><span class="operator">,</span> <span class="variable">seqs</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">.</span><span class="variable">name</span><span class="operator">);</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

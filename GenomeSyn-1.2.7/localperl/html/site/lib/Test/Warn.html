@@ -1,0 +1,230 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#FUNCTIONS">FUNCTIONS</a></li>
+      <li><a href="#EXPORT">EXPORT</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#THANKS">THANKS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Test::Warn - Perl extension to test methods for warnings</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::Warn</span><span class="operator">;</span>
+  
+  <span class="variable">warning_is</span>    <span class="operator">{</span><span class="variable">foo</span><span class="operator">(</span><span class="string">-dri</span> <span class="operator">=&gt;</span> <span class="string">"/"</span><span class="operator">)}</span> <span class="string">"Unknown Parameter 'dri'"</span><span class="operator">,</span> <span class="string">"dri != dir gives warning"</span><span class="operator">;</span>
+  <span class="variable">warnings_are</span>  <span class="operator">{</span><span class="variable">bar</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">1</span><span class="operator">)}</span> <span class="operator">[</span><span class="string">"Width very small"</span><span class="operator">,</span> <span class="string">"Height very small"</span><span class="operator">]</span><span class="operator">;</span>
+  
+  <span class="variable">warning_is</span>    <span class="operator">{</span><span class="variable">add</span><span class="operator">(</span><span class="number">2</span><span class="operator">,</span><span class="number">2</span><span class="operator">)}</span> <span class="keyword">undef</span><span class="operator">,</span> <span class="string">"No warnings for calc 2+2"</span><span class="operator">;</span> <span class="comment"># or</span>
+  <span class="variable">warnings_are</span>  <span class="operator">{</span><span class="variable">add</span><span class="operator">(</span><span class="number">2</span><span class="operator">,</span><span class="number">2</span><span class="operator">)}</span> <span class="operator">[]</span><span class="operator">,</span>    <span class="string">"No warnings for calc 2+2"</span><span class="operator">;</span> <span class="comment"># what reads better :-)</span>
+  
+  <span class="variable">warning_like</span>  <span class="operator">{</span><span class="variable">foo</span><span class="operator">(</span><span class="string">-dri</span> <span class="operator">=&gt;</span> <span class="string">"/"</span><span class="operator">)}</span> <span class="string">qr/unknown param/i</span><span class="operator">,</span> <span class="string">"an unknown parameter test"</span><span class="operator">;</span>
+  <span class="variable">warnings_like</span> <span class="operator">{</span><span class="variable">bar</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">1</span><span class="operator">)}</span> <span class="operator">[</span><span class="string">qr/width.*small/i</span><span class="operator">,</span> <span class="string">qr/height.*small/i</span><span class="operator">]</span><span class="operator">;</span>
+  
+  <span class="variable">warning_is</span>    <span class="operator">{</span><span class="variable">foo</span><span class="operator">()}</span> <span class="operator">{</span><span class="string">carped</span> <span class="operator">=&gt;</span> <span class="string">"didn't find the right parameters"</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="variable">warnings_like</span> <span class="operator">{</span><span class="variable">foo</span><span class="operator">()}</span> <span class="operator">[</span><span class="string">qr/undefined/</span><span class="operator">,</span><span class="string">qr/undefined/</span><span class="operator">,</span><span class="operator">{</span><span class="string">carped</span> <span class="operator">=&gt;</span> <span class="string">qr/no result/i</span><span class="operator">}]</span><span class="operator">;</span>
+  
+  <span class="variable">warning_like</span> <span class="operator">{</span><span class="variable">foo</span><span class="operator">(</span><span class="keyword">undef</span><span class="operator">)}</span>                 <span class="string">'uninitialized'</span><span class="operator">;</span>
+  <span class="variable">warning_like</span> <span class="operator">{</span><span class="variable">bar</span><span class="operator">(</span><span class="string">file</span> <span class="operator">=&gt;</span> <span class="string">'/etc/passwd'</span><span class="operator">)}</span> <span class="string">'io'</span><span class="operator">;</span>
+  
+  <span class="variable">warning_like</span> <span class="operator">{</span><span class="keyword">eval</span> <span class="string">q/"$x"; $x;/</span><span class="operator">}</span> 
+               <span class="operator">[</span><span class="string">qw/void uninitialized/</span><span class="operator">]</span><span class="operator">,</span> 
+               <span class="string">"some warnings at compile time"</span><span class="operator">;</span>
+  
+  <span class="variable">warnings_exist</span> <span class="operator">{...}</span> <span class="operator">[</span><span class="string">qr/expected warning/</span><span class="operator">]</span><span class="operator">,</span> <span class="string">"Expected warning is thrown"</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>A good style of Perl programming calls for a lot of diverse regression tests.</p>
+
+<p>This module provides a few convenience methods for testing warning based code.</p>
+
+<p>If you are not already familiar with the Test::More manpage now would be the time to go take a look.</p>
+
+<h2 id="FUNCTIONS">FUNCTIONS</h2>
+
+<dl>
+
+<dt id="warning_is-BLOCK-STRING-TEST_NAME">warning_is BLOCK STRING, TEST_NAME</dt>
+<dd>
+
+<p>Tests that BLOCK gives the specified warning exactly once. The test fails if the BLOCK warns more than once or does not warn at all. If the string is undef, then the tests succeeds if the BLOCK doesn&#39;t give any warning. Another way to say that there are no warnings in the block is <code><code><span class="variable">warnings_are</span> <span class="operator">{</span><span class="variable">foo</span><span class="operator">()}</span> <span class="operator">[]</span><span class="operator">,</span> <span class="string">"no warnings"</span>
+</code></code>.</p>
+
+<p>If you want to test for a warning given by Carp, you have to write something like: <code><code><span class="variable">warning_is</span> <span class="operator">{</span><span class="variable">carp</span> <span class="string">"msg"</span><span class="operator">}</span> <span class="operator">{</span><span class="string">carped</span> <span class="operator">=&gt;</span> <span class="string">'msg'</span><span class="operator">}</span><span class="operator">,</span> <span class="string">"Test for a carped warning"</span>
+</code></code>. The test will fail if a &quot;normal&quot; warning is found instead of a &quot;carped&quot; one.</p>
+
+<p>Note: <code><code>warn &quot;foo&quot;</code></code> would print something like <code><code>foo at -e line 1</code></code>. This method ignores everything after the &quot;at&quot;. Thus to match this warning you would have to call <code><code><span class="variable">warning_is</span> <span class="operator">{</span><span class="keyword">warn</span> <span class="string">"foo"</span><span class="operator">}</span> <span class="string">"foo"</span><span class="operator">,</span> <span class="string">"Foo succeeded"</span>
+</code></code>. If you need to test for a warning at an exactly line, try something like <code><code><span class="variable">warning_like</span> <span class="operator">{</span><span class="keyword">warn</span> <span class="string">"foo"</span><span class="operator">}</span> <span class="string">qr/at XYZ.dat line 5/</span>
+</code></code>.</p>
+
+<p>warning_is and warning_are are only aliases to the same method. So you also could write <code><code><span class="variable">warning_is</span> <span class="operator">{</span><span class="variable">foo</span><span class="operator">()}</span> <span class="operator">[]</span><span class="operator">,</span> <span class="string">"no warning"</span>
+</code></code> or something similar. I decided to give two methods the same name to improve readability.</p>
+
+<p>A true value is returned if the test succeeds, false otherwise.</p>
+
+<p>The test name is optional, but recommended.</p>
+
+</dd>
+<dt id="warnings_are-BLOCK-ARRAYREF-TEST_NAME">warnings_are BLOCK ARRAYREF, TEST_NAME</dt>
+<dd>
+
+<p>Tests to see that BLOCK gives exactly the specified warnings. The test fails if the warnings from BLOCK are not exactly the ones in ARRAYREF. If the ARRAYREF is equal to [], then the test succeeds if the BLOCK doesn&#39;t give any warning.</p>
+
+<p>Please read also the notes to warning_is as these methods are only aliases.</p>
+
+<p>If you want more than one test for carped warnings, try this: <code><code><span class="variable">warnings_are</span> <span class="operator">{</span><span class="variable">carp</span> <span class="string">"c1"</span><span class="operator">;</span> <span class="variable">carp</span> <span class="string">"c2"</span><span class="operator">}</span> <span class="operator">{</span><span class="variable">carped</span> <span class="operator">=</span>
+</code></code> [&#39;c1&#39;,&#39;c2&#39;];&gt; or <code><code><span class="variable">warnings_are</span> <span class="operator">{</span><span class="variable">foo</span><span class="operator">()}</span> <span class="operator">[</span><span class="string">"Warning 1"</span><span class="operator">,</span> <span class="operator">{</span><span class="variable">carped</span> <span class="operator">=</span>
+</code></code> [&quot;Carp 1&quot;, &quot;Carp 2&quot;]}, &quot;Warning 2&quot;]&gt;. Note that <code><code><span class="operator">{</span><span class="variable">carped</span> <span class="operator">=</span>
+</code></code> ...}&gt; must always be a hash ref.</p>
+
+</dd>
+<dt id="warning_like-BLOCK-REGEXP-TEST_NAME">warning_like BLOCK REGEXP, TEST_NAME</dt>
+<dd>
+
+<p>Tests that BLOCK gives exactly one warning and it can be matched by the given regexp. If the string is undef, then the tests succeeds if the BLOCK doesn&#39;t give any warning.</p>
+
+<p>The REGEXP is matched against the whole warning line, which in general has the form &quot;WARNING at __FILE__ line __LINE__&quot;. So you can check for a warning in the file Foo.pm on line 5 with <code><code><span class="variable">warning_like</span> <span class="operator">{</span><span class="variable">bar</span><span class="operator">()}</span> <span class="string">qr/at Foo.pm line 5/</span><span class="operator">,</span> <span class="string">"Testname"</span>
+</code></code>. I don&#39;t know whether it&#39;s sensful to do such a test :-( However, you should be prepared as a matching with &#39;at&#39;, &#39;file&#39;, &#39;\d&#39; or similar will always pass. Think to the qr/^foo/ if you want to test for warning &quot;foo something&quot; in file foo.pl.</p>
+
+<p>You can also write the regexp in a string as &quot;/.../&quot; instead of using the qr/.../ syntax. Note that the slashes are important in the string, as strings without slashes are reserved for warning categories (to match warning categories as can be seen in the perllexwarn man page).</p>
+
+<p>Similar to <code><code>warning_is</code></code>, you can test for warnings via <code><code>carp</code></code> with: <code><code><span class="variable">warning_like</span> <span class="operator">{</span><span class="variable">bar</span><span class="operator">()}</span> <span class="operator">{</span><span class="variable">carped</span> <span class="operator">=</span>
+</code></code> qr/bar called too early/i};&gt;</p>
+
+<p>Similar to <code><code>warning_is</code></code>/<code><code>warnings_are</code></code>, <code><code>warning_like</code></code> and <code><code>warnings_like</code></code> are only aliases to the same methods.</p>
+
+<p>A true value is returned if the test succeeds, false otherwise.</p>
+
+<p>The test name is optional, but recommended.</p>
+
+</dd>
+<dt id="warning_like-BLOCK-STRING-TEST_NAME">warning_like BLOCK STRING, TEST_NAME</dt>
+<dd>
+
+<p>Tests whether a BLOCK gives exactly one warning of the passed category. The categories are grouped in a tree, like it is expressed in perllexwarn. Note, that they have the hierarchical structure from perl 5.8.0, wich has a little bit changed to 5.6.1 or earlier versions (You can access the internal used tree with <code><code>$Test::Warn::Categorization::tree</code></code>, although I wouldn&#39;t recommend it)</p>
+
+<p>Thanks to the grouping in a tree, it&#39;s simple possible to test for an &#39;io&#39; warning, instead for testing for a &#39;closed|exec|layer|newline|pipe|unopened&#39; warning.</p>
+
+<p>Note, that warnings occuring at compile time, can only be catched in an eval block. So</p>
+
+<pre><code><code>  <span class="variable">warning_like</span> <span class="operator">{</span><span class="keyword">eval</span> <span class="string">q/"$x"; $x;/</span><span class="operator">}</span> 
+               <span class="operator">[</span><span class="string">qw/void uninitialized/</span><span class="operator">]</span><span class="operator">,</span> 
+               <span class="string">"some warnings at compile time"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>will work, while it wouldn&#39;t work without the eval.</p>
+
+<p>Note, that it isn&#39;t possible yet, to test for own categories, created with warnings::register.</p>
+
+</dd>
+<dt id="warnings_like-BLOCK-ARRAYREF-TEST_NAME">warnings_like BLOCK ARRAYREF, TEST_NAME</dt>
+<dd>
+
+<p>Tests to see that BLOCK gives exactly the number of the specified warnings and all the warnings have to match in the defined order to the passed regexes.</p>
+
+<p>Please read also the notes to warning_like as these methods are only aliases.</p>
+
+<p>Similar to <code><code>warnings_are</code></code>, you can test for multiple warnings via <code><code>carp</code></code> and for warning categories, too:</p>
+
+<pre><code><code>  <span class="variable">warnings_like</span> <span class="operator">{</span><span class="variable">foo</span><span class="operator">()}</span> 
+                <span class="operator">[</span><span class="string">qr/bar warning/</span><span class="operator">,</span>
+                 <span class="string">qr/bar warning/</span><span class="operator">,</span>
+                 <span class="operator">{</span><span class="string">carped</span> <span class="operator">=&gt;</span> <span class="string">qr/bar warning/i</span><span class="operator">}</span><span class="operator">,</span>
+                 <span class="string">'io'</span>
+                <span class="operator">]</span><span class="operator">,</span>
+                <span class="string">"I hope, you'll never have to write a test for so many warnings :-)"</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="warnings_exist-BLOCK-STRING-ARRAYREF-TEST_NAME">warnings_exist BLOCK STRING|ARRAYREF, TEST_NAME</dt>
+<dd>
+
+<p>Same as warning_like, but will warn() all warnings that do not match the supplied regex/category, instead of registering an error. Use this test when you just want to make sure that specific warnings were generated, and couldn&#39;t care less if other warnings happened in the same block of code.</p>
+
+<pre><code><code>  <span class="variable">warnings_exist</span> <span class="operator">{...}</span> <span class="operator">[</span><span class="string">qr/expected warning/</span><span class="operator">]</span><span class="operator">,</span> <span class="string">"Expected warning is thrown"</span><span class="operator">;</span>
+  
+  <span class="variable">warnings_exist</span> <span class="operator">{...}</span> <span class="operator">[</span><span class="string">'uninitialized'</span><span class="operator">]</span><span class="operator">,</span> <span class="string">"Expected warning is thrown"</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h2 id="EXPORT">EXPORT</h2>
+
+<p><code><code>warning_is</code></code>, <code><code>warnings_are</code></code>, <code><code>warning_like</code></code>, <code><code>warnings_like</code></code>, <code><code>warnings_exist</code></code> by default.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Please note that warnings with newlines inside are making a lot of trouble. The only sensible way to handle them is to use are the <code><code>warning_like</code></code> or <code><code>warnings_like</code></code> methods. Background for these problems is that there is no really secure way to distinguish between warnings with newlines and a tracing stacktrace.</p>
+
+<p>If a method has it&#39;s own warn handler, overwriting <code><code><span class="variable">$SIG</span><span class="operator">{</span><span class="string">__WARN__</span><span class="operator">}</span>
+</code></code>, my test warning methods won&#39;t get these warnings.</p>
+
+<p>The <code><code>warning_like BLOCK CATEGORY, TEST_NAME</code></code> method isn&#39;t extremely tested. Please use this calling style with higher attention and tell me if you find a bug.</p>
+
+<h1 id="TODO">TODO</h1>
+
+<p>Improve this documentation.</p>
+
+<p>The code has some parts doubled - especially in the test scripts. This is really awkward and must be changed.</p>
+
+<p>Please feel free to suggest improvements.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>Have a look to the similar modules: <a href="../../../lib/Test/Exception.html">Test::Exception</a>, <a>Test::Trap</a>.</p>
+
+<h1 id="THANKS">THANKS</h1>
+
+<p>Many thanks to Adrian Howard, chromatic and Michael G. Schwern, who have given me a lot of ideas.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Janek Schleicher, &lt;bigj AT kamelfreund.de&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright 2002 by Janek Schleicher</p>
+
+<p>Copyright 2007-2011 by Alexandr Ciornii, <a href="http://chorny.net/">http://chorny.net/</a></p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

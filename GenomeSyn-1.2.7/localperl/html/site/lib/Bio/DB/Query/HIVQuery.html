@@ -1,0 +1,657 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Query-format">Query format</a></li>
+      <li><a href="#Hash-specifications-for-query-construction">Hash specifications for query construction</a></li>
+      <li><a href="#Valid-query-field-names">Valid query field names</a></li>
+      <li><a href="#Annotations">Annotations</a></li>
+      <li><a href="#Delayed-partial-query-runs">Delayed/partial query runs</a></li>
+      <li><a href="#Query-re-use">Query re-use</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+  <li><a href="#Constructor">Constructor</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+    </ul>
+  </li>
+  <li><a href="#QueryI-compliance">QueryI compliance</a>
+    <ul>
+      <li><a href="#count">count</a></li>
+      <li><a href="#ids">ids</a></li>
+      <li><a href="#query">query</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::DB::Query::HIVQuery-specific-methods">Bio::DB::Query::HIVQuery specific methods</a>
+    <ul>
+      <li><a href="#help">help</a></li>
+    </ul>
+  </li>
+  <li><a href="#Annotation-manipulation-methods">Annotation manipulation methods</a>
+    <ul>
+      <li><a href="#get_annotations_by_ids">get_annotations_by_ids</a></li>
+      <li><a href="#add_annotations_for_id">add_annotations_for_id</a></li>
+      <li><a href="#remove_annotations_for_ids">remove_annotations_for_ids</a></li>
+      <li><a href="#remove_annotations">remove_annotations</a></li>
+      <li><a href="#get_value">get_value</a></li>
+      <li><a href="#put_value">put_value</a></li>
+      <li><a href="#get_keys">get_keys</a></li>
+    </ul>
+  </li>
+  <li><a href="#GenBank-accession-manipulation-methods">GenBank accession manipulation methods</a>
+    <ul>
+      <li><a href="#get_accessions">get_accessions</a></li>
+      <li><a href="#get_accessions_by_ids">get_accessions_by_ids</a></li>
+    </ul>
+  </li>
+  <li><a href="#Query-control-methods">Query control methods</a>
+    <ul>
+      <li><a href="#do_query">_do_query</a></li>
+      <li><a href="#reset">_reset</a></li>
+      <li><a href="#session_id">_session_id</a></li>
+      <li><a href="#run_level">_run_level</a></li>
+      <li><a href="#run_option">_run_option</a></li>
+      <li><a href="#ua_hash">_ua_hash</a></li>
+    </ul>
+  </li>
+  <li><a href="#Internals">Internals</a>
+    <ul>
+      <li><a href="#add_id">add_id</a></li>
+      <li><a href="#map_db">map_db</a></li>
+      <li><a href="#make_search_if">make_search_if</a></li>
+      <li><a href="#search_">search_</a></li>
+      <li><a href="#map_db_uri">_map_db_uri</a></li>
+      <li><a href="#make_search_if_uri">_make_search_if_uri</a></li>
+      <li><a href="#search_uri">_search_uri</a></li>
+      <li><a href="#schema_file">_schema_file</a></li>
+      <li><a href="#schema">_schema</a></li>
+      <li><a href="#lanl_query">_lanl_query</a></li>
+      <li><a href="#lanl_response">_lanl_response</a></li>
+      <li><a href="#create_lanl_query">_create_lanl_query</a></li>
+      <li><a href="#do_lanl_request">_do_lanl_request</a></li>
+      <li><a href="#parse_lanl_response">_parse_lanl_response</a></li>
+      <li><a href="#parse_query_string">_parse_query_string</a></li>
+    </ul>
+  </li>
+  <li><a href="#Dude-sorry-">Dude, sorry-</a>
+    <ul>
+      <li><a href="#sorry">_sorry</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::Query::HIVQuery - Query interface to the Los Alamos HIV Sequence Database</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="variable">$q</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::Query::HIVQuery</span><span class="operator">(</span><span class="string">" C[subtype] ZA[country] CXCR4[coreceptor] "</span><span class="operator">);</span>
+    <span class="variable">$q</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::Query::HIVQuery</span><span class="operator">(</span>
+         <span class="string">-query</span><span class="operator">=&gt;</span><span class="operator">{</span><span class="string">'subtype'</span><span class="operator">=&gt;</span><span class="string">'C'</span><span class="operator">,</span> 
+                  <span class="string">'country'</span><span class="operator">=&gt;</span><span class="string">'ZA'</span><span class="operator">,</span> 
+                  <span class="string">'coreceptor'</span><span class="operator">=&gt;</span><span class="string">'CXCR4'</span><span class="operator">}</span><span class="operator">);</span>
+    
+    <span class="variable">$ac</span> <span class="operator">=</span> <span class="variable">$q</span><span class="operator">-&gt;</span><span class="variable">get_annotations_by_id</span><span class="operator">((</span><span class="variable">$q</span><span class="operator">-&gt;</span><span class="variable">ids</span><span class="operator">)</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">);</span>
+    <span class="variable">$ac</span><span class="operator">-&gt;</span><span class="variable">get_value</span><span class="operator">(</span><span class="string">'Geo'</span><span class="operator">,</span> <span class="string">'country'</span><span class="operator">)</span>                    <span class="comment"># returns 'SOUTH AFRICA'</span>
+    
+    <span class="variable">$db</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::HIV</span><span class="operator">();</span>
+    <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Stream_by_query</span><span class="operator">(</span><span class="variable">$q</span><span class="operator">);</span>              <span class="comment"># returns annotated Bio::Seqs </span>
+    
+    <span class="comment"># get subtype C sequences from South Africa and Brazil, </span>
+    <span class="comment"># with associated info on patient health, coreceptor use, and </span>
+    <span class="comment"># infection period:</span>
+    
+    <span class="variable">$q</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::Query::HIVQuery</span><span class="operator">(</span>
+         <span class="string">-query</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                    <span class="string">'query'</span> <span class="operator">=&gt;</span> <span class="operator">{</span><span class="string">'subtype'</span><span class="operator">=&gt;</span><span class="string">'C'</span><span class="operator">,</span>
+                    <span class="string">'country'</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">'ZA'</span><span class="operator">,</span> <span class="string">'BR'</span><span class="operator">]}</span><span class="operator">,</span>
+                    <span class="string">'annot'</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'patient_health'</span><span class="operator">,</span> 
+                                <span class="string">'coreceptor'</span><span class="operator">,</span> 
+                                <span class="string">'days_post_infection'</span><span class="operator">]</span>
+                    <span class="operator">}</span><span class="operator">);</span>
+        
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::DB::Query::HIVQuery provides a query-like interface to the cgi-based Los Alamos National Laboratory (LANL) HIV Sequence Database. It uses Bioperl facilities to capture both sequences and annotations in batch in an automated and computable way. Use with <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/HIV.html">Bio::DB::HIV</a> to create <code><code>Bio::Seq</code></code> objects and annotated <code><code>Bio::SeqIO</code></code> streams.</p>
+
+<h2 id="Query-format">Query format</h2>
+
+<p>The interface implements a simple query language emulation that understands AND, OR, and parenthetical nesting. The basic query unit is</p>
+
+<pre><code><code> (match1 match2 ...)[fieldname]</code></code></pre>
+
+<p>Sequences are returned for which <code><code>fieldname</code></code> equals <code><code>match1 OR match2 OR ...</code></code>. These units can be combined with AND, OR and parentheses. For example:</p>
+
+<pre><code><code> (B, C)[subtype] AND (2000, 2001, 2002, 2003)[year] AND ((CN)[country] OR (ZA)[country])</code></code></pre>
+
+<p>which can be shortened to</p>
+
+<pre><code><code> (B C)[subtype] (2000 2001 2002 2003)[year] (CN ZA)[country]</code></code></pre>
+
+<p>The user can specify annotation fields, that do not restrict the query, but arrange for the return of the associated field data for each sequence returned. Specify annotation fields between curly braces, as in:</p>
+
+<pre><code><code> <span class="operator">(</span><span class="variable">B</span> <span class="variable">C</span><span class="operator">)</span><span class="operator">[</span><span class="variable">subtype</span><span class="operator">]</span> <span class="number">2000</span><span class="operator">[</span><span class="variable">year</span><span class="operator">]</span> <span class="operator">{</span><span class="variable">country</span> <span class="variable">cd4_count</span> <span class="variable">cd8_count</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>Annotations can be accessed off the query using methods described in APPENDIX.</p>
+
+<h2 id="Hash-specifications-for-query-construction">Hash specifications for query construction</h2>
+
+<p>Single query specifications can be made as hash references provided to the <code><code>-query</code></code> argument of the constructor. There are two forms:</p>
+
+<pre><code><code> <span class="string">-query</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'country'</span><span class="operator">=&gt;</span><span class="string">'BR'</span><span class="operator">,</span> <span class="string">'phenotype'</span><span class="operator">=&gt;</span><span class="string">'NSI'</span><span class="operator">,</span> <span class="string">'cd4_count'</span><span class="operator">=&gt;</span><span class="string">'Any'</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>equivalent to</p>
+
+<pre><code><code> -query =&gt; [ &#39;country&#39;=&gt;&#39;BR&#39;, &#39;phenotype&#39;=&gt;&#39;NSI&#39;, &#39;cd4_count&#39;=&gt;&#39;Any&#39; ]</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code> <span class="string">-query</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'query'</span> <span class="operator">=&gt;</span> <span class="operator">{</span><span class="string">'country'</span><span class="operator">=&gt;</span><span class="string">'BR'</span><span class="operator">,</span> <span class="string">'phenotype'</span><span class="operator">=&gt;</span><span class="string">'NSI'</span><span class="operator">}</span><span class="operator">,</span>
+             <span class="string">'annot'</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'cd4_count'</span><span class="operator">]</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>In both cases, the CD4 count is included in the annotations returned, but does not restrict the rest of the query.</p>
+
+<p>To &#39;OR&#39; multiple values of a field, use an anonymous array ref:</p>
+
+<pre><code><code> <span class="string">-query</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'country'</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">'ZA'</span><span class="operator">,</span><span class="string">'BR'</span><span class="operator">,</span><span class="string">'NL'</span><span class="operator">]</span><span class="operator">,</span> <span class="string">'subtype'</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">'A'</span><span class="operator">,</span> <span class="string">'C'</span><span class="operator">,</span> <span class="string">'D'</span><span class="operator">]</span> <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="Valid-query-field-names">Valid query field names</h2>
+
+<p>An attempt was made to make the query field names natural and easy to remember. Aliases are specified in an XML file (<code><code>lanl-schema.xml</code></code>) that is part of the distribution. Custom field aliases can be set up by modifying this file.</p>
+
+<p>An HTML cheatsheet with valid field names, aliases, and match data can be generated from the XML by using <code><code>hiv_object-&gt;help(&#39;help.html&#39;)</code></code>. A query can also be validated locally before it is unleashed on the server; see below.</p>
+
+<h2 id="Annotations">Annotations</h2>
+
+<p>LANL DB annotations have been organized into a number of natural groupings, tagged <code><code>Geo</code></code>, <code><code>Patient</code></code>, <code><code>Virus</code></code>, and <code><code>StdMap</code></code>. After a successful query, each id is associated with a tree of <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Annotation/SimpleValue.html">Bio::Annotation::SimpleValue</a> objects. These can be accessed with methods <code><code>get_value</code></code> and <code><code>put_value</code></code> described in APPENDIX.</p>
+
+<h2 id="Delayed-partial-query-runs">Delayed/partial query runs</h2>
+
+<p>Accessing the LANL DB involves multiple HTTP requests. The query can be instructed to proceed through all (the default) or only some of them, using the named parameter <code><code>RUN_OPTION</code></code>.</p>
+
+<p>To validate a query locally, use</p>
+
+<pre><code><code> <span class="variable">$q</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::Query::HIVQuery</span><span class="operator">(</span> <span class="string">-query</span> <span class="operator">=&gt;</span> <span class="operator">{</span><span class="operator">...</span><span class="operator">}</span><span class="operator">,</span> <span class="string">-RUN_OPTION</span><span class="operator">=&gt;</span><span class="number">0</span> <span class="operator">)</span>
+</code></code></pre>
+
+<p>which will throw an exception if a field name or option is invalid.</p>
+
+<p>To get a query count only, you can save a server hit by using</p>
+
+<pre><code><code> <span class="variable">$q</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::Query::HIVQuery</span><span class="operator">(</span> <span class="string">-query</span> <span class="operator">=&gt;</span> <span class="operator">{</span><span class="operator">...</span><span class="operator">}</span><span class="operator">,</span> <span class="string">-RUN_OPTION</span><span class="operator">=&gt;</span><span class="number">1</span> <span class="operator">)</span>
+</code></code></pre>
+
+<p>and asking for <code><code>$q-&gt;count</code></code>. To finish the query, do</p>
+
+<pre><code><code> $q-&gt;_do_query(2)</code></code></pre>
+
+<p>which picks up where you left off.</p>
+
+<p><code><code>-RUN_OPTION=&gt;2</code></code>, the default, runs the full query, returning ids and annotations.</p>
+
+<h2 id="Query-re-use">Query re-use</h2>
+
+<p>You can clear the query results, retaining the same LANL session and query spec, by doing <code><code>$q-&gt;_reset</code></code>. Change the query, and rerun with <code><code>$q-&gt;_do_query($YOUR_RUN_OPTION)</code></code>.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<p>Email maj@fortinbras.us</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Mark A. Jensen</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h1 id="Constructor">Constructor</h1>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$hiv_query</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::Query::HIVQuery</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::DB::Query::HIVQuery</span> <span class="variable">object</span><span class="operator">,</span>
+           <span class="variable">running</span> <span class="variable">a</span> <span class="variable">sequence</span> <span class="variable">query</span> <span class="variable">against</span> <span class="variable">the</span> <span class="variable">Los</span> <span class="variable">Alamos</span>
+           <span class="variable">HIV</span> <span class="variable">sequence</span> <span class="variable">database</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">of</span> <span class="variable">Bio::DB::Query::HIVQuery</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h1 id="QueryI-compliance">QueryI compliance</h1>
+
+<h2 id="count">count</h2>
+
+<pre><code><code> Title   : count
+ Usage   : $hiv_query-&gt;count($newval)
+ Function: return number of sequences found
+ Example : 
+ Returns : value of count (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)
+ Note    : count warns if it is accessed for reading before query
+           has been executed to at least level 1</code></code></pre>
+
+<h2 id="ids">ids</h2>
+
+<pre><code><code> Title   : ids
+ Usage   : $hiv_query-&gt;ids($newval)
+ Function: LANL ids of returned sequences 
+ Example : 
+ Returns : value of ids (an arrayref of sequence accessions/ids)
+ Args    : on set, new value (an arrayref or undef, optional)</code></code></pre>
+
+<h2 id="query">query</h2>
+
+<pre><code><code> Title   : query
+ Usage   : $hiv_query-&gt;query
+ Function: Get/set the submitted query hash or string
+ Example :
+ Returns : hashref or string
+ Args    : query in hash or string form (see DESCRIPTION)</code></code></pre>
+
+<h1 id="Bio::DB::Query::HIVQuery-specific-methods">Bio::DB::Query::HIVQuery specific methods</h1>
+
+<h2 id="help">help</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">help</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$hiv_query</span><span class="operator">-&gt;</span><span class="variable">help</span><span class="operator">(</span><span class="string">"help.html"</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span> <span class="variable">html</span><span class="operator">-</span><span class="variable">formatted</span> <span class="variable">listing</span> <span class="variable">of</span> <span class="variable">valid</span> <span class="variable">fields</span><span class="operator">/</span><span class="variable">aliases</span><span class="operator">/</span><span class="variable">options</span>
+           <span class="variable">based</span> <span class="variable">on</span> <span class="variable">current</span> <span class="variable">schema</span> <span class="variable">xml</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">perl</span> <span class="operator">-</span><span class="variable">MBio::DB::Query::HIVQuery</span> <span class="keyword">-e</span> <span class="string">"new Bio::DB::Query::HIVQuery()-&gt;help"</span> <span class="operator">|</span> <span class="variable">lynx</span> <span class="operator">-</span><span class="variable">stdin</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">HTML</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">optional</span> <span class="variable">filename</span><span class="operator">;</span> <span class="variable">otherwise</span> <span class="variable">prints</span> <span class="variable">to</span> <span class="variable">stdout</span>
+</code></code></pre>
+
+<h1 id="Annotation-manipulation-methods">Annotation manipulation methods</h1>
+
+<h2 id="get_annotations_by_ids">get_annotations_by_ids</h2>
+
+<pre><code><code> Title   : get_annotations_by_ids (or ..._by_id)
+ Usage   : $ac = $hiv_query-&gt;get_annotations_by_ids(@ids)
+ Function: Get the Bio::Annotation::Collection for these sequence ids
+ Example :
+ Returns : A Bio::Annotation::Collection object
+ Args    : an array of sequence ids</code></code></pre>
+
+<h2 id="add_annotations_for_id">add_annotations_for_id</h2>
+
+<pre><code><code> Title   : add_annotations_for_id
+ Usage   : $hiv_query-&gt;add_annotations_for_id( $id ) to create a new 
+            empty collection for $id
+           $hiv_query-&gt;add_annotations_for_id( $id, $ac ) to associate 
+           $ac with $id
+ Function: Associate a Bio::Annotation::Collection with this sequence id
+ Example :
+ Returns : a Bio::Annotation::Collection object
+ Args    : sequence id [, Bio::Annotation::Collection object]</code></code></pre>
+
+<h2 id="remove_annotations_for_ids">remove_annotations_for_ids</h2>
+
+<pre><code><code> Title   : remove_annotations_for_ids (or ..._for_id)
+ Usage   : $hiv_query-&gt;remove_annotations_for_ids( @ids)
+ Function: Remove annotation collection for this sequence id
+ Example :
+ Returns : An array of the previous annotation collections for these ids
+ Args    : an array of sequence ids</code></code></pre>
+
+<h2 id="remove_annotations">remove_annotations</h2>
+
+<pre><code><code> Title   : remove_annotations
+ Usage   : $hiv_query-&gt;remove_annotations()
+ Function: Remove all annotation collections for this object
+ Example :
+ Returns : The previous annotation collection hash for this object
+ Args    : none</code></code></pre>
+
+<h2 id="get_value">get_value</h2>
+
+<pre><code><code> Title   : get_value
+ Usage   : $ac-&gt;get_value($tagname) -or-
+           $ac-&gt;get_value( $tag_level1, $tag_level2,... )
+ Function: access the annotation value assocated with the given tags
+ Example :
+ Returns : a scalar
+ Args    : an array of tagnames that descend into the annotation tree
+ Note    : this is a L&lt;Bio::AnnotationCollectionI&gt; method added in 
+           L&lt;Bio::DB::HIV::HIVQueryHelper&gt;</code></code></pre>
+
+<h2 id="put_value">put_value</h2>
+
+<pre><code><code> Title   : put_value
+ Usage   : $ac-&gt;put_value($tagname, $value) -or-
+           $ac-&gt;put_value([$tag_level1, $tag_level2, ...], $value) -or-
+           $ac-&gt;put_value( [$tag_level1, $tag_level2, ...] )
+ Function: create a node in an annotation tree, and assign a scalar value to it
+           if a value is specified
+ Example :
+ Returns : scalar or a Bio::AnnotationCollection object
+ Args    : $tagname, $value scalars (can be specified as -KEYS=&gt;$tagname,
+           -VALUE=&gt;$value) -or- 
+           \@tagnames, $value (or as -KEYS=&gt;\@tagnames, -VALUE=&gt;$value )
+ Notes   : This is a L&lt;Bio::AnnotationCollectionI&gt; method added in 
+           L&lt;Bio::DB::HIV::HIVQueryHelper&gt;.
+           If intervening nodes do not exist, put_value creates them, replacing 
+           existing nodes. So if $ac-&gt;put_value(&#39;x&#39;, 10) was done, then later,
+           $ac-&gt;put_value([&#39;x&#39;, &#39;y&#39;], 20), the original value of &#39;x&#39; is trashed,
+           and $ac-&gt;get_value(&#39;x&#39;) will now return the annotation collection 
+           with tagname &#39;y&#39;. </code></code></pre>
+
+<h2 id="get_keys">get_keys</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_keys</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$ac</span><span class="operator">-&gt;</span><span class="variable">get_keys</span><span class="operator">(</span><span class="variable">$tagname_level_1</span><span class="operator">,</span> <span class="variable">$tagname_level_2</span><span class="operator">,...)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">tagnames</span> <span class="variable">underneath</span> <span class="variable">the</span> <span class="variable">named</span> <span class="variable">tag</span> <span class="variable">nodes</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="comment"># prints the values of the members of Category 1...</span>
+           <span class="keyword">print</span> <span class="keyword">map</span> <span class="operator">{</span> <span class="variable">$ac</span><span class="operator">-&gt;</span><span class="variable">get_value</span><span class="operator">(</span><span class="variable">$_</span><span class="operator">)</span> <span class="operator">}</span> <span class="variable">$ac</span><span class="operator">-&gt;</span><span class="variable">get_keys</span><span class="operator">(</span><span class="string">'Category 1'</span><span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">tagnames</span> <span class="keyword">or</span> <span class="variable">empty</span> <span class="variable">list</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="variable">arguments</span> <span class="variable">represent</span> <span class="variable">a</span> <span class="variable">leaf</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">array</span> <span class="variable">of</span><span class="operator">]</span> <span class="variable">tagname</span><span class="operator">[</span><span class="regex">s]
+ </span>
+</code></code></pre>
+
+<h1 id="GenBank-accession-manipulation-methods">GenBank accession manipulation methods</h1>
+
+<h2 id="get_accessions">get_accessions</h2>
+
+<pre><code><code> Title   : get_accessions
+ Usage   : $hiv_query-&gt;get_accessions()
+ Function: Return an array of GenBank accessions associated with these 
+           sequences (available only after a query is subjected to a 
+           full run (i.e., when $RUN_OPTION == 2)
+ Example :
+ Returns : array of gb accession numbers, or () if none found for this query
+ Args    : none</code></code></pre>
+
+<h2 id="get_accessions_by_ids">get_accessions_by_ids</h2>
+
+<pre><code><code> Title   : get_accessions_by_ids (or ..._by_id)
+ Usage   : $hiv_query-&gt;get_accessions_by_ids(@ids)
+ Function: Return an array of GenBank accessions associated with these 
+           LANL ids (available only after a query is subjected to a 
+           full run (i.e., when $RUN_OPTION == 2)
+ Example :
+ Returns : array of gb accession numbers, or () if none found for this query
+ Args    : none</code></code></pre>
+
+<h1 id="Query-control-methods">Query control methods</h1>
+
+<h2 id="do_query">_do_query</h2>
+
+<pre><code><code> Title   : _do_query
+ Usage   : $hiv_query-&gt;_do_query or $hiv_query-&gt;_do_query($run_level)
+ Function: Execute the query according to argument or $RUN_OPTION
+           and set _RUN_LEVEL
+           extent of query reflects the value of argument
+            0 : validate only (no HTTP action)
+            1 : return sequence count only
+            2 : return sequence ids (full query, returns with annotations)
+           noop if current _RUN_LEVEL of query is &gt;= argument or $RUN_OPTION,
+ Example :
+ Returns : actual _RUN_LEVEL (0, 1, or 2) achieved
+ Args    : desired run level (optional, global $RUN_OPTION is default)</code></code></pre>
+
+<h2 id="reset">_reset</h2>
+
+<pre><code><code> Title   : _reset
+ Usage   : $hiv_query-&gt;_reset
+ Function: Resets query storage, count, and ids, while retaining session id, 
+           original query string, and db schema
+ Example : 
+ Returns : void
+ Args    : none</code></code></pre>
+
+<h2 id="session_id">_session_id</h2>
+
+<pre><code><code> Title   : _session_id
+ Usage   : $hiv_query-&gt;_session_id($newval)
+ Function: Get/set HIV db session id (initialized in _do_lanl_request)
+ Example : 
+ Returns : value of _session_id (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="run_level">_run_level</h2>
+
+<pre><code><code> Title   : _run_level
+ Usage   : $obj-&gt;_run_level($newval)
+ Function: returns the level at which the query has so far been run
+ Example : 
+ Returns : value of _run_level (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="run_option">_run_option</h2>
+
+<pre><code><code> Title   : _run_option
+ Usage   : $hiv_query-&gt;_run_option($newval)
+ Function: Get/set HIV db query run option (see _do_query for values)
+ Example : 
+ Returns : value of _run_option (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="ua_hash">_ua_hash</h2>
+
+<pre><code><code> Title   : _ua_hash
+ Usage   : $obj-&gt;_ua_hash($newval)
+ Function: 
+ Example : 
+ Returns : value of _ua_hash (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h1 id="Internals">Internals</h1>
+
+<h2 id="add_id">add_id</h2>
+
+<pre><code><code> Title   : add_id
+ Usage   : $hiv_query-&gt;add_id($id)
+ Function: Add new id to ids
+ Example : 
+ Returns : the new id
+ Args    : a sequence id</code></code></pre>
+
+<h2 id="map_db">map_db</h2>
+
+<pre><code><code> Title   : map_db
+ Usage   : $obj-&gt;map_db($newval)
+ Function: 
+ Example : 
+ Returns : value of map_db (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="make_search_if">make_search_if</h2>
+
+<pre><code><code> Title   : make_search_if
+ Usage   : $obj-&gt;make_search_if($newval)
+ Function: 
+ Example : 
+ Returns : value of make_search_if (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="search_">search_</h2>
+
+<pre><code><code> Title   : search_
+ Usage   : $obj-&gt;search_($newval)
+ Function: 
+ Example : 
+ Returns : value of search_ (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="map_db_uri">_map_db_uri</h2>
+
+<pre><code><code> Title   : _map_db_uri
+ Usage   :
+ Function: return the full map_db uri (&quot;Database Map&quot;)
+ Example :
+ Returns : scalar string
+ Args    : none</code></code></pre>
+
+<h2 id="make_search_if_uri">_make_search_if_uri</h2>
+
+<pre><code><code> Title   : _make_search_if_uri
+ Usage   :
+ Function: return the full make_search_if uri (&quot;Make Search Interface&quot;)
+ Example :
+ Returns : scalar string
+ Args    : none</code></code></pre>
+
+<h2 id="search_uri">_search_uri</h2>
+
+<pre><code><code> Title   : _search_uri
+ Usage   :
+ Function: return the full search cgi uri (&quot;Search Database&quot;)
+ Example :
+ Returns : scalar string
+ Args    : none</code></code></pre>
+
+<h2 id="schema_file">_schema_file</h2>
+
+<pre><code><code> Title   : _schema_file
+ Usage   : $hiv_query-&gt;_schema_file($newval)
+ Function: 
+ Example : 
+ Returns : value of _schema_file (an XML string or filename)
+ Args    : on set, new value (an XML string or filename, or undef, optional)</code></code></pre>
+
+<h2 id="schema">_schema</h2>
+
+<pre><code><code> Title   : _schema
+ Usage   : $hiv_query-&gt;_schema($newVal)
+ Function: 
+ Example : 
+ Returns : value of _schema (an HIVSchema object in package 
+           L&lt;Bio::DB::HIV::HIVQueryHelper&gt;)
+ Args    : none (field set directly in new())</code></code></pre>
+
+<h2 id="lanl_query">_lanl_query</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_lanl_query</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$hiv_query</span><span class="operator">-&gt;</span><span class="variable">_lanl_query</span><span class="operator">(\</span><span class="variable">@query_parms</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">pushes</span> <span class="operator">\</span><span class="variable">@query_parms</span> <span class="variable">onto</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$self</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'_lanl_query'</span><span class="operator">}</span>
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">_lanl_query</span> <span class="operator">(</span><span class="variable">an</span> <span class="variable">arrayref</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">on</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">an</span> <span class="variable">arrayref</span> <span class="keyword">or</span> <span class="keyword">undef</span><span class="operator">,</span> <span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="lanl_response">_lanl_response</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_lanl_response</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$hiv_query</span><span class="operator">-&gt;</span><span class="variable">_lanl_response</span><span class="operator">(</span><span class="variable">$response</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">pushes</span> <span class="variable">$response</span> <span class="variable">onto</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$hiv_query</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'_lanl_response'</span><span class="operator">}}</span>
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">_lanl_response</span> <span class="operator">(</span><span class="variable">an</span> <span class="variable">arrayref</span> <span class="variable">of</span> <span class="variable">HTTP::Response</span> <span class="variable">objects</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">on</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">an</span> <span class="variable">HTTP::Response</span> <span class="variable">object</span> <span class="keyword">or</span> <span class="keyword">undef</span><span class="operator">,</span> <span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="create_lanl_query">_create_lanl_query</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_create_lanl_query</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$hiv_query</span><span class="operator">-&gt;</span><span class="variable">_create_lanl_query</span><span class="operator">()</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">validate</span> <span class="variable">query</span> <span class="variable">hash</span> <span class="keyword">or</span> <span class="variable">string</span><span class="operator">,</span> <span class="variable">prepare</span> <span class="keyword">for</span> <span class="variable">_do_lanl_request</span>
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">1</span> <span class="keyword">if</span> <span class="variable">successful</span><span class="operator">;</span> <span class="variable">throws</span> <span class="variable">exception</span> <span class="variable">on</span> <span class="variable">invalid</span> <span class="variable">query</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="do_lanl_request">_do_lanl_request</h2>
+
+<pre><code><code> Title   : _do_lanl_request
+ Usage   : $hiv_query-&gt;_do_lanl_request()
+ Function: Perform search request on _create_lanl_query-validated query
+ Example : 
+ Returns : 1 if successful
+ Args    : </code></code></pre>
+
+<h2 id="parse_lanl_response">_parse_lanl_response</h2>
+
+<pre><code><code> Title   : _parse_lanl_response
+ Usage   : $hiv_query-&gt;_parse_lanl_response()
+ Function: Parse the tab-separated-value response obtained by _do_lanl_request
+           for sequence ids, accessions, and annotations
+ Example : 
+ Returns : 1 if successful
+ Args    : </code></code></pre>
+
+<h2 id="parse_query_string">_parse_query_string</h2>
+
+<pre><code><code> Title   : _parse_query_string
+ Usage   : $hiv_query-&gt;_parse_query_string($str)
+ Function: Parses a query string using query language emulator QRY
+         : in L&lt;Bio::DB::Query::HIVQueryHelper&gt;
+ Example : 
+ Returns : arrayref of hash structures suitable for passing to _create_lanl_query
+ Args    : a string scalar</code></code></pre>
+
+<h1 id="Dude-sorry-">Dude, sorry-</h1>
+
+<h2 id="sorry">_sorry</h2>
+
+<pre><code><code> Title   : _sorry
+ Usage   : $hiv_query-&gt;_sorry(&quot;-president=&gt;Powell&quot;)
+ Function: Throws an exception for unsupported option or parameter
+ Example :
+ Returns : 
+ Args    : scalar string</code></code></pre>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,183 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#INTRODUCTION">INTRODUCTION</a>
+    <ul>
+      <li><a href="#Design-Principles">Design Principles</a></li>
+      <li><a href="#Conventions">Conventions</a></li>
+    </ul>
+  </li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#read-and-read_dat">read and read_dat</a></li>
+      <li><a href="#update">update</a></li>
+      <li><a href="#Creating-fonts">Creating fonts</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#LICENSING">LICENSING</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Font::TTF::Manual - Information regarding the whole module set</p>
+
+<h1 id="INTRODUCTION">INTRODUCTION</h1>
+
+<p>This document looks at the whole issue of how the various modules in the TrueType Font work together. As such it is partly information on this font system and partly information on TrueType fonts in general.</p>
+
+<p>Due to the inter-relation between so many tables in a TrueType font, different tables will make expectations as to which other tables exist. At the very least a font should consist of a <code><code>head</code></code> table and a <code><code>maxp</code></code> table. The system has been designed around the expectation that the necessary tables for font rendering in the Windows environment exist. But inter table dependencies have been kept to what are considered necessary.</p>
+
+<p>This module set is not meant as a simple to use, mindless, font editing suite, but as a low-level, get your hands dirty, know what you are doing, set of classes for those who understand the intricacies (and there are many) of TrueType fonts. To this end, if you get something wrong in the data structures, etc. then this module set won&#39;t tell you and will happily create fonts which don&#39;t work.</p>
+
+<p>At the time of writing, not every TrueType table in existence has been implemented! Only the core basic tables of TrueType 1.0 (i.e. no embedded bitmap tables, no postscript type tables, no OpenType tables and no GX tables) have been implemented. If you want to help by implementing another table or two, then please go ahead and send me your code. For a full list of tables, see <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Font.html">Font::TTF::Font</a>.</p>
+
+<h2 id="Design-Principles">Design Principles</h2>
+
+<p>PERL is not C++. C++ encourages methods to be written for changing and reading each instance variable in a class. If we did this in this PERL program the results would be rather large and slow. Instead, since most access will be read access, we expose as much of the inner storage of an object to user access directly via hash lookup. The advantage this gives are great. For example, by following an instance variable chain, looking up the <code><code>yMax</code></code> parameter for a particular glyph becomes:</p>
+
+<pre><code><code>    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'loca'</span><span class="operator">}{</span><span class="string">'glyphs'</span><span class="operator">}[</span><span class="variable">$glyph</span><span class="operator">]{</span><span class="string">'yMax'</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>Or, if we are feeling very lazy and don&#39;t mind waiting:</p>
+
+<pre><code><code>    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'loca'</span><span class="operator">}{</span><span class="string">'glyphs'</span><span class="operator">}[</span><span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'cmap'</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">ms_lookup</span><span class="operator">(</span><span class="number">0x41</span><span class="operator">)</span><span class="operator">]{</span><span class="string">'yMax'</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>The disadvantage of this method is that it behoves module users to behave themselves. Thus it does not hold your hand and ensure that if you make a change to a table, that the table is marked as <i>dirty</i>, or that other tables are updated accordingly.</p>
+
+<p>It is up to the application developer to understand the implications of the changes they make to a font, and to take the necessary action to ensure that the data they get out is what they want. Thus, you could go and change the <code><code>yMax</code></code> value on a glyph and output a new font with this change, but it is up to you to ensure that the font&#39;s bounding box details in the <code><code>head</code></code> table are correct, and even that your changing <code><code>yMax</code></code> is well motivated.</p>
+
+<p>To help with using the system, each module (or table) will not only describe the methods it supports, which are relatively few, but also the instance variables it supports, which are many. Most of the variables directly reflect table attributes as specified in the OpenType specification, available from Microsoft (<a href="http://www.microsoft.com/typography">http://www.microsoft.com/typography</a>), Adobe and Apple. A list of the names used is also given in each module, but not necessarily with any further description. After all, this code is not a TrueType manual as well!</p>
+
+<h2 id="Conventions">Conventions</h2>
+
+<p>There are various conventions used in this system.</p>
+
+<p>Firstly we consider the documentation conventions regarding instance variables. Each instance variable is marked indicating whether it is a <b>(P)</b>rivate variable which users of the module are not expected to read and certainly not write to or a <b>(R)</b>ead only variable which users may well want to read but not write to.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<p>This section examines various methods and how the various modules work with these methods.</p>
+
+<h2 id="read-and-read_dat">read and read_dat</h2>
+
+<p>Before the data structures for a table can be accessed, they need to be filled in from somewhere. The usual way to do this is to read an existing TrueType font. This may be achieved by:</p>
+
+<pre><code><code>    <span class="variable">$f</span> <span class="operator">=</span> <span class="variable">Font::TTF::Font</span><span class="operator">-&gt;</span><span class="variable">open</span><span class="operator">(</span><span class="variable">$filename</span><span class="operator">)</span> <span class="operator">||</span> <span class="keyword">die</span> <span class="string">"Unable to read </span><span class="variable">$filename</span><span class="string">"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This will open an existing font and read its directory header. Notice that at this point, none of the tables in the font have been read. (Actually, the <code><code>head</code></code> and <code><code>maxp</code></code> tables are read at this point too since they contain the commonly required parameters of):</p>
+
+<pre><code><code>    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'head'</span><span class="operator">}{</span><span class="string">'unitsPerEm'</span><span class="operator">}</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'maxp'</span><span class="operator">}{</span><span class="string">'numGlyphs'</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>In order to be able to access information from a table, it is first necessary to <code><code>read</code></code> it. Consider trying to find the advance width of a space character (U+0020). The following code should do it:</p>
+
+<pre><code><code>    <span class="variable">$f</span> <span class="operator">=</span> <span class="variable">Font::TTF::Font</span><span class="operator">-&gt;</span><span class="variable">open</span><span class="operator">(</span><span class="variable">$ARGV</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">);</span>
+    <span class="variable">$snum</span> <span class="operator">=</span> <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'cmap'</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">ms_lookup</span><span class="operator">(</span><span class="number">0x0020</span><span class="operator">);</span>
+    <span class="variable">$sadv</span> <span class="operator">=</span> <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'hmtx'</span><span class="operator">}{</span><span class="string">'advance'</span><span class="operator">}[</span><span class="variable">$snum</span><span class="operator">]</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="variable">$sadv</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This would result in the value zero being printed, which is far from correct. But why? The first line would correctly read the font directory. The second line would, incidently, correctly locate the space character in the Windows cmap (assuming a non symbol encoded font). The third line would not succeed in its task since the <code><code>hmtx</code></code> table has not been filled in from the font file. To achieve what we want we would first need to cause it to be read:</p>
+
+<pre><code><code>    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'hmtx'</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">read</span><span class="operator">;</span>
+    <span class="variable">$sadv</span> <span class="operator">=</span> <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'hmtx'</span><span class="operator">}{</span><span class="string">'advance'</span><span class="operator">}[</span><span class="variable">$snum</span><span class="operator">]</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Or for those who are too lazy to write multiple lines, <code><code>read</code></code> returns the object it reads. Thus we could write:</p>
+
+<pre><code><code>    <span class="variable">$sadv</span> <span class="operator">=</span> <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'hmtx'</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">read</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'advance'</span><span class="operator">}[</span><span class="variable">$snum</span><span class="operator">]</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Why, if we always have to read tables before accessing information from them, did we not have to do this for the <code><code>cmap</code></code> table? The answer lies in the method call. It senses that the table hasn&#39;t been read and reads it for us. This will generally happen with all method calls, it is only when we do direct data access that we have to take the responsibility to read the table first.</p>
+
+<p>Reading a table does not necessarily result in all the data being placed into internal data structures. In the case of a simple table <code><code>read</code></code> is sufficient. In fact, the normal case is that <code><code>read_dat</code></code> reads the data from the file into an instance variable called <code><code>&#39; dat&#39;</code></code> (including the space) and not into the data structures.</p>
+
+<p>This is true except for the <code><code>glyph</code></code> class which represents a single glyph. Here the process is reversed. Reading a <code><code>glyph</code></code> reads the data for the glyph into the <code><code>&#39; dat&#39;</code></code> instance variable and sets various header attributes for the glyph (<code><code>xMin</code></code>, <code><code>numContours</code></code>, etc.). The data is converted out of the variable into data structures via the <code><code>read_dat</code></code> method.</p>
+
+<p>The aim, therefore, is that <code><code>read</code></code> should do the natural thing (read into data structures for those tables and elements for which it is helpful -- all except <code><code>glyph</code></code> at present) and <code><code>read_dat</code></code> should do the unnatural thing: read just the binary data for normal tables and convert binary data to data structures for <code><code>glyph</code></code>s.</p>
+
+<p>In summary, therefore, use <code><code>read</code></code> unless you want to hack around with the internals of glyphs in which case see <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Glyph.html">Font::TTF::Glyph</a> for more details.</p>
+
+<h2 id="update">update</h2>
+
+<p>The aim of this method is to allow the various data elements in a <code><code>read</code></code> font to update themselves. All tables know how to update themselves. All tables also contain information which cannot be <i>updated</i> but is new knowledge in the font. As a result, certain tables do nothing when they are updated. We can, therefore, build an update hierarchy of tables, with the independent tables at the bottom and <code><code>Font</code></code> at the top:</p>
+
+<pre><code><code>       +--loca
+       |
+ glyf--+--maxp
+       |
+       +---+--head
+           |
+ hmtx------+--hhea
+
+ cmap-----OS/2
+
+ name--
+
+ post--
+There is an important universal dependency which it is up to the user to
+keep up to date. This is C&lt;maxp/numOfGlyphs&gt; which is used to iterate over all
+the glyphs. Note that the glyphs themselves are not held in the C&lt;glyph&gt; table
+but in the C&lt;loca&gt; table, so adding glyphs, etc. automatically involves keeping
+the C&lt;loca&gt; table up to date.</code></code></pre>
+
+<h2 id="Creating-fonts">Creating fonts</h2>
+
+<p>Suppose we were creating a font from scratch. How much information do we need to supply and how much will <code><code>update</code></code> do for us?</p>
+
+<p>The following information is required:</p>
+
+<pre><code><code>    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'loca'</span><span class="operator">}{</span><span class="string">'glyphs'</span><span class="operator">}</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'head'</span><span class="operator">}{</span><span class="string">'upem'</span><span class="operator">}</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'maxp'</span><span class="operator">}{</span><span class="string">'numGlyphs'</span><span class="operator">}</span>   <span class="operator">(</span><span class="variable">doesn't</span> <span class="variable">come</span> <span class="variable">from</span> <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'loca'</span><span class="operator">}{</span><span class="string">'glyphs'</span><span class="operator">}</span><span class="operator">)</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'hmtx'</span><span class="operator">}{</span><span class="string">'advance'</span><span class="operator">}</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'post'</span><span class="operator">}[</span><span class="string">'format'</span><span class="operator">}</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'post'</span><span class="operator">}{</span><span class="string">'VAL'</span><span class="operator">}</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'cmap'</span><span class="operator">}</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'name'</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>Pretty much everything else is calculated for you. Details of what is needed for a glyph may be found in <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Glyph.html">Font::TTF::Glyph</a>. Once we have all the information we need (and there is lots more that you could add) then we simply</p>
+
+<pre><code><code>    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="variable">dirty</span><span class="operator">;</span>          <span class="comment"># mark all tables dirty</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="variable">update</span><span class="operator">;</span>         <span class="comment"># update the font</span>
+</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Martin Hosken <a href="http://scripts.sil.org/FontUtils">http://scripts.sil.org/FontUtils</a>. (see CONTRIBUTORS for other authors).</p>
+
+<h1 id="LICENSING">LICENSING</h1>
+
+<p>Copyright (c) 1998-2014, SIL International (http://www.sil.org)</p>
+
+<p>This module is released under the terms of the Artistic License 2.0. For details, see the full text of the license in the file LICENSE.</p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,319 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#version">version</a></li>
+      <li><a href="#annotation_score">annotation_score</a></li>
+      <li><a href="#alignment">alignment</a></li>
+      <li><a href="#tree">tree</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::Cluster::FamilyI-methods">Bio::Cluster::FamilyI methods</a>
+    <ul>
+      <li><a href="#family_score">family_score</a></li>
+      <li><a href="#family_id">family_id</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::ClusterI-methods">Bio::ClusterI methods</a>
+    <ul>
+      <li><a href="#display_id">display_id</a></li>
+      <li><a href="#description">description</a></li>
+      <li><a href="#get_members">get_members</a></li>
+      <li><a href="#size">size</a></li>
+      <li><a href="#cluster_score">cluster_score</a></li>
+    </ul>
+  </li>
+  <li><a href="#Implementation-specific-methods">Implementation specific methods</a>
+    <ul>
+      <li><a href="#add_members">add_members</a></li>
+      <li><a href="#remove_members">remove_members</a></li>
+      <li><a href="#members">members</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Cluster::SequenceFamily - Sequence Family object</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Cluster::SequenceFamily</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">File::Spec</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$file</span> <span class="operator">=</span>  <span class="variable">File::Spec</span><span class="operator">-&gt;</span><span class="variable">catfile</span><span class="operator">(</span><span class="string">'t'</span><span class="operator">,</span><span class="string">'data'</span><span class="operator">,</span><span class="string">'swiss.dat'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$seqio</span><span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'swiss'</span><span class="operator">,</span>
+                            <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$file</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@mem</span><span class="operator">;</span>
+  <span class="keyword">while</span><span class="operator">(</span><span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">){</span>
+    <span class="keyword">push</span> <span class="variable">@mem</span><span class="operator">,</span> <span class="variable">$seq</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="comment">#create the family</span>
+  <span class="keyword">my</span> <span class="variable">$family</span> <span class="operator">=</span> <span class="variable">Bio::Cluster::SequenceFamily</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+          <span class="string">-family_id</span><span class="operator">=&gt;</span><span class="string">"Family_1"</span><span class="operator">,</span>
+          <span class="string">-description</span><span class="operator">=&gt;</span><span class="string">"Family Description Here"</span><span class="operator">,</span>
+          <span class="string">-annotation_score</span><span class="operator">=&gt;</span><span class="string">"100"</span><span class="operator">,</span>
+          <span class="string">-members</span><span class="operator">=&gt;\</span><span class="variable">@mem</span><span class="operator">);</span>
+  
+  <span class="comment">#access the family</span>
+  
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$mem</span> <span class="operator">(</span><span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">get_members</span><span class="operator">){</span>
+    <span class="keyword">print</span> <span class="variable">$mem</span><span class="operator">-&gt;</span><span class="variable">display_id</span><span class="operator">.</span><span class="string">"\t"</span><span class="operator">.</span><span class="variable">$mem</span><span class="operator">-&gt;</span><span class="variable">desc</span><span class="operator">.</span><span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="comment">#select members if members have a Bio::Species Object</span>
+  
+  <span class="keyword">my</span> <span class="variable">@mem</span> <span class="operator">=</span> <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">get_members</span><span class="operator">(</span><span class="string">-binomial</span><span class="operator">=&gt;</span><span class="string">"Homo sapiens"</span><span class="operator">);</span>
+  <span class="variable">@mem</span> <span class="operator">=</span> <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">get_members</span><span class="operator">(</span><span class="string">-ncbi_taxid</span> <span class="operator">=&gt;</span> <span class="number">9606</span><span class="operator">);</span>
+  <span class="variable">@mem</span> <span class="operator">=</span> <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">get_members</span><span class="operator">(</span><span class="string">-common_name</span><span class="operator">=&gt;</span><span class="string">"Human"</span><span class="operator">);</span>
+  <span class="variable">@mem</span> <span class="operator">=</span> <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">get_members</span><span class="operator">(</span><span class="string">-species</span><span class="operator">=&gt;</span><span class="string">"sapiens"</span><span class="operator">);</span>
+  <span class="variable">@mem</span> <span class="operator">=</span> <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">get_members</span><span class="operator">(</span><span class="string">-genus</span><span class="operator">=&gt;</span><span class="string">"Homo"</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is a simple Family object that may hold any group of object. For more specific families, one should derive from FamilyI.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<p>Email bioperl-l@bioperl.org for support and feedback.</p>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</h1>
+
+<p>Email shawnh@fugu-sg.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a &quot;_&quot;.</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$family</span> <span class="operator">=</span> <span class="variable">Bio::Cluster::SequenceFamily</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+                             <span class="string">-family_id</span><span class="operator">=&gt;</span><span class="string">"Family_1"</span><span class="operator">,</span>
+                             <span class="string">-description</span><span class="operator">=&gt;</span><span class="string">"Family Description Here"</span><span class="operator">,</span>
+                             <span class="string">-annotation_score</span><span class="operator">=&gt;</span><span class="string">"100"</span><span class="operator">,</span>
+                             <span class="string">-members</span><span class="operator">=&gt;\</span><span class="variable">@mem</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Constructor</span> <span class="keyword">for</span> <span class="variable">SequenceFamily</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Cluster::SequenceFamily</span> <span class="variable">object</span>
+</code></code></pre>
+
+<p>See <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Cluster/SequenceFamily.html">Bio::Cluster::SequenceFamily</a>.</p>
+
+<h2 id="version">version</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">version</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">version</span><span class="operator">(</span><span class="string">"1.0"</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="keyword">for</span> <span class="variable">version</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">version</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">family</span> <span class="variable">generated</span><span class="operator">.</span> 
+</code></code></pre>
+
+<h2 id="annotation_score">annotation_score</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">annotation_score</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">annotation_score</span><span class="operator">(</span><span class="number">100</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="keyword">for</span> <span class="variable">annotation_score</span> <span class="variable">which</span>
+           <span class="variable">represent</span> <span class="variable">the</span> <span class="variable">confidence</span> <span class="variable">in</span> <span class="variable">which</span> <span class="variable">the</span> 
+           <span class="variable">consensus</span> <span class="variable">description</span> <span class="variable">has</span> <span class="variable">been</span> <span class="variable">assigned</span>
+           <span class="variable">to</span> <span class="variable">the</span> <span class="variable">family</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::SimpleAlign</span>
+</code></code></pre>
+
+<p>See <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SimpleAlign.html">Bio::SimpleAlign</a></p>
+
+<h2 id="alignment">alignment</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">alignment</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">alignment</span><span class="operator">(</span><span class="variable">$align</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="keyword">for</span> <span class="variable">an</span> <span class="variable">alignment</span> <span class="variable">object</span> <span class="variable">representing</span>
+           <span class="variable">the</span> <span class="variable">multiple</span> <span class="variable">alignment</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">members</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">family</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::SimpleAlign</span>
+</code></code></pre>
+
+<p>See <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SimpleAlign.html">Bio::SimpleAlign</a></p>
+
+<h2 id="tree">tree</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">tree</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">tree</span><span class="operator">(</span><span class="variable">$tree</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="keyword">for</span> <span class="variable">an</span> <span class="variable">tree</span> <span class="variable">object</span> <span class="variable">representing</span>
+           <span class="variable">the</span> <span class="variable">phylogenetic</span> <span class="variable">tree</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">family</span><span class="operator">.</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Tree</span>
+</code></code></pre>
+
+<p>See <a>Bio::Tree</a></p>
+
+<h1 id="Bio::Cluster::FamilyI-methods"><a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Cluster/FamilyI.html">Bio::Cluster::FamilyI</a> methods</h1>
+
+<h2 id="family_score">family_score</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">family_score</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">Bio::Cluster::FamilyI</span><span class="operator">-&gt;</span><span class="variable">family_score</span><span class="operator">(</span><span class="number">95</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">score</span> <span class="variable">of</span> <span class="variable">algorithm</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">generate</span>
+           <span class="variable">the</span> <span class="variable">family</span> <span class="keyword">if</span> <span class="variable">present</span>
+ 
+           <span class="variable">This</span> <span class="variable">is</span> <span class="variable">aliased</span> <span class="variable">to</span> <span class="variable">cluster_score</span><span class="operator">().</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">the</span> <span class="variable">score</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">the</span> <span class="variable">score</span>
+</code></code></pre>
+
+<h2 id="family_id">family_id</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">family_id</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">family_id</span><span class="operator">(</span><span class="string">"Family_1"</span><span class="operator">);</span> 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="keyword">for</span> <span class="variable">family</span> <span class="variable">id</span> 
+ 
+           <span class="variable">This</span> <span class="variable">is</span> <span class="variable">aliased</span> <span class="variable">to</span> <span class="variable">display_id</span><span class="operator">().</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">specifying</span> <span class="variable">identifier</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">family</span> 
+</code></code></pre>
+
+<h1 id="Bio::ClusterI-methods"><a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/ClusterI.html">Bio::ClusterI</a> methods</h1>
+
+<h2 id="display_id">display_id</h2>
+
+<pre><code><code> Title   : display_id
+ Usage   : 
+ Function: Get/set the display name or identifier for the cluster
+ Returns : a string
+ Args    : optional, on set the display ID ( a string)</code></code></pre>
+
+<h2 id="description">description</h2>
+
+<pre><code><code> Title   : description
+ Usage   : $fam-&gt;description(&quot;POLYUBIQUITIN&quot;)
+ Function: get/set for the consensus description of the cluster
+ Returns : the description string 
+ Args    : Optional the description string </code></code></pre>
+
+<h2 id="get_members">get_members</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_members</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">Valid</span> <span class="variable">criteria</span><span class="operator">:</span>
+           <span class="operator">-</span><span class="variable">common_name</span>
+           <span class="operator">-</span><span class="variable">binomial</span>
+           <span class="operator">-</span><span class="variable">ncbi_taxid</span>
+           <span class="operator">-</span><span class="variable">organelle</span>
+           <span class="operator">-</span><span class="variable">genus</span>
+           <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">get_members</span><span class="operator">(</span><span class="string">-common_name</span> <span class="operator">=&gt;</span><span class="string">"human"</span><span class="operator">);</span>
+           <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">get_members</span><span class="operator">(</span><span class="string">-species</span>     <span class="operator">=&gt;</span><span class="string">"homo sapiens"</span><span class="operator">);</span>
+           <span class="variable">$family</span><span class="operator">-&gt;</span><span class="variable">get_members</span><span class="operator">(</span><span class="string">-ncbi_taxid</span>  <span class="operator">=&gt;</span> <span class="number">9606</span><span class="operator">);</span>
+           <span class="variable">For</span> <span class="variable">now</span><span class="operator">,</span> <span class="variable">multiple</span> <span class="variable">critieria</span> <span class="variable">are</span> <span class="variable">ORed</span><span class="operator">.</span>
+ 
+           <span class="variable">Will</span> <span class="keyword">return</span> <span class="variable">all</span> <span class="variable">members</span> <span class="keyword">if</span> <span class="keyword">no</span> <span class="variable">criteria</span> <span class="variable">are</span> <span class="variable">provided</span><span class="operator">.</span>
+ 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span> <span class="variable">members</span> <span class="variable">using</span> <span class="variable">methods</span> <span class="variable">from</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Species</span><span class="operator">&gt;</span>
+           <span class="variable">the</span> <span class="variable">phylogenetic</span> <span class="variable">tree</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">family</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">objects</span> <span class="variable">that</span> <span class="variable">are</span> <span class="variable">member</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">family</span><span class="operator">.</span> 
+</code></code></pre>
+
+<h2 id="size">size</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">size</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$fam</span><span class="operator">-&gt;</span><span class="variable">size</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">size</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">family</span><span class="operator">,</span> 
+           <span class="variable">calculated</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">members</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">the</span> <span class="variable">size</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">family</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> 
+</code></code></pre>
+
+<h2 id="cluster_score">cluster_score</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">cluster_score</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$fam</span><span class="operator">-&gt;</span><span class="variable">cluster_score</span><span class="operator">(</span><span class="number">100</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="keyword">for</span> <span class="variable">cluster_score</span> <span class="variable">which</span>
+           <span class="variable">represent</span> <span class="variable">the</span> <span class="variable">score</span> <span class="variable">in</span> <span class="variable">which</span> <span class="variable">the</span> <span class="variable">clustering</span>
+           <span class="variable">algorithm</span> <span class="variable">assigns</span> <span class="variable">to</span> <span class="variable">this</span> <span class="variable">cluster</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">number</span>
+</code></code></pre>
+
+<h1 id="Implementation-specific-methods">Implementation specific methods</h1>
+
+<pre><code><code>  These are mostly for adding/removing/changing.</code></code></pre>
+
+<h2 id="add_members">add_members</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add_members</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$fam</span><span class="operator">-&gt;</span><span class="variable">add_member</span><span class="operator">(</span><span class="operator">[</span><span class="variable">$seq1</span><span class="operator">,</span><span class="variable">$seq1</span><span class="operator">]</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">add</span> <span class="variable">members</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">family</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">the</span> <span class="variable">member</span><span class="operator">(</span><span class="regex">s) to add, as an array or arrayref
+ </span>
+</code></code></pre>
+
+<h2 id="remove_members">remove_members</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">remove_members</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$fam</span><span class="operator">-&gt;</span><span class="variable">remove_members</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">remove</span> <span class="variable">all</span> <span class="variable">members</span> <span class="variable">from</span> <span class="variable">a</span> <span class="variable">family</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">the</span> <span class="variable">previous</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">members</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="members">members</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">members</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$members</span> <span class="operator">=</span> <span class="variable">$fam</span><span class="operator">-&gt;</span><span class="variable">members</span><span class="operator">(</span><span class="operator">[</span><span class="variable">$seq1</span><span class="operator">,</span><span class="variable">$seq1</span><span class="operator">]</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Deprecated</span><span class="operator">.</span> <span class="variable">Use</span> <span class="variable">add_members</span><span class="operator">()</span> <span class="keyword">or</span> <span class="variable">get_members</span><span class="operator">()</span> <span class="variable">instead</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

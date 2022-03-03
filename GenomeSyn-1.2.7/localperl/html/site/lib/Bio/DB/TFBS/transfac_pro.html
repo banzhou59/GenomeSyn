@@ -1,0 +1,293 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Sendu-Bala">AUTHOR - Sendu Bala</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#Bio::DB::TFBS-Interface-implementation">Bio::DB::TFBS Interface implementation</a></li>
+      <li><a href="#get_reference">get_reference</a></li>
+      <li><a href="#get_genemap">get_genemap</a></li>
+      <li><a href="#get_seq">get_seq</a></li>
+      <li><a href="#get_fragment">get_fragment</a></li>
+      <li><a href="#get_matrix">get_matrix</a></li>
+      <li><a href="#get_aln">get_aln</a></li>
+      <li><a href="#get_factor">get_factor</a></li>
+      <li><a href="#get_reference_ids">get_reference_ids</a></li>
+      <li><a href="#get_site_ids">get_site_ids</a></li>
+      <li><a href="#get_matrix_ids">get_matrix_ids</a></li>
+      <li><a href="#get_factor_ids">get_factor_ids</a></li>
+      <li><a href="#get_fragment_ids">get_fragment_ids</a></li>
+      <li><a href="#Helper-methods">Helper methods</a></li>
+      <li><a href="#index_directory">index_directory</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::TFBS::transfac_pro - An implementation of Bio::DB::TFBS which uses local flat files for transfac pro</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::DB::Taxonomy</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$db</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::Taxonomy</span><span class="operator">(</span><span class="string">-source</span> <span class="operator">=&gt;</span> <span class="string">'transfac_pro'</span>
+                                 <span class="string">-dat_dir</span> <span class="operator">=&gt;</span> <span class="variable">$directory</span><span class="operator">);</span>
+  
+  <span class="comment"># we're interested in the gene P5</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$gene_id</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_gene_ids</span><span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'P5'</span><span class="operator">);</span> <span class="comment"># G000001</span>
+  
+  <span class="comment"># we want all the transcription factors that bind to our gene</span>
+  <span class="keyword">my</span> <span class="variable">@factor_ids</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_factor_ids</span><span class="operator">(</span><span class="string">-gene</span> <span class="operator">=&gt;</span> <span class="variable">$gene_id</span><span class="operator">);</span>
+  
+  <span class="comment"># get info about those TFs</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$factor_id</span> <span class="operator">(</span><span class="variable">@factor_ids</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">my</span> <span class="variable">$factor</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_factor</span><span class="operator">(</span><span class="variable">$factor_id</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$name</span> <span class="operator">=</span> <span class="variable">$factor</span><span class="operator">-&gt;</span><span class="variable">universal_name</span><span class="operator">;</span>
+    <span class="comment"># etc. - see Bio::Map::TranscriptionFactor, eg. find out where it binds</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># get a matrix</span>
+  <span class="keyword">my</span> <span class="variable">$matrix</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_matrix</span><span class="operator">(</span><span class="string">'M00001'</span><span class="operator">);</span>
+  
+  <span class="comment"># get a binding site sequence</span>
+  <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_site</span><span class="operator">(</span><span class="string">'R00001'</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is an implementation which uses local flat files and the DB_File module RECNO data structures to manage a local copy of the Transfac Pro TFBS database.</p>
+
+<p>Required database files require a license which can be obtained via http://www.biobase-international.com/pages/index.php?id=170</p>
+
+<p>Within the linux installation tarball you will find a cgibin tar ball, and inside that is a data directory containing the .dat files needed by this module. Point to that data directory with -dat_dir</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Sendu-Bala">AUTHOR - Sendu Bala</h1>
+
+<p>Email bix@sendu.me.uk</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Based on Bio::DB::Taxonomy::flatfile by Jason Stajich</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::TFBS::transfac_pro</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::DB::TFBS::transfac_pro</span> <span class="variable">object</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">of</span> <span class="variable">Bio::DB::TTFBS::transfac_pro</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-dat_dir</span>   <span class="operator">=&gt;</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">directory</span> <span class="variable">where</span> <span class="variable">Transfac</span> <span class="variable">Pro</span> <span class="operator">.</span><span class="variable">dat</span> <span class="variable">files</span>
+                         <span class="operator">(</span><span class="variable">required</span> <span class="variable">to</span> <span class="variable">initially</span> <span class="variable">build</span> <span class="variable">indexes</span><span class="operator">)</span>
+           <span class="string">-tax_db</span>    <span class="operator">=&gt;</span> <span class="variable">Bio::DB::Taxonomy</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">used</span> <span class="keyword">when</span> <span class="variable">initially</span> <span class="variable">building</span>
+                         <span class="variable">indexes</span><span class="operator">,</span> <span class="variable">gives</span> <span class="variable">better</span> <span class="variable">results</span> <span class="keyword">for</span> <span class="variable">species</span> <span class="variable">information</span>
+                         <span class="variable">but</span> <span class="keyword">not</span> <span class="variable">required</span><span class="operator">.</span>
+           <span class="string">-index_dir</span> <span class="operator">=&gt;</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">directory</span> <span class="variable">where</span> <span class="keyword">index</span> <span class="variable">files</span> <span class="variable">should</span> <span class="variable">be</span> <span class="variable">created</span>
+                         <span class="keyword">or</span> <span class="variable">already</span> <span class="variable">exist</span><span class="operator">.</span> <span class="operator">(</span><span class="variable">defaults</span> <span class="variable">to</span> <span class="operator">-</span><span class="variable">dat_dir</span><span class="operator">,</span> <span class="variable">required</span> <span class="keyword">if</span>
+                         <span class="operator">-</span><span class="variable">dat_dir</span> <span class="keyword">not</span> <span class="variable">supplied</span><span class="operator">)</span>
+           <span class="string">-force</span>     <span class="operator">=&gt;</span> <span class="number">1</span> <span class="variable">replace</span> <span class="variable">current</span> <span class="variable">indexes</span> <span class="variable">even</span> <span class="keyword">if</span> <span class="variable">they</span> <span class="variable">exist</span>
+</code></code></pre>
+
+<h2 id="Bio::DB::TFBS-Interface-implementation">Bio::DB::TFBS Interface implementation</h2>
+
+<h2 id="get_reference">get_reference</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_reference</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$ref</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_reference</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">a</span> <span class="variable">literature</span> <span class="variable">reference</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Annotation::Reference</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">-</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">id</span> <span class="operator">(</span><span class="string">'RE...'</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="get_genemap">get_genemap</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_genemap</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$map</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_genemap</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">a</span> <span class="variable">GeneMap</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">gene</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Map::GeneMap</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">-</span> <span class="variable">a</span> <span class="variable">gene</span> <span class="variable">id</span> <span class="operator">(</span><span class="string">'G...'</span><span class="operator">),</span> <span class="keyword">and</span> <span class="variable">optionally</span> <span class="keyword">int</span> <span class="operator">(</span><span class="variable">number</span> <span class="variable">of</span> <span class="variable">bp</span>
+           <span class="variable">upstream</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="get_seq">get_seq</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_seq</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_seq</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">site</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">sequence</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">annotated</span> <span class="variable">with</span> <span class="variable">the</span>
+           <span class="variable">the</span> <span class="variable">tags</span> <span class="string">'relative_start'</span><span class="operator">,</span> <span class="string">'relative_end'</span><span class="operator">,</span> <span class="string">'relative_type'</span> <span class="keyword">and</span>
+           <span class="string">'relative_to'</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Seq</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">-</span> <span class="variable">a</span> <span class="variable">site</span> <span class="variable">id</span> <span class="operator">(</span><span class="string">'R...'</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="get_fragment">get_fragment</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_fragment</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_fragment</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">fragment</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Seq</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">-</span> <span class="variable">a</span> <span class="variable">site</span> <span class="variable">id</span> <span class="operator">(</span><span class="string">'FR...'</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="get_matrix">get_matrix</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_matrix</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$matrix</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_matrix</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">a</span> <span class="variable">matrix</span> <span class="variable">that</span> <span class="variable">describes</span> <span class="variable">a</span> <span class="variable">binding</span> <span class="variable">site</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Matrix::PSM::SiteMatrix</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">-</span> <span class="variable">a</span> <span class="variable">matrix</span> <span class="variable">id</span> <span class="operator">(</span><span class="string">'M...'</span><span class="operator">),</span> <span class="variable">optionally</span> <span class="variable">a</span> <span class="variable">sequence</span> <span class="variable">string</span> <span class="variable">from</span>
+           <span class="variable">which</span> <span class="variable">base</span> <span class="variable">frequencies</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">calcualted</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">matrix</span> <span class="variable">model</span>
+           <span class="operator">(</span><span class="keyword">default</span> <span class="number">0</span><span class="operator">.</span><span class="number">25</span> <span class="keyword">each</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="get_aln">get_aln</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_aln</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_aln</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">alignment</span> <span class="variable">that</span> <span class="variable">was</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">generate</span> <span class="variable">a</span> <span class="variable">matrix</span><span class="operator">.</span> <span class="variable">Each</span> <span class="variable">sequence</span>
+           <span class="variable">in</span> <span class="variable">the</span> <span class="variable">alignment</span> <span class="variable">will</span> <span class="variable">have</span> <span class="variable">an</span> <span class="variable">accession_number</span> <span class="variable">corresponding</span> <span class="variable">to</span> <span class="variable">the</span>
+           <span class="variable">Transfac</span> <span class="variable">site</span> <span class="variable">id</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">id</span><span class="operator">()</span> <span class="variable">based</span> <span class="variable">on</span> <span class="variable">that</span> <span class="variable">but</span> <span class="variable">unique</span> <span class="variable">within</span> <span class="variable">the</span>
+           <span class="variable">alignment</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::SimpleAlign</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">-</span> <span class="variable">a</span> <span class="variable">matrix</span> <span class="variable">id</span> <span class="operator">(</span><span class="string">'M...'</span><span class="operator">),</span> <span class="variable">optionally</span> <span class="variable">true</span> <span class="variable">to</span><span class="operator">,</span> <span class="keyword">when</span> <span class="variable">a</span> <span class="variable">matrix</span>
+           <span class="variable">lists</span> <span class="keyword">no</span> <span class="variable">sequences</span><span class="operator">,</span> <span class="variable">search</span> <span class="keyword">for</span> <span class="variable">sequences</span> <span class="variable">via</span> <span class="variable">the</span> <span class="variable">matrix's</span> <span class="variable">factors</span><span class="operator">,</span>
+           <span class="variable">picking</span> <span class="variable">the</span> <span class="variable">sites</span> <span class="variable">that</span> <span class="variable">best</span> <span class="variable">match</span> <span class="variable">the</span> <span class="variable">matrix</span>
+</code></code></pre>
+
+<h2 id="get_factor">get_factor</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_factor</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$factor</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_factor</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">details</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">transcription</span> <span class="variable">factor</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Map::TranscriptionFactor</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">-</span> <span class="variable">a</span> <span class="variable">factor</span> <span class="variable">id</span> <span class="operator">(</span><span class="string">'T...'</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="get_reference_ids">get_reference_ids</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_reference_ids</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_reference_ids</span><span class="operator">(</span><span class="string">-key</span> <span class="operator">=&gt;</span> <span class="variable">$value</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">all</span> <span class="variable">the</span> <span class="variable">reference</span> <span class="variable">ids</span> <span class="variable">that</span> <span class="variable">are</span> <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">supplied</span>
+           <span class="variable">args</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">strings</span> <span class="operator">(</span><span class="variable">ids</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-key</span> <span class="operator">=&gt;</span> <span class="variable">value</span><span class="operator">,</span> <span class="variable">where</span> <span class="variable">value</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">id</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">key</span> <span class="variable">is</span> <span class="variable">one</span> <span class="variable">of</span><span class="operator">:</span>
+           <span class="operator">-</span><span class="variable">pubmed</span> <span class="operator">-</span><span class="variable">site</span> <span class="operator">-</span><span class="variable">gene</span> <span class="operator">-</span><span class="variable">matrix</span> <span class="operator">-</span><span class="variable">factor</span>
+</code></code></pre>
+
+<h2 id="get_site_ids">get_site_ids</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_site_ids</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_site_ids</span><span class="operator">(</span><span class="string">-key</span> <span class="operator">=&gt;</span> <span class="variable">$value</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">all</span> <span class="variable">the</span> <span class="variable">site</span> <span class="variable">ids</span> <span class="variable">that</span> <span class="variable">are</span> <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">supplied</span>
+           <span class="variable">args</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">strings</span> <span class="operator">(</span><span class="variable">ids</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-key</span> <span class="operator">=&gt;</span> <span class="variable">value</span><span class="operator">,</span> <span class="variable">where</span> <span class="variable">value</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">id</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">key</span> <span class="variable">is</span> <span class="variable">one</span> <span class="variable">of</span><span class="operator">:</span>
+           <span class="operator">-</span><span class="variable">id</span> <span class="operator">-</span><span class="variable">species</span> <span class="operator">-</span><span class="variable">gene</span> <span class="operator">-</span><span class="variable">matrix</span> <span class="operator">-</span><span class="variable">factor</span> <span class="operator">-</span><span class="variable">reference</span>
+</code></code></pre>
+
+<h2 id="get_matrix_ids">get_matrix_ids</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_matrix_ids</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_matrix_ids</span><span class="operator">(</span><span class="string">-key</span> <span class="operator">=&gt;</span> <span class="variable">$value</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">all</span> <span class="variable">the</span> <span class="variable">matrix</span> <span class="variable">ids</span> <span class="variable">that</span> <span class="variable">are</span> <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">supplied</span>
+           <span class="variable">args</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">strings</span> <span class="operator">(</span><span class="variable">ids</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-key</span> <span class="operator">=&gt;</span> <span class="variable">value</span><span class="operator">,</span> <span class="variable">where</span> <span class="variable">value</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">id</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">key</span> <span class="variable">is</span> <span class="variable">one</span> <span class="variable">of</span><span class="operator">:</span>
+           <span class="operator">-</span><span class="variable">id</span> <span class="operator">-</span><span class="variable">name</span> <span class="operator">-</span><span class="variable">site</span> <span class="operator">-</span><span class="variable">factor</span> <span class="operator">-</span><span class="variable">reference</span>
+</code></code></pre>
+
+<h2 id="get_factor_ids">get_factor_ids</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_factor_ids</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_factor_ids</span><span class="operator">(</span><span class="string">-key</span> <span class="operator">=&gt;</span> <span class="variable">$value</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">all</span> <span class="variable">the</span> <span class="variable">factor</span> <span class="variable">ids</span> <span class="variable">that</span> <span class="variable">are</span> <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">supplied</span>
+           <span class="variable">args</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">strings</span> <span class="operator">(</span><span class="variable">ids</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-key</span> <span class="operator">=&gt;</span> <span class="variable">value</span><span class="operator">,</span> <span class="variable">where</span> <span class="variable">value</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">id</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">key</span> <span class="variable">is</span> <span class="variable">one</span> <span class="variable">of</span><span class="operator">:</span>
+           <span class="operator">-</span><span class="variable">id</span> <span class="operator">-</span><span class="variable">name</span> <span class="operator">-</span><span class="variable">species</span> <span class="operator">-</span><span class="variable">interactors</span> <span class="operator">-</span><span class="variable">gene</span> <span class="operator">-</span><span class="variable">matrix</span> <span class="operator">-</span><span class="variable">site</span> <span class="operator">-</span><span class="variable">reference</span>
+           <span class="variable">NB</span><span class="operator">:</span> <span class="operator">-</span><span class="variable">gene</span> <span class="variable">only</span> <span class="variable">gets</span> <span class="variable">factor</span> <span class="variable">ids</span> <span class="keyword">for</span> <span class="variable">genes</span> <span class="variable">that</span> <span class="variable">encode</span> <span class="variable">factors</span>
+</code></code></pre>
+
+<h2 id="get_fragment_ids">get_fragment_ids</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_fragment_ids</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_fragment_ids</span><span class="operator">(</span><span class="string">-key</span> <span class="operator">=&gt;</span> <span class="variable">$value</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">all</span> <span class="variable">the</span> <span class="variable">fragment</span> <span class="variable">ids</span> <span class="variable">that</span> <span class="variable">are</span> <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">supplied</span>
+           <span class="variable">args</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">strings</span> <span class="operator">(</span><span class="variable">ids</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-key</span> <span class="operator">=&gt;</span> <span class="variable">value</span><span class="operator">,</span> <span class="variable">where</span> <span class="variable">value</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">id</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">key</span> <span class="variable">is</span> <span class="variable">one</span> <span class="variable">of</span><span class="operator">:</span>
+           <span class="operator">-</span><span class="variable">id</span> <span class="operator">-</span><span class="variable">species</span> <span class="operator">-</span><span class="variable">gene</span> <span class="operator">-</span><span class="variable">factor</span> <span class="operator">-</span><span class="variable">reference</span>
+</code></code></pre>
+
+<h2 id="Helper-methods">Helper methods</h2>
+
+<h2 id="index_directory">index_directory</h2>
+
+<pre><code><code> Title   : index_directory
+ Funtion : Get/set the location that index files are stored. (this module
+           will index the supplied database)
+ Usage   : $obj-&gt;index_directory($newval)
+ Returns : value of index_directory (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

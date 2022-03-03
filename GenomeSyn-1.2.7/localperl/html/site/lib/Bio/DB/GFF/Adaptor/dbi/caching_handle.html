@@ -1,0 +1,134 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#USAGE">USAGE</a>
+    <ul>
+      <li><a href="#dbi_quote">dbi_quote</a></li>
+      <li><a href="#do_query">do_query</a></li>
+      <li><a href="#debug">debug</a></li>
+      <li><a href="#attribute">attribute</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::GFF::Adaptor::dbi::caching_handle -- Cache for database handles</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Bio::DB::GFF::Adaptor::dbi::caching_handle</span><span class="operator">;</span>
+ <span class="variable">$db</span>  <span class="operator">=</span> <span class="variable">Bio::DB::GFF::Adaptor::dbi::caching_handle</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'dbi:mysql:test'</span><span class="operator">);</span>
+ <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span><span class="string">'select * from foo'</span><span class="operator">);</span>
+ <span class="variable">@h</span>   <span class="operator">=</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">fetch_rowarray</span><span class="operator">;</span>
+ <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">finish</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module handles a pool of database handles. It was motivated by the MYSQL driver&#39;s {mysql_use_result} attribute, which dramatically improves query speed and memory usage, but forbids additional query statements from being evaluated while an existing one is in use.</p>
+
+<p>This module is a plug-in replacement for vanilla DBI. It automatically activates the {mysql_use_result} attribute for the mysql driver, but avoids problems with multiple active statement handlers by creating new database handles as needed.</p>
+
+<h1 id="USAGE">USAGE</h1>
+
+<p>The object constructor is Bio::DB::GFF::Adaptor::dbi::caching_handle-&gt;new(). This is called like DBI-&gt;connect() and takes the same arguments. The returned object looks and acts like a conventional database handle.</p>
+
+<p>In addition to all the standard DBI handle methods, this package adds the following:</p>
+
+<h2 id="dbi_quote">dbi_quote</h2>
+
+<pre><code><code> Title   : dbi_quote
+ Usage   : $string = $db-&gt;dbi_quote($sql,@args)
+ Function: perform bind variable substitution
+ Returns : query string
+ Args    : the query string and bind arguments
+ Status  : public</code></code></pre>
+
+<p>This method replaces the bind variable &quot;?&quot; in a SQL statement with appropriately quoted bind arguments. It is used internally to handle drivers that don&#39;t support argument binding.</p>
+
+<h2 id="do_query">do_query</h2>
+
+<pre><code><code> Title   : do_query
+ Usage   : $sth = $db-&gt;do_query($query,@args)
+ Function: perform a DBI query
+ Returns : a statement handler
+ Args    : query string and list of bind arguments
+ Status  : Public</code></code></pre>
+
+<p>This method performs a DBI prepare() and execute(), returning a statement handle. You will typically call fetch() of fetchrow_array() on the statement handle. The parsed statement handle is cached for later use.</p>
+
+<h2 id="debug">debug</h2>
+
+<pre><code><code> Title   : debug
+ Usage   : $debug = $db-&gt;debug([$debug])
+ Function: activate debugging messages
+ Returns : current state of flag
+ Args    : optional new setting of flag
+ Status  : public</code></code></pre>
+
+<h2 id="attribute">attribute</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">attribute</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$value</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">attribute</span><span class="operator">(</span><span class="variable">AttributeName</span> <span class="operator">,</span> <span class="operator">[</span><span class="variable">$newvalue</span><span class="operator">]</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">DBI::db</span> <span class="variable">handle</span> <span class="variable">attribute</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">current</span> <span class="keyword">state</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">attribute</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">attribute</span> <span class="keyword">and</span> <span class="variable">optional</span> <span class="variable">new</span> <span class="variable">setting</span> <span class="variable">of</span> <span class="variable">attribute</span>
+ <span class="variable">Status</span>  <span class="operator">:</span> <span class="variable">public</span>
+ 
+  <span class="variable">Under</span> <span class="variable">Bio::DB::GFF::Adaptor::dbi::caching_handle</span> <span class="variable">the</span> <span class="variable">DBI::db</span>
+  <span class="variable">attributes</span> <span class="variable">that</span> <span class="variable">are</span> <span class="variable">usually</span> <span class="variable">set</span> <span class="variable">using</span> <span class="variable">hashref</span> <span class="variable">calls</span> <span class="variable">are</span> <span class="variable">unavailable</span><span class="operator">.</span>
+  <span class="variable">Use</span> <span class="variable">attribute</span><span class="operator">()</span> <span class="variable">instead</span><span class="operator">.</span>  <span class="variable">For</span> <span class="variable">example</span><span class="operator">,</span> <span class="variable">instead</span> <span class="variable">of</span><span class="operator">:</span>
+ 
+    <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">AutoCommit</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+ 
+  <span class="keyword">use</span>
+ 
+    <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">attribute</span><span class="operator">(</span><span class="string">AutoCommit</span><span class="operator">=&gt;</span><span class="number">0</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Report to the author.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../../../lib/DBI.html">DBI</a>, <a href="../../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/GFF.html">Bio::DB::GFF</a>, <a>bioperl</a></p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Lincoln Stein &lt;lstein@cshl.org&gt;.</p>
+
+<p>Copyright (c) 2001 Cold Spring Harbor Laboratory.</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

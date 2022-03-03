@@ -1,0 +1,181 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Hilmar-Lapp">AUTHOR - Hilmar Lapp</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#source_stream">source_stream</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::Factory::SequenceStreamI-methods">Bio::Factory::SequenceStreamI methods</a>
+    <ul>
+      <li><a href="#next_seq">next_seq</a></li>
+      <li><a href="#write_seq">write_seq</a></li>
+      <li><a href="#sequence_factory">sequence_factory</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Factory::SequenceProcessorI - Interface for chained sequence processing algorithms</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">MySeqProcessor</span><span class="operator">;</span> <span class="comment"># is-a Bio::Factory::SequenceProcessorI</span>
+    
+    <span class="comment"># obtain your source stream, e.g., an EMBL file</span>
+    <span class="keyword">my</span> <span class="variable">$seqin</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-fh</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*STDIN</span><span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'embl'</span><span class="operator">);</span>
+    <span class="comment"># create your processor (it must implement this interface)</span>
+    <span class="keyword">my</span> <span class="variable">$seqalgo</span> <span class="operator">=</span> <span class="variable">MySeqProcessor</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+    <span class="comment"># chain together</span>
+    <span class="variable">$seqalgo</span><span class="operator">-&gt;</span><span class="variable">source_stream</span><span class="operator">(</span><span class="variable">$seqin</span><span class="operator">);</span>
+    <span class="comment"># you could create more processors and chain them one after another</span>
+    <span class="comment"># ...</span>
+    <span class="comment"># finally, the last link in the chain is your SeqIO stream</span>
+    <span class="keyword">my</span> <span class="variable">$seqpipe</span> <span class="operator">=</span> <span class="variable">$seqalgo</span><span class="operator">;</span>
+    
+    <span class="comment"># once you've established the pipeline, proceed as if you had a</span>
+    <span class="comment"># single SeqIO stream</span>
+    <span class="keyword">while</span><span class="operator">(</span><span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$seqpipe</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">())</span> <span class="operator">{</span>
+        <span class="comment"># ... do something ...</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This defines an interface that allows seamless chaining of sequence processing algorithms encapsulated in modules while retaining the overall Bio::SeqIO interface at the end of the pipeline.</p>
+
+<p>This is especially useful if you want an easily configurable processing pipeline of re-usable algorithms as building blocks instead of (hard-)coding the whole algorithm in a single script.</p>
+
+<p>There are literally no restrictions as to what an individual module can do with a sequence object it obtains from the source stream before it makes it available through its own next_seq() method. It can manipulate the sequence object, but otherwise keep it intact, but it can also create any number of new sequence objects from it, or it can discard some, or any combination thereof. The only requirement is that its next_seq() method return Bio::PrimarySeqI compliant objects. In order to play nice, if a processor creates new objects it should try to use the same sequence factory that the source stream uses, but this is not strongly mandated.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Hilmar-Lapp">AUTHOR - Hilmar Lapp</h1>
+
+<p>Email hlapp at gmx.net</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="source_stream">source_stream</h2>
+
+<pre><code><code> Title   : source_stream
+ Usage   : $obj-&gt;source_stream($newval)
+ Function: Get/set the source sequence stream for this sequence
+           processor.
+
+           An implementation is not required to allow set, but will
+           usually do so.
+
+ Example : 
+ Returns : A Bio::Factory::SequenceStreamI compliant object
+ Args    : on set, new value (a Bio::Factory::SequenceStreamI compliant
+           object)</code></code></pre>
+
+<h1 id="Bio::Factory::SequenceStreamI-methods">Bio::Factory::SequenceStreamI methods</h1>
+
+<pre><code><code> The requirement to implement these methods is inherited from
+ L&lt;Bio::Factory::SequenceStreamI&gt;. An implementation may not
+ necessarily have to implement all methods in a meaningful way. Which
+ methods will be necessary very much depends on the context in which
+ an implementation of this interface is used. E.g., if it is only used
+ for post-processing sequences read from a SeqIO stream, write_seq()
+ will not be used and hence does not need to be implemented in a
+ meaningful way (it may in fact even throw an exception).
+
+ Also, since an implementor will already receive built objects from a
+ sequence stream, sequence_factory() may or may not be relevant,
+ depending on whether the processing method does or does not involve
+ creating new objects.</code></code></pre>
+
+<h2 id="next_seq">next_seq</h2>
+
+<pre><code><code> Title   : next_seq
+ Usage   : $seq = stream-&gt;next_seq
+ Function: Reads the next sequence object from the stream and returns it.
+
+           In the case of a non-recoverable situation an exception
+           will be thrown.  Do not assume that you can resume parsing
+           the same stream after catching the exception. Note that you
+           can always turn recoverable errors into exceptions by
+           calling $stream-&gt;verbose(2).
+
+ Returns : a Bio::Seq sequence object
+ Args    : none</code></code></pre>
+
+<p>See <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Root/RootI.html">Bio::Root::RootI</a></p>
+
+<h2 id="write_seq">write_seq</h2>
+
+<pre><code><code> Title   : write_seq
+ Usage   : $stream-&gt;write_seq($seq)
+ Function: writes the $seq object into the stream
+ Returns : 1 for success and 0 for error
+ Args    : Bio::Seq object</code></code></pre>
+
+<h2 id="sequence_factory">sequence_factory</h2>
+
+<pre><code><code> Title   : sequence_factory
+ Usage   : $seqio-&gt;sequence_factory($seqfactory)
+ Function: Get the Bio::Factory::SequenceFactoryI
+ Returns : Bio::Factory::SequenceFactoryI
+ Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,503 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Chris-Fields">AUTHOR - Chris Fields</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+  <li><a href="#HitI-methods-implemented-in-parent-class-Bio::Search::Hit::ModelHit">HitI methods implemented in parent class Bio::Search::Hit::ModelHit</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#add_hsp">add_hsp</a></li>
+      <li><a href="#hsp_factory">hsp_factory</a></li>
+      <li><a href="#Bio::Search::Hit::HitI-methods">Bio::Search::Hit::HitI methods</a></li>
+      <li><a href="#name">name</a></li>
+      <li><a href="#accession">accession</a></li>
+      <li><a href="#description">description</a></li>
+      <li><a href="#length">length</a></li>
+      <li><a href="#algorithm">algorithm</a></li>
+      <li><a href="#raw_score">raw_score</a></li>
+      <li><a href="#score">score</a></li>
+      <li><a href="#significance">significance</a></li>
+      <li><a href="#bits">bits</a></li>
+      <li><a href="#next_hsp">next_hsp</a></li>
+      <li><a href="#hsps">hsps</a></li>
+      <li><a href="#num_hsps">num_hsps</a></li>
+      <li><a href="#rewind">rewind</a></li>
+      <li><a href="#ambiguous_aln">ambiguous_aln</a></li>
+      <li><a href="#overlap">overlap</a></li>
+      <li><a href="#n">n</a></li>
+      <li><a href="#p">p</a></li>
+      <li><a href="#hsp">hsp</a></li>
+      <li><a href="#rank">rank</a></li>
+      <li><a href="#locus">locus</a></li>
+      <li><a href="#each_accession_number">each_accession_number</a></li>
+      <li><a href="#tiled_hsps">tiled_hsps</a></li>
+      <li><a href="#query_length">query_length</a></li>
+      <li><a href="#ncbi_gi">ncbi_gi</a></li>
+    </ul>
+  </li>
+  <li><a href="#ModelHit-methods-overridden-in-ModelHit">ModelHit methods overridden in ModelHit</a>
+    <ul>
+      <li><a href="#length_aln">length_aln</a></li>
+      <li><a href="#gaps">gaps</a></li>
+      <li><a href="#matches">matches</a></li>
+      <li><a href="#start">start</a></li>
+      <li><a href="#end">end</a></li>
+      <li><a href="#range">range</a></li>
+      <li><a href="#frac_identical">frac_identical</a></li>
+      <li><a href="#frac_conserved">frac_conserved</a></li>
+      <li><a href="#frac_aligned_query">frac_aligned_query</a></li>
+      <li><a href="#frac_aligned_hit">frac_aligned_hit</a></li>
+      <li><a href="#num_unaligned_hit">num_unaligned_hit</a></li>
+      <li><a href="#num_unaligned_query">num_unaligned_query</a></li>
+      <li><a href="#seq_inds">seq_inds</a></li>
+      <li><a href="#strand">strand</a></li>
+      <li><a href="#frame">frame</a></li>
+      <li><a href="#logical_length">logical_length</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Search::Hit::ModelHit - A model-based implementation of the Bio::Search::Hit::HitI interface</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Bio::Search::Hit::ModelHit</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">Bio::Search::Hit::ModelHit</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-algorithm</span> <span class="operator">=&gt;</span> <span class="string">'rnamotif'</span><span class="operator">);</span>
+    
+    <span class="comment"># typically one gets HitI objects from a SearchIO stream via a ResultI</span>
+    <span class="keyword">use</span> <span class="variable">Bio::SearchIO</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'infernal'</span><span class="operator">,</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'trap.inf'</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">next_result</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$hit</span>    <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">next_hit</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object handles the hit data from a database search using models or descriptors instead of sequences, such as Infernal, HMMER, RNAMotif, etc.</p>
+
+<p>Unless you&#39;re writing a parser, you won&#39;t ever need to create a ModelHit or any other HitI-implementing object. If you use the SearchIO system, HitI objects are created automatically from a SearchIO stream which returns Bio::Search::Hit::HitI objects.</p>
+
+<p>Note that several HitI-based methods have been overridden from ModelHit due to their unreliability when dealing with queries that aren&#39;t sequence-based. It may be possible to reimplement these at a later point, but for the time being they will throw warnings and return w/o results.</p>
+
+<p>For documentation on what you can do with ModelHit (and other HitI objects), please see the API documentation in <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Search/Hit/HitI.html">Bio::Search::Hit::HitI</a>.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Chris-Fields">AUTHOR - Chris Fields</h1>
+
+<p>Email cjfields at bioperl dot org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h1 id="HitI-methods-implemented-in-parent-class-Bio::Search::Hit::ModelHit">HitI methods implemented in parent class Bio::Search::Hit::ModelHit</h1>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Search::Hit::ModelHit</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Search::Hit::ModelHit</span> <span class="variable">object</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Search::Hit::ModelHit</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-name</span>         <span class="operator">=&gt;</span> <span class="variable">Name</span> <span class="variable">of</span> <span class="variable">Hit</span> <span class="operator">(</span><span class="variable">required</span><span class="operator">)</span>
+           <span class="string">-description</span>  <span class="operator">=&gt;</span> <span class="variable">Description</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+           <span class="string">-accession</span>    <span class="operator">=&gt;</span> <span class="variable">Accession</span> <span class="variable">number</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+           <span class="string">-ncbi_gi</span>      <span class="operator">=&gt;</span> <span class="variable">NCBI</span> <span class="variable">GI</span> <span class="variable">UID</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+           <span class="string">-length</span>       <span class="operator">=&gt;</span> <span class="variable">Length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">Hit</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+           <span class="string">-score</span>        <span class="operator">=&gt;</span> <span class="variable">Raw</span> <span class="variable">Score</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">Hit</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+           <span class="string">-bits</span>         <span class="operator">=&gt;</span> <span class="variable">Bit</span> <span class="variable">Score</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">Hit</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+           <span class="string">-significance</span> <span class="operator">=&gt;</span> <span class="variable">Significance</span> <span class="variable">value</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">Hit</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+           <span class="string">-algorithm</span>    <span class="operator">=&gt;</span> <span class="variable">Algorithm</span> <span class="variable">used</span> <span class="operator">(</span><span class="variable">BLASTP</span><span class="operator">,</span> <span class="variable">FASTX</span><span class="operator">,</span> <span class="variable">etc</span><span class="operator">...)</span>
+           <span class="string">-hsps</span>         <span class="operator">=&gt;</span> <span class="variable">Array</span> <span class="keyword">ref</span> <span class="variable">of</span> <span class="variable">HSPs</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">Hit</span><span class="operator">.</span> 
+           <span class="string">-found_again</span>  <span class="operator">=&gt;</span> <span class="variable">boolean</span><span class="operator">,</span> <span class="variable">true</span> <span class="keyword">if</span> <span class="variable">hit</span> <span class="variable">appears</span> <span class="variable">in</span> <span class="variable">a</span> 
+                            <span class="string">"previously found"</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">PSI</span><span class="operator">-</span><span class="variable">Blast</span> <span class="variable">report</span><span class="operator">.</span>
+           <span class="string">-hsp_factory</span>  <span class="operator">=&gt;</span> <span class="variable">Bio::Factory::ObjectFactoryI</span> <span class="variable">able</span> <span class="variable">to</span> <span class="variable">create</span> <span class="variable">HSPI</span>
+                            <span class="variable">objects</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="add_hsp">add_hsp</h2>
+
+<pre><code><code> Title   : add_hsp
+ Usage   : $hit-&gt;add_hsp($hsp)
+ Function: Add a HSP to the collection of HSPs for a Hit
+ Returns : number of HSPs in the Hit
+ Args    : Bio::Search::HSP::HSPI object, OR hash ref containing data suitable
+           for creating a HSPI object (&amp;hsp_factory must be set to get it back)</code></code></pre>
+
+<h2 id="hsp_factory">hsp_factory</h2>
+
+<pre><code><code> Title   : hsp_factory
+ Usage   : $hit-&gt;hsp_factory($hsp_factory)
+ Function: Get/set the factory used to build HSPI objects if necessary.
+ Returns : Bio::Factory::ObjectFactoryI
+ Args    : Bio::Factory::ObjectFactoryI</code></code></pre>
+
+<h2 id="Bio::Search::Hit::HitI-methods">Bio::Search::Hit::HitI methods</h2>
+
+<p>Implementation of Bio::Search::Hit::HitI methods</p>
+
+<h2 id="name">name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$hit_name</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">Hit</span> <span class="variable">sequence</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="keyword">scalar</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="keyword">scalar</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">name</span>
+</code></code></pre>
+
+<h2 id="accession">accession</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">accession</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$acc</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">accession</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieve</span> <span class="variable">the</span> <span class="variable">accession</span> <span class="operator">(</span><span class="keyword">if</span> <span class="variable">available</span><span class="operator">)</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">hit</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="keyword">scalar</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">empty</span> <span class="variable">string</span> <span class="keyword">if</span> <span class="keyword">not</span> <span class="variable">set</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="description">description</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">description</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$desc</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">description</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieve</span> <span class="variable">the</span> <span class="variable">description</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">hit</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="keyword">scalar</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="keyword">scalar</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">descrition</span>
+</code></code></pre>
+
+<h2 id="length">length</h2>
+
+<pre><code><code> Title   : length
+ Usage   : my $len = $hit-&gt;length
+ Function: Returns the length of the hit 
+ Returns : integer
+ Args    : [optional] integer to set the length</code></code></pre>
+
+<h2 id="algorithm">algorithm</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">algorithm</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$alg</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">algorithm</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">the</span> <span class="variable">algorithm</span> <span class="variable">specification</span> <span class="variable">that</span> <span class="variable">was</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">obtain</span> <span class="variable">the</span> <span class="variable">hit</span>
+           <span class="variable">For</span> <span class="variable">BLAST</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">algorithm</span> <span class="variable">denotes</span> <span class="variable">what</span> <span class="variable">type</span> <span class="variable">of</span> <span class="variable">sequence</span> <span class="variable">was</span> <span class="variable">aligned</span> 
+           <span class="variable">against</span> <span class="variable">what</span> <span class="operator">(</span><span class="variable">BLASTN</span><span class="operator">:</span> <span class="variable">dna</span><span class="operator">-</span><span class="variable">dna</span><span class="operator">,</span> <span class="variable">BLASTP</span> <span class="variable">prt</span><span class="operator">-</span><span class="variable">prt</span><span class="operator">,</span> <span class="variable">BLASTX</span> <span class="variable">translated</span> 
+           <span class="variable">dna</span><span class="operator">-</span><span class="variable">prt</span><span class="operator">,</span> <span class="variable">TBLASTN</span> <span class="variable">prt</span><span class="operator">-</span><span class="variable">translated</span> <span class="variable">dna</span><span class="operator">,</span> <span class="variable">TBLASTX</span> <span class="variable">translated</span> 
+           <span class="variable">dna</span><span class="operator">-</span><span class="variable">translated</span> <span class="variable">dna</span><span class="operator">).</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="keyword">scalar</span> <span class="variable">string</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="keyword">scalar</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">algorithm</span>
+</code></code></pre>
+
+<h2 id="raw_score">raw_score</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">raw_score</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$score</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">raw_score</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">the</span> <span class="string">"raw score"</span> <span class="variable">generated</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">algorithm</span><span class="operator">.</span>  <span class="variable">What</span>
+           <span class="variable">this</span> <span class="variable">score</span> <span class="variable">is</span> <span class="variable">exactly</span> <span class="variable">will</span> <span class="variable">vary</span> <span class="variable">from</span> <span class="variable">algorithm</span> <span class="variable">to</span> <span class="variable">algorithm</span><span class="operator">,</span>
+           <span class="variable">returning</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="variable">unavailable</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="keyword">scalar</span> <span class="variable">value</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="keyword">scalar</span> <span class="variable">value</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">raw</span> <span class="variable">score</span>
+</code></code></pre>
+
+<h2 id="score">score</h2>
+
+<p>Equivalent to <a>raw_score()</a></p>
+
+<h2 id="significance">significance</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">significance</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$significance</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">significance</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Used</span> <span class="variable">to</span> <span class="variable">obtain</span> <span class="variable">the</span> <span class="variable">E</span> <span class="keyword">or</span> <span class="variable">P</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">hit</span><span class="operator">,</span> <span class="variable">i</span><span class="operator">.</span><span class="variable">e</span><span class="operator">.</span> <span class="variable">the</span> <span class="variable">probability</span> <span class="variable">that</span>
+           <span class="variable">this</span> <span class="variable">particular</span> <span class="variable">hit</span> <span class="variable">was</span> <span class="variable">obtained</span> <span class="variable">purely</span> <span class="variable">by</span> <span class="variable">random</span> <span class="variable">chance</span><span class="operator">.</span>  <span class="variable">If</span>
+           <span class="variable">information</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">available</span> <span class="operator">(</span><span class="variable">nor</span> <span class="variable">calculatable</span> <span class="variable">from</span> <span class="variable">other</span>
+           <span class="variable">information</span> <span class="variable">sources</span><span class="operator">),</span> <span class="keyword">return</span> <span class="keyword">undef</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="keyword">scalar</span> <span class="variable">value</span> <span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="variable">unavailable</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="keyword">scalar</span> <span class="variable">value</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">significance</span>
+</code></code></pre>
+
+<h2 id="bits">bits</h2>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">bits</span><span class="operator">();</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">the</span> <span class="variable">bit</span> <span class="variable">score</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">best</span> <span class="variable">HSP</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">hit</span><span class="operator">.</span>
+ <span class="variable">Example</span>   <span class="operator">:</span> <span class="variable">$bits</span> <span class="operator">=</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">bits</span><span class="operator">();</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">Integer</span> <span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="variable">bit</span> <span class="variable">score</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">set</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+ <span class="variable">Comments</span>  <span class="operator">:</span> <span class="variable">For</span> <span class="variable">BLAST1</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">non</span><span class="operator">-</span><span class="variable">bit</span> <span class="variable">score</span> <span class="variable">is</span> <span class="variable">listed</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">summary</span> <span class="variable">line</span><span class="operator">.</span>
+</code></code></pre>
+
+<p>See Also : <a>score()</a></p>
+
+<h2 id="next_hsp">next_hsp</h2>
+
+<pre><code><code> <span class="variable">Title</span>    <span class="operator">:</span> <span class="variable">next_hsp</span>
+ <span class="variable">Usage</span>    <span class="operator">:</span> <span class="keyword">while</span><span class="operator">(</span> <span class="variable">$hsp</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">next_hsp</span><span class="operator">())</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span>
+ <span class="variable">Function</span> <span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">available</span> <span class="variable">High</span> <span class="variable">Scoring</span> <span class="variable">Pair</span>
+ <span class="variable">Example</span>  <span class="operator">:</span> 
+ <span class="variable">Returns</span>  <span class="operator">:</span> <span class="variable">Bio::Search::HSP::HSPI</span> <span class="variable">object</span> <span class="keyword">or</span> <span class="variable">null</span> <span class="keyword">if</span> <span class="variable">finished</span>
+ <span class="variable">Args</span>     <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="hsps">hsps</h2>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">hsps</span><span class="operator">();</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Get</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">containing</span> <span class="variable">all</span> <span class="variable">HSP</span> <span class="variable">objects</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">numbers</span> <span class="variable">of</span> <span class="variable">HSPs</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">hit</span><span class="operator">.</span>
+ <span class="variable">Example</span>   <span class="operator">:</span> <span class="variable">@hsps</span> <span class="operator">=</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">hsps</span><span class="operator">();</span>
+           <span class="operator">:</span> <span class="variable">$num</span>  <span class="operator">=</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">hsps</span><span class="operator">();</span>  <span class="comment"># alternatively, use num_hsps()</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">context</span> <span class="operator">:</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">Bio::Search::HSP::BlastHSP</span><span class="operator">.</span><span class="variable">pm</span> <span class="variable">objects</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="variable">Scalar</span> <span class="variable">context</span><span class="operator">:</span> <span class="variable">integer</span> <span class="operator">(</span><span class="variable">number</span> <span class="variable">of</span> <span class="variable">HSPs</span><span class="operator">).</span>
+           <span class="operator">:</span>                 <span class="operator">(</span><span class="variable">Equivalent</span> <span class="variable">to</span> <span class="variable">num_hsps</span><span class="operator">()).</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span><span class="operator">.</span> <span class="variable">Relies</span> <span class="variable">on</span> <span class="keyword">wantarray</span>
+ <span class="variable">Throws</span>    <span class="operator">:</span> <span class="variable">Exception</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="variable">HSPs</span> <span class="variable">have</span> <span class="keyword">not</span> <span class="variable">been</span> <span class="variable">collected</span><span class="operator">.</span>
+</code></code></pre>
+
+<p>See Also : <a>hsp()</a>, <a>num_hsps()</a></p>
+
+<h2 id="num_hsps">num_hsps</h2>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">num_hsps</span><span class="operator">();</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">HSPs</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">present</span> <span class="variable">hit</span><span class="operator">.</span>
+ <span class="variable">Example</span>   <span class="operator">:</span> <span class="variable">$nhsps</span> <span class="operator">=</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">num_hsps</span><span class="operator">();</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">Integer</span> <span class="keyword">or</span> <span class="string">'-'</span> <span class="keyword">if</span> <span class="variable">HSPs</span> <span class="variable">have</span> <span class="keyword">not</span> <span class="variable">been</span> <span class="variable">callected</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+</code></code></pre>
+
+<p>See Also : <a>hsps()</a></p>
+
+<h2 id="rewind">rewind</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">rewind</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">rewind</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Allow</span> <span class="variable">one</span> <span class="variable">to</span> <span class="keyword">reset</span> <span class="variable">the</span> <span class="variable">HSP</span> <span class="variable">iterator</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">beginning</span>
+           <span class="variable">Since</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">an</span> <span class="variable">in</span><span class="operator">-</span><span class="variable">memory</span> <span class="variable">implementation</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="ambiguous_aln">ambiguous_aln</h2>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$ambig_code</span> <span class="operator">=</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">ambiguous_aln</span><span class="operator">();</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Sets</span><span class="operator">/</span><span class="variable">Gets</span> <span class="variable">ambiguity</span> <span class="variable">code</span> <span class="variable">data</span> <span class="variable">member</span><span class="operator">.</span>
+ <span class="variable">Example</span>   <span class="operator">:</span> <span class="operator">(</span><span class="variable">see</span> <span class="variable">usage</span><span class="operator">)</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">String</span> <span class="operator">=</span> <span class="string">'q'</span><span class="operator">,</span> <span class="string">'s'</span><span class="operator">,</span> <span class="string">'qs'</span><span class="operator">,</span> <span class="string">'-'</span>
+           <span class="operator">:</span>   <span class="string">'q'</span>  <span class="operator">=</span> <span class="variable">query</span> <span class="variable">sequence</span> <span class="variable">contains</span> <span class="variable">overlapping</span> <span class="variable">sub</span><span class="operator">-</span><span class="variable">sequences</span> 
+           <span class="operator">:</span>          <span class="keyword">while</span> <span class="variable">sbjct</span> <span class="variable">does</span> <span class="keyword">not</span><span class="operator">.</span>
+           <span class="operator">:</span>   <span class="string">'s'</span>  <span class="operator">=</span> <span class="variable">sbjct</span> <span class="variable">sequence</span> <span class="variable">contains</span> <span class="variable">overlapping</span> <span class="variable">sub</span><span class="operator">-</span><span class="variable">sequences</span> 
+           <span class="operator">:</span>          <span class="keyword">while</span> <span class="variable">query</span> <span class="variable">does</span> <span class="keyword">not</span><span class="operator">.</span>
+           <span class="operator">:</span>   <span class="string">'qs'</span> <span class="operator">=</span> <span class="variable">query</span> <span class="keyword">and</span> <span class="variable">sbjct</span> <span class="variable">sequence</span> <span class="variable">contains</span> <span class="variable">overlapping</span> <span class="variable">sub</span><span class="operator">-</span><span class="variable">sequences</span>
+           <span class="operator">:</span>          <span class="variable">relative</span> <span class="variable">to</span> <span class="keyword">each</span> <span class="variable">other</span><span class="operator">.</span>
+           <span class="operator">:</span>   <span class="string">'-'</span>  <span class="operator">=</span> <span class="variable">query</span> <span class="keyword">and</span> <span class="variable">sbjct</span> <span class="variable">sequence</span> <span class="keyword">do</span> <span class="keyword">not</span> <span class="variable">contains</span> <span class="variable">multiple</span> <span class="variable">domains</span> 
+           <span class="operator">:</span>          <span class="variable">relative</span> <span class="variable">to</span> <span class="keyword">each</span> <span class="variable">other</span> <span class="variable">OR</span> <span class="variable">both</span> <span class="variable">contain</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">distribution</span>
+           <span class="operator">:</span>          <span class="variable">of</span> <span class="variable">similar</span> <span class="variable">domains</span><span class="operator">.</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+ <span class="variable">Throws</span>    <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+ <span class="variable">Comment</span>   <span class="operator">:</span> <span class="variable">Note</span><span class="operator">:</span> <span class="string">"sbjct"</span> <span class="variable">is</span> <span class="variable">synonymous</span> <span class="variable">with</span> <span class="string">"hit"</span>
+</code></code></pre>
+
+<h2 id="overlap">overlap</h2>
+
+<p>See documentation in <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Search/Hit/HitI.html">Bio::Search::Hit::HitI::overlap()</a></p>
+
+<h2 id="n">n</h2>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span>n<span class="operator">();</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">the</span> <span class="variable">N</span> <span class="variable">number</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">hit</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="variable">This</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">HSPs</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">set</span> <span class="variable">which</span> <span class="variable">was</span> <span class="variable">ascribed</span>
+           <span class="operator">:</span> <span class="variable">the</span> <span class="variable">lowest</span> <span class="variable">P</span><span class="operator">-</span><span class="variable">value</span> <span class="operator">(</span><span class="variable">listed</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">description</span> <span class="variable">line</span><span class="operator">).</span>
+           <span class="operator">:</span> <span class="variable">This</span> <span class="variable">number</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">total</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">HSPs</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="variable">To</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">total</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">HSPs</span><span class="operator">,</span> <span class="keyword">use</span> <span class="variable">num_hsps</span><span class="operator">().</span>
+ <span class="variable">Example</span>   <span class="operator">:</span> <span class="variable">$n</span> <span class="operator">=</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span>n<span class="operator">();</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">Integer</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+ <span class="variable">Throws</span>    <span class="operator">:</span> <span class="variable">Exception</span> <span class="keyword">if</span> <span class="variable">HSPs</span> <span class="variable">have</span> <span class="keyword">not</span> <span class="variable">been</span> <span class="variable">set</span><span class="operator">.</span>
+ <span class="variable">Comments</span>  <span class="operator">:</span> <span class="variable">Calling</span> <span class="variable">n</span><span class="operator">()</span> <span class="variable">on</span> <span class="variable">such</span> <span class="variable">reports</span> <span class="variable">will</span> <span class="variable">result</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">call</span> <span class="variable">to</span> <span class="variable">num_hsps</span><span class="operator">().</span>
+           <span class="operator">:</span> <span class="variable">The</span> <span class="variable">num_hsps</span><span class="operator">()</span> <span class="variable">method</span> <span class="variable">will</span> <span class="variable">count</span> <span class="variable">the</span> <span class="variable">actual</span> <span class="variable">number</span> <span class="variable">of</span>
+           <span class="operator">:</span> <span class="variable">HSPs</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">alignment</span> <span class="variable">listing</span><span class="operator">,</span> <span class="variable">which</span> <span class="variable">may</span> <span class="variable">exceed</span> <span class="variable">N</span> <span class="variable">in</span>
+           <span class="operator">:</span> <span class="variable">some</span> <span class="variable">cases</span><span class="operator">.</span>
+</code></code></pre>
+
+<p>See Also : <a>num_hsps()</a></p>
+
+<h2 id="p">p</h2>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span>p<span class="operator">(</span> <span class="operator">[</span><span class="keyword">format</span><span class="operator">]</span> <span class="operator">);</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">P</span><span class="operator">-</span><span class="variable">value</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">best</span> <span class="variable">HSP</span> 
+ <span class="variable">Example</span>   <span class="operator">:</span> <span class="variable">$p</span> <span class="operator">=</span>  <span class="variable">$sbjct</span><span class="operator">-&gt;</span>p<span class="operator">;</span>
+           <span class="operator">:</span> <span class="variable">$p</span> <span class="operator">=</span>  <span class="variable">$sbjct</span><span class="operator">-&gt;</span>p<span class="operator">(</span><span class="string">'exp'</span><span class="operator">);</span>  <span class="comment"># get exponent only.</span>
+           <span class="operator">:</span> <span class="operator">(</span><span class="variable">$num</span><span class="operator">,</span> <span class="variable">$exp</span><span class="operator">)</span> <span class="operator">=</span>  <span class="variable">$sbjct</span><span class="operator">-&gt;</span>p<span class="operator">(</span><span class="string">'parts'</span><span class="operator">);</span>  <span class="comment"># split sci notation into parts</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">Float</span> <span class="keyword">or</span> <span class="variable">scientific</span> <span class="variable">notation</span> <span class="variable">number</span> <span class="operator">(</span><span class="variable">the</span> <span class="variable">raw</span> <span class="variable">P</span><span class="operator">-</span><span class="variable">value</span><span class="operator">,</span> <span class="variable">DEFAULT</span><span class="operator">).</span>
+           <span class="operator">:</span> <span class="variable">Integer</span> <span class="keyword">if</span> <span class="keyword">format</span> <span class="operator">==</span> <span class="string">'exp'</span> <span class="operator">(</span><span class="variable">the</span> <span class="variable">magnitude</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">base</span> <span class="number">10</span> <span class="variable">exponent</span><span class="operator">).</span>
+           <span class="operator">:</span> <span class="number">2</span><span class="operator">-</span><span class="variable">element</span> <span class="variable">list</span> <span class="operator">(</span><span class="variable">float</span><span class="operator">,</span> <span class="keyword">int</span><span class="operator">)</span> <span class="keyword">if</span> <span class="keyword">format</span> <span class="operator">==</span> <span class="string">'parts'</span> <span class="keyword">and</span> <span class="variable">P</span><span class="operator">-</span><span class="variable">value</span>
+           <span class="operator">:</span>                <span class="variable">is</span> <span class="variable">in</span> <span class="variable">scientific</span> <span class="variable">notation</span> <span class="operator">(</span><span class="variable">See</span> <span class="variable">Comments</span><span class="operator">).</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="keyword">format</span><span class="operator">:</span> <span class="variable">string</span> <span class="variable">of</span> <span class="string">'raw'</span> <span class="operator">|</span> <span class="string">'exp'</span> <span class="operator">|</span> <span class="string">'parts'</span>
+           <span class="operator">:</span>    <span class="string">'raw'</span> <span class="variable">returns</span> <span class="variable">value</span> <span class="keyword">given</span> <span class="variable">in</span> <span class="variable">report</span><span class="operator">.</span> <span class="variable">Default</span><span class="operator">.</span> <span class="operator">(</span><span class="number">1.2e-34</span><span class="operator">)</span>
+           <span class="operator">:</span>    <span class="string">'exp'</span> <span class="variable">returns</span> <span class="variable">exponent</span> <span class="variable">value</span> <span class="variable">only</span> <span class="operator">(</span><span class="number">34</span><span class="operator">)</span>
+           <span class="operator">:</span>    <span class="string">'parts'</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">decimal</span> <span class="keyword">and</span> <span class="variable">exponent</span> <span class="variable">as</span> <span class="variable">a</span> 
+           <span class="operator">:</span>            <span class="number">2</span><span class="operator">-</span><span class="variable">element</span> <span class="variable">list</span> <span class="operator">(</span><span class="number">1.2</span><span class="operator">,</span> <span class="operator">-</span><span class="number">34</span><span class="operator">)</span> <span class="operator">(</span><span class="variable">See</span> <span class="variable">Comments</span><span class="operator">).</span>
+ <span class="variable">Throws</span>    <span class="operator">:</span> <span class="variable">Warns</span> <span class="keyword">if</span> <span class="keyword">no</span> <span class="variable">P</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">is</span> <span class="keyword">defined</span><span class="operator">.</span> <span class="variable">Uses</span> <span class="variable">expect</span> <span class="variable">instead</span><span class="operator">.</span>
+ <span class="variable">Comments</span>  <span class="operator">:</span> <span class="variable">Using</span> <span class="variable">the</span> <span class="string">'parts'</span> <span class="variable">argument</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">recommended</span> <span class="variable">since</span> <span class="variable">it</span> <span class="variable">will</span> <span class="keyword">not</span>
+           <span class="operator">:</span> <span class="variable">work</span> <span class="variable">as</span> <span class="variable">expected</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="variable">P</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">in</span> <span class="variable">scientific</span> <span class="variable">notation</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="variable">That</span> <span class="variable">is</span><span class="operator">,</span> <span class="variable">floats</span> <span class="variable">are</span> <span class="keyword">not</span> <span class="variable">converted</span> <span class="variable">into</span> <span class="variable">sci</span> <span class="variable">notation</span> <span class="variable">before</span>
+           <span class="operator">:</span> <span class="variable">splitting</span> <span class="variable">into</span> <span class="variable">parts</span><span class="operator">.</span>
+</code></code></pre>
+
+<p>See Also : <a>expect()</a>, <a>signif()</a>, <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Search/SearchUtils.html">Bio::Search::SearchUtils::get_exponent()</a></p>
+
+<h2 id="hsp">hsp</h2>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">hsp</span><span class="operator">(</span> <span class="operator">[</span><span class="variable">string</span><span class="operator">]</span> <span class="operator">);</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Get</span> <span class="variable">a</span> <span class="variable">single</span> <span class="variable">HSPI</span> <span class="variable">object</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">present</span> <span class="variable">HitI</span> <span class="variable">object</span><span class="operator">.</span>
+ <span class="variable">Example</span>   <span class="operator">:</span> <span class="variable">$hspObj</span>  <span class="operator">=</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">hsp</span><span class="operator">;</span>  <span class="comment"># same as 'best'</span>
+           <span class="operator">:</span> <span class="variable">$hspObj</span>  <span class="operator">=</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">hsp</span><span class="operator">(</span><span class="string">'best'</span><span class="operator">);</span>
+           <span class="operator">:</span> <span class="variable">$hspObj</span>  <span class="operator">=</span> <span class="variable">$hit_object</span><span class="operator">-&gt;</span><span class="variable">hsp</span><span class="operator">(</span><span class="string">'worst'</span><span class="operator">);</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">Object</span> <span class="variable">reference</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">Bio::Search::HSP::BlastHSP</span><span class="operator">.</span><span class="variable">pm</span> <span class="variable">object</span><span class="operator">.</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="variable">String</span> <span class="operator">(</span><span class="keyword">or</span> <span class="keyword">no</span> <span class="variable">argument</span><span class="operator">).</span>
+           <span class="operator">:</span>   <span class="variable">No</span> <span class="variable">argument</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">highest</span> <span class="variable">scoring</span> <span class="variable">HSP</span> <span class="operator">(</span><span class="variable">same</span> <span class="variable">as</span> <span class="string">'best'</span><span class="operator">).</span>
+           <span class="operator">:</span>   <span class="string">'best'</span> <span class="keyword">or</span> <span class="string">'first'</span> <span class="operator">=</span> <span class="variable">highest</span> <span class="variable">scoring</span> <span class="variable">HSP</span><span class="operator">.</span>
+           <span class="operator">:</span>   <span class="string">'worst'</span> <span class="keyword">or</span> <span class="string">'last'</span> <span class="operator">=</span> <span class="variable">lowest</span> <span class="variable">scoring</span> <span class="variable">HSP</span><span class="operator">.</span>
+ <span class="variable">Throws</span>    <span class="operator">:</span> <span class="variable">Exception</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="variable">HSPs</span> <span class="variable">have</span> <span class="keyword">not</span> <span class="variable">been</span> <span class="variable">collected</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="variable">Exception</span> <span class="keyword">if</span> <span class="variable">an</span> <span class="variable">unrecognized</span> <span class="variable">argument</span> <span class="variable">is</span> <span class="variable">used</span><span class="operator">.</span>
+</code></code></pre>
+
+<p>See Also : <a>hsps()</a>, <a>num_hsps</a>()</p>
+
+<h2 id="rank">rank</h2>
+
+<pre><code><code> Title   : rank
+ Usage   : $obj-&gt;rank($newval)
+ Function: Get/Set the rank of this Hit in the Query search list
+           i.e. this is the Nth hit for a specific query
+ Returns : value of rank
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="locus">locus</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">locus</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$locus</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">locus</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieve</span> <span class="variable">the</span> <span class="variable">locus</span> <span class="operator">(</span><span class="keyword">if</span> <span class="variable">available</span><span class="operator">)</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">hit</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="keyword">scalar</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">empty</span> <span class="variable">string</span> <span class="keyword">if</span> <span class="keyword">not</span> <span class="variable">set</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="each_accession_number">each_accession_number</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">each_accession_number</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@each_accession_number</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">each_accession_number</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="keyword">each</span> <span class="variable">accession</span> <span class="variable">number</span> <span class="variable">listed</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">description</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">hit</span><span class="operator">.</span>
+           <span class="variable">If</span> <span class="variable">there</span> <span class="variable">are</span> <span class="keyword">no</span> <span class="variable">alternatives</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">only</span> <span class="variable">the</span> <span class="variable">primary</span> <span class="variable">accession</span> <span class="variable">will</span> 
+           <span class="variable">be</span> <span class="keyword">given</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">all</span> <span class="variable">accession</span> <span class="variable">numbers</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">description</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="tiled_hsps">tiled_hsps</h2>
+
+<p>See documentation in <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Search/SearchUtils.html">Bio::Search::SearchUtils::tile_hsps()</a></p>
+
+<h2 id="query_length">query_length</h2>
+
+<pre><code><code> Title   : query_length
+ Usage   : $obj-&gt;query_length($newval)
+ Function: Get/Set the query_length
+ Returns : value of query_length (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="ncbi_gi">ncbi_gi</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">ncbi_gi</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$acc</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">ncbi_gi</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieve</span> <span class="variable">the</span> <span class="variable">NCBI</span> <span class="variable">Unique</span> <span class="variable">ID</span> <span class="operator">(</span><span class="variable">aka</span> <span class="variable">the</span> <span class="variable">GI</span> <span class="comment">#),</span>
+           <span class="keyword">if</span> <span class="variable">available</span><span class="operator">,</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">hit</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="keyword">scalar</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">empty</span> <span class="variable">string</span> <span class="keyword">if</span> <span class="keyword">not</span> <span class="variable">set</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h1 id="ModelHit-methods-overridden-in-ModelHit">ModelHit methods overridden in ModelHit</h1>
+
+<p>The following methods have been overridden due to their current reliance on sequence-based queries. They may be implemented in future versions of this class.</p>
+
+<h2 id="length_aln">length_aln</h2>
+
+<h2 id="gaps">gaps</h2>
+
+<h2 id="matches">matches</h2>
+
+<h2 id="start">start</h2>
+
+<h2 id="end">end</h2>
+
+<h2 id="range">range</h2>
+
+<h2 id="frac_identical">frac_identical</h2>
+
+<h2 id="frac_conserved">frac_conserved</h2>
+
+<h2 id="frac_aligned_query">frac_aligned_query</h2>
+
+<h2 id="frac_aligned_hit">frac_aligned_hit</h2>
+
+<h2 id="num_unaligned_hit">num_unaligned_hit</h2>
+
+<h2 id="num_unaligned_query">num_unaligned_query</h2>
+
+<h2 id="seq_inds">seq_inds</h2>
+
+<h2 id="strand">strand</h2>
+
+<h2 id="frame">frame</h2>
+
+<h2 id="logical_length">logical_length</h2>
+
+
+</body>
+
+</html>
+
+

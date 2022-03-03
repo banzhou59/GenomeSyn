@@ -1,0 +1,164 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../displayToc.js"></script>
+<script language="JavaScript" src="../tocParas.js"></script>
+<script language="JavaScript" src="../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSYS">SYNOPSYS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#OPTIONS">OPTIONS</a></li>
+  <li><a href="#EXAMPLES">EXAMPLES</a></li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>xml_pp - xml pretty-printer</p>
+
+<h1 id="SYNOPSYS">SYNOPSYS</h1>
+
+<p>xml_pp [options] [&lt;files&gt;]</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>XML pretty printer using XML::Twig</p>
+
+<h1 id="OPTIONS">OPTIONS</h1>
+
+<dl>
+
+<dt id="i-extension-">-i[&lt;extension&gt;]</dt>
+<dd>
+
+<p>edits the file(s) in place, if an extension is provided (no space between <code><code>-i</code></code> and the extension) then the original file is backed-up with that extension</p>
+
+<p>The rules for the extension are the same as Perl&#39;s (see perldoc perlrun): if the extension includes no &quot;*&quot; then it is appended to the original file name, If the extension does contain one or more &quot;*&quot; characters, then each &quot;*&quot; is replaced with the current filename.</p>
+
+</dd>
+<dt id="s-style">-s &lt;style&gt;</dt>
+<dd>
+
+<p>the style to use for pretty printing: none, nsgmls, nice, indented, record, or record_c (see XML::Twig docs for the exact description of those styles), &#39;indented&#39; by default</p>
+
+</dd>
+<dt id="p-tag-s-">-p &lt;tag(s)&gt;</dt>
+<dd>
+
+<p>preserves white spaces in tags. You can use several <code><code>-p</code></code> options or quote the tags if you need more than one</p>
+
+</dd>
+<dt id="e-encoding">-e &lt;encoding&gt;</dt>
+<dd>
+
+<p>use XML::Twig output_encoding (based on Text::Iconv or Unicode::Map8 and Unicode::String) to set the output encoding. By default the original encoding is preserved.</p>
+
+<p>If this option is used the XML declaration is updated (and created if there was none).</p>
+
+<p>Make sure that the encoding is supported by the parser you use if you want to be able to process the pretty_printed file (XML::Parser does not support &#39;latin1&#39; for example, you have to use &#39;iso-8859-1&#39;)</p>
+
+</dd>
+<dt id="l">-l</dt>
+<dd>
+
+<p>loads the documents in memory instead of outputing them as they are being parsed.</p>
+
+<p>This prevents a bug (see <a>BUGS</a>) but uses more memory</p>
+
+</dd>
+<dt id="f-file">-f &lt;file&gt;</dt>
+<dd>
+
+<p>read the list of files to process from &lt;file&gt;, one per line</p>
+
+</dd>
+<dt id="v">-v</dt>
+<dd>
+
+<p>verbose (list the current file being processed)</p>
+
+</dd>
+<dt id="pod--">--</dt>
+<dd>
+
+<p>stop argument processing (to process files that start with -)</p>
+
+</dd>
+<dt id="h">-h</dt>
+<dd>
+
+<p>display help</p>
+
+</dd>
+</dl>
+
+<h1 id="EXAMPLES">EXAMPLES</h1>
+
+<pre><code><code>  xml_pp foo.xml &gt; foo_pp.xml           # pretty print foo.xml 
+  xml_pp &lt; foo.xml &gt; foo_pp.xml         # pretty print from standard input
+
+  xml_pp -v -i.bak *.xml                # pretty print .xml files, with backups
+  xml_pp -v -i&#39;orig_*&#39; *.xml            # backups are named orig_&lt;filename&gt;
+
+  xml_pp -i -p pre foo.xhtml            # preserve spaces in pre tags
+  
+  xml_pp -i.bak -p &#39;pre code&#39; foo.xml   # preserve spaces in pre and code tags
+  xml_pp -i.bak -p pre -p code foo.xml  # same
+
+  xml_pp -i -s record mydb_export.xml   # pretty print using the record style
+
+  xml_pp -e utf8 -i foo.xml             # output will be in utf8
+  xml_pp -e iso-8859-1 -i foo.xml       # output will be in iso-8859-1
+
+  xml_pp -v -i.bak -f lof               # pretty print in place files from lof
+  
+  xml_pp -- -i.xml                      # pretty print the -i.xml file
+
+  xml_pp -l foo.xml                     # loads the entire file in memory 
+                                        # before pretty printing it
+
+  xml_pp -h                             # display help</code></code></pre>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Elements with mixed content that start with an embedded element get an extra \n</p>
+
+<pre><code><code>  &lt;elt&gt;&lt;b&gt;b&lt;/b&gt;toto&lt;b&gt;bold&lt;/b&gt;&lt;/elt&gt;</code></code></pre>
+
+<p>will be output as</p>
+
+<pre><code><code>  &lt;elt&gt;
+    &lt;b&gt;b&lt;/b&gt;toto&lt;b&gt;bold&lt;/b&gt;&lt;/elt&gt;</code></code></pre>
+
+<p>Using the <code><code>-l</code></code> option solves this bug (but uses more memory)</p>
+
+<h1 id="TODO">TODO</h1>
+
+<p>update XML::Twig to use Encode with perl 5.8.0</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Michel Rodriguez &lt;mirod@xmltwig.com&gt;</p>
+
+
+</body>
+
+</html>
+
+

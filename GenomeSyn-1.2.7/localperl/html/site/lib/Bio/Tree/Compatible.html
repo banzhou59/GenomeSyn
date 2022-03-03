@@ -1,0 +1,314 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR---Gabriel-Valiente">AUTHOR - Gabriel Valiente</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#postorder_traversal">postorder_traversal</a></li>
+      <li><a href="#cluster_representation">cluster_representation</a></li>
+      <li><a href="#common_labels">common_labels</a></li>
+      <li><a href="#topological_restriction">topological_restriction</a></li>
+      <li><a href="#is_compatible">is_compatible</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tree::Compatible - Testing compatibility of phylogenetic trees with nested taxa.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tree::Compatible</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::TreeIO</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$input</span> <span class="operator">=</span> <span class="variable">Bio::TreeIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'newick'</span><span class="operator">,</span>
+                               <span class="string">'-file'</span>   <span class="operator">=&gt;</span> <span class="string">'input.tre'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$t1</span> <span class="operator">=</span> <span class="variable">$input</span><span class="operator">-&gt;</span><span class="variable">next_tree</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$t2</span> <span class="operator">=</span> <span class="variable">$input</span><span class="operator">-&gt;</span><span class="variable">next_tree</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$incompat</span><span class="operator">,</span> <span class="variable">$ilabels</span><span class="operator">,</span> <span class="variable">$inodes</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">Bio::Tree::Compatible::is_compatible</span><span class="operator">(</span><span class="variable">$t1</span><span class="operator">,</span><span class="variable">$t2</span><span class="operator">);</span>
+  <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$incompat</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">my</span> <span class="variable">%cluster1</span> <span class="operator">=</span> <span class="variable">%</span><span class="operator">{</span> <span class="variable">Bio::Tree::Compatible::cluster_representation</span><span class="operator">(</span><span class="variable">$t1</span><span class="operator">)</span> <span class="operator">}</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">%cluster2</span> <span class="operator">=</span> <span class="variable">%</span><span class="operator">{</span> <span class="variable">Bio::Tree::Compatible::cluster_representation</span><span class="operator">(</span><span class="variable">$t2</span><span class="operator">)</span> <span class="operator">}</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"incompatible trees\n"</span><span class="operator">;</span>
+    <span class="keyword">if</span> <span class="operator">(</span><span class="keyword">scalar</span><span class="operator">(</span><span class="variable">@$ilabels</span><span class="operator">))</span> <span class="operator">{</span>
+      <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$label</span> <span class="operator">(</span><span class="variable">@$ilabels</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$node1</span> <span class="operator">=</span> <span class="variable">$t1</span><span class="operator">-&gt;</span><span class="variable">find_node</span><span class="operator">(</span><span class="string">-id</span> <span class="operator">=&gt;</span> <span class="variable">$label</span><span class="operator">);</span>
+        <span class="keyword">my</span> <span class="variable">$node2</span> <span class="operator">=</span> <span class="variable">$t2</span><span class="operator">-&gt;</span><span class="variable">find_node</span><span class="operator">(</span><span class="string">-id</span> <span class="operator">=&gt;</span> <span class="variable">$label</span><span class="operator">);</span>
+        <span class="keyword">my</span> <span class="variable">@c1</span> <span class="operator">=</span> <span class="keyword">sort</span> <span class="variable">@</span><span class="operator">{</span> <span class="variable">$cluster1</span><span class="operator">{</span><span class="variable">$node1</span><span class="operator">}</span> <span class="operator">}</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">@c2</span> <span class="operator">=</span> <span class="keyword">sort</span> <span class="variable">@</span><span class="operator">{</span> <span class="variable">$cluster2</span><span class="operator">{</span><span class="variable">$node2</span><span class="operator">}</span> <span class="operator">}</span><span class="operator">;</span>
+        <span class="keyword">print</span> <span class="string">"label </span><span class="variable">$label</span><span class="string">"</span><span class="operator">;</span>
+        <span class="keyword">print</span> <span class="string">" cluster"</span><span class="operator">;</span> <span class="keyword">map</span> <span class="operator">{</span> <span class="keyword">print</span> <span class="string">" "</span><span class="operator">,</span><span class="variable">$_</span> <span class="operator">}</span> <span class="variable">@c1</span><span class="operator">;</span>
+        <span class="keyword">print</span> <span class="string">" cluster"</span><span class="operator">;</span> <span class="keyword">map</span> <span class="operator">{</span> <span class="keyword">print</span> <span class="string">" "</span><span class="operator">,</span><span class="variable">$_</span> <span class="operator">}</span> <span class="variable">@c2</span><span class="operator">;</span> <span class="keyword">print</span> <span class="string">"\n"</span><span class="operator">;</span>
+      <span class="operator">}</span>
+    <span class="operator">}</span>
+    <span class="keyword">if</span> <span class="operator">(</span><span class="keyword">scalar</span><span class="operator">(</span><span class="variable">@$inodes</span><span class="operator">))</span> <span class="operator">{</span>
+      <span class="keyword">while</span> <span class="operator">(</span><span class="variable">@$inodes</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$node1</span> <span class="operator">=</span> <span class="keyword">shift</span> <span class="variable">@$inodes</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$node2</span> <span class="operator">=</span> <span class="keyword">shift</span> <span class="variable">@$inodes</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">@c1</span> <span class="operator">=</span> <span class="keyword">sort</span> <span class="variable">@</span><span class="operator">{</span> <span class="variable">$cluster1</span><span class="operator">{</span><span class="variable">$node1</span><span class="operator">}</span> <span class="operator">}</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">@c2</span> <span class="operator">=</span> <span class="keyword">sort</span> <span class="variable">@</span><span class="operator">{</span> <span class="variable">$cluster2</span><span class="operator">{</span><span class="variable">$node2</span><span class="operator">}</span> <span class="operator">}</span><span class="operator">;</span>
+        <span class="keyword">print</span> <span class="string">"cluster"</span><span class="operator">;</span> <span class="keyword">map</span> <span class="operator">{</span> <span class="keyword">print</span> <span class="string">" "</span><span class="operator">,</span><span class="variable">$_</span> <span class="operator">}</span> <span class="variable">@c1</span><span class="operator">;</span>
+        <span class="keyword">print</span> <span class="string">" properly intersects cluster"</span><span class="operator">;</span>
+        <span class="keyword">map</span> <span class="operator">{</span> <span class="keyword">print</span> <span class="string">" "</span><span class="operator">,</span><span class="variable">$_</span> <span class="operator">}</span> <span class="variable">@c2</span><span class="operator">;</span> <span class="keyword">print</span> <span class="string">"\n"</span><span class="operator">;</span>
+      <span class="operator">}</span>
+    <span class="operator">}</span>
+  <span class="operator">}</span> <span class="keyword">else</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="string">"compatible trees\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>NB: This module has exclusively class methods that work on Bio::Tree::TreeI objects. An instance of Bio::Tree::Compatible cannot itself represent a tree, and so typically there is no need to create one.</p>
+
+<p>Bio::Tree::Compatible is a Perl tool for testing compatibility of phylogenetic trees with nested taxa represented as Bio::Tree::Tree objects. It is based on a recent characterization of ancestral compatibility of semi-labeled trees in terms of their cluster representations.</p>
+
+<p>A semi-labeled tree is a phylogenetic tree with some of its internal nodes labeled, and it can represent a classification tree as well as a phylogenetic tree with nested taxa, with labeled internal nodes corresponding to taxa at a higher level of aggregation or nesting than that of their descendents.</p>
+
+<p>Two semi-labeled trees are compatible if their topological restrictions to the common labels are such that for each node label, the smallest clusters containing it in each of the trees coincide and, furthermore, no cluster in one of the trees properly intersects a cluster of the other tree.</p>
+
+<p>Future extensions of Bio::Tree::Compatible include a Bio::Tree::Supertree module for combining compatible phylogenetic trees with nested taxa into a common supertree.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<ul>
+
+<li><p>Philip Daniel and Charles Semple. Supertree Algorithms for Nested Taxa. In: Olaf R. P. Bininda-Emonds (ed.) Phylogenetic Supertrees: Combining Information to Reveal the Tree of Life, <i>Computational Biology</i>, vol. 4, chap. 7, pp. 151-171. Kluwer (2004).</p>
+
+</li>
+<li><p>Charles Semple, Philip Daniel, Wim Hordijk, Roderic D. M. Page, and Mike Steel: Supertree Algorithms for Ancestral Divergence Dates and Nested Taxa. Bioinformatics <b>20</b>(15), 2355-2360 (2004).</p>
+
+</li>
+<li><p>Merce Llabres, Jairo Rocha, Francesc Rossello, and Gabriel Valiente: On the Ancestral Compatibility of Two Phylogenetic Trees with Nested Taxa. J. Math. Biol. <b>53</b>(3), 340-364 (2006).</p>
+
+</li>
+</ul>
+
+<h1 id="AUTHOR---Gabriel-Valiente">AUTHOR - Gabriel Valiente</h1>
+
+<p>Email valiente@lsi.upc.edu</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods.</p>
+
+<h2 id="postorder_traversal">postorder_traversal</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">postorder_traversal</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@nodes</span> <span class="operator">=</span> <span class="variable">@</span><span class="operator">{</span> <span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">postorder_traversal</span> <span class="operator">}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Return</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">nodes</span> <span class="variable">in</span> <span class="variable">postorder</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">Bio::Tree::Node</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>For example, the postorder traversal of the tree <code><code><span class="operator">(((</span><span class="variable">A</span><span class="operator">,</span><span class="variable">B</span><span class="operator">)</span><span class="variable">C</span><span class="operator">,</span><span class="variable">D</span><span class="operator">),(</span><span class="variable">E</span><span class="operator">,</span><span class="variable">F</span><span class="operator">,</span><span class="variable">G</span><span class="operator">));</span>
+</code></code> is a reference to an array of nodes with internal_id 0 through 9, because the Newick standard representation for phylogenetic trees is based on a postorder traversal.</p>
+
+<pre><code><code>          +---A                    +---0
+          |                        |
+  +---+---C                +---4---2
+  |   |   |                |   |   |
+  |   |   +---B            |   |   +---1
+  |   |                    |   |
+  +   +-------D            9   +-------3
+  |                        |
+  |     +-----E            |     +-----5
+  |     |                  |     |
+  +-----+-----F            +-----8-----6
+        |                        |
+        +-----G                  +-----7</code></code></pre>
+
+<h2 id="cluster_representation">cluster_representation</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">cluster_representation</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">%cluster</span> <span class="operator">=</span> <span class="variable">%</span><span class="operator">{</span> <span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">cluster_representation</span> <span class="operator">}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Compute</span> <span class="variable">the</span> <span class="variable">cluster</span> <span class="variable">representation</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">tree</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">hash</span> <span class="variable">of</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">string</span> <span class="variable">indexed</span> <span class="variable">by</span>
+           <span class="variable">Bio::Tree::Node</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>For example, the cluster representation of the tree <code><code><span class="operator">(((</span><span class="variable">A</span><span class="operator">,</span><span class="variable">B</span><span class="operator">)</span><span class="variable">C</span><span class="operator">,</span><span class="variable">D</span><span class="operator">),(</span><span class="variable">E</span><span class="operator">,</span><span class="variable">F</span><span class="operator">,</span><span class="variable">G</span><span class="operator">));</span>
+</code></code> is a reference to a hash associating an array of string (descendent labels) to each node, as follows:</p>
+
+<pre><code><code>  0 --&gt; [A]
+  1 --&gt; [B]
+  2 --&gt; [A,B,C]
+  3 --&gt; [D]
+  4 --&gt; [A,B,C,D]
+  5 --&gt; [E]
+  6 --&gt; [F]
+  7 --&gt; [G]
+  8 --&gt; [E,F,G]
+  9 --&gt; [A,B,C,D,E,F,G]</code></code></pre>
+
+<h2 id="common_labels">common_labels</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">common_labels</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$labels</span> <span class="operator">=</span> <span class="variable">$tree1</span><span class="operator">-&gt;</span><span class="variable">common_labels</span><span class="operator">(</span><span class="variable">$tree2</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Return</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">common</span> <span class="variable">node</span> <span class="variable">labels</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Set::Scalar</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Bio::Tree::Tree</span>
+</code></code></pre>
+
+<p>For example, the common labels of the tree <code><code><span class="operator">(((</span><span class="variable">A</span><span class="operator">,</span><span class="variable">B</span><span class="operator">)</span><span class="variable">C</span><span class="operator">,</span><span class="variable">D</span><span class="operator">),(</span><span class="variable">E</span><span class="operator">,</span><span class="variable">F</span><span class="operator">,</span><span class="variable">G</span><span class="operator">));</span>
+</code></code> and the tree <code><code><span class="operator">((</span><span class="variable">A</span><span class="operator">,</span><span class="variable">B</span><span class="operator">)</span><span class="variable">H</span><span class="operator">,</span><span class="variable">E</span><span class="operator">,(</span><span class="variable">J</span><span class="operator">,(</span><span class="variable">K</span><span class="operator">)</span><span class="variable">G</span><span class="operator">)</span><span class="variable">I</span><span class="operator">);</span>
+</code></code> are: <code><code>[A,B,E,G]</code></code>.</p>
+
+<pre><code><code>          +---A                 +---A
+          |                     |
+  +---+---C             +-------H
+  |   |   |             |       |
+  |   |   +---B         |       +---B
+  |   |                 |
+  +   +-------D         +-----------E
+  |                     |
+  |     +-----E         |   +-------J
+  |     |               |   |
+  +-----+-----F         +---I
+        |                   |
+        +-----G             +---G---K</code></code></pre>
+
+<h2 id="topological_restriction">topological_restriction</h2>
+
+<pre><code><code> Title   : topological_restriction
+ Usage   : $tree-&gt;topological_restriction($labels)
+ Function: Compute the topological restriction of a tree to a subset
+           of node labels
+ Returns : Bio::Tree::Tree
+ Args    : Set::Scalar</code></code></pre>
+
+<p>For example, the topological restrictions of each of the trees <code><code><span class="operator">(((</span><span class="variable">A</span><span class="operator">,</span><span class="variable">B</span><span class="operator">)</span><span class="variable">C</span><span class="operator">,</span><span class="variable">D</span><span class="operator">),(</span><span class="variable">E</span><span class="operator">,</span><span class="variable">F</span><span class="operator">,</span><span class="variable">G</span><span class="operator">));</span>
+</code></code> and <code><code><span class="operator">((</span><span class="variable">A</span><span class="operator">,</span><span class="variable">B</span><span class="operator">)</span><span class="variable">H</span><span class="operator">,</span><span class="variable">E</span><span class="operator">,(</span><span class="variable">J</span><span class="operator">,(</span><span class="variable">K</span><span class="operator">)</span><span class="variable">G</span><span class="operator">)</span><span class="variable">I</span><span class="operator">);</span>
+</code></code> to the labels <code><code>[A,B,E,G]</code></code> are as follows:</p>
+
+<pre><code><code>          +---A             +---A
+          |                 |
+  +---+---+             +---+
+  |       |             |   |
+  |       +---B         |   +---B
+  +                     |
+  |       +---E         +-------E
+  |       |             |
+  +-------+             +---+---G
+          |
+          +---G</code></code></pre>
+
+<h2 id="is_compatible">is_compatible</h2>
+
+<pre><code><code> Title   : is_compatible
+ Usage   : $tree1-&gt;is_compatible($tree2)
+ Function: Test compatibility of two trees
+ Returns : boolean
+ Args    : Bio::Tree::Tree</code></code></pre>
+
+<p>For example, the topological restrictions of the trees <code><code><span class="operator">(((</span><span class="variable">A</span><span class="operator">,</span><span class="variable">B</span><span class="operator">)</span><span class="variable">C</span><span class="operator">,</span><span class="variable">D</span><span class="operator">),(</span><span class="variable">E</span><span class="operator">,</span><span class="variable">F</span><span class="operator">,</span><span class="variable">G</span><span class="operator">));</span>
+</code></code> and <code><code><span class="operator">((</span><span class="variable">A</span><span class="operator">,</span><span class="variable">B</span><span class="operator">)</span><span class="variable">H</span><span class="operator">,</span><span class="variable">E</span><span class="operator">,(</span><span class="variable">J</span><span class="operator">,(</span><span class="variable">K</span><span class="operator">)</span><span class="variable">G</span><span class="operator">)</span><span class="variable">I</span><span class="operator">);</span>
+</code></code> to their common labels, <code><code>[A,B,E,G]</code></code>, are compatible. The respective cluster representations are as follows:</p>
+
+<pre><code><code>  [A]                  [A]
+  [B]                  [B]
+  [E]                  [E]
+  [G]                  [G]
+  [A,B]                [A,B]
+  [E,G]                [A,B,E,G]
+  [A,B,E,G]</code></code></pre>
+
+<p>As a second example, the trees <code><code><span class="operator">(</span><span class="variable">A</span><span class="operator">,</span><span class="variable">B</span><span class="operator">);</span>
+</code></code> and <code><code><span class="operator">((</span><span class="variable">B</span><span class="operator">)</span><span class="variable">A</span><span class="operator">);</span>
+</code></code> are incompatible. Their respective cluster representations are as follows:</p>
+
+<pre><code><code>  [A]                  [B]
+  [B]                  [A,B]
+  [A,B]</code></code></pre>
+
+<p>The reason is, the smallest cluster containing label <code><code>A</code></code> is <code><code>[A]</code></code> in the first tree but <code><code>[A,B]</code></code> in the second tree.</p>
+
+<pre><code><code> +---A         A---B
+ |
+ +
+ |
+ +---B</code></code></pre>
+
+<p>As a second example, the trees <code><code><span class="operator">(((</span><span class="variable">B</span><span class="operator">,</span><span class="variable">A</span><span class="operator">),</span><span class="variable">C</span><span class="operator">),</span><span class="variable">D</span><span class="operator">);</span>
+</code></code> and <code><code><span class="operator">((</span><span class="variable">A</span><span class="operator">,(</span><span class="variable">D</span><span class="operator">,</span><span class="variable">B</span><span class="operator">)),</span><span class="variable">C</span><span class="operator">);</span>
+</code></code> are also incompatible. Their respective cluster representations are as follows:</p>
+
+<pre><code><code>  [A]                  [A]
+  [B]                  [B]
+  [C]                  [C]
+  [D]                  [D]
+  [A,B]                [B,D]
+  [A,B,C]              [A,B,D]
+  [A,B,C,D]            [A,B,C,D]</code></code></pre>
+
+<p>The reason is, cluster <code><code>[A,B]</code></code> properly intersects cluster <code><code>[B,D]</code></code>. There are further incompatibilities between these trees: <code><code>[A,B,C]</code></code> properly intersects both <code><code>[B,D]</code></code> and <code><code>[A,B,D]</code></code>.</p>
+
+<pre><code><code>          +---B             +-------A
+          |                 |
+      +---+             +---+   +---D
+      |   |             |   |   |
+  +---+   +---A         |   +---+
+  |   |                 +       |
+  +   +-------C         |       +---B
+  |                     |
+  +-----------D         +-----------C</code></code></pre>
+
+
+</body>
+
+</html>
+
+

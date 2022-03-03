@@ -1,0 +1,162 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#LICENSE">LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>CPAN::Mirrors - Get CPAN miror information and select a fast one</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>        <span class="keyword">use</span> <span class="variable">CPAN::Mirrors</span><span class="operator">;</span>
+        
+        <span class="keyword">my</span> <span class="variable">$mirrors</span> <span class="operator">=</span> <span class="variable">CPAN::Mirrors</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+        <span class="variable">$mirrors</span><span class="operator">-&gt;</span><span class="variable">parse_from_file</span><span class="operator">(</span> <span class="variable">$mirrored_by_file</span> <span class="operator">);</span>
+        
+        <span class="keyword">my</span> <span class="variable">$seen</span> <span class="operator">=</span> <span class="operator">{}</span><span class="operator">;</span>
+        
+        <span class="keyword">my</span> <span class="variable">$best_continent</span> <span class="operator">=</span> <span class="variable">$mirrors</span><span class="operator">-&gt;</span><span class="variable">find_best_continents</span><span class="operator">(</span> <span class="operator">{</span> <span class="string">seen</span> <span class="operator">=&gt;</span> <span class="variable">$seen</span> <span class="operator">}</span> <span class="operator">);</span>
+        <span class="keyword">my</span> <span class="variable">@mirrors</span>        <span class="operator">=</span> <span class="variable">$mirrors</span><span class="operator">-&gt;</span><span class="variable">get_mirrors_by_continents</span><span class="operator">(</span> <span class="variable">$best_continent</span> <span class="operator">);</span>
+        
+        <span class="keyword">my</span> <span class="variable">$callback</span> <span class="operator">=</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+                <span class="keyword">my</span><span class="operator">(</span> <span class="variable">$m</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+                <span class="keyword">printf</span> <span class="string">"%s = %s\n"</span><span class="operator">,</span> <span class="variable">$m</span><span class="operator">-&gt;</span><span class="variable">hostname</span><span class="operator">,</span> <span class="variable">$m</span><span class="operator">-&gt;</span><span class="variable">rtt</span>
+                <span class="operator">};</span>
+        <span class="variable">$mirrors</span><span class="operator">-&gt;</span><span class="variable">get_mirrors_timings</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">@mirrors</span><span class="operator">,</span> <span class="variable">$seen</span><span class="operator">,</span> <span class="variable">$callback</span> <span class="operator">);</span>
+        
+        <span class="variable">@mirrors</span> <span class="operator">=</span> <span class="keyword">sort</span> <span class="operator">{</span> <span class="variable">$a</span><span class="operator">-&gt;</span><span class="variable">rtt</span> <span class="operator">&lt;=&gt;</span> <span class="variable">$b</span><span class="operator">-&gt;</span><span class="variable">rtt</span> <span class="operator">}</span> <span class="variable">@mirrors</span><span class="operator">;</span>
+        
+        <span class="keyword">print</span> <span class="string">"Best mirrors are "</span><span class="operator">,</span> <span class="keyword">map</span><span class="operator">(</span> <span class="operator">{</span> <span class="variable">$_</span><span class="operator">-&gt;</span><span class="variable">rtt</span> <span class="operator">}</span> <span class="variable">@mirrors</span><span class="operator">[</span><span class="number">0</span><span class="operator">..</span><span class="number">3</span><span class="operator">]</span> <span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<dl>
+
+<dt id="new-LOCAL_FILE_NAME-">new( LOCAL_FILE_NAME )</dt>
+<dd>
+
+</dd>
+<dt id="continents-">continents()</dt>
+<dd>
+
+<p>Return a list of continents based on those defined in <i>MIRRORED.BY</i>.</p>
+
+</dd>
+<dt id="countries-CONTINENTS-">countries( [CONTINENTS] )</dt>
+<dd>
+
+<p>Return a list of countries based on those defined in <i>MIRRORED.BY</i>. It only returns countries for the continents you specify (as defined in <code><code>continents</code></code>). If you don&#39;t specify any continents, it returns all of the countries listed in <i>MIRRORED.BY</i>.</p>
+
+</dd>
+<dt id="mirrors-COUNTRIES-">mirrors( [COUNTRIES] )</dt>
+<dd>
+
+<p>Return a list of mirrors based on those defined in <i>MIRRORED.BY</i>. It only returns mirrors for the countries you specify (as defined in <code><code>countries</code></code>). If you don&#39;t specify any countries, it returns all of the mirrors listed in <i>MIRRORED.BY</i>.</p>
+
+</dd>
+<dt id="get_mirrors_by_countries-COUNTRIES-">get_mirrors_by_countries( [COUNTRIES] )</dt>
+<dd>
+
+<p>A more sensible synonym for mirrors.</p>
+
+</dd>
+<dt id="get_mirrors_by_continents-CONTINENTS-">get_mirrors_by_continents( [CONTINENTS] )</dt>
+<dd>
+
+<p>Return a list of mirrors for all of continents you specify. If you don&#39;t specify any continents, it returns all of the mirrors.</p>
+
+</dd>
+<dt id="get_countries_by_continents-CONTINENTS-">get_countries_by_continents( [CONTINENTS] )</dt>
+<dd>
+
+<p>A more sensible synonym for countries.</p>
+
+</dd>
+<dt id="best_mirrors">best_mirrors</dt>
+<dd>
+
+<p><code><code>best_mirrors</code></code> checks for the best mirrors based on the list of continents you pass, or, without that, all continents, as defined by <code><code>CPAN::Mirrored::By</code></code>. It pings each mirror, up to the value of <code><code>how_many</code></code>. In list context, it returns up to <code><code>how_many</code></code> mirror. In scalar context, it returns the single best mirror.</p>
+
+<p>Arguments</p>
+
+<pre><code><code>        how_many   - the number of mirrors to return. Default: 1
+        callback   - a callback for find_best_continents
+        verbose    - true or false on all the whining and moaning. Default: false
+        continents - an array ref of the continents to check</code></code></pre>
+
+<p>If you don&#39;t specify the continents, <code><code>best_mirrors</code></code> calls <code><code>find_best_continents</code></code> to get the list of continents to check.</p>
+
+</dd>
+<dt id="get_n_random_mirrors_by_continents-N-CONTINENTS-">get_n_random_mirrors_by_continents( N, [CONTINENTS]</dt>
+<dd>
+
+<p>Returns up to N random mirrors for the specified continents. Specify the continents as an array reference.</p>
+
+</dd>
+<dt id="get_mirrors_timings-MIRROR_LIST-SEEN-CALLBACK-">get_mirrors_timings( MIRROR_LIST, SEEN, CALLBACK );</dt>
+<dd>
+
+<p>Pings the listed mirrors and returns a list of mirrors sorted in ascending ping times.</p>
+
+</dd>
+<dt id="find_best_continents-HASH_REF-">find_best_continents( HASH_REF );</dt>
+<dd>
+
+<p><code><code>find_best_continents</code></code> goes through each continent and pings <code><code>N</code></code> random mirrors on that continent. It then orders the continents by ascending median ping time. In list context, it returns the ordered list of continent. In scalar context, it returns the same list as an anonymous array.</p>
+
+<p>Arguments:</p>
+
+<pre><code><code>        n        - the number of hosts to ping for each continent. Default: 3
+        seen     - a hashref of cached hostname ping times
+        verbose  - true or false for noisy or quiet. Default: false
+        callback - a subroutine to run after each ping.
+        ping_cache_limit - how long, in seconds, to reuse previous ping times.
+                Default: 1 day</code></code></pre>
+
+<p>The <code><code>seen</code></code> hash has hostnames as keys and anonymous arrays as values. The anonymous array is a triplet of a <code><code>CPAN::Mirrored::By</code></code> object, a ping time, and the epoch time for the measurement.</p>
+
+<p>The callback subroutine gets the <code><code>CPAN::Mirrored::By</code></code> object, the ping time, and measurement time (the same things in the <code><code>seen</code></code> hashref) as arguments. <code><code>find_best_continents</code></code> doesn&#39;t care what the callback does and ignores the return value.</p>
+
+</dd>
+</dl>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Andreas Koenig <code><code>&lt;andk@cpan.org&gt;</code></code>, David Golden <code><code>&lt;dagolden@cpan.org&gt;</code></code>, brian d foy <code><code>&lt;bdfoy@cpan.org&gt;</code></code></p>
+
+<h1 id="LICENSE">LICENSE</h1>
+
+<p>This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<p>See <a href="http://www.perl.com/perl/misc/Artistic.html">http://www.perl.com/perl/misc/Artistic.html</a></p>
+
+
+</body>
+
+</html>
+
+

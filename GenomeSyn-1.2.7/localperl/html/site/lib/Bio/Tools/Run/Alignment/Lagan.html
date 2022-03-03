@@ -1,0 +1,277 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Stephen-Montgomery">AUTHOR - Stephen Montgomery</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#lagan">lagan</a></li>
+      <li><a href="#mlagan">mlagan</a></li>
+      <li><a href="#nuc_matrix">nuc_matrix</a></li>
+      <li><a href="#setinput">_setinput</a></li>
+      <li><a href="#generic_lagan">_generic_lagan</a></li>
+      <li><a href="#setparams">_setparams</a></li>
+      <li><a href="#runlagan">_runlagan</a></li>
+      <li><a href="#executable">executable</a></li>
+      <li><a href="#program_path">program_path</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#version">version</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::Alignment::Lagan - Object for the local execution of the LAGAN suite of tools (including MLAGAN for multiple sequence alignments)</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Alignment::Lagan</span><span class="operator">;</span>
+  
+  <span class="variable">@params</span> <span class="operator">=</span>
+      <span class="operator">(</span><span class="string">'chaos'</span> <span class="operator">=&gt;</span> <span class="string">"The contents of this string will be passed as args to chaos"</span><span class="operator">,</span>
+  
+       <span class="comment">#Read you chaos README file for more info/This functionality</span>
+       <span class="comment">#has not been tested and will be integrated in future versions.</span>
+  
+       <span class="string">'order'</span> <span class="operator">=&gt;</span> <span class="string">"\"-gs -7 -gc -2 -mt 2 -ms -1\""</span><span class="operator">,</span>
+       <span class="comment">#Where gap start penalty of- 7, gap continue of -2, match of 2,</span>
+       <span class="comment">#and mismatch of -1.</span>
+  
+       <span class="string">'recurse'</span> <span class="operator">=&gt;</span> <span class="string">"\"(12,25),(7,25),(4,30)"</span><span class="operator">\</span><span class="string">",
+       #A list of (wordlength,score cutoff) pairs to be used in the
+       #recursive anchoring
+  
+       'tree' =&gt; "</span><span class="operator">\</span><span class="string">"(sample1 (sample2 sample3))"</span><span class="operator">\</span><span class="string">",
+       #Used by mlagan / tree can also be passed when calling mlagan directly
+  
+       #SCORING PARAMETERS FOR MLAGAN:
+       'match' =&gt; 12,
+       'mismatch' =&gt; -8,
+       'gapstart' =&gt; -50,
+       'gapend' =&gt; -50,
+       'gapcont' =&gt; -2,
+  );
+  </span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>To run mlagan/lagan, you must have an environment variable that points to the executable directory with files lagan.pl etc. &quot;LAGAN_DIR=/opt/lagan_executables/&quot;</p>
+
+<p>Simply having the executables in your path is not supported because the executables themselves only work with the environment variable set.</p>
+
+<p>All lagan and mlagan parameters listed in their Readmes can be set except for the mfa flag which has been turned on by default to prevent parsing of the alignment format.</p>
+
+<p>TO USE LAGAN:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$lagan</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Alignment::Lagan</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$report_out</span> <span class="operator">=</span> <span class="variable">$lagan</span><span class="operator">-&gt;</span><span class="variable">lagan</span><span class="operator">(</span><span class="variable">$seq1</span><span class="operator">,</span> <span class="variable">$seq2</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>A SimpleAlign object is returned.</p>
+
+<p>TO USE MLAGAN:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$lagan</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Alignment::Lagan</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+  <span class="keyword">my</span> <span class="variable">$tree</span> <span class="operator">=</span> <span class="string">"((</span><span class="variable">$seqname1</span><span class="string"> </span><span class="variable">$seqname2</span><span class="string">) </span><span class="variable">$seqname3</span><span class="string">)"</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">@sequence_objs</span><span class="operator">;</span>    <span class="comment">#an array of bioperl Seq objects</span>
+  
+  <span class="comment">##If you use an unblessed seq array</span>
+  <span class="keyword">my</span> <span class="variable">$seq_ref</span> <span class="operator">=</span> <span class="operator">\</span><span class="variable">@sequence_objs</span><span class="operator">;</span>
+  <span class="keyword">bless</span> <span class="variable">$seq_ref</span><span class="operator">,</span> <span class="string">"ARRAY"</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$report_out</span> <span class="operator">=</span> <span class="variable">$lagan</span><span class="operator">-&gt;</span><span class="variable">mlagan</span><span class="operator">(</span><span class="variable">$seq_ref</span><span class="operator">,</span> <span class="variable">$tree</span><span class="operator">);</span>
+  
+  <span class="variable">A</span> <span class="variable">SimpleAlign</span> <span class="variable">object</span> <span class="variable">is</span> <span class="variable">returned</span>      
+</code></code></pre>
+
+<p>Only basic mlagan/lagan functionality has been implemented due to the iterative development of their project. Future maintenance upgrades will include enhanced features and scoring.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Stephen-Montgomery">AUTHOR - Stephen Montgomery</h1>
+
+<p>Email smontgom@bcgsc.bc.ca</p>
+
+<p>Genome Sciences Centre in beautiful Vancouver, British Columbia CANADA</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>MLagan/Lagan is the hard work of Michael Brudno et al.</p>
+
+<p>Sendu Bala bix@sendu.me.uk</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="lagan">lagan</h2>
+
+<pre><code><code>  Runs the Lagan pairwise alignment algorithm
+  Inputs should be two PrimarySeq objects.
+
+  Returns an SimpleAlign object / preloaded with the tmp file of the
+  Lagan multifasta output.</code></code></pre>
+
+<h2 id="mlagan">mlagan</h2>
+
+<pre><code><code>  Runs the Mlagan multiple sequence alignment algorithm.
+  Inputs should be an Array of Primary Seq objects and a Phylogenetic Tree in
+  String format or as a Bio::Tree::TreeI compliant object.
+  Returns an SimpleAlign object / preloaded with the tmp file of the Mlagan
+  multifasta output.</code></code></pre>
+
+<h2 id="nuc_matrix">nuc_matrix</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">nuc_matrix</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$matrix_obj</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">nuc_matrix</span><span class="operator">();</span>
+           <span class="operator">-</span><span class="keyword">or</span><span class="operator">-</span>
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">nuc_matrix</span><span class="operator">(</span><span class="variable">$matrix_obj</span><span class="operator">);</span>
+           <span class="operator">-</span><span class="keyword">or</span><span class="operator">-</span>
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">nuc_matrix</span><span class="operator">(</span><span class="variable">$matrix_file</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">the</span> <span class="variable">substitution</span> <span class="variable">matrix</span> <span class="keyword">for</span> <span class="keyword">use</span> <span class="variable">by</span> <span class="variable">mlagan</span><span class="operator">.</span> <span class="variable">By</span> <span class="keyword">default</span> <span class="variable">the</span>
+           <span class="variable">file</span> <span class="variable">$LAGAN_DIR</span><span class="operator">/</span><span class="variable">nucmatrix</span><span class="operator">.</span><span class="variable">txt</span> <span class="variable">is</span> <span class="variable">used</span> <span class="variable">by</span> <span class="variable">mlagan</span><span class="operator">.</span> <span class="variable">By</span> <span class="keyword">default</span> <span class="variable">this</span>
+           <span class="variable">method</span> <span class="variable">returns</span> <span class="variable">a</span> <span class="variable">corresponding</span> <span class="variable">Matrix</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Matrix::Mlagan</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span> <span class="variable">to</span> <span class="variable">get</span><span class="operator">,</span> <span class="variable">OR</span> <span class="variable">to</span> <span class="variable">set</span><span class="operator">:</span>
+           <span class="variable">Bio::Matrix::MLagan</span> <span class="variable">object</span>
+           <span class="variable">OR</span>
+           <span class="variable">filename</span> <span class="variable">of</span> <span class="variable">an</span> <span class="variable">mlagan</span> <span class="variable">substitution</span> <span class="variable">matrix</span> <span class="variable">file</span>
+ 
+           <span class="variable">NB</span><span class="operator">:</span> <span class="variable">due</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">bug</span> <span class="variable">in</span> <span class="variable">mlagan</span> <span class="number">2.0</span><span class="operator">,</span> <span class="variable">the</span> <span class="operator">-</span><span class="variable">nucmatrixfile</span> <span class="variable">option</span> <span class="variable">does</span> <span class="keyword">not</span>
+           <span class="variable">work</span><span class="operator">,</span> <span class="variable">so</span> <span class="variable">this</span> <span class="variable">Bioperl</span> <span class="variable">wrapper</span> <span class="variable">is</span> <span class="variable">unable</span> <span class="variable">to</span> <span class="variable">simply</span> <span class="variable">point</span> <span class="variable">mlagan</span> <span class="variable">to</span>
+           <span class="variable">your</span> <span class="variable">desired</span> <span class="variable">matrix</span> <span class="variable">file</span> <span class="operator">(</span><span class="keyword">or</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">temp</span> <span class="variable">file</span> <span class="variable">generated</span> <span class="variable">from</span> <span class="variable">your</span>
+           <span class="variable">matrix</span> <span class="variable">object</span><span class="operator">).</span> <span class="variable">Instead</span> <span class="variable">the</span> <span class="variable">$LAGAN_DIR</span><span class="operator">/</span><span class="variable">nucmatrix</span><span class="operator">.</span><span class="variable">txt</span> <span class="variable">file</span> <span class="variable">must</span>
+           <span class="variable">actually</span> <span class="variable">be</span> <span class="variable">replaced</span><span class="operator">.</span> <span class="variable">This</span> <span class="variable">wrapper</span> <span class="variable">will</span> <span class="variable">make</span> <span class="variable">a</span> <span class="variable">back</span><span class="operator">-</span><span class="variable">up</span> <span class="variable">copy</span> <span class="variable">of</span> <span class="variable">that</span>
+           <span class="variable">file</span><span class="operator">,</span> <span class="keyword">write</span> <span class="variable">the</span> <span class="variable">new</span> <span class="variable">file</span> <span class="variable">in</span> <span class="variable">its</span> <span class="variable">place</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">revert</span> <span class="variable">things</span> <span class="variable">back</span> <span class="variable">to</span> <span class="variable">the</span>
+           <span class="variable">way</span> <span class="variable">they</span> <span class="variable">were</span> <span class="variable">after</span> <span class="variable">the</span> <span class="variable">alignment</span> <span class="variable">has</span> <span class="variable">been</span> <span class="variable">produced</span><span class="operator">.</span> <span class="variable">For</span> <span class="variable">this</span> <span class="variable">reason</span><span class="operator">,</span>
+           <span class="variable">$LAGAN_DIR</span> <span class="variable">must</span> <span class="variable">be</span> <span class="variable">writable</span><span class="operator">,</span> <span class="variable">as</span> <span class="variable">must</span> <span class="variable">$LAGAN_DIR</span><span class="operator">/</span><span class="variable">nucmatrix</span><span class="operator">.</span><span class="variable">txt</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="setinput">_setinput</h2>
+
+<pre><code><code> Title   : _setinput
+ Usage   : Internal function, not to be called directly
+ Function: Create input file(s) for Lagan executables
+ Returns : name of files containing Lagan data input / 
+           or array of files and phylo tree for Mlagan data input</code></code></pre>
+
+<h2 id="generic_lagan">_generic_lagan</h2>
+
+<pre><code><code> Title   : _generic_lagan
+ Usage   :  internal function not called directly
+ Returns :  SimpleAlign object</code></code></pre>
+
+<h2 id="setparams">_setparams</h2>
+
+<pre><code><code> Title   : _setparams
+ Usage   : Internal function, not to be called directly
+ Function: Create parameter inputs for (m)Lagan program
+ Returns : parameter string to be passed to Lagan
+ Args    : Reference to calling object and name of (m)Lagan executable</code></code></pre>
+
+<h2 id="runlagan">_runlagan</h2>
+
+<pre><code><code> Title   :  _runlagan
+ Usage   :  Internal function, not to be called directly
+ Function:   makes actual system call to (m)Lagan program
+ Example :
+ Returns : Report object in the SimpleAlign object</code></code></pre>
+
+<h2 id="executable">executable</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">executable</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$exe</span> <span class="operator">=</span> <span class="variable">$lagan</span><span class="operator">-&gt;</span><span class="variable">executable</span><span class="operator">(</span><span class="string">'mlagan'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Finds</span> <span class="variable">the</span> <span class="variable">full</span> <span class="variable">path</span> <span class="variable">to</span> <span class="variable">the</span> <span class="string">'lagan'</span> <span class="variable">executable</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">representing</span> <span class="variable">the</span> <span class="variable">full</span> <span class="variable">path</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">exe</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">executable</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">path</span> <span class="variable">to</span>
+           <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">boolean</span> <span class="variable">flag</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="keyword">warn</span> <span class="keyword">when</span> <span class="variable">exe</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">found</span>
+ 
+ <span class="variable">Thanks</span> <span class="variable">to</span> <span class="variable">Jason</span> <span class="variable">Stajich</span> <span class="keyword">for</span> <span class="variable">providing</span> <span class="variable">the</span> <span class="variable">framework</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">subroutine</span>
+</code></code></pre>
+
+<h2 id="program_path">program_path</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">program_path</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$path</span> <span class="operator">=</span> <span class="variable">$lagan</span><span class="operator">-&gt;</span><span class="variable">program_path</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">path</span> <span class="keyword">for</span> <span class="variable">executable</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">representing</span> <span class="variable">the</span> <span class="variable">full</span> <span class="variable">path</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">exe</span>
+ 
+ <span class="variable">Thanks</span> <span class="variable">to</span> <span class="variable">Jason</span> <span class="variable">Stajich</span> <span class="keyword">for</span> <span class="variable">providing</span> <span class="variable">the</span> <span class="variable">framework</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">subroutine</span>
+</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">program_dir</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$dir</span> <span class="operator">=</span> <span class="variable">$lagan</span><span class="operator">-&gt;</span><span class="variable">program_dir</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Abstract</span> <span class="variable">get</span> <span class="variable">method</span> <span class="keyword">for</span> <span class="variable">dir</span> <span class="variable">of</span> <span class="variable">program</span><span class="operator">.</span> <span class="variable">To</span> <span class="variable">be</span> <span class="variable">implemented</span>
+           <span class="variable">by</span> <span class="variable">wrapper</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">representing</span> <span class="variable">program</span> <span class="variable">directory</span>
+ 
+ <span class="variable">Thanks</span> <span class="variable">to</span> <span class="variable">Jason</span> <span class="variable">Stajich</span> <span class="keyword">for</span> <span class="variable">providing</span> <span class="variable">the</span> <span class="variable">framework</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">subroutine</span>
+</code></code></pre>
+
+<h2 id="version">version</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">version</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$version</span> <span class="operator">=</span> <span class="variable">$lagan</span><span class="operator">-&gt;</span><span class="variable">version</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">program</span> <span class="variable">version</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">number</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

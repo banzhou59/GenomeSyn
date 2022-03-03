@@ -1,0 +1,302 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#DEVELOPERS-NOTES">DEVELOPERS NOTES</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Peter-Schattner">AUTHOR - Peter Schattner</a></li>
+  <li><a href="#CONTRIBUTOR---Torsten-Seemann">CONTRIBUTOR - Torsten Seemann</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#count_monomers">count_monomers</a></li>
+      <li><a href="#get_mol_wt">get_mol_wt</a></li>
+      <li><a href="#count_codons">count_codons</a></li>
+      <li><a href="#hydropathicity">hydropathicity</a></li>
+      <li><a href="#is_alphabet_strict">_is_alphabet_strict</a></li>
+      <li><a href="#print_data">_print_data</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::SeqStats - Object holding statistics for one particular sequence</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># build a primary nucleic acid or protein sequence object somehow</span>
+  <span class="comment"># then build a statistics object from the sequence object</span>
+  
+  <span class="variable">$seqobj</span> <span class="operator">=</span> <span class="variable">Bio::PrimarySeq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span>      <span class="operator">=&gt;</span> <span class="string">'ACTGTGGCGTCAACTG'</span><span class="operator">,</span>
+                                 <span class="string">-alphabet</span> <span class="operator">=&gt;</span> <span class="string">'dna'</span><span class="operator">,</span>
+                                 <span class="string">-id</span>       <span class="operator">=&gt;</span> <span class="string">'test'</span><span class="operator">);</span>
+  <span class="variable">$seq_stats</span>  <span class="operator">=</span>  <span class="variable">Bio::Tools::SeqStats</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$seqobj</span><span class="operator">);</span>
+  
+  <span class="comment"># obtain a hash of counts of each type of monomer</span>
+  <span class="comment"># (i.e. amino or nucleic acid)</span>
+  <span class="keyword">print</span> <span class="string">"\nMonomer counts using statistics object\n"</span><span class="operator">;</span>
+  <span class="variable">$seq_stats</span>  <span class="operator">=</span>  <span class="variable">Bio::Tools::SeqStats</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seqobj</span><span class="operator">);</span>
+  <span class="variable">$hash_ref</span> <span class="operator">=</span> <span class="variable">$seq_stats</span><span class="operator">-&gt;</span><span class="variable">count_monomers</span><span class="operator">();</span>  <span class="comment"># e.g. for DNA sequence</span>
+  <span class="keyword">foreach</span> <span class="variable">$base</span> <span class="operator">(</span><span class="keyword">sort</span> <span class="keyword">keys</span> <span class="variable">%$hash_ref</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="string">"Number of bases of type "</span><span class="operator">,</span> <span class="variable">$base</span><span class="operator">,</span> <span class="string">"= "</span><span class="operator">,</span> 
+         <span class="variable">%$hash_ref</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$base</span><span class="operator">}</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># obtain the count directly without creating a new statistics object</span>
+  <span class="keyword">print</span> <span class="string">"\nMonomer counts without statistics object\n"</span><span class="operator">;</span>
+  <span class="variable">$hash_ref</span> <span class="operator">=</span> <span class="variable">Bio::Tools::SeqStats</span><span class="operator">-&gt;</span><span class="variable">count_monomers</span><span class="operator">(</span><span class="variable">$seqobj</span><span class="operator">);</span>
+  <span class="keyword">foreach</span> <span class="variable">$base</span> <span class="operator">(</span><span class="keyword">sort</span> <span class="keyword">keys</span> <span class="variable">%$hash_ref</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="string">"Number of bases of type "</span><span class="operator">,</span> <span class="variable">$base</span><span class="operator">,</span> <span class="string">"= "</span><span class="operator">,</span> 
+         <span class="variable">%$hash_ref</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$base</span><span class="operator">}</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  
+  <span class="comment"># obtain hash of counts of each type of codon in a nucleic acid sequence</span>
+  <span class="keyword">print</span> <span class="string">"\nCodon counts using statistics object\n"</span><span class="operator">;</span>
+  <span class="variable">$hash_ref</span> <span class="operator">=</span> <span class="variable">$seq_stats</span><span class="operator">-&gt;</span> <span class="variable">count_codons</span><span class="operator">();</span>  <span class="comment"># for nucleic acid sequence</span>
+  <span class="keyword">foreach</span> <span class="variable">$base</span> <span class="operator">(</span><span class="keyword">sort</span> <span class="keyword">keys</span> <span class="variable">%$hash_ref</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="string">"Number of codons of type "</span><span class="operator">,</span> <span class="variable">$base</span><span class="operator">,</span> <span class="string">"= "</span><span class="operator">,</span> 
+         <span class="variable">%$hash_ref</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$base</span><span class="operator">}</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="comment">#  or</span>
+  <span class="keyword">print</span> <span class="string">"\nCodon counts without statistics object\n"</span><span class="operator">;</span>
+  <span class="variable">$hash_ref</span> <span class="operator">=</span> <span class="variable">Bio::Tools::SeqStats</span><span class="operator">-&gt;</span><span class="variable">count_codons</span><span class="operator">(</span><span class="variable">$seqobj</span><span class="operator">);</span>
+  <span class="keyword">foreach</span> <span class="variable">$base</span> <span class="operator">(</span><span class="keyword">sort</span> <span class="keyword">keys</span> <span class="variable">%$hash_ref</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="string">"Number of codons of type "</span><span class="operator">,</span> <span class="variable">$base</span><span class="operator">,</span> <span class="string">"= "</span><span class="operator">,</span> 
+         <span class="variable">%$hash_ref</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$base</span><span class="operator">}</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># Obtain the molecular weight of a sequence. Since the sequence </span>
+  <span class="comment"># may contain ambiguous monomers, the molecular weight is returned </span>
+  <span class="comment"># as a (reference to) a two element array containing greatest lower </span>
+  <span class="comment"># bound (GLB) and least upper bound (LUB) of the molecular weight</span>
+  <span class="variable">$weight</span> <span class="operator">=</span> <span class="variable">$seq_stats</span><span class="operator">-&gt;</span><span class="variable">get_mol_wt</span><span class="operator">();</span>
+  <span class="keyword">print</span> <span class="string">"\nMolecular weight (using statistics object) of sequence "</span><span class="operator">,</span> 
+          <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">(),</span> <span class="string">" is between "</span><span class="operator">,</span> <span class="variable">$$weight</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">,</span> <span class="string">" and "</span> <span class="operator">,</span>
+          <span class="variable">$$weight</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+  
+  <span class="comment">#  or</span>
+  <span class="variable">$weight</span> <span class="operator">=</span> <span class="variable">Bio::Tools::SeqStats</span><span class="operator">-&gt;</span><span class="variable">get_mol_wt</span><span class="operator">(</span><span class="variable">$seqobj</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="string">"\nMolecular weight (without statistics object) of sequence "</span><span class="operator">,</span> 
+        <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">(),</span> <span class="string">" is between "</span><span class="operator">,</span> <span class="variable">$$weight</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">,</span> <span class="string">" and "</span> <span class="operator">,</span>
+        <span class="variable">$$weight</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+  
+  <span class="comment"># Calculate mean Kyte-Doolittle hydropathicity (aka "gravy" score)</span>
+  <span class="keyword">my</span> <span class="variable">$prot</span> <span class="operator">=</span> <span class="variable">Bio::PrimarySeq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="string">'MSFVLVAPDMLATAAADVVQIGSAVSAGS'</span><span class="operator">,</span>
+                                  <span class="string">-alphabet</span><span class="operator">=&gt;</span><span class="string">'protein'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$gravy</span> <span class="operator">=</span> <span class="variable">Bio::Tools::SeqStats</span><span class="operator">-&gt;</span><span class="variable">hydropathicity</span><span class="operator">(</span><span class="variable">$seqobj</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="string">"might be hydropathic"</span> <span class="keyword">if</span> <span class="variable">$gravy</span> <span class="operator">&gt;</span> <span class="number">1</span><span class="operator">;</span>  
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::Tools::SeqStats is a lightweight object for the calculation of simple statistical and numerical properties of a sequence. By &quot;lightweight&quot; I mean that only &quot;primary&quot; sequences are handled by the object. The calling script needs to create the appropriate primary sequence to be passed to SeqStats if statistics on a sequence feature are required. Similarly if a codon count is desired for a frame-shifted sequence and/or a negative strand sequence, the calling script needs to create that sequence and pass it to the SeqStats object.</p>
+
+<p>Nota that nucleotide sequences in bioperl do not strictly separate RNA and DNA sequences. By convention, sequences from RNA molecules are shown as is they were DNA. Objects are supposed to make the distinction when needed. This class is one of the few where this distinctions needs to be made. Internally, it changes all Ts into Us before weight and monomer count.</p>
+
+<p>SeqStats can be called in two distinct manners. If only a single computation is required on a given sequence object, the method can be called easily using the SeqStats object directly:</p>
+
+<pre><code><code>  <span class="variable">$weight</span> <span class="operator">=</span> <span class="variable">Bio::Tools::SeqStats</span><span class="operator">-&gt;</span><span class="variable">get_mol_wt</span><span class="operator">(</span><span class="variable">$seqobj</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Alternately, if several computations will be required on a given sequence object, an &quot;instance&quot; statistics object can be constructed and used for the method calls:</p>
+
+<pre><code><code>  <span class="variable">$seq_stats</span> <span class="operator">=</span> <span class="variable">Bio::Tools::SeqStats</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">$seqobj</span><span class="operator">);</span>
+  <span class="variable">$monomers</span> <span class="operator">=</span> <span class="variable">$seq_stats</span><span class="operator">-&gt;</span><span class="variable">count_monomers</span><span class="operator">();</span>
+  <span class="variable">$codons</span> <span class="operator">=</span> <span class="variable">$seq_stats</span><span class="operator">-&gt;</span><span class="variable">count_codons</span><span class="operator">();</span>
+  <span class="variable">$weight</span> <span class="operator">=</span> <span class="variable">$seq_stats</span><span class="operator">-&gt;</span><span class="variable">get_mol_wt</span><span class="operator">();</span>
+  <span class="variable">$gravy</span> <span class="operator">=</span> <span class="variable">$seq_stats</span><span class="operator">-&gt;</span><span class="variable">hydropathicity</span><span class="operator">();</span>
+</code></code></pre>
+
+<p>As currently implemented the object can return the following values from a sequence:</p>
+
+<ul>
+
+<li><p>The molecular weight of the sequence: get_mol_wt()</p>
+
+</li>
+<li><p>The number of each type of monomer present: count_monomers()</p>
+
+</li>
+<li><p>The number of each codon present in a nucleic acid sequence: count_codons()</p>
+
+</li>
+<li><p>The mean hydropathicity (&quot;gravy&quot; score) of a protein: hydropathicity()</p>
+
+</li>
+</ul>
+
+<p>For DNA and RNA sequences single-stranded weights are returned. The molecular weights are calculated for neutral, or not ionized, nucleic acids. The returned weight is the sum of the base-sugar-phosphate residues of the chain plus one weight of water to to account for the additional OH on the phosphate of the 5&#39; residue and the additional H on the sugar ring of the 3&#39; residue. Note that this leads to a difference of 18 in calculated molecular weights compared to some other available programs (e.g. Informax VectorNTI).</p>
+
+<p>Note that since sequences may contain ambiguous monomers (e.g. &quot;M&quot;, meaning &quot;A&quot; or &quot;C&quot; in a nucleic acid sequence), the method get_mol_wt returns a two-element array containing the greatest lower bound and least upper bound of the molecule. For a sequence with no ambiguous monomers, the two elements of the returned array will be equal. The method count_codons() handles ambiguous bases by simply counting all ambiguous codons together and issuing a warning to that effect.</p>
+
+<h1 id="DEVELOPERS-NOTES">DEVELOPERS NOTES</h1>
+
+<p>Ewan moved it from Bio::SeqStats to Bio::Tools::SeqStats</p>
+
+<p>Heikki made tiny adjustments (+/- 0.01 daltons) to amino acid molecular weights to have the output match values in SWISS-PROT.</p>
+
+<p>Torsten added hydropathicity calculation.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Peter-Schattner">AUTHOR - Peter Schattner</h1>
+
+<p>Email schattner AT alum.mit.edu</p>
+
+<h1 id="CONTRIBUTOR---Torsten-Seemann">CONTRIBUTOR - Torsten Seemann</h1>
+
+<p>Email torsten.seemann AT infotech.monash.edu.au</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="count_monomers">count_monomers</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">count_monomers</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$rcount</span> <span class="operator">=</span> <span class="variable">$seq_stats</span><span class="operator">-&gt;</span><span class="variable">count_monomers</span><span class="operator">();</span>
+           <span class="keyword">or</span> <span class="variable">$rcount</span> <span class="operator">=</span> <span class="variable">$seq_stats</span><span class="operator">-&gt;</span><span class="variable">Bio::Tools::SeqStats</span><span class="operator">-&gt;(</span><span class="variable">$seqobj</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Counts</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="keyword">each</span> <span class="variable">type</span> <span class="variable">of</span> <span class="variable">monomer</span> <span class="operator">(</span><span class="variable">amino</span> <span class="variable">acid</span> <span class="keyword">or</span>
+                <span class="variable">base</span><span class="operator">)</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">sequence</span><span class="operator">.</span>
+           <span class="variable">Ts</span> <span class="variable">are</span> <span class="variable">counted</span> <span class="variable">as</span> <span class="variable">Us</span> <span class="variable">in</span> <span class="variable">RNA</span> <span class="variable">sequences</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Reference</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="variable">in</span> <span class="variable">which</span> <span class="keyword">keys</span> <span class="variable">are</span> <span class="variable">letters</span> <span class="variable">of</span> <span class="variable">the</span>
+           <span class="variable">genetic</span> <span class="variable">alphabet</span> <span class="variable">used</span> <span class="keyword">and</span> <span class="keyword">values</span> <span class="variable">are</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">occurrences</span>
+           <span class="variable">of</span> <span class="variable">the</span> <span class="variable">letter</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">sequence</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span> <span class="keyword">or</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">sequence</span> <span class="variable">object</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="variable">Throws</span> <span class="variable">an</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">type</span> <span class="variable">of</span> <span class="variable">sequence</span> <span class="variable">is</span> <span class="variable">unknown</span> <span class="operator">(</span><span class="variable">ie</span> <span class="variable">amino</span>
+           <span class="keyword">or</span> <span class="variable">nucleic</span><span class="operator">)</span><span class="keyword">or</span> <span class="keyword">if</span> <span class="variable">unknown</span> <span class="variable">letter</span> <span class="variable">in</span> <span class="variable">alphabet</span><span class="operator">.</span> <span class="variable">Ambiguous</span>
+           <span class="variable">elements</span> <span class="variable">are</span> <span class="variable">allowed</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="get_mol_wt">get_mol_wt</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_mol_wt</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$wt</span> <span class="operator">=</span> <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">get_mol_wt</span><span class="operator">()</span> <span class="keyword">or</span>
+           <span class="variable">$wt</span> <span class="operator">=</span> <span class="variable">Bio::Tools::SeqStats</span> <span class="operator">-&gt;</span><span class="variable">get_mol_wt</span><span class="operator">(</span><span class="variable">$seqobj</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Calculate</span> <span class="variable">molecular</span> <span class="variable">weight</span> <span class="variable">of</span> <span class="variable">sequence</span>
+           <span class="variable">Ts</span> <span class="variable">are</span> <span class="variable">counted</span> <span class="variable">as</span> <span class="variable">Us</span> <span class="variable">in</span> <span class="variable">RNA</span> <span class="variable">sequences</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Reference</span> <span class="variable">to</span> <span class="variable">two</span> <span class="variable">element</span> <span class="variable">array</span> <span class="variable">containing</span> <span class="variable">lower</span> <span class="keyword">and</span> <span class="variable">upper</span>
+           <span class="variable">bounds</span> <span class="variable">of</span> <span class="variable">molecule</span> <span class="variable">molecular</span> <span class="variable">weight</span><span class="operator">.</span> <span class="variable">For</span> <span class="variable">DNA</span> <span class="keyword">and</span> <span class="variable">RNA</span>
+           <span class="variable">sequences</span> <span class="variable">single</span><span class="operator">-</span><span class="variable">stranded</span> <span class="variable">weights</span> <span class="variable">are</span> <span class="variable">returned</span><span class="operator">.</span> <span class="variable">If</span>
+           <span class="variable">sequence</span> <span class="variable">contains</span> <span class="keyword">no</span> <span class="variable">ambiguous</span> <span class="variable">elements</span><span class="operator">,</span> <span class="variable">both</span> <span class="variable">entries</span> <span class="variable">in</span>
+           <span class="variable">array</span> <span class="variable">are</span> <span class="variable">equal</span> <span class="variable">to</span> <span class="variable">molecular</span> <span class="variable">weight</span> <span class="variable">of</span> <span class="variable">molecule</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span> <span class="keyword">or</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">sequence</span> <span class="variable">object</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="variable">Exception</span> <span class="keyword">if</span> <span class="variable">type</span> <span class="variable">of</span> <span class="variable">sequence</span> <span class="variable">is</span> <span class="variable">unknown</span> <span class="operator">(</span><span class="variable">ie</span> <span class="keyword">not</span> <span class="variable">amino</span> <span class="keyword">or</span>
+           <span class="variable">nucleic</span><span class="operator">)</span> <span class="keyword">or</span> <span class="keyword">if</span> <span class="variable">unknown</span> <span class="variable">letter</span> <span class="variable">in</span> <span class="variable">alphabet</span><span class="operator">.</span> <span class="variable">Ambiguous</span>
+           <span class="variable">elements</span> <span class="variable">are</span> <span class="variable">allowed</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="count_codons">count_codons</h2>
+
+<pre><code><code> Title   : count_codons
+ Usage   : $rcount = $seqstats-&gt;count_codons() or
+           $rcount = Bio::Tools::SeqStats-&gt;count_codons($seqobj)
+ Function: Counts the number of each type of codons for a dna or rna 
+           sequence, starting at the 1st triple of the input sequence.
+ Example :
+ Returns : Reference to a hash in which keys are codons of the genetic
+           alphabet used and values are number of occurrences of the
+           codons in the sequence. All codons with &quot;ambiguous&quot; bases
+           are counted together.
+ Args    : None or sequence object
+ Throws  : an exception if type of sequence is unknown or protein.</code></code></pre>
+
+<h2 id="hydropathicity">hydropathicity</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">hydropathicity</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$gravy</span> <span class="operator">=</span> <span class="variable">$seqstats</span><span class="operator">-&gt;</span><span class="variable">hydropathicity</span><span class="operator">();</span> <span class="keyword">or</span>
+           <span class="variable">$gravy</span> <span class="operator">=</span> <span class="variable">Bio::Tools::SeqStats</span><span class="operator">-&gt;</span><span class="variable">hydropathicity</span><span class="operator">(</span><span class="variable">$seqobj</span><span class="operator">);</span>
+ 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Calculates</span> <span class="variable">the</span> <span class="variable">mean</span> <span class="variable">Kyte</span><span class="operator">-</span><span class="variable">Doolittle</span> <span class="variable">hydropathicity</span> <span class="keyword">for</span> <span class="variable">a</span>
+           <span class="variable">protein</span> <span class="variable">sequence</span><span class="operator">.</span> <span class="variable">Also</span> <span class="variable">known</span> <span class="variable">as</span> <span class="variable">the</span> <span class="string">"gravy"</span> <span class="variable">score</span><span class="operator">.</span> <span class="variable">Refer</span> <span class="variable">to</span> 
+           <span class="variable">Kyte</span> <span class="variable">J</span><span class="operator">.,</span> <span class="variable">Doolittle</span> <span class="variable">R</span><span class="operator">.</span><span class="variable">F</span><span class="operator">.,</span> <span class="variable">J</span><span class="operator">.</span> <span class="variable">Mol</span><span class="operator">.</span> <span class="variable">Biol</span><span class="operator">.</span> <span class="number">157</span><span class="operator">:</span><span class="number">105</span><span class="operator">-</span><span class="number">132</span><span class="operator">(</span><span class="number">1982</span><span class="operator">).</span> 
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">float</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span> <span class="keyword">or</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">sequence</span> <span class="variable">object</span>
+ 
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="variable">an</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">type</span> <span class="variable">of</span> <span class="variable">sequence</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">protein</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="is_alphabet_strict">_is_alphabet_strict</h2>
+
+<pre><code><code> Title   :  _is_alphabet_strict
+ Usage   :
+ Function: internal function to determine whether there are
+           any ambiguous elements in the current sequence
+ Example :
+ Returns : 1 if strict alphabet is being used,
+           0 if ambiguous elements are present
+ Args    :
+
+ Throws  : an exception if type of sequence is unknown (ie amino or
+           nucleic) or if unknown letter in alphabet. Ambiguous
+           monomers are allowed.</code></code></pre>
+
+<h2 id="print_data">_print_data</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_print_data</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">_print_data</span><span class="operator">()</span> <span class="keyword">or</span> <span class="variable">Bio::Tools::SeqStats</span><span class="operator">-&gt;</span><span class="variable">_print_data</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Displays</span> <span class="variable">dna</span> <span class="operator">/</span> <span class="variable">rna</span> <span class="variable">parameters</span> <span class="operator">(</span><span class="variable">used</span> <span class="keyword">for</span> <span class="variable">debugging</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">1</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span>
+</code></code></pre>
+
+<p>Used for debugging.</p>
+
+
+</body>
+
+</html>
+
+

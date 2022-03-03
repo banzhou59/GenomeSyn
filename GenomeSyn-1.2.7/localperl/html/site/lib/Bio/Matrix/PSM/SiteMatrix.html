@@ -1,0 +1,489 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Stefan-Kirov">AUTHOR - Stefan Kirov</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#calculate_consensus">_calculate_consensus</a></li>
+      <li><a href="#calc_weight">calc_weight</a></li>
+      <li><a href="#next_pos">next_pos</a></li>
+      <li><a href="#curpos">curpos</a></li>
+      <li><a href="#e_val">e_val</a></li>
+      <li><a href="#IC">IC</a></li>
+      <li><a href="#accession_number">accession_number</a></li>
+      <li><a href="#consensus">consensus</a></li>
+      <li><a href="#width">width</a></li>
+      <li><a href="#sites">sites</a></li>
+      <li><a href="#IUPAC">IUPAC</a></li>
+      <li><a href="#to_IUPAC">_to_IUPAC</a></li>
+      <li><a href="#to_cons">_to_cons</a></li>
+      <li><a href="#get_string">get_string</a></li>
+      <li><a href="#get_array">get_array</a></li>
+      <li><a href="#get_logs_array">get_logs_array</a></li>
+      <li><a href="#id">id</a></li>
+      <li><a href="#regexp">regexp</a></li>
+      <li><a href="#regexp_array">regexp_array</a></li>
+      <li><a href="#compress_array">_compress_array</a></li>
+      <li><a href="#uncompress_string">_uncompress_string</a></li>
+      <li><a href="#get_compressed_freq">get_compressed_freq</a></li>
+      <li><a href="#get_compressed_logs">get_compressed_logs</a></li>
+      <li><a href="#sequence_match_weight">sequence_match_weight</a></li>
+      <li><a href="#get_all_vectors">get_all_vectors</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Matrix::PSM::SiteMatrix - SiteMatrixI implementation, holds a position scoring matrix (or position weight matrix) and log-odds</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Matrix::PSM::SiteMatrix</span><span class="operator">;</span>
+  <span class="comment"># Create from memory by supplying probability matrix hash</span>
+  <span class="comment"># both as strings or arrays</span>
+  <span class="comment"># where the frequencies  $a,$c,$g and $t are supplied either as</span>
+  <span class="comment"># arrayref or string. Accordingly, lA, lC, lG and lT are the log</span>
+  <span class="comment"># odds (only as arrays, no checks done right now)</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$a</span><span class="operator">,</span><span class="variable">$c</span><span class="operator">,</span><span class="variable">$g</span><span class="operator">,</span><span class="variable">$t</span><span class="operator">,</span><span class="variable">$score</span><span class="operator">,</span><span class="variable">$ic</span><span class="operator">,</span> <span class="variable">$mid</span><span class="operator">)=</span><span class="variable">@_</span><span class="operator">;</span> 
+  <span class="comment">#or</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$a</span><span class="operator">,</span><span class="variable">$c</span><span class="operator">,</span><span class="variable">$g</span><span class="operator">,</span><span class="variable">$t</span><span class="operator">,</span><span class="variable">$score</span><span class="operator">,</span><span class="variable">$ic</span><span class="operator">,</span><span class="variable">$mid</span><span class="operator">)=(</span><span class="string">'05a011'</span><span class="operator">,</span><span class="string">'110550'</span><span class="operator">,</span><span class="string">'400001'</span><span class="operator">,</span>
+                                    <span class="string">'100104'</span><span class="operator">,</span><span class="number">0</span><span class="operator">.</span><span class="number">001</span><span class="operator">,</span><span class="number">19.2</span><span class="operator">,</span><span class="string">'CRE1'</span><span class="operator">);</span>
+  <span class="comment">#Where a stands for all (this frequency=1), see explanation bellow</span>
+  <span class="keyword">my</span> <span class="variable">%param</span><span class="operator">=(</span><span class="string">-pA</span><span class="operator">=&gt;</span><span class="variable">$a</span><span class="operator">,</span><span class="string">-pC</span><span class="operator">=&gt;</span><span class="variable">$c</span><span class="operator">,</span><span class="string">-pG</span><span class="operator">=&gt;</span><span class="variable">$g</span><span class="operator">,</span><span class="string">-pT</span><span class="operator">=&gt;</span><span class="variable">$t</span><span class="operator">,</span>
+             <span class="string">-lA</span><span class="operator">=&gt;</span><span class="variable">$la</span><span class="operator">,</span> <span class="string">-lC</span><span class="operator">=&gt;</span><span class="variable">$lc</span><span class="operator">,</span><span class="string">-lG</span><span class="operator">=&gt;</span><span class="variable">$lg</span><span class="operator">,</span><span class="string">-lT</span><span class="operator">=&gt;</span><span class="variable">$l</span><span class="operator">,</span>
+             <span class="string">-IC</span><span class="operator">=&gt;</span><span class="variable">$ic</span><span class="operator">,</span><span class="string">-e_val</span><span class="operator">=&gt;</span><span class="variable">$score</span><span class="operator">,</span> <span class="string">-id</span><span class="operator">=&gt;</span><span class="variable">$mid</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$site</span><span class="operator">=</span><span class="variable">Bio::Matrix::PSM::SiteMatrix</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">%param</span><span class="operator">);</span>
+  <span class="comment">#Or get it from a file:</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Matrix::PSM::IO</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$psmIO</span><span class="operator">=</span> <span class="variable">Bio::Matrix::PSM::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$file</span><span class="operator">,</span> <span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'transfac'</span><span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$psm</span><span class="operator">=</span><span class="variable">$psmIO</span><span class="operator">-&gt;</span><span class="variable">next_psm</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment">#Now we have a Bio::Matrix::PSM::Psm object, </span>
+    <span class="comment"># see Bio::Matrix::PSM::PsmI for details</span>
+    <span class="comment">#This is a Bio::Matrix::PSM::SiteMatrix object now</span>
+    <span class="keyword">my</span> <span class="variable">$matrix</span><span class="operator">=</span><span class="variable">$psm</span><span class="operator">-&gt;</span><span class="variable">matrix</span><span class="operator">;</span>  
+  <span class="operator">}</span>
+  
+  <span class="comment"># Get a simple consensus, where alphabet is {A,C,G,T,N}, </span>
+  <span class="comment"># choosing the character that both satisfies a supplied or default threshold</span>
+  <span class="comment"># frequency and is the most frequenct character at each position, or N.</span>
+  <span class="comment"># So for the position with A, C, G, T frequencies of 0.5, 0.25, 0.10, 0.15,</span>
+  <span class="comment"># the simple consensus character will be 'A', whilst for 0.5, 0.5, 0, 0 it</span>
+  <span class="comment"># would be 'N'.</span>
+  <span class="keyword">my</span> <span class="variable">$consensus</span><span class="operator">=</span><span class="variable">$site</span><span class="operator">-&gt;</span><span class="variable">consensus</span><span class="operator">;</span>
+  
+  <span class="comment"># Get the IUPAC ambiguity code representation of the data in the matrix.</span>
+  <span class="comment"># Because the frequencies may have been pseudo-count corrected, insignificant</span>
+  <span class="comment"># frequences (below 0.05 by default) are ignored. So a position with</span>
+  <span class="comment"># A, C, G, T frequencies of 0.5, 0.5, 0.01, 0.01 will get the IUPAC code 'M',</span>
+  <span class="comment"># while 0.97, 0.01, 0.01, 0.01 will get the code 'A' and</span>
+  <span class="comment"># 0.25, 0.25, 0.25, 0.25 would get 'N'.</span>
+  <span class="keyword">my</span> <span class="variable">$iupac</span><span class="operator">=</span><span class="variable">$site</span><span class="operator">-&gt;</span><span class="variable">IUPAC</span><span class="operator">;</span>
+  
+  <span class="comment"># Getting/using regular expression (a representation of the IUPAC string)</span>
+  <span class="keyword">my</span> <span class="variable">$regexp</span><span class="operator">=</span><span class="variable">$site</span><span class="operator">-&gt;</span><span class="variable">regexp</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$count</span><span class="operator">=</span><span class="keyword">grep</span><span class="operator">(</span><span class="variable">$regexp</span><span class="operator">,</span><span class="variable">$seq</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$count</span><span class="operator">=(</span><span class="variable">$seq</span><span class="operator">=~</span> <span class="regex">s/</span><span class="variable">$regexp</span><span class="regex">/$1/eg</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="string">"Motif </span><span class="variable">$mid</span><span class="string"> is present </span><span class="variable">$count</span><span class="string"> times in this sequence\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>SiteMatrix is designed to provide some basic methods when working with position scoring (weight) matrices, such as transcription factor binding sites for example. A DNA PSM consists of four vectors with frequencies {A,C,G,T}. This is the minimum information you should provide to construct a PSM object. The vectors can be provided as strings with frequenciesx10 rounded to an int, going from {0..a} and &#39;a&#39; represents the maximum (10). This is like MEME&#39;s compressed representation of a matrix and it is quite useful when working with relational DB. If arrays are provided as an input (references to arrays actually) they can be any number, real or integer (frequency or count).</p>
+
+<p>When creating the object you can ask the constructor to make a simple pseudo count correction by adding a number (typically 1) to all positions (with the -correction option). After adding the number the frequencies will be calculated. Only use correction when you supply counts, not frequencies.</p>
+
+<p>Throws an exception if: You mix as an input array and string (for example A matrix is given as array, C - as string). The position vector is (0,0,0,0). One of the probability vectors is shorter than the rest.</p>
+
+<p>Summary of the methods I use most frequently (details bellow):</p>
+
+<pre><code><code>  iupac - return IUPAC compliant consensus as a string
+  score - Returns the score as a real number
+  IC - information content. Returns a real number
+  id - identifier. Returns a string
+  accession - accession number. Returns a string
+  next_pos - return the sequence probably for each letter, IUPAC
+      symbol, IUPAC probability and simple sequence
+  consenus letter for this position. Rewind at the end. Returns a hash.
+  pos - current position get/set. Returns an integer.
+  regexp - construct a regular expression based on IUPAC consensus.
+      For example AGWV will be [Aa][Gg][AaTt][AaCcGg]
+  width - site width
+  get_string - gets the probability vector for a single base as a string.
+  get_array - gets the probability vector for a single base as an array.
+  get_logs_array - gets the log-odds vector for a single base as an array.</code></code></pre>
+
+<p>New methods, which might be of interest to anyone who wants to store PSM in a relational database without creating an entry for each position is the ability to compress the PSM vector into a string with losing usually less than 1% of the data. this can be done with:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$str</span><span class="operator">=</span><span class="variable">$matrix</span><span class="operator">-&gt;</span><span class="variable">get_compressed_freq</span><span class="operator">(</span><span class="string">'A'</span><span class="operator">);</span>
+  <span class="keyword">or</span>
+  <span class="keyword">my</span> <span class="variable">$str</span><span class="operator">=</span><span class="variable">$matrix</span><span class="operator">-&gt;</span><span class="variable">get_compressed_logs</span><span class="operator">(</span><span class="string">'A'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Loading from a database should be done with new, but is not yest implemented. However you can still uncompress such string with:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">@arr</span><span class="operator">=</span><span class="variable">Bio::Matrix::PSM::_uncompress_string</span> <span class="operator">(</span><span class="variable">$str</span><span class="operator">,</span><span class="number">1</span><span class="operator">,</span><span class="number">1</span><span class="operator">);</span> <span class="keyword">for</span> <span class="variable">PSM</span>
+  <span class="keyword">or</span>
+  <span class="keyword">my</span> <span class="variable">@arr</span><span class="operator">=</span><span class="variable">Bio::Matrix::PSM::_uncompress_string</span> <span class="operator">(</span><span class="variable">$str</span><span class="operator">,</span><span class="number">1000</span><span class="operator">,</span><span class="number">2</span><span class="operator">);</span> <span class="keyword">for</span> <span class="keyword">log</span> <span class="variable">odds</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Stefan-Kirov">AUTHOR - Stefan Kirov</h1>
+
+<p>Email skirov@utk.edu</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Sendu Bala, bix@sendu.me.uk</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$site</span><span class="operator">=</span><span class="variable">Bio::Matrix::PSM::SiteMatrix</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-pA</span><span class="operator">=&gt;</span><span class="variable">$a</span><span class="operator">,</span><span class="string">-pC</span><span class="operator">=&gt;</span><span class="variable">$c</span><span class="operator">,</span>
+                                                     <span class="string">-pG</span><span class="operator">=&gt;</span><span class="variable">$g</span><span class="operator">,</span><span class="string">-pT</span><span class="operator">=&gt;</span><span class="variable">$t</span><span class="operator">,</span>
+                                                     <span class="string">-IC</span><span class="operator">=&gt;</span><span class="variable">$ic</span><span class="operator">,</span>
+                                                     <span class="string">-e_val</span><span class="operator">=&gt;</span><span class="variable">$score</span><span class="operator">,</span> 
+                                                     <span class="string">-id</span><span class="operator">=&gt;</span><span class="variable">$mid</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Creates</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Matrix::PSM::SiteMatrix</span> <span class="variable">object</span> <span class="variable">from</span> <span class="variable">memory</span>
+ <span class="variable">Throws</span> <span class="operator">:</span>  <span class="variable">If</span> <span class="variable">inconsistent</span> <span class="variable">data</span> <span class="keyword">for</span> <span class="variable">all</span> <span class="variable">vectors</span> <span class="operator">(</span><span class="variable">A</span><span class="operator">,</span><span class="variable">C</span><span class="operator">,</span><span class="variable">G</span> <span class="keyword">and</span> <span class="variable">T</span><span class="operator">)</span> <span class="variable">is</span>
+           <span class="variable">provided</span><span class="operator">,</span> <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">mix</span> <span class="variable">input</span> <span class="variable">types</span> <span class="operator">(</span><span class="variable">string</span> <span class="variable">vs</span> <span class="variable">array</span><span class="operator">)</span> <span class="keyword">or</span> <span class="keyword">if</span> <span class="variable">a</span>
+           <span class="variable">position</span> <span class="variable">freq</span> <span class="variable">is</span> <span class="number">0</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>  <span class="variable">Bio::Matrix::PSM::SiteMatrix</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>  <span class="string">-pA</span>    <span class="operator">=&gt;</span> <span class="variable">vector</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">frequencies</span> <span class="keyword">or</span> <span class="variable">counts</span> <span class="variable">of</span> <span class="variable">A</span>
+            <span class="operator">-</span><span class="string">pC</span>    <span class="operator">=&gt;</span> <span class="variable">vector</span> <span class="keyword">for</span> <span class="variable">C</span>
+            <span class="operator">-</span><span class="string">pG</span>    <span class="operator">=&gt;</span> <span class="variable">vector</span> <span class="keyword">for</span> <span class="variable">G</span>
+            <span class="operator">-</span><span class="string">pt</span>    <span class="operator">=&gt;</span> <span class="variable">vector</span> <span class="keyword">for</span> <span class="variable">T</span>
+            <span class="operator">-</span><span class="string">lA</span>    <span class="operator">=&gt;</span> <span class="variable">vector</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="keyword">log</span> <span class="variable">of</span> <span class="variable">A</span>
+            <span class="operator">-</span><span class="string">lC</span>    <span class="operator">=&gt;</span> <span class="variable">vector</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="keyword">log</span> <span class="variable">of</span> <span class="variable">C</span>
+            <span class="operator">-</span><span class="string">lG</span>    <span class="operator">=&gt;</span> <span class="variable">vector</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="keyword">log</span> <span class="variable">of</span> <span class="variable">G</span>
+            <span class="operator">-</span><span class="string">lT</span>    <span class="operator">=&gt;</span> <span class="variable">vector</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="keyword">log</span> <span class="variable">of</span> <span class="variable">T</span>
+            <span class="operator">-</span><span class="string">IC</span>    <span class="operator">=&gt;</span> <span class="variable">real</span> <span class="variable">number</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">information</span> <span class="variable">content</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">matrix</span>
+            <span class="operator">-</span><span class="string">e_val</span> <span class="operator">=&gt;</span> <span class="variable">real</span> <span class="variable">number</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">expect</span> <span class="variable">value</span>
+            <span class="operator">-</span><span class="string">id</span>    <span class="operator">=&gt;</span> <span class="variable">string</span><span class="operator">,</span> <span class="variable">an</span> <span class="variable">identifier</span>
+            <span class="operator">-</span><span class="string">width</span> <span class="operator">=&gt;</span> <span class="keyword">int</span><span class="operator">,</span> <span class="variable">width</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">matrix</span> <span class="variable">in</span> <span class="variable">nucleotides</span>
+            <span class="operator">-</span><span class="string">sites</span> <span class="operator">=&gt;</span> <span class="keyword">int</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">sites</span> <span class="variable">that</span> <span class="variable">went</span> <span class="variable">into</span> <span class="variable">this</span> <span class="variable">matrix</span>
+            <span class="operator">-</span><span class="string">model</span> <span class="operator">=&gt;</span> <span class="variable">hash</span> <span class="keyword">ref</span><span class="operator">,</span> <span class="variable">background</span> <span class="variable">frequencies</span> <span class="keyword">for</span> <span class="variable">A</span><span class="operator">,</span> <span class="variable">C</span><span class="operator">,</span> <span class="variable">G</span> <span class="keyword">and</span> <span class="variable">T</span>
+            <span class="operator">-</span><span class="string">correction</span> <span class="operator">=&gt;</span> <span class="variable">number</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">to</span> <span class="variable">add</span> <span class="variable">to</span> <span class="variable">all</span> <span class="variable">positions</span> <span class="variable">to</span> <span class="variable">achieve</span>
+                           <span class="variable">psuedo</span> <span class="variable">count</span> <span class="variable">correction</span> <span class="operator">(</span><span class="keyword">default</span> <span class="number">0</span><span class="operator">:</span> <span class="keyword">no</span> <span class="variable">correction</span><span class="operator">)</span>
+                           <span class="variable">NB</span><span class="operator">:</span> <span class="keyword">do</span> <span class="keyword">not</span> <span class="keyword">use</span> <span class="variable">correction</span> <span class="keyword">when</span> <span class="variable">your</span> <span class="variable">input</span> <span class="variable">is</span>
+                           <span class="variable">frequences</span><span class="operator">!</span>
+            <span class="string">-accession_number</span> <span class="operator">=&gt;</span> <span class="variable">string</span><span class="operator">,</span> <span class="variable">an</span> <span class="variable">accession</span> <span class="variable">number</span>
+ 
+            <span class="variable">Vectors</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">strings</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">frequencies</span> <span class="variable">where</span> <span class="variable">the</span> <span class="variable">frequencies</span> <span class="variable">are</span>
+            <span class="variable">multiplied</span> <span class="variable">by</span> <span class="number">10</span> <span class="keyword">and</span> <span class="variable">rounded</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">nearest</span> <span class="variable">whole</span> <span class="variable">number</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">where</span>
+            <span class="string">'a'</span> <span class="variable">is</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">denote</span> <span class="variable">the</span> <span class="variable">maximal</span> <span class="variable">frequency</span> <span class="number">10.</span> <span class="variable">There</span> <span class="variable">should</span> <span class="variable">be</span> <span class="keyword">no</span>
+            <span class="variable">punctuation</span> <span class="operator">(</span><span class="variable">spaces</span> <span class="variable">etc</span><span class="operator">.)</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">string</span><span class="operator">.</span> <span class="variable">For</span> <span class="variable">example</span><span class="operator">,</span> <span class="string">'a0501'</span><span class="operator">.</span>
+            <span class="variable">Alternatively</span> <span class="variable">frequencies</span> <span class="keyword">or</span> <span class="variable">counts</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">represented</span> <span class="variable">by</span> <span class="variable">an</span> <span class="variable">array</span>
+            <span class="keyword">ref</span> <span class="variable">containing</span> <span class="variable">the</span> <span class="variable">counts</span><span class="operator">,</span> <span class="variable">frequencies</span> <span class="keyword">or</span> <span class="variable">logs</span> <span class="variable">as</span> <span class="variable">any</span> <span class="variable">kind</span> <span class="variable">of</span>
+            <span class="variable">number</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="calculate_consensus">_calculate_consensus</h2>
+
+<pre><code><code> Title   : _calculate_consensus
+ Function: Internal stuff</code></code></pre>
+
+<h2 id="calc_weight">calc_weight</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">calc_weight</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">calc_weight</span><span class="operator">(</span><span class="operator">{</span><span class="string">A</span><span class="operator">=&gt;</span><span class="number">0</span><span class="operator">.</span><span class="number">2562</span><span class="operator">,</span> <span class="string">C</span><span class="operator">=&gt;</span><span class="number">0</span><span class="operator">.</span><span class="number">2438</span><span class="operator">,</span> <span class="string">G</span><span class="operator">=&gt;</span><span class="number">0</span><span class="operator">.</span><span class="number">2432</span><span class="operator">,</span> <span class="string">T</span><span class="operator">=&gt;</span><span class="number">0</span><span class="operator">.</span><span class="number">2568</span><span class="operator">}</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Recalculates</span> <span class="variable">the</span> <span class="variable">PSM</span> <span class="operator">(</span><span class="keyword">or</span> <span class="variable">weights</span><span class="operator">)</span> <span class="variable">based</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">PFM</span> <span class="operator">(</span><span class="variable">the</span> <span class="variable">frequency</span>
+           <span class="variable">matrix</span><span class="operator">)</span> <span class="keyword">and</span> <span class="variable">user</span> <span class="variable">supplied</span> <span class="variable">background</span> <span class="variable">model</span><span class="operator">.</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="keyword">if</span> <span class="keyword">no</span> <span class="variable">model</span> <span class="variable">is</span> <span class="variable">supplied</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="variable">with</span> <span class="variable">background</span> <span class="variable">frequencies</span> <span class="keyword">for</span> <span class="variable">A</span><span class="operator">,</span><span class="variable">C</span><span class="operator">,</span><span class="variable">G</span> <span class="keyword">and</span> <span class="variable">T</span>
+</code></code></pre>
+
+<h2 id="next_pos">next_pos</h2>
+
+<pre><code><code> Title   : next_pos
+ Usage   :
+ Function: Retrives the next position features: frequencies for A,C,G,T, the
+           main letter (as in consensus) and the probabilty for this letter to
+           occur at this position and the current position
+ Returns : hash (pA,pC,pG,pT,logA,logC,logG,logT,base,prob,rel)
+ Args    : none</code></code></pre>
+
+<h2 id="curpos">curpos</h2>
+
+<pre><code><code> Title   : curpos
+ Usage   :
+ Function: Gets/sets the current position. Converts to 0 if argument is minus
+           and to width if greater than width
+ Returns : integer
+ Args    : integer</code></code></pre>
+
+<h2 id="e_val">e_val</h2>
+
+<pre><code><code> Title   : e_val
+ Usage   : 
+ Function: Gets/sets the e-value
+ Returns : real number
+ Args    : none to get, real number to set</code></code></pre>
+
+<h2 id="IC">IC</h2>
+
+<pre><code><code> Title   : IC
+ Usage   :
+ Function: Get/set the Information Content
+ Returns : real number
+ Args    : none to get, real number to set</code></code></pre>
+
+<h2 id="accession_number">accession_number</h2>
+
+<pre><code><code> Title   : accession_number
+ Function: Get/set the accession number, this will be unique id for the
+           SiteMatrix object as well for any other object, inheriting from
+           SiteMatrix
+ Returns : string
+ Args    : none to get, string to set</code></code></pre>
+
+<h2 id="consensus">consensus</h2>
+
+<pre><code><code> Title   : consensus
+ Usage   :
+ Function: Returns the consensus
+ Returns : string
+ Args    : (optional) threshold value 1 to 10, default 5
+           &#39;5&#39; means the returned characters had a 50% or higher presence at
+           their position</code></code></pre>
+
+<h2 id="width">width</h2>
+
+<pre><code><code> Title   : width
+ Usage   :
+ Function: Returns the length of the sites in used to make this matrix
+ Returns : int
+ Args    : none</code></code></pre>
+
+<h2 id="sites">sites</h2>
+
+<pre><code><code> Title   : sites
+ Usage   :
+ Function: Get/set the number of sites that were used to make this matrix
+ Returns : int
+ Args    : none to get, int to set</code></code></pre>
+
+<h2 id="IUPAC">IUPAC</h2>
+
+<pre><code><code> Title   : IUPAC
+ Usage   :
+ Function: Returns IUPAC compliant consensus
+ Returns : string
+ Args    : optionally, also supply a whole number (int) of 1 or higher to set
+           the significance level when considering the frequencies. 1 (the
+           default) means a 0.05 significance level: frequencies lower than
+           0.05 will be ignored. 2 Means a 0.005 level, and so on.</code></code></pre>
+
+<h2 id="to_IUPAC">_to_IUPAC</h2>
+
+<pre><code><code> Title   : _to_IUPAC
+ Usage   :
+ Function: Converts a single position to IUPAC compliant symbol.
+           For rules see the implementation
+ Returns : char, real number
+ Args    : real numbers for frequencies of A,C,G,T (positional)
+
+           optionally, also supply a whole number (int) of 1 or higher to set
+           the significance level when considering the frequencies. 1 (the
+           default) means a 0.05 significance level: frequencies lower than
+           0.05 will be ignored. 2 Means a 0.005 level, and so on.</code></code></pre>
+
+<h2 id="to_cons">_to_cons</h2>
+
+<pre><code><code> Title   : _to_cons
+ Usage   :
+ Function: Converts a single position to simple consensus character and returns
+           its probability. For rules see the implementation
+ Returns : char, real number
+ Args    : real numbers for A,C,G,T (positional), and optional 5th argument of
+           threshold (as a number between 1 and 10, where 5 is default and
+           means the returned character had a 50% or higher presence at this
+           position)</code></code></pre>
+
+<h2 id="get_string">get_string</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_string</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="keyword">given</span> <span class="variable">probability</span> <span class="variable">vector</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">string</span><span class="operator">.</span> <span class="variable">Useful</span> <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">want</span> <span class="variable">to</span>
+           <span class="variable">store</span> <span class="variable">things</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">rel</span> <span class="variable">database</span><span class="operator">,</span> <span class="variable">where</span> <span class="variable">arrays</span> <span class="variable">are</span> <span class="keyword">not</span> <span class="variable">first</span> <span class="variable">choice</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="variable">If</span> <span class="variable">the</span> <span class="variable">argument</span> <span class="variable">is</span> <span class="variable">outside</span> <span class="operator">{</span><span class="variable">A</span><span class="operator">,</span><span class="variable">C</span><span class="operator">,</span><span class="variable">G</span><span class="operator">,</span><span class="variable">T</span><span class="operator">}</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">character</span> <span class="operator">{</span><span class="variable">A</span><span class="operator">,</span><span class="variable">C</span><span class="operator">,</span><span class="variable">G</span><span class="operator">,</span><span class="variable">T</span><span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="get_array">get_array</h2>
+
+<pre><code><code> Title   : get_array
+ Usage   :
+ Function: Returns an array with frequencies for a specified base
+ Returns : array
+ Args    : char</code></code></pre>
+
+<h2 id="get_logs_array">get_logs_array</h2>
+
+<pre><code><code> Title   : get_logs_array
+ Usage   :
+ Function: Returns an array with log_odds for a specified base
+ Returns : array
+ Args    : char</code></code></pre>
+
+<h2 id="id">id</h2>
+
+<pre><code><code> Title   : id
+ Usage   :
+ Function: Gets/sets the site id
+ Returns : string
+ Args    : string</code></code></pre>
+
+<h2 id="regexp">regexp</h2>
+
+<pre><code><code> Title   : regexp
+ Usage   :
+ Function: Returns a regular expression which matches the IUPAC convention.
+           N will match X, N, - and .
+ Returns : string
+ Args    : none (works at the threshold last used for making the IUPAC string)</code></code></pre>
+
+<h2 id="regexp_array">regexp_array</h2>
+
+<pre><code><code> Title   : regexp_array
+ Usage   :
+ Function: Returns a regular expression which matches the IUPAC convention.
+           N will match X, N, - and .
+ Returns : array
+ Args    : none (works at the threshold last used for making the IUPAC string)
+ To do   : I have separated regexp and regexp_array, but
+           maybe they can be rewritten as one - just check what should be returned</code></code></pre>
+
+<h2 id="compress_array">_compress_array</h2>
+
+<pre><code><code> Title   : _compress_array
+ Usage   :
+ Function: Will compress an array of real signed numbers to a string (ie vector
+           of bytes) -127 to +127 for bi-directional(signed) and 0..255 for
+           unsigned
+ Returns : String
+ Args    : array reference, followed by an max value and direction (optional,
+           default 1-unsigned),1 unsigned, any other is signed. </code></code></pre>
+
+<h2 id="uncompress_string">_uncompress_string</h2>
+
+<pre><code><code> Title   : _uncompress_string
+ Usage   :
+ Function: Will uncompress a string (vector of bytes) to create an array of
+           real signed numbers (opposite to_compress_array)
+ Returns : string, followed by an max value and
+                   direction (optional, default 1-unsigned), 1 unsigned, any other is signed.
+ Args    : array</code></code></pre>
+
+<h2 id="get_compressed_freq">get_compressed_freq</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_compressed_freq</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">A</span> <span class="variable">method</span> <span class="variable">to</span> <span class="variable">provide</span> <span class="variable">a</span> <span class="variable">compressed</span> <span class="variable">frequency</span> <span class="variable">vector</span><span class="operator">.</span> <span class="variable">It</span> <span class="variable">uses</span> <span class="variable">one</span> <span class="variable">byte</span>
+           <span class="variable">to</span> <span class="variable">code</span> <span class="variable">the</span> <span class="variable">frequence</span> <span class="keyword">for</span> <span class="variable">one</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">probability</span> <span class="variable">vectors</span> <span class="keyword">for</span> <span class="variable">one</span>
+           <span class="variable">position</span><span class="operator">.</span> <span class="variable">Useful</span> <span class="keyword">for</span> <span class="variable">relational</span> <span class="variable">database</span><span class="operator">.</span> <span class="variable">Improvment</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">previous</span>
+           <span class="number">0</span><span class="operator">..</span><span class="variable">a</span> <span class="variable">coding</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>  <span class="keyword">my</span> <span class="variable">$strA</span><span class="operator">=</span><span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">get_compressed_freq</span><span class="operator">(</span><span class="string">'A'</span><span class="operator">);</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>  <span class="variable">String</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>  <span class="variable">char</span> 
+</code></code></pre>
+
+<h2 id="get_compressed_logs">get_compressed_logs</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_compressed_logs</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">A</span> <span class="variable">method</span> <span class="variable">to</span> <span class="variable">provide</span> <span class="variable">a</span> <span class="variable">compressed</span> <span class="keyword">log</span><span class="operator">-</span><span class="variable">odd</span> <span class="variable">vector</span><span class="operator">.</span> <span class="variable">It</span> <span class="variable">uses</span> <span class="variable">one</span> <span class="variable">byte</span> <span class="variable">to</span>
+                   <span class="variable">code</span> <span class="variable">the</span> <span class="keyword">log</span> <span class="variable">value</span> <span class="keyword">for</span> <span class="variable">one</span> <span class="variable">of</span> <span class="variable">the</span> <span class="keyword">log</span><span class="operator">-</span><span class="variable">odds</span> <span class="variable">vectors</span> <span class="keyword">for</span> <span class="variable">one</span> <span class="variable">position</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$strA</span><span class="operator">=</span><span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">get_compressed_logs</span><span class="operator">(</span><span class="string">'A'</span><span class="operator">);</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">String</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">char</span> 
+</code></code></pre>
+
+<h2 id="sequence_match_weight">sequence_match_weight</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">sequence_match_weight</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">This</span> <span class="variable">method</span> <span class="variable">will</span> <span class="variable">calculate</span> <span class="variable">the</span> <span class="variable">score</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">match</span><span class="operator">,</span> <span class="variable">based</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">PWM</span>
+           <span class="keyword">if</span> <span class="variable">such</span> <span class="variable">is</span> <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">matrix</span> <span class="variable">object</span><span class="operator">.</span> <span class="variable">Returns</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="keyword">no</span>
+           <span class="variable">PWM</span> <span class="variable">data</span> <span class="variable">is</span> <span class="variable">available</span><span class="operator">.</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="keyword">length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">is</span> <span class="variable">different</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">matrix</span> <span class="variable">width</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$score</span><span class="operator">=</span><span class="variable">$matrix</span><span class="operator">-&gt;</span><span class="variable">sequence_match_weight</span><span class="operator">(</span><span class="string">'ACGGATAG'</span><span class="operator">);</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Floating</span> <span class="variable">point</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span>
+</code></code></pre>
+
+<h2 id="get_all_vectors">get_all_vectors</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_all_vectors</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">all</span> <span class="variable">possible</span> <span class="variable">sequence</span> <span class="variable">vectors</span> <span class="variable">to</span> <span class="variable">satisfy</span> <span class="variable">the</span> <span class="variable">PFM</span> <span class="variable">under</span>
+           <span class="variable">a</span> <span class="keyword">given</span> <span class="variable">threshold</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="variable">If</span> <span class="variable">threshold</span> <span class="variable">outside</span> <span class="variable">of</span> <span class="number">0</span><span class="operator">..</span><span class="number">1</span> <span class="operator">(</span><span class="keyword">no</span> <span class="variable">sense</span> <span class="variable">to</span> <span class="keyword">do</span> <span class="variable">that</span><span class="operator">)</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@vectors</span><span class="operator">=</span><span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">get_all_vectors</span><span class="operator">(</span><span class="number">4</span><span class="operator">);</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">of</span> <span class="variable">strings</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span> <span class="variable">floating</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

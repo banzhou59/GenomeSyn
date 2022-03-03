@@ -1,0 +1,405 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Specifying-Positions-and-Ranges">Specifying Positions and Ranges</a></li>
+      <li><a href="#Feature-Tags">Feature Tags</a></li>
+      <li><a href="#Feature-Groups">Feature Groups</a></li>
+      <li><a href="#Comments-and-the-include-Directive">Comments and the #include Directive</a></li>
+      <li><a href="#Caveats">Caveats</a></li>
+    </ul>
+  </li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#load">load</a></li>
+      <li><a href="#accessors">accessors</a></li>
+      <li><a href="#default_seqfeature_class">default_seqfeature_class</a></li>
+      <li><a href="#load_fh">load_fh</a></li>
+      <li><a href="#start_load-finish_load">start_load, finish_load</a></li>
+      <li><a href="#load_line">load_line</a></li>
+      <li><a href="#handle_meta">handle_meta</a></li>
+      <li><a href="#handle_feature">handle_feature</a></li>
+      <li><a href="#store_current_feature">store_current_feature</a></li>
+      <li><a href="#build_object_tree">build_object_tree</a></li>
+      <li><a href="#build_object_tree_in_tables">build_object_tree_in_tables</a></li>
+      <li><a href="#build_object_tree_in_features">build_object_tree_in_features</a></li>
+      <li><a href="#attach_children">attach_children</a></li>
+      <li><a href="#parse_attributes">parse_attributes</a></li>
+      <li><a href="#start_or_finish_sequence">start_or_finish_sequence</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::SeqFeature::Store::FeatureFileLoader -- feature file loader for Bio::DB::SeqFeature::Store</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::DB::SeqFeature::Store</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::DB::SeqFeature::Store::FeatureFileLoader</span><span class="operator">;</span>
+  
+  <span class="comment"># Open the sequence database</span>
+  <span class="keyword">my</span> <span class="variable">$db</span>      <span class="operator">=</span> <span class="variable">Bio::DB::SeqFeature::Store</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-adaptor</span> <span class="operator">=&gt;</span> <span class="string">'DBI::mysql'</span><span class="operator">,</span>
+                                                 <span class="string">-dsn</span>     <span class="operator">=&gt;</span> <span class="string">'dbi:mysql:test'</span><span class="operator">,</span>
+                                                 <span class="string">-write</span>   <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$loader</span> <span class="operator">=</span> 
+    <span class="variable">Bio::DB::SeqFeature::Store::FeatureFileLoader</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-store</span>    <span class="operator">=&gt;</span> <span class="variable">$db</span><span class="operator">,</span>
+                                                       <span class="string">-verbose</span>  <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                                       <span class="string">-fast</span>     <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+  
+  <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">load</span><span class="operator">(</span><span class="string">'./my_genome.fff'</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>The Bio::DB::SeqFeature::Store::FeatureFileLoader object parsers FeatureFile-format sequence annotation files and loads Bio::DB::SeqFeature::Store databases. For certain combinations of SeqFeature classes and SeqFeature::Store databases it features a &quot;fast load&quot; mode which will greatly accelerate the loading of databases by a factor of 5-10.</p>
+
+<p>FeatureFile Format (.fff) is very simple:</p>
+
+<pre><code><code> <span class="variable">mRNA</span> <span class="variable">B0511</span><span class="number">.1</span> <span class="variable">Chr1</span><span class="operator">:</span><span class="number">1</span><span class="operator">..</span><span class="number">100</span> <span class="variable">Type</span><span class="operator">=</span><span class="variable">UTR</span><span class="operator">;</span><span class="variable">Note</span><span class="operator">=</span><span class="string">"putative primase"</span>
+ <span class="variable">mRNA</span> <span class="variable">B0511</span><span class="number">.1</span> <span class="variable">Chr1</span><span class="operator">:</span><span class="number">101</span><span class="operator">..</span><span class="number">200</span><span class="operator">,</span><span class="number">300</span><span class="operator">..</span><span class="number">400</span><span class="operator">,</span><span class="number">500</span><span class="operator">..</span><span class="number">800</span> <span class="variable">Type</span><span class="operator">=</span><span class="variable">CDS</span>
+ <span class="variable">mRNA</span> <span class="variable">B0511</span><span class="number">.1</span> <span class="variable">Chr1</span><span class="operator">:</span><span class="number">801</span><span class="operator">..</span><span class="number">1000</span> <span class="variable">Type</span><span class="operator">=</span><span class="variable">UTR</span>
+ 
+ <span class="variable">reference</span> <span class="operator">=</span> <span class="variable">Chr3</span>
+ <span class="variable">Cosmid</span> <span class="variable">B0511</span>   <span class="number">516</span><span class="operator">..</span><span class="number">619</span>
+ <span class="variable">Cosmid</span> <span class="variable">B0511</span>   <span class="number">3185</span><span class="operator">..</span><span class="number">3294</span>
+ <span class="variable">Cosmid</span> <span class="variable">B0511</span>   <span class="number">10946</span><span class="operator">..</span><span class="number">11208</span>
+ <span class="variable">Cosmid</span> <span class="variable">B0511</span>   <span class="number">13126</span><span class="operator">..</span><span class="number">13511</span>
+ <span class="variable">Cosmid</span> <span class="variable">B0511</span>   <span class="number">11394</span><span class="operator">..</span><span class="number">11539</span>
+ <span class="variable">EST</span>    <span class="variable">yk260e10</span><span class="number">.5</span>      <span class="number">15569</span><span class="operator">..</span><span class="number">15724</span>
+ <span class="variable">EST</span>    <span class="variable">yk672a12</span><span class="number">.5</span>      <span class="number">537</span><span class="operator">..</span><span class="number">618</span><span class="operator">,</span><span class="number">3187</span><span class="operator">..</span><span class="number">3294</span>
+ <span class="variable">EST</span>    <span class="variable">yk595e6</span><span class="number">.5</span>       <span class="number">552</span><span class="operator">..</span><span class="number">618</span>
+ <span class="variable">EST</span>    <span class="variable">yk595e6</span><span class="number">.5</span>       <span class="number">3187</span><span class="operator">..</span><span class="number">3294</span>
+ <span class="variable">EST</span>    <span class="variable">yk846e07</span><span class="number">.3</span>      <span class="number">11015</span><span class="operator">..</span><span class="number">11208</span>
+ <span class="variable">EST</span>    <span class="variable">yk53c10</span>
+        <span class="variable">yk53c10</span><span class="number">.3</span>       <span class="number">15000</span><span class="operator">..</span><span class="number">15500</span><span class="operator">,</span><span class="number">15700</span><span class="operator">..</span><span class="number">15800</span>
+        <span class="variable">yk53c10</span><span class="number">.5</span>       <span class="number">18892</span><span class="operator">..</span><span class="number">19154</span>
+ <span class="variable">EST</span>    <span class="variable">yk53c10</span><span class="number">.5</span>       <span class="number">16032</span><span class="operator">..</span><span class="number">16105</span>
+ <span class="variable">SwissProt</span>      <span class="variable">PECANEX</span> <span class="number">13153</span><span class="operator">-</span><span class="number">13656</span>     <span class="variable">Note</span><span class="operator">=</span><span class="string">"Swedish fish"</span>
+ <span class="variable">FGENESH</span>        <span class="string">"Predicted gene 1"</span>      <span class="number">1</span><span class="operator">-</span><span class="number">205</span><span class="operator">,</span><span class="number">518</span><span class="operator">-</span><span class="number">616</span><span class="operator">,</span><span class="number">661</span><span class="operator">-</span><span class="number">735</span><span class="operator">,</span><span class="number">3187</span><span class="operator">-</span><span class="number">3365</span><span class="operator">,</span><span class="number">3436</span><span class="operator">-</span><span class="number">3846</span>       <span class="string">"Pfam domain"</span>
+ <span class="comment"># file ends</span>
+</code></code></pre>
+
+<p>There are up to four columns of WHITESPACE (not necessarily tab) delimited text. Embedded whitespace must be escaped using shell escaping rules (quoting the column or backslashing whitespace).</p>
+
+<pre><code><code>  <span class="variable">Column</span> <span class="number">1</span><span class="operator">:</span> <span class="variable">The</span> <span class="variable">feature</span> <span class="variable">type</span><span class="operator">.</span> <span class="variable">You</span> <span class="variable">may</span> <span class="keyword">use</span> <span class="variable">type</span><span class="operator">:</span><span class="variable">subtype</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">convention</span>
+            <span class="keyword">for</span> <span class="variable">method</span><span class="operator">:</span><span class="variable">source</span><span class="operator">.</span>
+  
+  <span class="variable">Column</span> <span class="number">2</span><span class="operator">:</span> <span class="variable">The</span> <span class="variable">feature</span> <span class="variable">name</span><span class="operator">/</span><span class="variable">ID</span><span class="operator">.</span>
+  
+  <span class="variable">Column</span> <span class="number">3</span><span class="operator">:</span> <span class="variable">The</span> <span class="variable">position</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">feature</span> <span class="variable">in</span> <span class="variable">base</span> <span class="variable">pair</span>
+            <span class="variable">coordinates</span><span class="operator">.</span> <span class="variable">Ranges</span> <span class="variable">can</span> <span class="variable">be</span> <span class="keyword">given</span> <span class="variable">as</span> <span class="variable">either</span> 
+            <span class="variable">start</span><span class="operator">-</span><span class="variable">end</span> <span class="keyword">or</span> <span class="variable">start</span><span class="operator">..</span><span class="variable">end</span><span class="operator">.</span> <span class="variable">A</span> <span class="variable">chromosome</span> <span class="variable">position</span>
+            <span class="variable">can</span> <span class="variable">be</span> <span class="variable">specified</span> <span class="variable">using</span> <span class="variable">the</span> <span class="keyword">format</span> <span class="string">"reference:start..end"</span><span class="operator">.</span>
+            <span class="variable">A</span> <span class="variable">discontinuous</span> <span class="variable">feature</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">specified</span> <span class="variable">by</span> <span class="variable">giving</span>
+            <span class="variable">multiple</span> <span class="variable">ranges</span> <span class="variable">separated</span> <span class="variable">by</span> <span class="variable">commas</span><span class="operator">.</span> <span class="variable">Minus</span><span class="operator">-</span><span class="variable">strand</span> <span class="variable">features</span>
+            <span class="variable">are</span> <span class="variable">indicated</span> <span class="variable">by</span> <span class="variable">specifying</span> <span class="variable">a</span> <span class="variable">start</span> <span class="operator">&gt;</span> <span class="variable">end</span><span class="operator">.</span>
+  
+  <span class="variable">Column</span> <span class="number">4</span><span class="operator">:</span> <span class="variable">Comment</span><span class="operator">/</span><span class="variable">attribute</span> <span class="variable">field</span><span class="operator">.</span> <span class="variable">A</span> <span class="variable">single</span> <span class="variable">Note</span> <span class="variable">can</span> <span class="variable">be</span> <span class="keyword">given</span><span class="operator">,</span> <span class="keyword">or</span>
+            <span class="variable">a</span> <span class="variable">series</span> <span class="variable">of</span> <span class="variable">attribute</span><span class="operator">=</span><span class="variable">value</span> <span class="variable">pairs</span><span class="operator">,</span> <span class="variable">separated</span> <span class="variable">by</span>
+            <span class="variable">spaces</span> <span class="keyword">or</span> <span class="variable">semicolons</span><span class="operator">,</span> <span class="variable">as</span> <span class="variable">in</span> <span class="string">"score=23;type=transmembrane"</span>
+</code></code></pre>
+
+<h2 id="Specifying-Positions-and-Ranges">Specifying Positions and Ranges</h2>
+
+<p>A feature position is specified using a sequence ID (a genbank accession number, a chromosome name, a contig, or any other meaningful reference system, followed by a colon and a position range. Ranges are two integers separated by double dots or the hyphen. Examples: &quot;Chr1:516..11208&quot;, &quot;ctgA:1-5000&quot;. Negative coordinates are allowed, as in &quot;Chr1:-187..1000&quot;.</p>
+
+<p>A discontinuous range (&quot;split location&quot;) uses commas to separate the ranges. For example:</p>
+
+<pre><code><code> Gene B0511.1  Chr1:516..619,3185..3294,10946..11208</code></code></pre>
+
+<p>In the case of a split location, the sequence id only has to appear in front of the first range.</p>
+
+<p>Alternatively, a split location can be indicated by repeating the features type and name on multiple adjacent lines:</p>
+
+<pre><code><code> Gene   B0511.1 Chr1:516..619
+ Gene   B0511.1 Chr1:3185..3294
+ Gene   B0511.1 Chr1:10946..11208</code></code></pre>
+
+<p>If all the locations are on the same reference sequence, you can specify a default chromosome using a &quot;reference=&lt;seqid&gt;&quot;:</p>
+
+<pre><code><code> reference=Chr1
+ Gene   B0511.1 516..619
+ Gene   B0511.1 3185..3294
+ Gene   B0511.1 10946..11208</code></code></pre>
+
+<p>The default seqid is in effect until the next &quot;reference&quot; line appears.</p>
+
+<h2 id="Feature-Tags">Feature Tags</h2>
+
+<p>Tags can be added to features by adding a fourth column consisting of &quot;tag=value&quot; pairs:</p>
+
+<pre><code><code> Gene  B0511.1  Chr1:516..619,3185..3294 Note=&quot;Putative primase&quot;</code></code></pre>
+
+<p>Tags and their values take any form you want, and multiple tags can be separated by semicolons. You can also repeat tags multiple times:</p>
+
+<pre><code><code> <span class="variable">Gene</span>  <span class="variable">B0511</span><span class="number">.1</span>  <span class="variable">Chr1</span><span class="operator">:</span><span class="number">516</span><span class="operator">..</span><span class="number">619</span><span class="operator">,</span><span class="number">3185</span><span class="operator">..</span><span class="number">3294</span> <span class="variable">GO_Term</span><span class="operator">=</span><span class="variable">GO</span><span class="operator">:</span><span class="number">100</span><span class="operator">;</span><span class="variable">GO_Term</span><span class="operator">=</span><span class="variable">GO</span><span class="operator">:</span><span class="number">2087</span>
+</code></code></pre>
+
+<p>Several tags have special meanings:</p>
+
+<pre><code><code> Tag     Meaning
+ ---     -------
+
+ Type    The primary tag for a subfeature.
+ Score   The score of a feature or subfeature.
+ Phase   The phase of a feature or subfeature.
+ URL     A URL to link to (via the Bio::Graphics library).
+ Note    A note to attach to the feature for display by the Bio::Graphics library.</code></code></pre>
+
+<p>For example, in the common case of an mRNA, you can use the &quot;Type&quot; tag to distinguish the parts of the mRNA into UTR and CDS:</p>
+
+<pre><code><code> mRNA B0511.1 Chr1:1..100 Type=UTR
+ mRNA B0511.1 Chr1:101..200,300..400,500..800 Type=CDS
+ mRNA B0511.1 Chr1:801..1000 Type=UTR</code></code></pre>
+
+<p>The top level feature&#39;s primary tag will be &quot;mRNA&quot;, and its subparts will have types UTR and CDS as indicated. Additional tags that are placed in the first line of the feature will be applied to the top level. In this example, the note &quot;Putative primase&quot; will be applied to the mRNA at the top level of the feature:</p>
+
+<pre><code><code> <span class="variable">mRNA</span> <span class="variable">B0511</span><span class="number">.1</span> <span class="variable">Chr1</span><span class="operator">:</span><span class="number">1</span><span class="operator">..</span><span class="number">100</span> <span class="variable">Type</span><span class="operator">=</span><span class="variable">UTR</span><span class="operator">;</span><span class="variable">Note</span><span class="operator">=</span><span class="string">"Putative primase"</span>
+ <span class="variable">mRNA</span> <span class="variable">B0511</span><span class="number">.1</span> <span class="variable">Chr1</span><span class="operator">:</span><span class="number">101</span><span class="operator">..</span><span class="number">200</span><span class="operator">,</span><span class="number">300</span><span class="operator">..</span><span class="number">400</span><span class="operator">,</span><span class="number">500</span><span class="operator">..</span><span class="number">800</span> <span class="variable">Type</span><span class="operator">=</span><span class="variable">CDS</span>
+ <span class="variable">mRNA</span> <span class="variable">B0511</span><span class="number">.1</span> <span class="variable">Chr1</span><span class="operator">:</span><span class="number">801</span><span class="operator">..</span><span class="number">1000</span> <span class="variable">Type</span><span class="operator">=</span><span class="variable">UTR</span>
+</code></code></pre>
+
+<h2 id="Feature-Groups">Feature Groups</h2>
+
+<p>Features can be grouped so that they are rendered by the &quot;group&quot; glyph. To start a group, create a two-column feature entry showing the group type and a name for the group. Follow this with a list of feature entries with a blank type. For example:</p>
+
+<pre><code><code> EST    yk53c10
+        yk53c10.3       15000-15500,15700-15800
+        yk53c10.5       18892-19154</code></code></pre>
+
+<p>This example is declaring that the ESTs named yk53c10.3 and yk53c10.5 belong to the same group named yk53c10.</p>
+
+<h2 id="Comments-and-the-include-Directive">Comments and the #include Directive</h2>
+
+<p>Lines that begin with the # sign are treated as comments and ignored. When a # sign appears within a line, everything to the right of the symbol is also ignored, unless it looks like an HTML fragment or an HTML color, e.g.:</p>
+
+<pre><code><code> # this is ignored
+ [Example]
+ glyph   = generic   # this comment is ignored
+ bgcolor = #FF0000
+ link    = http://www.google.com/search?q=$name#results</code></code></pre>
+
+<p>Be careful, because the processing of # signs uses a regexp heuristic. To be safe, always put a space after the # sign to make sure it is treated as a comment.</p>
+
+<p>The special comment &quot;#include &#39;filename&#39;&quot; acts like the C preprocessor directive and will insert the comments of a named file into the position at which it occurs. Relative paths will be treated relative to the file in which the #include occurs. Nested #include directives are allowed:</p>
+
+<pre><code><code> <span class="comment">#include "/usr/local/share/my_directives.txt"</span>
+ <span class="comment">#include 'my_directives.txt'</span>
+ <span class="comment">#include chromosome3_features.gff3</span>
+</code></code></pre>
+
+<p>You can enclose the file path in single or double quotes as shown above. If there are no spaces in the filename the quotes are optional.</p>
+
+<p>Include file processing is not very smart. Avoid creating circular #include references. You have been warned!</p>
+
+<h2 id="Caveats">Caveats</h2>
+
+<p>Note that this loader always creates denormalized features such that subfeatures and their parents are stored as one big database object. The GFF3 format and its loader is usually preferred for both space and execution efficiency.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : $loader = Bio::DB::SeqFeature::Store::FeatureFileLoader-&gt;new(@options)
+ Function: create a new parser
+ Returns : a Bio::DB::SeqFeature::Store::FeatureFileLoader parser and loader
+ Args    : several - see below
+ Status  : public</code></code></pre>
+
+<p>This method creates a new FeatureFile loader and establishes its connection with a Bio::DB::SeqFeature::Store database. Arguments are -name=&gt;$value pairs as described in this table:</p>
+
+<pre><code><code> Name               Value
+ ----               -----
+
+ -store             A writable Bio::DB::SeqFeature::Store database handle.
+
+ -seqfeature_class  The name of the type of Bio::SeqFeatureI object to create
+                      and store in the database (Bio::DB::SeqFeature by default)
+
+ -sf_class          A shorter alias for -seqfeature_class
+
+ -verbose           Send progress information to standard error.
+
+ -fast              If true, activate fast loading (see below)
+
+ -chunk_size        Set the storage chunk size for nucleotide/protein sequences
+                       (default 2000 bytes)
+
+ -tmp               Indicate a temporary directory to use when loading non-normalized
+                       features.</code></code></pre>
+
+<p>When you call new(), a connection to a Bio::DB::SeqFeature::Store database should already have been established and the database initialized (if appropriate).</p>
+
+<p>Some combinations of Bio::SeqFeatures and Bio::DB::SeqFeature::Store databases support a fast loading mode. Currently the only reliable implementation of fast loading is the combination of DBI::mysql with Bio::DB::SeqFeature. The other important restriction on fast loading is the requirement that a feature that contains subfeatures must occur in the FeatureFile file before any of its subfeatures. Otherwise the subfeatures that occurred before the parent feature will not be attached to the parent correctly. This restriction does not apply to normal (slow) loading.</p>
+
+<p>If you use an unnormalized feature class, such as Bio::SeqFeature::Generic, then the loader needs to create a temporary database in which to cache features until all their parts and subparts have been seen. This temporary databases uses the &quot;bdb&quot; adaptor. The -tmp option specifies the directory in which that database will be created. If not present, it defaults to the system default tmp directory specified by File::Spec-&gt;tmpdir().</p>
+
+<p>The -chunk_size option allows you to tune the representation of DNA/Protein sequence in the Store database. By default, sequences are split into 2000 base/residue chunks and then reassembled as needed. This avoids the problem of pulling a whole chromosome into memory in order to fetch a short subsequence from somewhere in the middle. Depending on your usage patterns, you may wish to tune this parameter using a chunk size that is larger or smaller than the default.</p>
+
+<h2 id="load">load</h2>
+
+<pre><code><code> Title   : load
+ Usage   : $count = $loader-&gt;load(@ARGV)
+ Function: load the indicated files or filehandles
+ Returns : number of feature lines loaded
+ Args    : list of files or filehandles
+ Status  : public</code></code></pre>
+
+<p>Once the loader is created, invoke its load() method with a list of FeatureFile or FASTA file paths or previously-opened filehandles in order to load them into the database. Compressed files ending with .gz, .Z and .bz2 are automatically recognized and uncompressed on the fly. Paths beginning with http: or ftp: are treated as URLs and opened using the LWP GET program (which must be on your path).</p>
+
+<p>FASTA files are recognized by their initial &quot;&gt;&quot; character. Do not feed the loader a file that is neither FeatureFile nor FASTA; I don&#39;t know what will happen, but it will probably not be what you expect.</p>
+
+<h2 id="accessors">accessors</h2>
+
+<p>The following read-only accessors return values passed or created during new():</p>
+
+<pre><code><code> store()          the long-term Bio::DB::SeqFeature::Store object
+
+ tmp_store()      the temporary Bio::DB::SeqFeature::Store object used
+                    during loading
+
+ sfclass()        the Bio::SeqFeatureI class
+
+ fast()           whether fast loading is active
+
+ seq_chunk_size() the sequence chunk size
+
+ verbose()        verbose progress messages</code></code></pre>
+
+<h2 id="default_seqfeature_class">default_seqfeature_class</h2>
+
+<pre><code><code>  $class = $loader-&gt;default_seqfeature_class</code></code></pre>
+
+<p>Return the default SeqFeatureI class (Bio::Graphics::Feature).</p>
+
+<h2 id="load_fh">load_fh</h2>
+
+<pre><code><code>  $count = $loader-&gt;load_fh($filehandle)</code></code></pre>
+
+<p>Load the FeatureFile data at the other end of the filehandle and return true if successful. Internally, load_fh() invokes:</p>
+
+<pre><code><code>  <span class="variable">start_load</span><span class="operator">();</span>
+  <span class="variable">do_load</span><span class="operator">(</span><span class="variable">$filehandle</span><span class="operator">);</span>
+  <span class="variable">finish_load</span><span class="operator">();</span>
+</code></code></pre>
+
+<h2 id="start_load-finish_load">start_load, finish_load</h2>
+
+<p>These methods are called at the start and end of a filehandle load.</p>
+
+<h2 id="load_line">load_line</h2>
+
+<pre><code><code>    <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">load_line</span><span class="operator">(</span><span class="variable">$data</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Load a line of a FeatureFile file. You must bracket this with calls to start_load() and finish_load()!</p>
+
+<pre><code><code>    <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">start_load</span><span class="operator">();</span>
+    <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">load_line</span><span class="operator">(</span><span class="variable">$_</span><span class="operator">)</span> <span class="keyword">while</span> <span class="operator">&lt;</span><span class="variable">FH</span><span class="operator">&gt;;</span>
+    <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">finish_load</span><span class="operator">();</span>
+</code></code></pre>
+
+<h2 id="handle_meta">handle_meta</h2>
+
+<pre><code><code>  $loader-&gt;handle_meta($meta_directive)</code></code></pre>
+
+<p>This method is called to handle meta-directives such as ##sequence-region. The method will receive the directive with the initial ## stripped off.</p>
+
+<h2 id="handle_feature">handle_feature</h2>
+
+<pre><code><code>  $loader-&gt;handle_feature($gff3_line)</code></code></pre>
+
+<p>This method is called to process a single FeatureFile line. It manipulates information stored a data structure called $self-&gt;{load_data}.</p>
+
+<h2 id="store_current_feature">store_current_feature</h2>
+
+<pre><code><code>  $loader-&gt;store_current_feature()</code></code></pre>
+
+<p>This method is called to store the currently active feature in the database. It uses a data structure stored in $self-&gt;{load_data}.</p>
+
+<h2 id="build_object_tree">build_object_tree</h2>
+
+<pre><code><code> $loader-&gt;build_object_tree()</code></code></pre>
+
+<p>This method gathers together features and subfeatures and builds the graph that connects them.</p>
+
+<h2 id="build_object_tree_in_tables">build_object_tree_in_tables</h2>
+
+<pre><code><code> $loader-&gt;build_object_tree_in_tables()</code></code></pre>
+
+<p>This method gathers together features and subfeatures and builds the graph that connects them, assuming that parent/child relationships will be stored in a database table.</p>
+
+<h2 id="build_object_tree_in_features">build_object_tree_in_features</h2>
+
+<pre><code><code> $loader-&gt;build_object_tree_in_features()</code></code></pre>
+
+<p>This method gathers together features and subfeatures and builds the graph that connects them, assuming that parent/child relationships are stored in the seqfeature objects themselves.</p>
+
+<h2 id="attach_children">attach_children</h2>
+
+<pre><code><code> $loader-&gt;attach_children($store,$load_data,$load_id,$feature)</code></code></pre>
+
+<p>This recursively adds children to features and their subfeatures. It is called when subfeatures are directly contained within other features, rather than stored in a relational table.</p>
+
+<h2 id="parse_attributes">parse_attributes</h2>
+
+<pre><code><code> @attributes = $loader-&gt;parse_attributes($attribute_line)</code></code></pre>
+
+<p>This method parses the information contained in the $attribute_line into a flattened hash (array). It may return one element, in which case it is an implicit</p>
+
+<h2 id="start_or_finish_sequence">start_or_finish_sequence</h2>
+
+<pre><code><code>  $loader-&gt;start_or_finish_sequence(&#39;Chr9&#39;)</code></code></pre>
+
+<p>This method is called at the beginning and end of a fasta section.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>This is an early version, so there are certainly some bugs. Please use the BioPerl bug tracking system to report bugs.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Store.html">Bio::DB::SeqFeature::Store</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Segment.html">Bio::DB::SeqFeature::Segment</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/NormalizedFeature.html">Bio::DB::SeqFeature::NormalizedFeature</a>, <a>Bio::DB::SeqFeature::GFF3Loader</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Store/DBI/mysql.html">Bio::DB::SeqFeature::Store::DBI::mysql</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Store/bdb.html">Bio::DB::SeqFeature::Store::bdb</a></p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Lincoln Stein &lt;lstein@cshl.org&gt;.</p>
+
+<p>Copyright (c) 2006 Cold Spring Harbor Laboratory.</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

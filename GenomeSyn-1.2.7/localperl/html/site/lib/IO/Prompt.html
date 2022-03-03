@@ -1,0 +1,305 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#STATUS">STATUS</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#INTERFACE">INTERFACE</a>
+    <ul>
+      <li><a href="#Arguments-to">Arguments to </a></li>
+      <li><a href="#Hand-written-printing-via">&quot;Hand-written&quot; printing via </a></li>
+      <li><a href="#Low-level-input-retrieval-via">Low-level input retrieval via </a></li>
+    </ul>
+  </li>
+  <li><a href="#DIAGNOSTICS">DIAGNOSTICS</a></li>
+  <li><a href="#CONFIGURATION-AND-ENVIRONMENT">CONFIGURATION AND ENVIRONMENT</a></li>
+  <li><a href="#DEPENDENCIES">DEPENDENCIES</a></li>
+  <li><a href="#INCOMPATIBILITIES">INCOMPATIBILITIES</a></li>
+  <li><a href="#BUGS-AND-LIMITATIONS">BUGS AND LIMITATIONS</a></li>
+  <li><a href="#FAQ">FAQ</a>
+    <ul>
+      <li><a href="#Can-I-use-this-module-with-ActivePerl-on-Windows-">Can I use this module with ActivePerl on Windows?</a></li>
+    </ul>
+  </li>
+  <li><a href="#THANKS">THANKS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#LICENCE-AND-COPYRIGHT">LICENCE AND COPYRIGHT</a></li>
+  <li><a href="#DISCLAIMER-OF-WARRANTY">DISCLAIMER OF WARRANTY</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>IO::Prompt - Interactively prompt for user input</p>
+
+<h1 id="STATUS">STATUS</h1>
+
+<p>This module is no longer being maintained.</p>
+
+<p>Use the IO::Prompter module instead.</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>This document describes IO::Prompt version 0.997002</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">IO::Prompt</span><span class="operator">;</span>
+    <span class="keyword">while</span><span class="operator">(</span> <span class="variable">prompt</span> <span class="string">"next: "</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">print</span> <span class="string">"You said '</span><span class="variable">$_</span><span class="string">'\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>By default, this module exports a single function <code><code>prompt</code></code>. It prompts the user to enter some input, and returns an object that represents the user input.</p>
+
+<p>You may specify various flags to the function to affect its behaviour; most notably, it defaults to automatically <code><code>chomp</code></code> the input, unless the <code><code>-line</code></code> flag is specified.</p>
+
+<p>Two other functions are exported at request: <code><code>hand_print</code></code>, which simulates hand-typing to the console; and <code><code>get_input</code></code>, which is the lower-level function that actually prompts the user for a suitable input.</p>
+
+<p>Note that this is an interim re-release. A full release with better documentation will follow in the near future. Meanwhile, please consult the <i>examples</i> directory from this module&#39;s CPAN distribution to better understand how to make use of this module.</p>
+
+<h1 id="INTERFACE">INTERFACE</h1>
+
+<h2 id="Arguments-to">Arguments to <code><code>prompt</code></code></h2>
+
+<p>Any argument not of the following forms is treated as part of the text of the prompt itself.</p>
+
+<pre><code><code> Flag   Long form      Arg          Effect
+ ----   ---------      ---          ------
+                       &lt;str&gt;        Use &lt;str&gt; as prompt
+
+                       &lt;filehandle&gt; Prompt to specified filehandle
+
+                       &lt;hashref&gt;    Flatten hash entries into argument list
+                                    (useful for aggregating the options below)
+
+ -p     -prompt        &lt;str&gt;        Specify prompt explicitly
+
+ -s     -speed         &lt;num&gt;        Simulated typing speed (seconds/char)
+
+ -e     -echo          &lt;str&gt;        What to echo for each char typed
+
+ -nl    -newline       &lt;str&gt;        When a newline is typed, echo &lt;str&gt; instead
+
+ -d     -default       &lt;str&gt;        What to return if only &lt;return&gt; pressed
+
+
+ -r     -require       &lt;hashref&gt;    Each value of each entry must &#39;smartmatch&#39;
+                                    the input else corresponding key is printed
+                                    as error message:
+                                     - Subs must return true when passed input
+                                     - Regexes must pattern match input
+                                     - Strings must eq match input
+                                     - Arrays are flattened &amp; recursively matched
+                                     - Hashes must return true for input as key
+
+ -u     -until         &lt;str|rgx&gt;    Fail if input matches &lt;str|regex&gt;
+        -fail_if               
+
+ -w     -while         &lt;str|rgx&gt;    Fail unless input matches &lt;str|regex&gt;
+        -okay_if       
+
+ -m     -menu          &lt;list|hash&gt;  Show the data specified as a menu 
+                                    and allow one to be selected. Enter
+                                    an &lt;ESC&gt; to back up one level.
+
+ -1     -one_char                   Return immediately after first char typed
+
+ -x     -escape                     Pressing &lt;ESC&gt; returns &quot;\e&quot; immediately
+
+ -raw   -raw_input                  Return only the string that was input
+                                    (turns off context-sensitive features)
+
+ -c     -clear                      Clear screen before prompt
+ -f     -clear_first                Clear screen before first prompt only
+
+ -a     -argv                       Load @ARGV from input if @ARGV empty
+
+ -l     -line                       Don&#39;t autochomp
+
+ -t     -tty                        Prompt to terminal no matter what
+
+ -y     -yes                        Return true if [yY] entered, false otherwise
+ -yn    -yes_no                     Return true if [yY], false if [nN]
+ -Y     -Yes                        Return true if &#39;Y&#39; entered, false otherwise
+ -YN    -Yes_No                     Return true if &#39;Y&#39;, false if &#39;N&#39;
+
+ -num   -number                     Accept only valid numbers as input
+ -i     -integer                    Accept only valid integers as input</code></code></pre>
+
+<p>Note that the underscores between words in flags like <code><code>-one_char</code></code> and <code><code>-yes_no</code></code> are optional.</p>
+
+<p>Flags can be &quot;cuddled&quot;. For example:</p>
+
+<pre><code><code>     prompt(&quot;next: &quot;, -tyn1s=&gt;0.2)   # -tty, -yes, -no, -one_char, -speed=&gt;0.2</code></code></pre>
+
+<h2 id="Hand-written-printing-via">&quot;Hand-written&quot; printing via <code><code>hand_print()</code></code></h2>
+
+<p>The <code><code>hand_print()</code></code> subroutine takes a string and prints it out in the stop-and-start manner of hand-typed text.</p>
+
+<h2 id="Low-level-input-retrieval-via">Low-level input retrieval via <code><code>get_input()</code></code></h2>
+
+<p>The <code><code>get_input()</code></code> subroutine is a low-level utility subroutine that takes an input filehandle, an output filehandle, a reference to a hash of options (as listed for <code><code>prompt()</code></code>, above) and a single prompt string. It prints the prompt and retreives the input. You almost certainly want to use <code><code>prompt()</code></code> instead.</p>
+
+<h1 id="DIAGNOSTICS">DIAGNOSTICS</h1>
+
+<dl>
+
+<dt id="Cant-write-prompt-to-read-only-_"><code><code>Can&#39;t write prompt to read-only $_</code></code></dt>
+<dd>
+
+<p>You specified a filehandle to which the prompt should be written, but that filehandle was not writeable. Did you pass the wrong filehandle, or open it in the wrong mode?</p>
+
+</dd>
+<dt id="Missing-argument-for-s-option"><code><code>Missing argument for %s option</code></code></dt>
+<dd>
+
+<p>The flag you specified takes an argument, but you didn&#39;t provide that argument.</p>
+
+</dd>
+<dt id="Unknown-flag-s-in-prompt"><code><code>Unknown flag ($s) in prompt</code></code></dt>
+<dd>
+
+<p>The flag you specified wasn&#39;t one of those that <code><code>prompt()</code></code> understands. Did you misspell it, perhaps?</p>
+
+</dd>
+<dt id="Argument-to--require-must-be-hash-reference"><code><code>Argument to -require must be hash reference</code></code></dt>
+<dd>
+
+<p>The <code><code>-require</code></code> option takes a single argument that is a hash. You tried to pass it something else. Try a hash instead.</p>
+
+</dd>
+<dt id="Cannot-write-to-terminal:-s"><code><code>Cannot write to terminal: %s</code></code></dt>
+<dd>
+
+</dd>
+<dt id="Cannot-read-from-terminal:-s"><code><code>Cannot read from terminal: %s</code></code></dt>
+<dd>
+
+<p><code><code>prompt()</code></code> attempted to access the terminal but couldn&#39;t. This may mean your environment has no <code><code>/dev/tty</code></code> available, in which case there isn&#39;t much you can do with this module. Sorry.</p>
+
+</dd>
+<dt id="Cant-open-s:-s"><code><code>Can&#39;t open %s: %s</code></code></dt>
+<dd>
+
+<p><code><code>prompt()</code></code> tried to read input via <code><code>*ARGV</code></code> from a file specified on the command-line, but the file couldn&#39;t be opened for the reason shown. This is usually either a permission problem, a non-existent file, or a mistyped filepath.</p>
+
+</dd>
+<dt id="Argument-to--menu-must-be-hash-or-array-reference"><code><code>Argument to -menu must be hash or array reference</code></code></dt>
+<dd>
+
+<p>The <code><code>-menu</code></code> option requires an argument that is either an array:</p>
+
+<pre><code><code>    <span class="variable">prompt</span> <span class="operator">-</span><span class="string">menu</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">'yes'</span><span class="operator">,</span> <span class="string">'no'</span><span class="operator">,</span> <span class="string">'maybe'</span><span class="operator">]</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>or a hash:</p>
+
+<pre><code><code>    <span class="variable">prompt</span> <span class="operator">-</span><span class="string">menu</span><span class="operator">=&gt;</span><span class="operator">{</span><span class="string">yes</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">,</span> <span class="string">no</span><span class="operator">=&gt;</span><span class="number">0</span><span class="operator">,</span> <span class="string">maybe</span><span class="operator">=&gt;</span><span class="number">0</span><span class="operator">.</span><span class="number">5</span><span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>or a hash of hashes (of hashes (of array))</p>
+
+</dd>
+<dt id="Too-many--menu-items"><code><code>Too many -menu items</code></code></dt>
+<dd>
+
+</dd>
+<dt id="Too-few--menu-items"><code><code>Too few -menu items</code></code></dt>
+<dd>
+
+<p>A menu can&#39;t have fewer than 1 or more than 26 items.</p>
+
+</dd>
+</dl>
+
+<h1 id="CONFIGURATION-AND-ENVIRONMENT">CONFIGURATION AND ENVIRONMENT</h1>
+
+<p>IO::Prompt requires no configuration files or environment variables.</p>
+
+<h1 id="DEPENDENCIES">DEPENDENCIES</h1>
+
+<p>IO::Prompt requires the following modules:</p>
+
+<ul>
+
+<li><p>version</p>
+
+</li>
+<li><p>IO::Handle</p>
+
+</li>
+<li><p>Term::ReadKey</p>
+
+</li>
+<li><p>POSIX</p>
+
+</li>
+</ul>
+
+<h1 id="INCOMPATIBILITIES">INCOMPATIBILITIES</h1>
+
+<p>The module requires a /dev/tty device be available. It is therefore incompatible with any system that doesn&#39;t provide such a device.</p>
+
+<h1 id="BUGS-AND-LIMITATIONS">BUGS AND LIMITATIONS</h1>
+
+<p>No bugs have been reported.</p>
+
+<p>Please report any bugs or feature requests to <code><code>bug-io-prompt@rt.cpan.org</code></code>, or through the web interface at <a href="http://rt.cpan.org">http://rt.cpan.org</a>.</p>
+
+<h1 id="FAQ">FAQ</h1>
+
+<p>This is a collection of things that might help. Please send your questions that are not answered here to Damian Conway <code><code>&lt;DCONWAY@cpan.org&gt;</code></code></p>
+
+<h2 id="Can-I-use-this-module-with-ActivePerl-on-Windows-">Can I use this module with ActivePerl on Windows?</h2>
+
+<p>Up to now, the answer was &#39;No&#39;, but this has changed.</p>
+
+<p>You still cannot use ActivePerl, but if you use the Cygwin environment (http://sources.redhat.com), which brings its own perl, and have the latest IO::Tty (v0.05 or later) installed, it should work (feedback appreciated).</p>
+
+<h1 id="THANKS">THANKS</h1>
+
+<p>My deepest gratitude to Autrijus Tang and Brian Ingerson, who have taken care of this module for the past twelve months, while I was off trekking in the highlands of Perl 6. Now it&#39;s their turn for some mountain air, I&#39;ll be looking after this module again.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Damian Conway <code><code>&lt;DCONWAY@cpan.org&gt;</code></code></p>
+
+<h1 id="LICENCE-AND-COPYRIGHT">LICENCE AND COPYRIGHT</h1>
+
+<p>Copyright (c) 2005, Damian Conway <code><code>&lt;DCONWAY@cpan.org&gt;</code></code>. All rights reserved.</p>
+
+<p>This module is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="DISCLAIMER-OF-WARRANTY">DISCLAIMER OF WARRANTY</h1>
+
+<p>BECAUSE THIS SOFTWARE IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY FOR THE SOFTWARE, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE SOFTWARE &quot;AS IS&quot; WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH YOU. SHOULD THE SOFTWARE PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR, OR CORRECTION.</p>
+
+<p>IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR REDISTRIBUTE THE SOFTWARE AS PERMITTED BY THE ABOVE LICENCE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE SOFTWARE (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.</p>
+
+
+</body>
+
+</html>
+
+

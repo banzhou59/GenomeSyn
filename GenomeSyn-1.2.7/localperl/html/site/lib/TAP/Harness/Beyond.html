@@ -1,0 +1,316 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#Beyond-make-test">Beyond make test</a>
+    <ul>
+      <li><a href="#Saved-State">Saved State</a></li>
+      <li><a href="#Parallel-Testing">Parallel Testing</a></li>
+      <li><a href="#Non-Perl-Tests">Non-Perl Tests</a></li>
+      <li><a href="#Mixing-it-up">Mixing it up</a></li>
+      <li><a href="#Rolling-My-Own">Rolling My Own</a></li>
+      <li><a href="#Deeper-Customisation">Deeper Customisation</a></li>
+      <li><a href="#Callbacks">Callbacks</a></li>
+      <li><a href="#Parsing-TAP">Parsing TAP</a></li>
+      <li><a href="#Getting-Support">Getting Support</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Test::Harness::Beyond - Beyond make test</p>
+
+<h1 id="Beyond-make-test">Beyond make test</h1>
+
+<p>Test::Harness is responsible for running test scripts, analysing their output and reporting success or failure. When I type <i>make test</i> (or <i>./Build test</i>) for a module, Test::Harness is usually used to run the tests (not all modules use Test::Harness but the majority do).</p>
+
+<p>To start exploring some of the features of Test::Harness I need to switch from <i>make test</i> to the <i>prove</i> command (which ships with Test::Harness). For the following examples I&#39;ll also need a recent version of Test::Harness installed; 3.14 is current as I write.</p>
+
+<p>For the examples I&#39;m going to assume that we&#39;re working with a &#39;normal&#39; Perl module distribution. Specifically I&#39;ll assume that typing <i>make</i> or <i>./Build</i> causes the built, ready-to-install module code to be available below ./blib/lib and ./blib/arch and that there&#39;s a directory called &#39;t&#39; that contains our tests. Test::Harness isn&#39;t hardwired to that configuration but it saves me from explaining which files live where for each example.</p>
+
+<p>Back to <i>prove</i>; like <i>make test</i> it runs a test suite - but it provides far more control over which tests are executed, in what order and how their results are reported. Typically <i>make test</i> runs all the test scripts below the &#39;t&#39; directory. To do the same thing with prove I type:</p>
+
+<pre><code><code>  prove -rb t</code></code></pre>
+
+<p>The switches here are -r to recurse into any directories below &#39;t&#39; and -b which adds ./blib/lib and ./blib/arch to Perl&#39;s include path so that the tests can find the code they will be testing. If I&#39;m testing a module of which an earlier version is already installed I need to be careful about the include path to make sure I&#39;m not running my tests against the installed version rather than the new one that I&#39;m working on.</p>
+
+<p>Unlike <i>make test</i>, typing <i>prove</i> doesn&#39;t automatically rebuild my module. If I forget to make before prove I will be testing against older versions of those files - which inevitably leads to confusion. I either get into the habit of typing</p>
+
+<pre><code><code>  make &amp;&amp; prove -rb t</code></code></pre>
+
+<p>or - if I have no XS code that needs to be built I use the modules below <i>lib</i> instead</p>
+
+<pre><code><code>  prove -Ilib -r t</code></code></pre>
+
+<p>So far I&#39;ve shown you nothing that <i>make test</i> doesn&#39;t do. Let&#39;s fix that.</p>
+
+<h2 id="Saved-State">Saved State</h2>
+
+<p>If I have failing tests in a test suite that consists of more than a handful of scripts and takes more than a few seconds to run it rapidly becomes tedious to run the whole test suite repeatedly as I track down the problems.</p>
+
+<p>I can tell prove just to run the tests that are failing like this:</p>
+
+<pre><code><code>  prove -b t/this_fails.t t/so_does_this.t</code></code></pre>
+
+<p>That speeds things up but I have to make a note of which tests are failing and make sure that I run those tests. Instead I can use prove&#39;s --state switch and have it keep track of failing tests for me. First I do a complete run of the test suite and tell prove to save the results:</p>
+
+<pre><code><code>  prove -rb --state=save t</code></code></pre>
+
+<p>That stores a machine readable summary of the test run in a file called &#39;.prove&#39; in the current directory. If I have failures I can then run just the failing scripts like this:</p>
+
+<pre><code><code>  prove -b --state=failed</code></code></pre>
+
+<p>I can also tell prove to save the results again so that it updates its idea of which tests failed:</p>
+
+<pre><code><code>  prove -b --state=failed,save</code></code></pre>
+
+<p>As soon as one of my failing tests passes it will be removed from the list of failed tests. Eventually I fix them all and prove can find no failing tests to run:</p>
+
+<pre><code><code>  Files=0, Tests=0, 0 wallclock secs ( 0.00 usr + 0.00 sys = 0.00 CPU)
+  Result: NOTESTS</code></code></pre>
+
+<p>As I work on a particular part of my module it&#39;s most likely that the tests that cover that code will fail. I&#39;d like to run the whole test suite but have it prioritize these &#39;hot&#39; tests. I can tell prove to do this:</p>
+
+<pre><code><code>  prove -rb --state=hot,save t</code></code></pre>
+
+<p>All the tests will run but those that failed most recently will be run first. If no tests have failed since I started saving state all tests will run in their normal order. This combines full test coverage with early notification of failures.</p>
+
+<p>The --state switch supports a number of options; for example to run failed tests first followed by all remaining tests ordered by the timestamps of the test scripts - and save the results - I can use</p>
+
+<pre><code><code>  prove -rb --state=failed,new,save t</code></code></pre>
+
+<p>See the prove documentation (type prove --man) for the full list of state options.</p>
+
+<p>When I tell prove to save state it writes a file called &#39;.prove&#39; (&#39;_prove&#39; on Windows) in the current directory. It&#39;s a YAML document so it&#39;s quite easy to write tools of your own that work on the saved test state - but the format isn&#39;t officially documented so it might change without (much) warning in the future.</p>
+
+<h2 id="Parallel-Testing">Parallel Testing</h2>
+
+<p>If my tests take too long to run I may be able to speed them up by running multiple test scripts in parallel. This is particularly effective if the tests are I/O bound or if I have multiple CPU cores. I tell prove to run my tests in parallel like this:</p>
+
+<pre><code><code>  prove -rb -j 9 t</code></code></pre>
+
+<p>The -j switch enables parallel testing; the number that follows it is the maximum number of tests to run in parallel. Sometimes tests that pass when run sequentially will fail when run in parallel. For example if two different test scripts use the same temporary file or attempt to listen on the same socket I&#39;ll have problems running them in parallel. If I see unexpected failures I need to check my tests to work out which of them are trampling on the same resource and rename temporary files or add locks as appropriate.</p>
+
+<p>To get the most performance benefit I want to have the test scripts that take the longest to run start first - otherwise I&#39;ll be waiting for the one test that takes nearly a minute to complete after all the others are done. I can use the --state switch to run the tests in slowest to fastest order:</p>
+
+<pre><code><code>  prove -rb -j 9 --state=slow,save t</code></code></pre>
+
+<h2 id="Non-Perl-Tests">Non-Perl Tests</h2>
+
+<p>The Test Anything Protocol (http://testanything.org/) isn&#39;t just for Perl. Just about any language can be used to write tests that output TAP. There are TAP based testing libraries for C, C++, PHP, Python and many others. If I can&#39;t find a TAP library for my language of choice it&#39;s easy to generate valid TAP. It looks like this:</p>
+
+<pre><code><code>  1..3 
+  ok 1 - init OK 
+  ok 2 - opened file 
+  not ok 3 - appended to file</code></code></pre>
+
+<p>The first line is the plan - it specifies the number of tests I&#39;m going to run so that it&#39;s easy to check that the test script didn&#39;t exit before running all the expected tests. The following lines are the test results - &#39;ok&#39; for pass, &#39;not ok&#39; for fail. Each test has a number and, optionally, a description. And that&#39;s it. Any language that can produce output like that on STDOUT can be used to write tests.</p>
+
+<p>Recently I&#39;ve been rekindling a two-decades-old interest in Forth. Evidently I have a masochistic streak that even Perl can&#39;t satisfy. I want to write tests in Forth and run them using prove (you can find my gforth TAP experiments at https://svn.hexten.net/andy/Forth/Testing/). I can use the --exec switch to tell prove to run the tests using gforth like this:</p>
+
+<pre><code><code>  prove -r --exec gforth t</code></code></pre>
+
+<p>Alternately, if the language used to write my tests allows a shebang line I can use that to specify the interpreter. Here&#39;s a test written in PHP:</p>
+
+<pre><code><code>  #!/usr/bin/php 
+  &lt;?php
+    print &quot;1..2\n&quot;; 
+    print &quot;ok 1\n&quot;; 
+    print &quot;not ok 2\n&quot;;
+  ?&gt;</code></code></pre>
+
+<p>If I save that as t/phptest.t the shebang line will ensure that it runs correctly along with all my other tests.</p>
+
+<h2 id="Mixing-it-up">Mixing it up</h2>
+
+<p>Subtle interdependencies between test programs can mask problems - for example an earlier test may neglect to remove a temporary file that affects the behaviour of a later test. To find this kind of problem I use the --shuffle and --reverse options to run my tests in random or reversed order.</p>
+
+<h2 id="Rolling-My-Own">Rolling My Own</h2>
+
+<p>If I need a feature that prove doesn&#39;t provide I can easily write my own.</p>
+
+<p>Typically you&#39;ll want to change how TAP gets <i>input</i> into and <i>output</i> from the parser. <a href="../../../../lib/App/Prove.html">App::Prove</a> supports arbitrary plugins, and <a href="../../../../lib/TAP/Harness.html">TAP::Harness</a> supports custom <i>formatters</i> and <i>source handlers</i> that you can load using either <a href="../../../../bin/prove.html">prove</a> or <a href="../../../../lib/Module/Build.html">Module::Build</a>; there are many examples to base mine on. For more details see <a href="../../../../lib/App/Prove.html">App::Prove</a>, <a href="../../../../lib/TAP/Parser/SourceHandler.html">TAP::Parser::SourceHandler</a>, and <a href="../../../../lib/TAP/Formatter/Base.html">TAP::Formatter::Base</a>.</p>
+
+<p>If writing a plugin is not enough, you can write your own test harness; one of the motives for the 3.00 rewrite of Test::Harness was to make it easier to subclass and extend.</p>
+
+<p>The Test::Harness module is a compatibility wrapper around TAP::Harness. For new applications I should use TAP::Harness directly. As we&#39;ll see, prove uses TAP::Harness.</p>
+
+<p>When I run prove it processes its arguments, figures out which test scripts to run and then passes control to TAP::Harness to run the tests, parse, analyse and present the results. By subclassing TAP::Harness I can customise many aspects of the test run.</p>
+
+<p>I want to log my test results in a database so I can track them over time. To do this I override the summary method in TAP::Harness. I start with a simple prototype that dumps the results as a YAML document:</p>
+
+<pre><code><code>  <span class="keyword">package</span> <span class="variable">My::TAP::Harness</span><span class="operator">;</span>
+  
+  <span class="keyword">use</span> <span class="variable">base</span> <span class="string">'TAP::Harness'</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">YAML</span><span class="operator">;</span>
+  
+  <span class="keyword">sub</span><span class="variable"> summary </span><span class="operator">{</span>
+    <span class="keyword">my</span> <span class="operator">(</span> <span class="variable">$self</span><span class="operator">,</span> <span class="variable">$aggregate</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span> 
+    <span class="keyword">print</span> <span class="variable">Dump</span><span class="operator">(</span> <span class="variable">$aggregate</span> <span class="operator">);</span>
+    <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">SUPER::summary</span><span class="operator">(</span> <span class="variable">$aggregate</span> <span class="operator">);</span>
+  <span class="operator">}</span>
+  
+  <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>I need to tell prove to use my My::TAP::Harness. If My::TAP::Harness is on Perl&#39;s @INC include path I can</p>
+
+<pre><code><code>  prove --harness=My::TAP::Harness -rb t</code></code></pre>
+
+<p>If I don&#39;t have My::TAP::Harness installed on @INC I need to provide the correct path to perl when I run prove:</p>
+
+<pre><code><code>  perl -Ilib `which prove` --harness=My::TAP::Harness -rb t</code></code></pre>
+
+<p>I can incorporate these options into my own version of prove. It&#39;s pretty simple. Most of the work of prove is handled by App::Prove. The important code in prove is just:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">App::Prove</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$app</span> <span class="operator">=</span> <span class="variable">App::Prove</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span> 
+  <span class="variable">$app</span><span class="operator">-&gt;</span><span class="variable">process_args</span><span class="operator">(</span><span class="variable">@ARGV</span><span class="operator">);</span> 
+  <span class="keyword">exit</span><span class="operator">(</span> <span class="variable">$app</span><span class="operator">-&gt;</span><span class="variable">run</span> <span class="operator">?</span> <span class="number">0</span> <span class="operator">:</span> <span class="number">1</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>If I write a subclass of App::Prove I can customise any aspect of the test runner while inheriting all of prove&#39;s behaviour. Here&#39;s myprove:</p>
+
+<pre><code><code>  <span class="comment">#!/usr/bin/env perl use lib qw( lib );      # Add ./lib to @INC</span>
+  <span class="keyword">use</span> <span class="variable">App::Prove</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$app</span> <span class="operator">=</span> <span class="variable">App::Prove</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+  
+  <span class="comment"># Use custom TAP::Harness subclass</span>
+  <span class="variable">$app</span><span class="operator">-&gt;</span><span class="variable">harness</span><span class="operator">(</span> <span class="string">'My::TAP::Harness'</span> <span class="operator">);</span>
+  
+  <span class="variable">$app</span><span class="operator">-&gt;</span><span class="variable">process_args</span><span class="operator">(</span> <span class="variable">@ARGV</span> <span class="operator">);</span> <span class="keyword">exit</span><span class="operator">(</span> <span class="variable">$app</span><span class="operator">-&gt;</span><span class="variable">run</span> <span class="operator">?</span> <span class="number">0</span> <span class="operator">:</span> <span class="number">1</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Now I can run my tests like this</p>
+
+<pre><code><code>  ./myprove -rb t</code></code></pre>
+
+<h2 id="Deeper-Customisation">Deeper Customisation</h2>
+
+<p>Now that I know how to subclass and replace TAP::Harness I can replace any other part of the harness. To do that I need to know which classes are responsible for which functionality. Here&#39;s a brief guided tour; the default class for each component is shown in parentheses. Normally any replacements I write will be subclasses of these default classes.</p>
+
+<p>When I run my tests TAP::Harness creates a scheduler (TAP::Parser::Scheduler) to work out the running order for the tests, an aggregator (TAP::Parser::Aggregator) to collect and analyse the test results and a formatter (TAP::Formatter::Console) to display those results.</p>
+
+<p>If I&#39;m running my tests in parallel there may also be a multiplexer (TAP::Parser::Multiplexer) - the component that allows multiple tests to run simultaneously.</p>
+
+<p>Once it has created those helpers TAP::Harness starts running the tests. For each test it creates a new parser (TAP::Parser) which is responsible for running the test script and parsing its output.</p>
+
+<p>To replace any of these components I call one of these harness methods with the name of the replacement class:</p>
+
+<pre><code><code>  aggregator_class 
+  formatter_class 
+  multiplexer_class 
+  parser_class
+  scheduler_class</code></code></pre>
+
+<p>For example, to replace the aggregator I would</p>
+
+<pre><code><code>  <span class="variable">$harness</span><span class="operator">-&gt;</span><span class="variable">aggregator_class</span><span class="operator">(</span> <span class="string">'My::Aggregator'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Alternately I can supply the names of my substitute classes to the TAP::Harness constructor:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$harness</span> <span class="operator">=</span> <span class="variable">TAP::Harness</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+    <span class="operator">{</span> <span class="string">aggregator_class</span> <span class="operator">=&gt;</span> <span class="string">'My::Aggregator'</span> <span class="operator">}</span>
+  <span class="operator">);</span>
+</code></code></pre>
+
+<p>If I need to reach even deeper into the internals of the harness I can replace the classes that TAP::Parser uses to execute test scripts and tokenise their output. Before running a test script TAP::Parser creates a grammar (TAP::Parser::Grammar) to decode the raw TAP into tokens, a result factory (TAP::Parser::ResultFactory) to turn the decoded TAP results into objects and, depending on whether it&#39;s running a test script or reading TAP from a file, scalar or array a source or an iterator (TAP::Parser::IteratorFactory).</p>
+
+<p>Each of these objects may be replaced by calling one of these parser methods:</p>
+
+<pre><code><code>  source_class
+  perl_source_class 
+  grammar_class 
+  iterator_factory_class
+  result_factory_class</code></code></pre>
+
+<h2 id="Callbacks">Callbacks</h2>
+
+<p>As an alternative to subclassing the components I need to change I can attach callbacks to the default classes. TAP::Harness exposes these callbacks:</p>
+
+<pre><code><code>  parser_args      Tweak the parameters used to create the parser 
+  made_parser      Just made a new parser 
+  before_runtests  About to run tests 
+  after_runtests   Have run all tests 
+  after_test       Have run an individual test script</code></code></pre>
+
+<p>TAP::Parser also supports callbacks; bailout, comment, plan, test, unknown, version and yaml are called for the corresponding TAP result types, ALL is called for all results, ELSE is called for all results for which a named callback is not installed and EOF is called once at the end of each TAP stream.</p>
+
+<p>To install a callback I pass the name of the callback and a subroutine reference to TAP::Harness or TAP::Parser&#39;s callback method:</p>
+
+<pre><code><code>  <span class="variable">$harness</span><span class="operator">-&gt;</span><span class="variable">callback</span><span class="operator">(</span> <span class="string">after_test</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+    <span class="keyword">my</span> <span class="operator">(</span> <span class="variable">$script</span><span class="operator">,</span> <span class="variable">$desc</span><span class="operator">,</span> <span class="variable">$parser</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+  <span class="operator">}</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>I can also pass callbacks to the constructor:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$harness</span> <span class="operator">=</span> <span class="variable">TAP::Harness</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="operator">{</span>
+    <span class="string">callbacks</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+            <span class="string">after_test</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span> <span class="variable">$script</span><span class="operator">,</span> <span class="variable">$desc</span><span class="operator">,</span> <span class="variable">$parser</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span> 
+        <span class="comment"># Do something interesting here</span>
+            <span class="operator">}</span>
+    <span class="operator">}</span>
+  <span class="operator">}</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>When it comes to altering the behaviour of the test harness there&#39;s more than one way to do it. Which way is best depends on my requirements. In general if I only want to observe test execution without changing the harness&#39; behaviour (for example to log test results to a database) I choose callbacks. If I want to make the harness behave differently subclassing gives me more control.</p>
+
+<h2 id="Parsing-TAP">Parsing TAP</h2>
+
+<p>Perhaps I don&#39;t need a complete test harness. If I already have a TAP test log that I need to parse all I need is TAP::Parser and the various classes it depends upon. Here&#39;s the code I need to run a test and parse its TAP output</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">TAP::Parser</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">TAP::Parser</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="operator">{</span> <span class="string">source</span> <span class="operator">=&gt;</span> <span class="string">'t/simple.t'</span> <span class="operator">}</span> <span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">next</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">as_string</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>Alternately I can pass an open filehandle as source and have the parser read from that rather than attempting to run a test script:</p>
+
+<pre><code><code>  <span class="keyword">open</span> <span class="keyword">my</span> <span class="variable">$tap</span><span class="operator">,</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="string">'tests.tap'</span> 
+    <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Can't read TAP transcript ($!)\n"</span><span class="operator">;</span> 
+  <span class="keyword">my</span> <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">TAP::Parser</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="operator">{</span> <span class="string">source</span> <span class="operator">=&gt;</span> <span class="variable">$tap</span> <span class="operator">}</span> <span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">next</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">as_string</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>This approach is useful if I need to convert my TAP based test results into some other representation. See TAP::Convert::TET (http://search.cpan.org/dist/TAP-Convert-TET/) for an example of this approach.</p>
+
+<h2 id="Getting-Support">Getting Support</h2>
+
+<p>The Test::Harness developers hang out on the tapx-dev mailing list[1]. For discussion of general, language independent TAP issues there&#39;s the tap-l[2] list. Finally there&#39;s a wiki dedicated to the Test Anything Protocol[3]. Contributions to the wiki, patches and suggestions are all welcome.</p>
+
+<p>[1] <a href="http://www.hexten.net/mailman/listinfo/tapx-dev">http://www.hexten.net/mailman/listinfo/tapx-dev</a> [2] <a href="http://testanything.org/mailman/listinfo/tap-l">http://testanything.org/mailman/listinfo/tap-l</a> [3] <a href="http://testanything.org/">http://testanything.org/</a></p>
+
+
+</body>
+
+</html>
+
+

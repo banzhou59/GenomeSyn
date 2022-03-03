@@ -1,0 +1,332 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#IMPLEMENTATION-NOTE">IMPLEMENTATION NOTE</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#nodelete">nodelete</a></li>
+      <li><a href="#get_nodes">get_nodes</a></li>
+      <li><a href="#get_root_node">get_root_node</a></li>
+      <li><a href="#set_root_node">set_root_node</a></li>
+      <li><a href="#total_branch_length">total_branch_length</a></li>
+      <li><a href="#subtree_length">subtree_length</a></li>
+      <li><a href="#id">id</a></li>
+      <li><a href="#score">score</a></li>
+      <li><a href="#height">height</a></li>
+      <li><a href="#number_nodes">number_nodes</a></li>
+      <li><a href="#as_text">as_text</a></li>
+      <li><a href="#Methods-for-associating-Tag-Values-with-a-Tree">Methods for associating Tag/Values with a Tree</a></li>
+      <li><a href="#set_tag_value">set_tag_value</a></li>
+      <li><a href="#add_tag_value">add_tag_value</a></li>
+      <li><a href="#remove_tag">remove_tag</a></li>
+      <li><a href="#remove_all_tags">remove_all_tags</a></li>
+      <li><a href="#get_all_tags">get_all_tags</a></li>
+      <li><a href="#get_tag_values">get_tag_values</a></li>
+      <li><a href="#has_tag">has_tag</a></li>
+      <li><a href="#clone-">clone()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tree::Tree - An Implementation of TreeI interface.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment"># like from a TreeIO</span>
+    <span class="keyword">my</span> <span class="variable">$treeio</span> <span class="operator">=</span> <span class="variable">Bio::TreeIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'newick'</span><span class="operator">,</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'treefile.dnd'</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$tree</span> <span class="operator">=</span> <span class="variable">$treeio</span><span class="operator">-&gt;</span><span class="variable">next_tree</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">@nodes</span> <span class="operator">=</span> <span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">get_nodes</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$root</span> <span class="operator">=</span> <span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">get_root_node</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object holds handles to Nodes which make up a tree.</p>
+
+<h1 id="IMPLEMENTATION-NOTE">IMPLEMENTATION NOTE</h1>
+
+<p>This implementation of Bio::Tree::Tree contains Bio::Tree:::NodeI; mainly linked via the root node. As NodeI can potentially contain circular references (as nodes will need to refer to both parent and child nodes), Bio::Tree::Tree will remove those circular references when the object is garbage-collected. This has some side effects; primarily, one must keep the Tree in scope or have at least one reference to it if working with nodes. The fix is to count the references to the nodes and if it is greater than expected retain all of them, but it requires an additional prereq and thus may not be worth the effort. This only shows up in minor edge cases, though (see Bug #2869).</p>
+
+<p>Example of issue:</p>
+
+<pre><code><code>  <span class="comment"># tree is not assigned to a variable, so passes from memory after</span>
+  <span class="comment"># root node is passed</span>
+  <span class="keyword">my</span> <span class="variable">$root</span> <span class="operator">=</span> <span class="variable">Bio::TreeIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'newick'</span><span class="operator">,</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'foo.txt'</span><span class="operator">)-&gt;</span><span class="variable">next_tree</span>
+                 <span class="operator">-&gt;</span><span class="variable">get_root_node</span><span class="operator">;</span>
+  
+  <span class="comment"># gets nothing, as all Node links are broken when Tree is garbage-collected above</span>
+  <span class="keyword">my</span> <span class="variable">@descendents</span> <span class="operator">=</span> <span class="variable">$root</span><span class="operator">-&gt;</span><span class="variable">get_all_Descendents</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</h1>
+
+<p>Email jason@bioperl.org</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Aaron Mackey amackey@virginia.edu Sendu Bala bix@sendu.me.uk Mark A. Jensen maj@fortinbras.us</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Tree::Tree</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Tree::Tree</span> <span class="variable">object</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Tree::Tree</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-root</span>     <span class="operator">=&gt;</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Tree::NodeI</span><span class="operator">&gt;</span> <span class="variable">object</span> <span class="variable">which</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">root</span>
+             <span class="variable">OR</span>
+           <span class="operator">-</span><span class="string">node</span>     <span class="operator">=&gt;</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Tree::NodeI</span><span class="operator">&gt;</span> <span class="variable">object</span> <span class="variable">from</span> <span class="variable">which</span> <span class="variable">the</span> <span class="variable">root</span> <span class="variable">will</span> <span class="variable">be</span>
+                        <span class="variable">determined</span>
+ 
+           <span class="operator">-</span><span class="string">nodelete</span> <span class="operator">=&gt;</span> <span class="variable">boolean</span><span class="operator">,</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="variable">to</span> <span class="variable">try</span> <span class="keyword">and</span> <span class="variable">cleanup</span> <span class="variable">all</span>
+                                 <span class="variable">the</span> <span class="variable">nodes</span> <span class="keyword">when</span> <span class="variable">this</span> <span class="variable">this</span> <span class="variable">tree</span> <span class="variable">goes</span> <span class="variable">out</span>
+                                 <span class="variable">of</span> <span class="variable">scope</span><span class="operator">.</span>
+           <span class="string">-id</span>       <span class="operator">=&gt;</span> <span class="variable">optional</span> <span class="variable">tree</span> <span class="variable">ID</span>
+           <span class="operator">-</span><span class="string">score</span>    <span class="operator">=&gt;</span> <span class="variable">optional</span> <span class="variable">tree</span> <span class="variable">score</span> <span class="variable">value</span>
+</code></code></pre>
+
+<h2 id="nodelete">nodelete</h2>
+
+<pre><code><code> Title   : nodelete
+ Usage   : $obj-&gt;nodelete($newval)
+ Function: Get/Set Boolean whether or not to delete the underlying
+           nodes when it goes out of scope.  By default this is false
+           meaning trees are cleaned up.
+ Returns : boolean
+ Args    : on set, new boolean value</code></code></pre>
+
+<h2 id="get_nodes">get_nodes</h2>
+
+<pre><code><code> Title   : get_nodes
+ Usage   : my @nodes = $tree-&gt;get_nodes()
+ Function: Return list of Bio::Tree::NodeI objects
+ Returns : array of Bio::Tree::NodeI objects
+ Args    : (named values) hash with one value 
+           order =&gt; &#39;b|breadth&#39; first order or &#39;d|depth&#39; first order</code></code></pre>
+
+<h2 id="get_root_node">get_root_node</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_root_node</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$node</span> <span class="operator">=</span> <span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">get_root_node</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">Top</span> <span class="variable">Node</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">tree</span><span class="operator">,</span> <span class="variable">in</span> <span class="variable">this</span> <span class="variable">implementation</span>
+           <span class="variable">Trees</span> <span class="variable">only</span> <span class="variable">have</span> <span class="variable">one</span> <span class="variable">top</span> <span class="variable">node</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Tree::NodeI</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="set_root_node">set_root_node</h2>
+
+<pre><code><code> Title   : set_root_node
+ Usage   : $tree-&gt;set_root_node($node)
+ Function: Set the Root Node for the Tree
+ Returns : Bio::Tree::NodeI
+ Args    : Bio::Tree::NodeI</code></code></pre>
+
+<h2 id="total_branch_length">total_branch_length</h2>
+
+<pre><code><code> Title   : total_branch_length
+ Usage   : my $size = $tree-&gt;total_branch_length
+ Function: Returns the sum of the length of all branches
+ Returns : real
+ Args    : none</code></code></pre>
+
+<h2 id="subtree_length">subtree_length</h2>
+
+<pre><code><code> Title   : subtree_length
+ Usage   : my $subtree_size = $tree-&gt;subtree_length($internal_node)
+ Function: Returns the sum of the length of all branches in a subtree
+           under the node. Calculates the size of the whole tree
+           without an argument (but only if root node is defined)
+ Returns : real or undef
+ Args    : Bio::Tree::NodeI object, defaults to the root node</code></code></pre>
+
+<h2 id="id">id</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">id</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$id</span> <span class="operator">=</span> <span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">An</span> <span class="variable">id</span> <span class="variable">value</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">tree</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">scalar</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">new</span> <span class="variable">value</span> <span class="variable">to</span> <span class="variable">set</span>
+</code></code></pre>
+
+<h2 id="score">score</h2>
+
+<pre><code><code> Title   : score
+ Usage   : $obj-&gt;score($newval)
+ Function: Sets the associated score with this tree
+           This is a generic slot which is probably best used 
+           for log likelihood or other overall tree score
+ Returns : value of score
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="height">height</h2>
+
+<pre><code><code> Title   : height
+ Usage   : my $height = $tree-&gt;height
+ Function: Gets the height of tree - this LOG_2($number_nodes)
+           WARNING: this is only true for strict binary trees.  The TreeIO
+           system is capable of building non-binary trees, for which this
+           method will currently return an incorrect value!!
+ Returns : integer
+ Args    : none</code></code></pre>
+
+<h2 id="number_nodes">number_nodes</h2>
+
+<pre><code><code> Title   : number_nodes
+ Usage   : my $size = $tree-&gt;number_nodes
+ Function: Returns the number of nodes in the tree
+ Returns : integer
+ Args    : none</code></code></pre>
+
+<h2 id="as_text">as_text</h2>
+
+<pre><code><code> Title   : as_text
+ Usage   : my $tree_as_string = $tree-&gt;as_text($format)
+ Function: Returns the tree as a string representation in the 
+           desired format (currently &#39;newick&#39;, &#39;nhx&#39;, or 
+           &#39;tabtree&#39;)
+ Returns : scalar string
+ Args    : format type as specified by Bio::TreeIO
+ Note    : This method loads the Bio::TreeIO::$format module
+           on the fly, and commandeers the _write_tree_Helper
+           routine therein to create the tree string. </code></code></pre>
+
+<h2 id="Methods-for-associating-Tag-Values-with-a-Tree">Methods for associating Tag/Values with a Tree</h2>
+
+<p>These methods associate tag/value pairs with a Tree</p>
+
+<h2 id="set_tag_value">set_tag_value</h2>
+
+<pre><code><code> Title   : set_tag_value
+ Usage   : $tree-&gt;set_tag_value($tag,$value)
+           $tree-&gt;set_tag_value($tag,@values)
+ Function: Sets a tag value(s) to a tree. Replaces old values.
+ Returns : number of values stored for this tag
+ Args    : $tag   - tag name
+           $value - value to store for the tag</code></code></pre>
+
+<h2 id="add_tag_value">add_tag_value</h2>
+
+<pre><code><code> Title   : add_tag_value
+ Usage   : $tree-&gt;add_tag_value($tag,$value)
+ Function: Adds a tag value to a tree 
+ Returns : number of values stored for this tag
+ Args    : $tag   - tag name
+           $value - value to store for the tag</code></code></pre>
+
+<h2 id="remove_tag">remove_tag</h2>
+
+<pre><code><code> Title   : remove_tag
+ Usage   : $tree-&gt;remove_tag($tag)
+ Function: Remove the tag and all values for this tag
+ Returns : boolean representing success (0 if tag does not exist)
+ Args    : $tag - tagname to remove</code></code></pre>
+
+<h2 id="remove_all_tags">remove_all_tags</h2>
+
+<pre><code><code> Title   : remove_all_tags
+ Usage   : $tree-&gt;remove_all_tags()
+ Function: Removes all tags 
+ Returns : None
+ Args    : None</code></code></pre>
+
+<h2 id="get_all_tags">get_all_tags</h2>
+
+<pre><code><code> Title   : get_all_tags
+ Usage   : my @tags = $tree-&gt;get_all_tags()
+ Function: Gets all the tag names for this Tree
+ Returns : Array of tagnames
+ Args    : None</code></code></pre>
+
+<h2 id="get_tag_values">get_tag_values</h2>
+
+<pre><code><code> Title   : get_tag_values
+ Usage   : my @values = $tree-&gt;get_tag_values($tag)
+ Function: Gets the values for given tag ($tag)
+ Returns : Array of values or empty list if tag does not exist
+ Args    : $tag - tag name</code></code></pre>
+
+<h2 id="has_tag">has_tag</h2>
+
+<pre><code><code> Title   : has_tag
+ Usage   : $tree-&gt;has_tag($tag)
+ Function: Boolean test if tag exists in the Tree
+ Returns : Boolean
+ Args    : $tag - tagname</code></code></pre>
+
+<h2 id="clone-">clone()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">clone</span>
+ <span class="variable">Alias</span>   <span class="operator">:</span> <span class="variable">_clone</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$tree_copy</span> <span class="operator">=</span> <span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">clone</span><span class="operator">();</span>
+           <span class="variable">$subtree_copy</span> <span class="operator">=</span> <span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">clone</span><span class="operator">(</span><span class="variable">$internal_node</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Safe</span> <span class="variable">tree</span> <span class="variable">clone</span> <span class="variable">that</span> <span class="variable">doesn't</span> <span class="variable">segfault</span>
+           <span class="operator">(</span><span class="variable">of</span> <span class="variable">Sendu</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Tree::Tree</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">$start_node</span><span class="operator">,</span> <span class="variable">Bio::Tree::Node</span> <span class="variable">object</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

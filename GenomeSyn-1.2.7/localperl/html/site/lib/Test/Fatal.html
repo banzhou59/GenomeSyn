@@ -1,0 +1,160 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FUNCTIONS">FUNCTIONS</a>
+    <ul>
+      <li><a href="#exception">exception</a></li>
+      <li><a href="#success">success</a></li>
+      <li><a href="#dies_ok">dies_ok</a></li>
+      <li><a href="#lives_ok">lives_ok</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Test::Fatal - incredibly simple helpers for testing code with exceptions</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>version 0.014</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::More</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Test::Fatal</span><span class="operator">;</span>
+  
+  <span class="keyword">use</span> <span class="variable">System::Under::Test</span> <span class="string">qw(might_die)</span><span class="operator">;</span>
+  
+  <span class="variable">is</span><span class="operator">(</span>
+    <span class="variable">exception</span> <span class="operator">{</span> <span class="variable">might_die</span><span class="operator">;</span> <span class="operator">},</span>
+    <span class="keyword">undef</span><span class="operator">,</span>
+    <span class="string">"the code lived"</span><span class="operator">,</span>
+  <span class="operator">);</span>
+  
+  <span class="variable">like</span><span class="operator">(</span>
+    <span class="variable">exception</span> <span class="operator">{</span> <span class="variable">might_die</span><span class="operator">;</span> <span class="operator">},</span>
+    <span class="string">qr/turns out it died/</span><span class="operator">,</span>
+    <span class="string">"the code died as expected"</span><span class="operator">,</span>
+  <span class="operator">);</span>
+  
+  <span class="variable">isa_ok</span><span class="operator">(</span>
+    <span class="variable">exception</span> <span class="operator">{</span> <span class="variable">might_die</span><span class="operator">;</span> <span class="operator">},</span>
+    <span class="string">'Exception::Whatever'</span><span class="operator">,</span>
+    <span class="string">'the thrown exception'</span><span class="operator">,</span>
+  <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Test::Fatal is an alternative to the popular <a href="../../../lib/Test/Exception.html">Test::Exception</a>. It does much less, but should allow greater flexibility in testing exception-throwing code with about the same amount of typing.</p>
+
+<p>It exports one routine by default: <code><code>exception</code></code>.</p>
+
+<h1 id="FUNCTIONS">FUNCTIONS</h1>
+
+<h2 id="exception">exception</h2>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$exception</span> <span class="operator">=</span> <span class="variable">exception</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">};</span>
+</code></code></pre>
+
+<p><code><code>exception</code></code> takes a bare block of code and returns the exception thrown by that block. If no exception was thrown, it returns undef.</p>
+
+<p><b>Achtung!</b> If the block results in a <i>false</i> exception, such as 0 or the empty string, Test::Fatal itself will die. Since either of these cases indicates a serious problem with the system under testing, this behavior is considered a <i>feature</i>. If you must test for these conditions, you should use <a href="../../../lib/Try/Tiny.html">Try::Tiny</a>&#39;s try/catch mechanism. (Try::Tiny is the underlying exception handling system of Test::Fatal.)</p>
+
+<p>Note that there is no TAP assert being performed. In other words, no &quot;ok&quot; or &quot;not ok&quot; line is emitted. It&#39;s up to you to use the rest of <code><code>exception</code></code> in an existing test like <code><code>ok</code></code>, <code><code>isa_ok</code></code>, <code><code>is</code></code>, et cetera. Or you may wish to use the <code><code>dies_ok</code></code> and <code><code>lives_ok</code></code> wrappers, which do provide TAP output.</p>
+
+<p><code><code>exception</code></code> does <i>not</i> alter the stack presented to the called block, meaning that if the exception returned has a stack trace, it will include some frames between the code calling <code><code>exception</code></code> and the thing throwing the exception. This is considered a <i>feature</i> because it avoids the occasionally twitchy <code><code>Sub::Uplevel</code></code> mechanism.</p>
+
+<p><b>Achtung!</b> This is not a great idea:</p>
+
+<pre><code><code>  <span class="keyword">sub</span><span class="variable"> exception_like</span><span class="operator">(</span>&amp;$;$<span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$code</span><span class="operator">,</span> <span class="variable">$pattern</span><span class="operator">,</span> <span class="variable">$name</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+      <span class="variable">like</span><span class="operator">(</span> <span class="operator">&amp;</span><span class="variable">exception</span><span class="operator">(</span><span class="variable">$code</span><span class="operator">),</span> <span class="variable">$pattern</span><span class="operator">,</span> <span class="variable">$name</span> <span class="operator">);</span>
+  <span class="operator">}</span>
+  
+  <span class="variable">exception_like</span><span class="operator">(</span><span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="operator">},</span> <span class="string">qr/foo/</span><span class="operator">,</span> <span class="string">'foo appears in the exception'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>If the code in the <code><code>...</code></code> is going to throw a stack trace with the arguments to each subroutine in its call stack (for example via <code><code>Carp::confess</code></code>, the test name, &quot;foo appears in the exception&quot; will itself be matched by the regex. Instead, write this:</p>
+
+<pre><code><code>  <span class="variable">like</span><span class="operator">(</span> <span class="variable">exception</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">},</span> <span class="string">qr/foo/</span><span class="operator">,</span> <span class="string">'foo appears in the exception'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p><b>Achtung</b>: One final bad idea:</p>
+
+<pre><code><code>  <span class="variable">isnt</span><span class="operator">(</span> <span class="variable">exception</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">},</span> <span class="keyword">undef</span><span class="operator">,</span> <span class="string">"my code died!"</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>It&#39;s true that this tests that your code died, but you should really test that it died <i>for the right reason</i>. For example, if you make an unrelated mistake in the block, like using the wrong dereference, your test will pass even though the code to be tested isn&#39;t really run at all. If you&#39;re expecting an inspectable exception with an identifier or class, test that. If you&#39;re expecting a string exception, consider using <code><code>like</code></code>.</p>
+
+<h2 id="success">success</h2>
+
+<pre><code><code>  <span class="variable">try</span> <span class="operator">{</span>
+    <span class="variable">should_live</span><span class="operator">;</span>
+  <span class="operator">}</span> <span class="variable">catch</span> <span class="operator">{</span>
+    <span class="variable">fail</span><span class="operator">(</span><span class="string">"boo, we died"</span><span class="operator">);</span>
+  <span class="operator">}</span> <span class="variable">success</span> <span class="operator">{</span>
+    <span class="variable">pass</span><span class="operator">(</span><span class="string">"hooray, we lived"</span><span class="operator">);</span>
+  <span class="operator">};</span>
+</code></code></pre>
+
+<p><code><code>success</code></code>, exported only by request, is a <a href="../../../lib/Try/Tiny.html">Try::Tiny</a> helper with semantics identical to <a href="../../../lib/Try/Tiny.html#finally"><code><code>finally</code></code></a>, but the body of the block will only be run if the <code><code>try</code></code> block ran without error.</p>
+
+<p>Although almost any needed exception tests can be performed with <code><code>exception</code></code>, success blocks may sometimes help organize complex testing.</p>
+
+<h2 id="dies_ok">dies_ok</h2>
+
+<h2 id="lives_ok">lives_ok</h2>
+
+<p>Exported only by request, these two functions run a given block of code, and provide TAP output indicating if it did, or did not throw an exception. These provide an easy upgrade path for replacing existing unit tests based on <code><code>Test::Exception</code></code>.</p>
+
+<p>RJBS does not suggest using this except as a convenience while porting tests to use Test::Fatal&#39;s <code><code>exception</code></code> routine.</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Test::Fatal</span> <span class="string">qw(dies_ok lives_ok)</span><span class="operator">;</span>
+  
+  <span class="variable">dies_ok</span> <span class="operator">{</span> <span class="keyword">die</span> <span class="string">"I failed"</span> <span class="operator">}</span> <span class="string">'code that fails'</span><span class="operator">;</span>
+  
+  <span class="variable">lives_ok</span> <span class="operator">{</span> <span class="keyword">return</span> <span class="string">"I'm still alive"</span> <span class="operator">}</span> <span class="string">'code that does not fail'</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Ricardo Signes &lt;rjbs@cpan.org&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>This software is copyright (c) 2010 by Ricardo Signes.</p>
+
+<p>This is free software; you can redistribute it and/or modify it under the same terms as the Perl 5 programming language system itself.</p>
+
+
+</body>
+
+</html>
+
+

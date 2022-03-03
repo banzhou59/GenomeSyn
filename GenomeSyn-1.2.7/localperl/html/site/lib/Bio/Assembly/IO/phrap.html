@@ -1,0 +1,166 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Implementation">Implementation</a></li>
+      <li><a href="#Feature-collection">Feature collection</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Robson-Francisco-de-Souza">AUTHOR - Robson Francisco de Souza</a></li>
+  <li><a href="#Parser-methods">Parser methods</a>
+    <ul>
+      <li><a href="#next_assembly">next_assembly</a></li>
+      <li><a href="#next_contig">next_contig</a></li>
+      <li><a href="#scaffold_annotations">scaffold_annotations</a></li>
+      <li><a href="#write_assembly-NOT-IMPLEMENTED-">write_assembly (NOT IMPLEMENTED)</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Assembly::IO::phrap - driver to load phrap.out files.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment"># Building an input stream</span>
+    <span class="keyword">use</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">;</span>
+    
+    <span class="comment"># Assembly loading methods</span>
+    <span class="keyword">my</span> <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'results.phrap'</span><span class="operator">,</span>
+                                     <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'phrap'</span><span class="operator">);</span>
+    
+    <span class="comment"># Read the entire scaffold</span>
+    <span class="keyword">my</span> <span class="variable">$scaffold</span> <span class="operator">=</span> <span class="variable">$io</span><span class="operator">-&gt;</span><span class="variable">next_assembly</span><span class="operator">;</span>
+    
+    <span class="comment"># Or read one contig at a time to save resources</span>
+    <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$contig</span> <span class="operator">=</span> <span class="variable">$io</span><span class="operator">-&gt;</span><span class="variable">next_contig</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="comment"># Do something ...</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This package was developed to load the phrap.out files from the (phred/phrap/consed) package by Phill Green. This files contain just the messages printed to standard out by phrap when building an assembly. This output is redirected by phredPhrap perl-script to a file in the project&#39;s directory and hold some bit of information regarding assembly quality, connections between contigs and clone&#39;s position inside contigs. It should be noted that such files have no data about the sequence. neither for contig consensus nor for any aligned sequence. Anyway, such information may be loaded from Fasta files in the projects directory and added to the assembly object later.</p>
+
+<p>Note that, because no sequence is loaded for the contig consensus and locations for aligned sequences are only given in &quot;ungapped consensus&quot; coordinates in a phrap.out file, you can&#39;t make coordinate changes in assemblies loaded by pharp.pm, unless you add an aligned coordinates for each sequence to each contig&#39;s features collection yourself. See <a>Bio::Assembly::Contig::Coordinate_Systems</a> and <a>Bio::Assembly::Contig::Feature_collection</a>..</p>
+
+<p>This driver also loads singlets into the assembly contigs as Bio::Assembly::Singlet objects, although without their sequence strings. It also adds a feature for the entire sequence, thus storing the singlet length in its end position, and adds a tag &#39;_nof_trimmed_nonX&#39; to the feature, which stores the number of non-vector bases in the singlet.</p>
+
+<h2 id="Implementation">Implementation</h2>
+
+<p>Assemblies are loaded into Bio::Assembly::Scaffold objects composed by Bio::Assembly::Contig objects. No features are added to Bio::Assembly::Contig &quot;_aligned_coord:$seqID&quot; feature class, therefore you can&#39;t make coordinate changes in contigs loaded by this module. Contig objects created by this module will have the following special feature classes, identified by their primary tags, in their features collection:</p>
+
+<p>&quot;_main_contig_feature:$ID&quot; : main feature for contig $ID. This feature is used to store information about the entire consensus sequence. This feature always start at base 1 and its end position is the consensus sequence length. A tag, &#39;trimmed_length&#39; holds the length of the trimmed good quality region inside the consensus sequence.</p>
+
+<p>&quot;_covered_region:$index&quot; : coordinates for valid clones inside the contig. $index is the covered region number, starting at 1 for the covered region closest to the consensus sequence first base.</p>
+
+<p>&quot;_unalign_coord:$seqID&quot; : location of a sequence in &quot;ungapped consensus&quot; coordinates (consensus sequence without gaps). Primary and secondary scores, indel and substitutions statistics are stored as feature tags.</p>
+
+<p>&quot;_internal_clones:$cloneID&quot; : clones inside contigs $cloneID should be used as the unique id for each clone. These features have six tags: &#39;_1st_name&#39;, which is the id of the upstream (5&#39;) aligned sequence delimiting the clone; &#39;_1st_strand&#39;, the upstream sequence strand in the alignment; &#39;_2nd_name&#39;, downstream (3&#39;) sequence id; &#39;_2nd_strand&#39;, the downstream sequence strand in the alignment; &#39;_length&#39;, unaligned clone length; &#39;_rejected&#39;, a boolean flag, which is false if the clone is valid and true if it was rejected.</p>
+
+<p>All coordinates for the features above are expressed as &quot;ungapped consensus&quot; coordinates (See <a>Bio::Assembly::Contig::Coordinate_Systems</a>..</p>
+
+<h2 id="Feature-collection">Feature collection</h2>
+
+<p>#</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing lists Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Robson-Francisco-de-Souza">AUTHOR - Robson Francisco de Souza</h1>
+
+<p>Email rfsouza@citri.iq.usp.br</p>
+
+<p>head1 APPENDIX</p>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h1 id="Parser-methods">Parser methods</h1>
+
+<h2 id="next_assembly">next_assembly</h2>
+
+<pre><code><code> Title   : next_assembly
+ Usage   : $scaffold = $stream-&gt;next_assembly()
+ Function: returns the next assembly in the stream
+ Returns : a Bio::Assembly::Scaffold object
+ Args    : none</code></code></pre>
+
+<h2 id="next_contig">next_contig</h2>
+
+<pre><code><code> Title   : next_contig
+ Usage   : $scaffold = $stream-&gt;next_contig()
+ Function: Returns the next contig or singlet in the PHRAP stream.
+ Returns : a Bio::Assembly::Contig or Bio::Assembly::Single object
+ Args    : none</code></code></pre>
+
+<h2 id="scaffold_annotations">scaffold_annotations</h2>
+
+<pre><code><code> Title   : scaffold_annotations
+ Usage   : $stream-&gt;scaffold_annotations($scaffold)
+ Function: Adds ssembly and contig annotations to a scaffold. In the PHRAP
+           format, this is the section starting with &quot;INTERNAL&quot;
+ Returns : 1 for success
+ Args    : a Bio::Assembly::Scaffold object to attach the annotations to</code></code></pre>
+
+<h2 id="write_assembly-NOT-IMPLEMENTED-">write_assembly (NOT IMPLEMENTED)</h2>
+
+<pre><code><code>    Title   : write_assembly
+    Usage   : $ass_io-&gt;write_assembly($assembly)
+    Function: Write the assembly object in Phrap compatible ACE format
+    Returns : 1 on success, 0 for error
+    Args    : A Bio::Assembly::Scaffold object</code></code></pre>
+
+
+</body>
+
+</html>
+
+

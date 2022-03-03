@@ -1,0 +1,350 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#INSTANCE-VARIABLES">INSTANCE VARIABLES</a>
+    <ul>
+      <li><a href="#Variables-for-all-glyphs:">Variables for all glyphs:</a></li>
+      <li><a href="#Variables-for-simple-glyphs-numberOfContours-0-:">Variables for simple glyphs (numberOfContours &gt;= 0):</a></li>
+      <li><a href="#Variables-for-compound-glyphs-numberOfContours--1-:">Variables for compound glyphs (numberOfContours == -1):</a></li>
+      <li><a href="#Private-instance-variables:">Private instance variables:</a></li>
+      <li><a href="#Editing">Editing</a></li>
+    </ul>
+  </li>
+  <li><a href="#METHODS">METHODS</a></li>
+  <li><a href="#Font::TTF::Glyph-new-parms-">Font::TTF::Glyph-&gt;new(%parms)</a>
+    <ul>
+      <li><a href="#g-read">$g-&gt;read</a></li>
+      <li><a href="#g-read_dat">$g-&gt;read_dat</a></li>
+      <li><a href="#g-out-fh-">$g-&gt;out($fh)</a></li>
+      <li><a href="#g-out_xml-context-depth-">$g-&gt;out_xml($context, $depth)</a></li>
+      <li><a href="#g-dirty-val-">$g-&gt;dirty($val)</a></li>
+      <li><a href="#g-update">$g-&gt;update</a></li>
+      <li><a href="#g-update_bbox">$g-&gt;update_bbox</a></li>
+      <li><a href="#g-maxInfo">$g-&gt;maxInfo</a></li>
+      <li><a href="#g-empty">$g-&gt;empty</a></li>
+      <li><a href="#g-get_points">$g-&gt;get_points</a></li>
+      <li><a href="#g-get_refs">$g-&gt;get_refs</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#LICENSING">LICENSING</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Font::TTF::Glyph - Holds a information for a single glyph</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is a single glyph description as held in a TT font. On creation only its header is read. Thus you can get the bounding box of each glyph without having to read all the other information.</p>
+
+<h1 id="INSTANCE-VARIABLES">INSTANCE VARIABLES</h1>
+
+<p>In addition to the named variables in a glyph header (<code><code>xMin</code></code> etc.), there are also all capital instance variables for holding working information, mostly from the location table.</p>
+
+<h2 id="Variables-for-all-glyphs:">Variables for all glyphs:</h2>
+
+<p>The standard attributes each glyph has are:</p>
+
+<dl>
+
+<dt id="numberOfContours">numberOfContours</dt>
+<dd>
+
+<p>For simple glyphs this will be the count of contours. For compound glyphs this will be -1.</p>
+
+</dd>
+<dt id="xMin">xMin</dt>
+<dd>
+
+</dd>
+<dt id="yMin">yMin</dt>
+<dd>
+
+</dd>
+<dt id="xMax">xMax</dt>
+<dd>
+
+</dd>
+<dt id="yMax">yMax</dt>
+<dd>
+
+<p>These identify the bounding box of the glyph.</p>
+
+</dd>
+</dl>
+
+<p>There are also other, derived, instance variables for each glyph which are read when the whole glyph is read (via <code><code>read_dat</code></code>):</p>
+
+<dl>
+
+<dt id="instLen">instLen</dt>
+<dd>
+
+<p>Number of bytes in the hinting instructions (Warning this variable is deprecated, use <code><code>length($g-</code></code>{&#39;hints&#39;})&gt; instead).</p>
+
+</dd>
+<dt id="hints">hints</dt>
+<dd>
+
+<p>The string containing the hinting code for the glyph</p>
+
+</dd>
+</dl>
+
+<h2 id="Variables-for-simple-glyphs-numberOfContours-0-:">Variables for simple glyphs (numberOfContours &gt;= 0):</h2>
+
+<dl>
+
+<dt id="endPoints">endPoints</dt>
+<dd>
+
+<p>An array of endpoints for each contour in the glyph. There are <code><code>numberOfContours</code></code> contours in a glyph. The number of points in a glyph is equal to the highest endpoint of a contour.</p>
+
+</dd>
+<dt id="numPoints">numPoints</dt>
+<dd>
+
+<p>This is a generated value which contains the total number of points for this simple glyph.</p>
+
+</dd>
+</dl>
+
+<p>There are also a number of arrays indexed by point number:</p>
+
+<dl>
+
+<dt id="flags">flags</dt>
+<dd>
+
+<p>The flags associated with reading this point. The flags for a point are recalculated for a point when it is <code><code>update</code></code>d. Thus the flags are not very useful. The only important bit is bit 0 which indicates whether the point is an &#39;on&#39; curve point, or an &#39;off&#39; curve point.</p>
+
+</dd>
+<dt id="x">x</dt>
+<dd>
+
+<p>The absolute x co-ordinate of the point.</p>
+
+</dd>
+<dt id="y">y</dt>
+<dd>
+
+<p>The absolute y co-ordinate of the point</p>
+
+</dd>
+</dl>
+
+<h2 id="Variables-for-compound-glyphs-numberOfContours--1-:">Variables for compound glyphs (numberOfContours == -1):</h2>
+
+<dl>
+
+<dt id="metric">metric</dt>
+<dd>
+
+<p>This holds the component number (not its glyph number) of the component from which the metrics for this glyph should be taken.</p>
+
+</dd>
+<dt id="comps">comps</dt>
+<dd>
+
+<p>This is an array of hashes for each component. Each hash has a number of elements:</p>
+
+<dl>
+
+<dt id="glyph">glyph</dt>
+<dd>
+
+<p>The glyph number of the glyph which comprises this component of the composite. NOTE: In some badly generated fonts, <code><code>glyph</code></code> may contain a numerical value but that glyph might not actually exist in the font file. This could occur in any glyph, but is particularly likely for glyphs that have no strokes, such as SPACE, U+00A0 NO-BREAK SPACE, or U+200B ZERO WIDTH SPACE.</p>
+
+</dd>
+<dt id="args">args</dt>
+<dd>
+
+<p>An array of two arguments which may be an x, y co-ordinate or two attachment points (one on the base glyph the other on the component). See flags for details.</p>
+
+</dd>
+<dt id="flag">flag</dt>
+<dd>
+
+<p>The flag for this component</p>
+
+</dd>
+<dt id="scale">scale</dt>
+<dd>
+
+<p>A 4 number array for component scaling. This allows stretching, rotating, etc. Note that scaling applies to placement co-ordinates (rather than attachment points) before locating rather than after.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="numPoints1">numPoints</dt>
+<dd>
+
+<p>This is a generated value which contains the number of components read in for this compound glyph.</p>
+
+</dd>
+</dl>
+
+<h2 id="Private-instance-variables:">Private instance variables:</h2>
+
+<dl>
+
+<dt id="INFILE-P-">INFILE (P)</dt>
+<dd>
+
+<p>The input file form which to read any information</p>
+
+</dd>
+<dt id="LOC-P-">LOC (P)</dt>
+<dd>
+
+<p>Location relative to the start of the glyf table in the read file</p>
+
+</dd>
+<dt id="BASE-P-">BASE (P)</dt>
+<dd>
+
+<p>The location of the glyf table in the read file</p>
+
+</dd>
+<dt id="LEN-P-">LEN (P)</dt>
+<dd>
+
+<p>This is the number of bytes required by the glyph. It should be kept up to date by calling the <code><code>update</code></code> method whenever any of the glyph content changes.</p>
+
+</dd>
+<dt id="OUTLOC-P-">OUTLOC (P)</dt>
+<dd>
+
+<p>Location relative to the start of the glyf table. This variable is only active whilst the output process is going on. It is used to inform the location table where the glyph is located, since the glyf table is output before the loca table due to alphabetical ordering.</p>
+
+</dd>
+<dt id="OUTLEN-P-">OUTLEN (P)</dt>
+<dd>
+
+<p>This indicates the length of the glyph data when it is output. This more accurately reflects the internal memory form than the <code><code>LEN</code></code> variable which only reflects the read file length. The <code><code>OUTLEN</code></code> variable is only set after calling <code><code>out</code></code> or <code><code>out_dat</code></code>.</p>
+
+</dd>
+</dl>
+
+<h2 id="Editing">Editing</h2>
+
+<p>If you want to edit a glyph in some way, then you should read_dat the glyph, then make your changes and then update the glyph or set the $g-&gt;{&#39; isDirty&#39;} variable. The application must ensure that the following instance variables are correct, from which update will calculate the rest, including the bounding box information.</p>
+
+<pre><code><code>    numPoints
+    numberOfContours
+    endPoints
+    x, y, flags         (only flags bit 0)
+    instLen
+    hints</code></code></pre>
+
+<p>For components, the numPoints, x, y, endPoints &amp; flags are not required but the following information is required for each component.</p>
+
+<pre><code><code>    flag                (bits 2, 10, 11, 12)
+    glyph
+    args
+    scale
+    metric              (glyph instance variable)
+    </code></code></pre>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h1 id="Font::TTF::Glyph-new-parms-">Font::TTF::Glyph-&gt;new(%parms)</h1>
+
+<p>Creates a new glyph setting various instance variables</p>
+
+<h2 id="g-read">$g-&gt;read</h2>
+
+<p>Reads the header component of the glyph (numberOfContours and bounding box) and also the glyph content, but into a data field rather than breaking it down into its constituent structures. Use read_dat for this.</p>
+
+<h2 id="g-read_dat">$g-&gt;read_dat</h2>
+
+<p>Reads the contents of the glyph (components and curves, etc.) from the memory store <code><code>DAT</code></code> into structures within the object.</p>
+
+<h2 id="g-out-fh-">$g-&gt;out($fh)</h2>
+
+<p>Writes the glyph data to outfile</p>
+
+<h2 id="g-out_xml-context-depth-">$g-&gt;out_xml($context, $depth)</h2>
+
+<p>Outputs an XML description of the glyph</p>
+
+<h2 id="g-dirty-val-">$g-&gt;dirty($val)</h2>
+
+<p>This sets the dirty flag to the given value or 1 if no given value. It returns the value of the flag</p>
+
+<h2 id="g-update">$g-&gt;update</h2>
+
+<p>Generates a <code><code>$self-</code></code>{&#39;DAT&#39;}&gt; from the internal structures, if the data has been read into structures in the first place. If you are building a glyph from scratch you will need to set the instance variable <code><code>&#39; isDirty&#39;</code></code>.</p>
+
+<h2 id="g-update_bbox">$g-&gt;update_bbox</h2>
+
+<p>Updates the bounding box for this glyph according to the points in the glyph</p>
+
+<h2 id="g-maxInfo">$g-&gt;maxInfo</h2>
+
+<p>Returns lots of information about a glyph so that the <code><code>maxp</code></code> table can update itself. Returns array containing contributions of this glyph to maxPoints, maxContours, maxCompositePoints, maxCompositeContours, maxSizeOfInstructions, maxComponentElements, and maxComponentDepth.</p>
+
+<h2 id="g-empty">$g-&gt;empty</h2>
+
+<p>Empties the glyph of all information to the level of not having been read. Useful for saving memory in apps with many glyphs being read</p>
+
+<h2 id="g-get_points">$g-&gt;get_points</h2>
+
+<p>This method creates point information for a compound glyph. The information is stored in the same place as if the glyph was not a compound, but since numberOfContours is negative, the glyph is still marked as being a compound</p>
+
+<h2 id="g-get_refs">$g-&gt;get_refs</h2>
+
+<p>Returns an array of all the glyph ids that are used to make up this glyph. That is all the compounds and their references and so on. If this glyph is not a compound, then returns an empty array.</p>
+
+<p>Please note the warning about bad fonts that reference nonexistant glyphs under INSTANCE VARIABLES above. This function will not attempt to filter out nonexistant glyph numbers.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<ul>
+
+<li><p>The instance variables used here are somewhat clunky and inconsistent with the other tables.</p>
+
+</li>
+<li><p><code><code>update</code></code> doesn&#39;t re-calculate the bounding box or <code><code>numberOfContours</code></code>.</p>
+
+</li>
+</ul>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Martin Hosken <a href="http://scripts.sil.org/FontUtils">http://scripts.sil.org/FontUtils</a>.</p>
+
+<h1 id="LICENSING">LICENSING</h1>
+
+<p>Copyright (c) 1998-2014, SIL International (http://www.sil.org)</p>
+
+<p>This module is released under the terms of the Artistic License 2.0. For details, see the full text of the license in the file LICENSE.</p>
+
+
+</body>
+
+</html>
+
+

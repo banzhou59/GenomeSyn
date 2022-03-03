@@ -1,0 +1,472 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../displayToc.js"></script>
+<script language="JavaScript" src="../../tocParas.js"></script>
+<script language="JavaScript" src="../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#EXPORTING">EXPORTING</a></li>
+  <li><a href="#MIXINS-ROLES">MIXINS &amp; ROLES</a></li>
+  <li><a href="#FILTERING">FILTERING</a></li>
+  <li><a href="#PRIVATE-METHODS">PRIVATE METHODS</a></li>
+  <li><a href="#SPIFFY-DEBUGGING">SPIFFY DEBUGGING</a></li>
+  <li><a href="#SPIFFY-FUNCTIONS">SPIFFY FUNCTIONS</a></li>
+  <li><a href="#METHODS">METHODS</a></li>
+  <li><a href="#ARGUMENTS">ARGUMENTS</a></li>
+  <li><a href="#USING-SPIFFY-WITH-BASE.PM">USING SPIFFY WITH BASE.PM</a>
+    <ul>
+      <li><a href="#base.pm-Caveats">base.pm Caveats</a></li>
+    </ul>
+  </li>
+  <li><a href="#SPIFFY-TODO-LIST">SPIFFY TODO LIST</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Spiffy - Spiffy Perl Interface Framework For You</p>
+
+
+
+
+<a href="https://travis-ci.org/ingydotnet/spiffy-pm"><img src="https://travis-ci.org/ingydotnet/spiffy-pm.png" alt="spiffy-pm"></a>
+<a href="https://coveralls.io/r/ingydotnet/spiffy-pm?branch=master"><img src="https://coveralls.io/repos/ingydotnet/spiffy-pm/badge.png" alt="spiffy-pm"></a>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">Keen</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Spiffy</span> <span class="operator">-</span><span class="variable">Base</span><span class="operator">;</span>
+    <span class="variable">field</span> <span class="string">'mirth'</span><span class="operator">;</span>
+    <span class="variable">const</span> <span class="string">mood</span> <span class="operator">=&gt;</span> <span class="string">':-)'</span><span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> happy </span><span class="operator">{</span>
+        <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">mood</span> <span class="keyword">eq</span> <span class="string">':-('</span><span class="operator">)</span> <span class="operator">{</span>
+            <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">mirth</span><span class="operator">(-</span><span class="number">1</span><span class="operator">);</span>
+            <span class="keyword">print</span> <span class="string">"Cheer up!"</span><span class="operator">;</span>
+        <span class="operator">}</span>
+        <span class="variable">super</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>&quot;Spiffy&quot; is a framework and methodology for doing object oriented (OO) programming in Perl. Spiffy combines the best parts of Exporter.pm, base.pm, mixin.pm and SUPER.pm into one magic foundation class. It attempts to fix all the nits and warts of traditional Perl OO, in a clean, straightforward and (perhaps someday) standard way.</p>
+
+<p>Spiffy borrows ideas from other OO languages like Python, Ruby, Java and Perl 6. It also adds a few tricks of its own.</p>
+
+<p>If you take a look on CPAN, there are a ton of OO related modules. When starting a new project, you need to pick the set of modules that makes most sense, and then you need to use those modules in each of your classes. Spiffy, on the other hand, has everything you&#39;ll probably need in one module, and you only need to use it once in one of your classes. If you make Spiffy.pm the base class of the basest class in your project, Spiffy will automatically pass all of its magic to all of your subclasses. You may eventually forget that you&#39;re even using it!</p>
+
+<p>The most striking difference between Spiffy and other Perl object oriented base classes, is that it has the ability to export things. If you create a subclass of Spiffy, all the things that Spiffy exports will automatically be exported by your subclass, in addition to any more things that you want to export. And if someone creates a subclass of your subclass, all of those things will be exported automatically, and so on. Think of it as &quot;Inherited Exportation&quot;, and it uses the familiar Exporter.pm specification syntax.</p>
+
+<p>To use Spiffy or any subclass of Spiffy as a base class of your class, you specify the <code><code>-base</code></code> argument to the <code><code>use</code></code> command.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">MySpiffyBaseModule</span> <span class="operator">-</span><span class="variable">base</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>You can also use the traditional <code><code><span class="keyword">use</span> <span class="variable">base</span> <span class="string">'MySpiffyBaseModule'</span><span class="operator">;</span>
+</code></code> syntax and everything will work exactly the same. The only caveat is that Spiffy.pm must already be loaded. That&#39;s because Spiffy rewires base.pm on the fly to do all the Spiffy magics.</p>
+
+<p>Spiffy has support for Ruby-like mixins with Perl6-like roles. Just like <code><code>base</code></code> you can use either of the following invocations:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">mixin</span> <span class="string">'MySpiffyBaseModule'</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">MySpiffyBaseModule</span> <span class="operator">-</span><span class="variable">mixin</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The second version will only work if the class being mixed in is a subclass of Spiffy. The first version will work in all cases, as long as Spiffy has already been loaded.</p>
+
+<p>To limit the methods that get mixed in, use roles. (Hint: they work just like an Exporter list):</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">MySpiffyBaseModule</span> <span class="operator">-</span><span class="string">mixin</span> <span class="operator">=&gt;</span> <span class="string">qw(:basics x y !foo)</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>In object oriented Perl almost every subroutine is a method. Each method gets the object passed to it as its first argument. That means practically every subroutine starts with the line:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Spiffy provides a simple, optional filter mechanism to insert that line for you, resulting in cleaner code. If you figure an average method has 10 lines of code, that&#39;s 10% of your code! To turn this option on, you just use the <code><code>- Base</code></code> option instead of the <code><code>-base</code></code> option, or add the <code><code>-selfless</code></code> option. If source filtering makes you queazy, don&#39;t use the feature. I personally find it addictive in my quest for writing squeaky clean, maintainable code.</p>
+
+<p>A useful feature of Spiffy is that it exports two functions: <code><code>field</code></code> and <code><code>const</code></code> that can be used to declare the attributes of your class, and automatically generate accessor methods for them. The only difference between the two functions is that <code><code>const</code></code> attributes can not be modified; thus the accessor is much faster.</p>
+
+<p>One interesting aspect of OO programming is when a method calls the same method from a parent class. This is generally known as calling a super method. Perl&#39;s facility for doing this is butt ugly:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> cleanup </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">scrub</span><span class="operator">;</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">SUPER::cleanup</span><span class="operator">(</span><span class="variable">@_</span><span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>Spiffy makes it, er, super easy to call super methods. You just use the <code><code>super</code></code> function. You don&#39;t need to pass it any arguments because it automatically passes them on for you. Here&#39;s the same function with Spiffy:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> cleanup </span><span class="operator">{</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">scrub</span><span class="operator">;</span>
+        <span class="variable">super</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>Spiffy has a special method for parsing arguments called <code><code>parse_arguments</code></code>, that it also uses for parsing its own arguments. You declare which arguments are boolean (singletons) and which ones are paired, with two special methods called <code><code>boolean_arguments</code></code> and <code><code>paired_arguments</code></code>. Parse arguments pulls out the booleans and pairs and returns them in an anonymous hash, followed by a list of the unmatched arguments.</p>
+
+<p>Finally, Spiffy can export a few debugging functions <code><code>WWW</code></code>, <code><code>XXX</code></code>, <code><code>YYY</code></code> and <code><code>ZZZ</code></code>. Each of them produces a YAML dump of its arguments. WWW warns the output, XXX dies with the output, YYY prints the output, and ZZZ confesses the output. If YAML doesn&#39;t suit your needs, you can switch all the dumps to Data::Dumper format with the <code><code>-dumper</code></code> option.</p>
+
+<p>That&#39;s Spiffy!</p>
+
+<h1 id="EXPORTING">EXPORTING</h1>
+
+<p>Spiffy implements a completely new idea in Perl. Modules that act both as object oriented classes and that also export functions. But it takes the concept of Exporter.pm one step further; it walks the entire <code><code>@ISA</code></code> path of a class and honors the export specifications of each module. Since Spiffy calls on the Exporter module to do this, you can use all the fancy interface features that Exporter has, including tags and negation.</p>
+
+<p>Spiffy considers all the arguments that don&#39;t begin with a dash to comprise the export specification.</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">Vehicle</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Spiffy</span> <span class="operator">-</span><span class="variable">base</span><span class="operator">;</span>
+    <span class="keyword">our</span> <span class="variable">$SERIAL_NUMBER</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+    <span class="keyword">our</span> <span class="variable">@EXPORT</span> <span class="operator">=</span> <span class="string">qw($SERIAL_NUMBER)</span><span class="operator">;</span>
+    <span class="keyword">our</span> <span class="variable">@EXPORT_BASE</span> <span class="operator">=</span> <span class="string">qw(tire horn)</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">Bicycle</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Vehicle</span> <span class="operator">-</span><span class="variable">base</span><span class="operator">,</span> <span class="string">'!field'</span><span class="operator">;</span>
+    <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">inflate</span><span class="operator">(</span><span class="variable">tire</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>In this case, <code><code>Bicycle-&gt;isa(&#39;Vehicle&#39;)</code></code> and also all the things that <code><code>Vehicle</code></code> and <code><code>Spiffy</code></code> export, will go into <code><code>Bicycle</code></code>, except <code><code>field</code></code>.</p>
+
+<p>Exporting can be very helpful when you&#39;ve designed a system with hundreds of classes, and you want them all to have access to some functions or constants</p>
+
+<pre><code><code>      or variables. Just export them in your main base class and every subclass</code></code></pre>
+
+<p>will get the functions they need.</p>
+
+<p>You can do almost everything that Exporter does because Spiffy delegates the job to Exporter (after adding some Spiffy magic). Spiffy offers a <code><code>@EXPORT_BASE</code></code> variable which is like <code><code>@EXPORT</code></code>, but only for usages that use <code><code>-base</code></code>.</p>
+
+<h1 id="MIXINS-ROLES">MIXINS &amp; ROLES</h1>
+
+<p>If you&#39;ve done much OO programming in Perl you&#39;ve probably used Multiple Inheritance (MI), and if you&#39;ve done much MI you&#39;ve probably run into weird problems and headaches. Some languages like Ruby, attempt to resolve MI issues using a technique called mixins. Basically, all Ruby classes use only Single Inheritance (SI), and then <i>mixin</i> functionality from other modules if they need to.</p>
+
+<p>Mixins can be thought of at a simplistic level as <i>importing</i> the methods of another class into your subclass. But from an implementation standpoint that&#39;s not the best way to do it. Spiffy does what Ruby does. It creates an empty anonymous class, imports everything into that class, and then chains the new class into your SI ISA path. In other words, if you say:</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">AAA</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">BBB</span> <span class="operator">-</span><span class="variable">base</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">CCC</span> <span class="operator">-</span><span class="variable">mixin</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DDD</span> <span class="operator">-</span><span class="variable">mixin</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>You end up with a single inheritance chain of classes like this:</p>
+
+<pre><code><code>    <span class="variable">AAA</span> <span class="operator">&lt;&lt;</span> <span class="variable">AAA</span><span class="operator">-</span><span class="variable">DDD</span> <span class="operator">&lt;&lt;</span> <span class="variable">AAA</span><span class="operator">-</span><span class="variable">CCC</span> <span class="operator">&lt;&lt;</span> <span class="variable">BBB</span><span class="operator">;</span>
+</code></code></pre>
+
+<p><code><code>AAA-DDD</code></code> and <code><code>AAA-CCC</code></code> are the actual package names of the generated classes. The nice thing about this style is that mixing in CCC doesn&#39;t clobber any methods in AAA, and DDD doesn&#39;t conflict with AAA or CCC either. If you mixed in a method in CCC that was also in AAA, you can still get to it by using <code><code>super</code></code>.</p>
+
+<p>When Spiffy mixes in CCC, it pulls in all the methods in CCC that do not begin with an underscore. Actually it goes farther than that. If CCC is a subclass it will pull in every method that CCC <code><code>can</code></code> do through inheritance. This is very powerful, maybe too powerful.</p>
+
+<p>To limit what you mixin, Spiffy borrows the concept of Roles from Perl6. The term role is used more loosely in Spiffy though. It&#39;s much like an import list that the Exporter module uses, and you can use groups (tags) and negation. If the first element of your list uses negation, Spiffy will start with all the methods that your mixin class can do.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">EEE</span> <span class="operator">-</span><span class="string">mixin</span> <span class="operator">=&gt;</span> <span class="string">qw(:tools walk !run !:sharp_tools)</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>In this example, <code><code>walk</code></code> and <code><code>run</code></code> are methods that EEE can do, and <code><code>tools</code></code> and <code><code>sharp_tools</code></code> are roles of class EEE. How does class EEE define these roles? It very simply defines methods called <code><code>_role_tools</code></code> and <code><code>_role_sharp_tools</code></code> which return lists of more methods. (And possibly other roles!) The neat thing here is that since roles are just methods, they too can be inherited. Take <b>that</b> Perl6!</p>
+
+<h1 id="FILTERING">FILTERING</h1>
+
+<p>By using the <code><code>-Base</code></code> flag instead of <code><code>-base</code></code> you never need to write the line:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This statement is added to every subroutine in your class by using a source filter. The magic is simple and fast, so there is litte performance penalty for creating clean code on par with Ruby and Python.</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">Example</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Spiffy</span> <span class="operator">-</span><span class="variable">Base</span><span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> crazy </span><span class="operator">{</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">nuts</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    <span class="keyword">sub</span><span class="variable"> wacky </span><span class="operator">{</span> <span class="operator">}</span>
+    <span class="keyword">sub</span><span class="variable"> new</span><span class="operator">()</span> <span class="operator">{</span>
+        <span class="keyword">bless</span> <span class="operator">[]</span><span class="operator">,</span> <span class="keyword">shift</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>is exactly the same as:</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">Example</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Spiffy</span> <span class="operator">-</span><span class="variable">base</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span><span class="keyword">use</span> <span class="variable">warnings</span><span class="operator">;</span>
+    <span class="keyword">sub</span><span class="variable"> crazy </span><span class="operator">{</span><span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">nuts</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    <span class="keyword">sub</span><span class="variable"> wacky </span><span class="operator">{</span><span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span> <span class="operator">}</span>
+    <span class="keyword">sub</span><span class="variable"> new </span><span class="operator">{</span>
+        <span class="keyword">bless</span> <span class="operator">[]</span><span class="operator">,</span> <span class="keyword">shift</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    <span class="operator">;</span><span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Note that the empty parens after the subroutine <code><code>new</code></code> keep it from having a $self added. Also note that the extra code is added to existing lines to ensure that line numbers are not altered.</p>
+
+<p><code><code>-Base</code></code> also turns on the strict and warnings pragmas, and adds that annoying &#39;1;&#39; line to your module.</p>
+
+<h1 id="PRIVATE-METHODS">PRIVATE METHODS</h1>
+
+<p>Spiffy now has support for private methods when you use the &#39;-Base&#39; filter mechanism. You just declare the subs with the <code><code>my</code></code> keyword, and call them with a <code><code>&#39;$&#39;</code></code> in front. Like this:</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">Keen</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">SomethingSpiffy</span> <span class="operator">-</span><span class="variable">Base</span><span class="operator">;</span>
+    
+    <span class="comment"># normal public method</span>
+    <span class="keyword">sub</span><span class="variable"> swell </span><span class="operator">{</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">$stinky</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="comment"># private lexical method. uncallable from outside this file.</span>
+    <span class="keyword">my</span> <span class="keyword">sub</span><span class="variable"> stinky </span><span class="operator">{</span>
+        <span class="operator">...</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="SPIFFY-DEBUGGING">SPIFFY DEBUGGING</h1>
+
+<p>The XXX function is very handy for debugging because you can insert it almost anywhere, and it will dump your data in nice clean YAML. Take the following statement:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@stuff</span> <span class="operator">=</span> <span class="keyword">grep</span> <span class="operator">{</span> <span class="regex">/keen/</span> <span class="operator">}</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">find</span><span class="operator">(</span><span class="variable">$a</span><span class="operator">,</span> <span class="variable">$b</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>If you have a problem with this statement, you can debug it in any of the following ways:</p>
+
+<pre><code><code>    <span class="variable">XXX</span> <span class="keyword">my</span> <span class="variable">@stuff</span> <span class="operator">=</span> <span class="keyword">grep</span> <span class="operator">{</span> <span class="regex">/keen/</span> <span class="operator">}</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">find</span><span class="operator">(</span><span class="variable">$a</span><span class="operator">,</span> <span class="variable">$b</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">@stuff</span> <span class="operator">=</span> <span class="variable">XXX</span> <span class="keyword">grep</span> <span class="operator">{</span> <span class="regex">/keen/</span> <span class="operator">}</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">find</span><span class="operator">(</span><span class="variable">$a</span><span class="operator">,</span> <span class="variable">$b</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">@stuff</span> <span class="operator">=</span> <span class="keyword">grep</span> <span class="operator">{</span> <span class="regex">/keen/</span> <span class="operator">}</span> <span class="variable">XXX</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">find</span><span class="operator">(</span><span class="variable">$a</span><span class="operator">,</span> <span class="variable">$b</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">@stuff</span> <span class="operator">=</span> <span class="keyword">grep</span> <span class="operator">{</span> <span class="regex">/keen/</span> <span class="operator">}</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">find</span><span class="operator">(</span><span class="variable">XXX</span> <span class="variable">$a</span><span class="operator">,</span> <span class="variable">$b</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>XXX is easy to insert and remove. It is also a tradition to mark uncertain areas of code with XXX. This will make the debugging dumpers easy to spot if you forget to take them out.</p>
+
+<p>WWW and YYY are nice because they dump their arguments and then return the arguments. This way you can insert them into many places and still have the code run as before. Use ZZZ when you need to die with both a YAML dump and a full stack trace.</p>
+
+<p>The debugging functions are exported by default if you use the <code><code>-base</code></code> option, but only if you have previously used the <code><code>-XXX</code></code> option. To export all 4 functions use the export tag:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">SomeSpiffyModule</span> <span class="string">':XXX'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>To force the debugging functions to use Data::Dumper instead of YAML:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">SomeSpiffyModule</span> <span class="operator">-</span><span class="variable">dumper</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="SPIFFY-FUNCTIONS">SPIFFY FUNCTIONS</h1>
+
+<p>This section describes the functions the Spiffy exports. The <code><code>field</code></code>, <code><code>const</code></code>, <code><code>stub</code></code> and <code><code>super</code></code> functions are only exported when you use the <code><code>-base</code></code> or <code><code>-Base</code></code> options.</p>
+
+<dl>
+
+<dt id="field">field</dt>
+<dd>
+
+<p>Defines accessor methods for a field of your class:</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">Example</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Spiffy</span> <span class="operator">-</span><span class="variable">Base</span><span class="operator">;</span>
+    
+    <span class="variable">field</span> <span class="string">'foo'</span><span class="operator">;</span>
+    <span class="variable">field</span> <span class="string">bar</span> <span class="operator">=&gt;</span> <span class="operator">[]</span><span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> lalala </span><span class="operator">{</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">foo</span><span class="operator">(</span><span class="number">42</span><span class="operator">);</span>
+        <span class="keyword">push</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$self</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">bar</span><span class="operator">}}</span><span class="operator">,</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">foo</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>The first parameter passed to <code><code>field</code></code> is the name of the attribute being defined. Accessors can be given an optional default value. This value will be returned if no value for the field has been set in the object.</p>
+
+</dd>
+<dt id="const">const</dt>
+<dd>
+
+<pre><code><code>    <span class="variable">const</span> <span class="string">bar</span> <span class="operator">=&gt;</span> <span class="number">42</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The <code><code>const</code></code> function is similar to &lt;field&gt; except that it is immutable. It also does not store data in the object. You probably always want to give a <code><code>const</code></code> a default value, otherwise the generated method will be somewhat useless.</p>
+
+</dd>
+<dt id="stub">stub</dt>
+<dd>
+
+<pre><code><code>    <span class="variable">stub</span> <span class="string">'cigar'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The <code><code>stub</code></code> function generates a method that will die with an appropriate message. The idea is that subclasses must implement these methods so that the stub methods don&#39;t get called.</p>
+
+</dd>
+<dt id="super">super</dt>
+<dd>
+
+<p>If this function is called without any arguments, it will call the same method that it is in, higher up in the ISA tree, passing it all the same arguments. If it is called with arguments, it will use those arguments with <code><code>$self</code></code> in the front. In other words, it just works like you&#39;d expect.</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> foo </span><span class="operator">{</span>
+        <span class="variable">super</span><span class="operator">;</span>             <span class="comment"># Same as $self-&gt;SUPER::foo(@_);</span>
+        <span class="variable">super</span><span class="operator">(</span><span class="string">'hello'</span><span class="operator">);</span>    <span class="comment"># Same as $self-&gt;SUPER::foo('hello');</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">bar</span><span class="operator">(</span><span class="number">42</span><span class="operator">);</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">sub</span><span class="variable"> new</span><span class="operator">()</span> <span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="variable">super</span><span class="operator">;</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">init</span><span class="operator">;</span>
+        <span class="keyword">return</span> <span class="variable">$self</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p><code><code>super</code></code> will simply do nothing if there is no super method. Finally, <code><code>super</code></code> does the right thing in AUTOLOAD subroutines.</p>
+
+</dd>
+</dl>
+
+<h1 id="METHODS">METHODS</h1>
+
+<p>This section lists all of the methods that any subclass of Spiffy automatically inherits.</p>
+
+<dl>
+
+<dt id="mixin">mixin</dt>
+<dd>
+
+<p>A method to mixin a class at runtime. Takes the same arguments as <code><code>use mixin ...</code></code>. Makes the target class a mixin of the caller.</p>
+
+<pre><code><code>    <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">mixin</span><span class="operator">(</span><span class="string">'SomeClass'</span><span class="operator">);</span>
+    <span class="variable">$object</span><span class="operator">-&gt;</span><span class="variable">mixin</span><span class="operator">(</span><span class="string">'SomeOtherClass'</span> <span class="operator">=&gt;</span> <span class="string">'some_method'</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="parse_arguments">parse_arguments</dt>
+<dd>
+
+<p>This method takes a list of arguments and groups them into pairs. It allows for boolean arguments which may or may not have a value (defaulting to 1). The method returns a hash reference of all the pairs as keys and values in the hash. Any arguments that cannot be paired, are returned as a list. Here is an example:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> boolean_arguments </span><span class="operator">{</span> <span class="string">qw(-has_spots -is_yummy)</span> <span class="operator">}</span>
+    <span class="keyword">sub</span><span class="variable"> paired_arguments </span><span class="operator">{</span> <span class="string">qw(-name -size)</span> <span class="operator">}</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$pairs</span><span class="operator">,</span> <span class="variable">@others</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">parse_arguments</span><span class="operator">(</span>
+        <span class="string">'red'</span><span class="operator">,</span> <span class="string">'white'</span><span class="operator">,</span>
+        <span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'Ingy'</span><span class="operator">,</span>
+        <span class="string">-has_spots</span> <span class="operator">=&gt;</span>
+        <span class="string">-size</span> <span class="operator">=&gt;</span> <span class="string">'large'</span><span class="operator">,</span>
+        <span class="string">'black'</span><span class="operator">,</span>
+        <span class="string">-is_yummy</span> <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">,</span>
+    <span class="operator">);</span>
+</code></code></pre>
+
+<p>After this call, <code><code>$pairs</code></code> will contain:</p>
+
+<pre><code><code>    <span class="operator">{</span>
+        <span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'Ingy'</span><span class="operator">,</span>
+        <span class="string">-has_spots</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+        <span class="string">-size</span> <span class="operator">=&gt;</span> <span class="string">'large'</span><span class="operator">,</span>
+        <span class="string">-is_yummy</span> <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">,</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>and <code><code>@others</code></code> will contain &#39;red&#39;, &#39;white&#39;, and &#39;black&#39;.</p>
+
+</dd>
+<dt id="boolean_arguments">boolean_arguments</dt>
+<dd>
+
+<p>Returns the list of arguments that are recognized as being boolean. Override this method to define your own list.</p>
+
+</dd>
+<dt id="paired_arguments">paired_arguments</dt>
+<dd>
+
+<p>Returns the list of arguments that are recognized as being paired. Override this method to define your own list.</p>
+
+</dd>
+</dl>
+
+<h1 id="ARGUMENTS">ARGUMENTS</h1>
+
+<p>When you <code><code>use</code></code> the Spiffy module or a subclass of it, you can pass it a list of arguments. These arguments are parsed using the <code><code>parse_arguments</code></code> method described above. The special argument <code><code>-base</code></code>, is used to make the current package a subclass of the Spiffy module being used.</p>
+
+<p>Any non-paired parameters act like a normal import list; just like those used with the Exporter module.</p>
+
+<h1 id="USING-SPIFFY-WITH-BASE.PM">USING SPIFFY WITH BASE.PM</h1>
+
+<p>The proper way to use a Spiffy module as a base class is with the <code><code>-base</code></code> parameter to the <code><code>use</code></code> statement. This differs from typical modules where you would want to <code><code>use base</code></code>.</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">Something</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Spiffy::Module</span> <span class="operator">-</span><span class="variable">base</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">base</span> <span class="string">'NonSpiffy::Module'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Now it may be hard to keep track of what&#39;s Spiffy and what is not. Therefore Spiffy has actually been made to work with base.pm. You can say:</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">Something</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">base</span> <span class="string">'Spiffy::Module'</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">base</span> <span class="string">'NonSpiffy::Module'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p><code><code>use base</code></code> is also very useful when your class is not an actual module (a separate file) but just a package in some file that has already been loaded. <code><code>base</code></code> will work whether the class is a module or not, while the <code><code>-base</code></code> syntax cannot work that way, since <code><code>use</code></code> always tries to load a module.</p>
+
+<h2 id="base.pm-Caveats">base.pm Caveats</h2>
+
+<p>To make Spiffy work with base.pm, a dirty trick was played. Spiffy swaps <code><code>base::import</code></code> with its own version. If the base modules are not Spiffy, Spiffy calls the original base::import. If the base modules are Spiffy, then Spiffy does its own thing.</p>
+
+<p>There are two caveats.</p>
+
+<dl>
+
+<dt id="Spiffy-must-be-loaded-first.">Spiffy must be loaded first.</dt>
+<dd>
+
+<p>If Spiffy is not loaded and <code><code>use base</code></code> is invoked on a Spiffy module, Spiffy will die with a useful message telling the author to read this documentation. That&#39;s because Spiffy needed to do the import swap beforehand.</p>
+
+<p>If you get this error, simply put a statement like this up front in your code:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Spiffy</span> <span class="operator">();</span>
+</code></code></pre>
+
+</dd>
+<dt id="No-Mixing">No Mixing</dt>
+<dd>
+
+<p><code><code>base.pm</code></code> can take multiple arguments. And this works with Spiffy as long as all the base classes are Spiffy, or they are all non-Spiffy. If they are mixed, Spiffy will die. In this case just use separate <code><code>use base</code></code> statements.</p>
+
+</dd>
+</dl>
+
+<h1 id="SPIFFY-TODO-LIST">SPIFFY TODO LIST</h1>
+
+<p>Spiffy is a wonderful way to do OO programming in Perl, but it is still a work in progress. New things will be added, and things that don&#39;t work well, might be removed.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Ingy d&ouml;t Net &lt;ingy@cpan.org&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright 2004-2014. Ingy d&ouml;t Net.</p>
+
+<p>This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<p>See <a href="http://www.perl.com/perl/misc/Artistic.html">http://www.perl.com/perl/misc/Artistic.html</a></p>
+
+
+</body>
+
+</html>
+
+

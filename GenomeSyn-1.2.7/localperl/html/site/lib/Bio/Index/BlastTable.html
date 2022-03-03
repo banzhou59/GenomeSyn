@@ -1,0 +1,396 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#Bio::Index::Blast-implemented-methods">Bio::Index::Blast implemented methods</a></li>
+      <li><a href="#fetch_report">fetch_report</a></li>
+      <li><a href="#Require-methods-from-Bio::Index::Abstract">Require methods from Bio::Index::Abstract</a></li>
+      <li><a href="#index_file">_index_file</a></li>
+      <li><a href="#id_parser">id_parser</a></li>
+      <li><a href="#default_id_parser">default_id_parser</a></li>
+      <li><a href="#Bio::Index::Abstract-methods">Bio::Index::Abstract methods</a></li>
+      <li><a href="#filename">filename</a></li>
+      <li><a href="#write_flag">write_flag</a></li>
+      <li><a href="#dbm_package">dbm_package</a></li>
+      <li><a href="#get_stream">get_stream</a></li>
+      <li><a href="#open_dbm">open_dbm</a></li>
+      <li><a href="#version">_version</a></li>
+      <li><a href="#filename1">_filename</a></li>
+      <li><a href="#file_handle">_file_handle</a></li>
+      <li><a href="#file_count">_file_count</a></li>
+      <li><a href="#add_record">add_record</a></li>
+      <li><a href="#pack_record">pack_record</a></li>
+      <li><a href="#unpack_record">unpack_record</a></li>
+      <li><a href="#DESTROY">DESTROY</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Index::BlastTable - Indexes tabular Blast reports (-m 8 or -m 9 format) and supports retrieval based on query accession(s)</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Bio::Index::BlastTable</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$indexfile</span><span class="operator">,</span><span class="variable">$file1</span><span class="operator">,</span><span class="variable">$file2</span><span class="operator">,</span><span class="variable">$query</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$index</span> <span class="operator">=</span> <span class="variable">Bio::Index::BlastTable</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-filename</span> <span class="operator">=&gt;</span> <span class="variable">$indexfile</span><span class="operator">,</span>
+                                                          <span class="string">-write_flag</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+    <span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">make_index</span><span class="operator">(</span><span class="variable">$file1</span><span class="operator">,</span><span class="variable">$file2</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">$data</span> <span class="operator">=</span> <span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">get_stream</span><span class="operator">(</span><span class="variable">$query</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">$blast_result</span> <span class="operator">=</span> <span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">fetch_report</span><span class="operator">(</span><span class="variable">$query</span><span class="operator">);</span>
+    <span class="keyword">print</span> <span class="string">"query is "</span><span class="operator">,</span> <span class="variable">$blast_result</span><span class="operator">-&gt;</span><span class="variable">query_name</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+    <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$blast_result</span><span class="operator">-&gt;</span><span class="variable">next_hit</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">print</span> <span class="string">"Name "</span><span class="operator">,</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+        <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$hsp</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">next_hsp</span> <span class="operator">)</span> <span class="operator">{</span>
+            <span class="keyword">print</span> <span class="string">"Score "</span><span class="operator">,</span> <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">score</span><span class="operator">;</span>
+        <span class="operator">}</span>
+        <span class="keyword">print</span> <span class="string">"\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object allows one to build an index on a tabular BLAST file (or files) and provide quick access to the blast report for that accession. This also allows for ID parsing using a callback:</p>
+
+<pre><code><code>   <span class="variable">$inx</span><span class="operator">-&gt;</span><span class="variable">id_parser</span><span class="operator">(\&amp;</span><span class="variable">get_id</span><span class="operator">);</span>
+   <span class="comment"># make the index</span>
+   <span class="variable">$inx</span><span class="operator">-&gt;</span><span class="variable">make_index</span><span class="operator">(</span><span class="variable">$file_name</span><span class="operator">);</span>
+   
+   <span class="comment"># here is where the retrieval key is specified</span>
+   <span class="keyword">sub</span><span class="variable"> get_id </span><span class="operator">{</span>
+      <span class="keyword">my</span> <span class="variable">$line</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+      <span class="variable">$line</span> <span class="operator">=~</span> <span class="regex">/^&gt;.+gi\|(\d+)/</span><span class="operator">;</span>
+      <span class="variable">$1</span><span class="operator">;</span>
+   <span class="operator">}</span>
+</code></code></pre>
+
+<p>The indexer is capable of indexing based on multiple IDs passed back from the callback; this is assuming of course all IDs are unique.</p>
+
+<p>Note: for best results &#39;use strict&#39;.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</h1>
+
+<p>Email jason-at-bioperl-dot-org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code>  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$index</span> <span class="operator">=</span> <span class="variable">Bio::Index::Abstract</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+                <span class="string">-filename</span>    <span class="operator">=&gt;</span> <span class="variable">$dbm_file</span><span class="operator">,</span>
+                <span class="string">-write_flag</span>  <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">,</span>
+                <span class="string">-dbm_package</span> <span class="operator">=&gt;</span> <span class="string">'DB_File'</span><span class="operator">,</span>
+                <span class="string">-verbose</span>     <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">);</span>
+  
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">new</span> <span class="keyword">index</span> <span class="variable">object</span><span class="operator">.</span>  <span class="variable">If</span> <span class="variable">filename</span> <span class="variable">is</span>
+            <span class="variable">specified</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">open_dbm</span><span class="operator">()</span> <span class="variable">is</span> <span class="variable">immediately</span> <span class="variable">called</span><span class="operator">.</span> 
+            <span class="variable">Bio::Index::Abstract</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">()</span> <span class="variable">will</span> <span class="variable">usually</span> <span class="variable">be</span> <span class="variable">called</span>
+            <span class="variable">directly</span> <span class="variable">only</span> <span class="keyword">when</span> <span class="variable">opening</span> <span class="variable">an</span> <span class="variable">existing</span> <span class="keyword">index</span><span class="operator">.</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">new</span> <span class="keyword">index</span> <span class="variable">object</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">-</span><span class="variable">filename</span>    <span class="variable">The</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">dbm</span> <span class="keyword">index</span> <span class="variable">file</span><span class="operator">.</span>
+            <span class="operator">-</span><span class="variable">write_flag</span>  <span class="variable">TRUE</span> <span class="keyword">if</span> <span class="keyword">write</span> <span class="variable">access</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">dbm</span> <span class="variable">file</span> <span class="variable">is</span>
+                         <span class="variable">needed</span><span class="operator">.</span>
+            <span class="operator">-</span><span class="variable">dbm_package</span> <span class="variable">The</span> <span class="variable">Perl</span> <span class="variable">dbm</span> <span class="variable">module</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="keyword">for</span> <span class="variable">the</span>
+                         <span class="keyword">index</span><span class="operator">.</span>
+            <span class="operator">-</span><span class="variable">verbose</span>     <span class="variable">Print</span> <span class="variable">debugging</span> <span class="variable">output</span> <span class="variable">to</span> <span class="variable">STDERR</span> <span class="keyword">if</span>
+                         <span class="variable">TRUE</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="Bio::Index::Blast-implemented-methods">Bio::Index::Blast implemented methods</h2>
+
+<h2 id="fetch_report">fetch_report</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">fetch_report</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$blastreport</span> <span class="operator">=</span> <span class="variable">$idx</span><span class="operator">-&gt;</span><span class="variable">fetch_report</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">Bio::SearchIO</span> <span class="variable">report</span> <span class="variable">object</span> 
+           <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">specific</span> <span class="variable">blast</span> <span class="variable">report</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::SearchIO</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">valid</span> <span class="variable">id</span>
+</code></code></pre>
+
+<h2 id="Require-methods-from-Bio::Index::Abstract">Require methods from Bio::Index::Abstract</h2>
+
+<h2 id="index_file">_index_file</h2>
+
+<pre><code><code>  Title   : _index_file
+  Usage   : $index-&gt;_index_file( $file_name, $i )
+  Function: Specialist function to index BLAST report file(s).
+            Is provided with a filename and an integer
+            by make_index in its SUPER class.
+  Example : 
+  Returns : 
+  Args    : </code></code></pre>
+
+<h2 id="id_parser">id_parser</h2>
+
+<pre><code><code>  Title   : id_parser
+  Usage   : $index-&gt;id_parser( CODE )
+  Function: Stores or returns the code used by record_id to
+            parse the ID for record from a string.  Useful
+            for (for instance) specifying a different
+            parser for different flavours of blast dbs. 
+            Returns \&amp;default_id_parser (see below) if not
+            set. If you supply your own id_parser
+            subroutine, then it should expect a fasta
+            description line.  An entry will be added to
+            the index for each string in the list returned.
+  Example : $index-&gt;id_parser( \&amp;my_id_parser )
+  Returns : ref to CODE if called without arguments
+  Args    : CODE</code></code></pre>
+
+<h2 id="default_id_parser">default_id_parser</h2>
+
+<pre><code><code>  Title   : default_id_parser
+  Usage   : $id = default_id_parser( $header )
+  Function: The default Blast Query ID parser for Bio::Index::Blast.pm
+            Returns $1 from applying the regexp /^&gt;\s*(\S+)/
+            to $header.
+  Returns : ID string
+  Args    : a header line string</code></code></pre>
+
+<h2 id="Bio::Index::Abstract-methods">Bio::Index::Abstract methods</h2>
+
+<h2 id="filename">filename</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">filename</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$value</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">filename</span><span class="operator">();</span>
+           <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">filename</span><span class="operator">(</span><span class="variable">$value</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="keyword">or</span> <span class="variable">sets</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">dbm</span> <span class="keyword">index</span> <span class="variable">file</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">current</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">filename</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Value</span> <span class="variable">of</span> <span class="variable">filename</span> <span class="keyword">if</span> <span class="variable">setting</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">none</span> <span class="keyword">if</span>
+           <span class="variable">getting</span> <span class="variable">the</span> <span class="variable">value</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="write_flag">write_flag</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">write_flag</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$value</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">write_flag</span><span class="operator">();</span>
+           <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">write_flag</span><span class="operator">(</span><span class="variable">$value</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="keyword">or</span> <span class="variable">sets</span> <span class="variable">the</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">write_flag</span><span class="operator">,</span> <span class="variable">which</span>
+           <span class="variable">is</span> <span class="variable">wether</span> <span class="variable">the</span> <span class="variable">dbm</span> <span class="variable">file</span> <span class="variable">should</span> <span class="variable">be</span> <span class="variable">opened</span> <span class="variable">with</span>
+           <span class="keyword">write</span> <span class="variable">access</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">current</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">write_flag</span> <span class="operator">(</span><span class="keyword">default</span> <span class="number">0</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Value</span> <span class="variable">of</span> <span class="variable">write_flag</span> <span class="keyword">if</span> <span class="variable">setting</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">none</span> <span class="keyword">if</span>
+           <span class="variable">getting</span> <span class="variable">the</span> <span class="variable">value</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="dbm_package">dbm_package</h2>
+
+<pre><code><code> <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$value</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">dbm_package</span><span class="operator">();</span>
+           <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">dbm_package</span><span class="operator">(</span><span class="variable">$value</span><span class="operator">);</span>
+ 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="keyword">or</span> <span class="variable">sets</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">Perl</span> <span class="variable">dbm</span> <span class="variable">module</span> <span class="variable">used</span><span class="operator">.</span> 
+           <span class="variable">If</span> <span class="variable">the</span> <span class="variable">value</span> <span class="variable">is</span> <span class="variable">unset</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">it</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">value</span> <span class="variable">of</span>
+           <span class="variable">the</span> <span class="keyword">package</span> <span class="variable">variable</span> <span class="variable">$USE_DBM_TYPE</span> <span class="keyword">or</span> <span class="keyword">if</span> <span class="variable">that</span> <span class="variable">is</span>
+           <span class="variable">unset</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">it</span> <span class="variable">chooses</span> <span class="variable">the</span> <span class="variable">best</span> <span class="variable">available</span> <span class="variable">dbm</span> <span class="variable">type</span><span class="operator">,</span>
+           <span class="variable">choosing</span> <span class="string">'DB_File'</span> <span class="variable">in</span> <span class="variable">preference</span> <span class="variable">to</span> <span class="string">'SDBM_File'</span><span class="operator">.</span> 
+           <span class="variable">Bio::Abstract::Index</span> <span class="variable">may</span> <span class="variable">work</span> <span class="variable">with</span> <span class="variable">other</span> <span class="variable">dbm</span> <span class="variable">file</span>
+           <span class="variable">types</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">current</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">dbm_package</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Value</span> <span class="variable">of</span> <span class="variable">dbm_package</span> <span class="keyword">if</span> <span class="variable">setting</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">none</span> <span class="keyword">if</span>
+           <span class="variable">getting</span> <span class="variable">the</span> <span class="variable">value</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="get_stream">get_stream</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_stream</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">get_stream</span><span class="operator">(</span> <span class="variable">$id</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">handle</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">file</span> <span class="variable">pointer</span>
+           <span class="variable">at</span> <span class="variable">the</span> <span class="variable">approprite</span> <span class="variable">place</span>
+ 
+           <span class="variable">This</span> <span class="variable">provides</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">way</span> <span class="variable">to</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">actual</span>
+           <span class="variable">file</span> <span class="variable">contents</span> <span class="keyword">and</span> <span class="keyword">not</span> <span class="variable">an</span> <span class="variable">object</span> 
+ 
+           <span class="variable">WARNING</span><span class="operator">:</span> <span class="variable">you</span> <span class="variable">must</span> <span class="variable">parse</span> <span class="variable">the</span> <span class="variable">record</span> <span class="variable">deliminter</span>
+           <span class="variable">*yourself</span><span class="operator">*.</span> <span class="variable">Abstract</span> <span class="variable">wont</span> <span class="keyword">do</span> <span class="variable">this</span> <span class="keyword">for</span> <span class="variable">you</span> 
+           <span class="variable">So</span> <span class="variable">this</span> <span class="variable">code</span>
+ 
+           <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">get_stream</span><span class="operator">(</span><span class="variable">$myid</span><span class="operator">);</span>
+           <span class="keyword">while</span><span class="operator">(</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;</span> <span class="operator">)</span> <span class="operator">{</span>
+              <span class="comment"># do something</span>
+           <span class="operator">}</span>
+           <span class="variable">will</span> <span class="variable">parse</span> <span class="variable">the</span> <span class="variable">entire</span> <span class="variable">file</span> <span class="keyword">if</span> <span class="variable">you</span> <span class="keyword">do</span> <span class="keyword">not</span> <span class="variable">put</span> <span class="variable">in</span>
+           <span class="variable">a</span> <span class="keyword">last</span> <span class="variable">statement</span> <span class="variable">in</span><span class="operator">,</span> <span class="variable">like</span>
+ 
+           <span class="keyword">while</span><span class="operator">(</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;</span> <span class="operator">)</span> <span class="operator">{</span>
+              <span class="regex">/^\/\//</span> <span class="operator">&amp;&amp;</span> <span class="keyword">last</span><span class="operator">;</span> <span class="comment"># end of record</span>
+              <span class="comment"># do something</span>
+           <span class="operator">}</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">filehandle</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="variable">represents</span> <span class="variable">the</span> <span class="variable">accession</span> <span class="variable">number</span>
+ <span class="variable">Notes</span>   <span class="operator">:</span> <span class="variable">This</span> <span class="variable">method</span> <span class="variable">should</span> <span class="keyword">not</span> <span class="variable">be</span> <span class="variable">used</span> <span class="variable">without</span> <span class="variable">forethought</span> 
+</code></code></pre>
+
+<h2 id="open_dbm">open_dbm</h2>
+
+<pre><code><code>  Usage   : $index-&gt;open_dbm()
+  Function: Opens the dbm file associated with the index
+            object.  Write access is only given if explicitly
+            asked for by calling new(-write =&gt; 1) or having set
+            the write_flag(1) on the index object.  The type of
+            dbm file opened is that returned by dbm_package(). 
+            The name of the file to be is opened is obtained by
+            calling the filename() method.
+
+  Example : $index-&gt;_open_dbm()
+  Returns : 1 on success</code></code></pre>
+
+<h2 id="version">_version</h2>
+
+<pre><code><code>  Title   : _version
+  Usage   : $type = $index-&gt;_version()
+  Function: Returns a string which identifes the version of an
+            index module.  Used to permanently identify an index
+            file as having been created by a particular version
+            of the index module.  Must be provided by the sub class
+  Example : 
+  Returns : 
+  Args    : none</code></code></pre>
+
+<h2 id="filename1">_filename</h2>
+
+<pre><code><code>  Title   : _filename
+  Usage   : $index-&gt;_filename( FILE INT )
+  Function: Indexes the file
+  Example : 
+  Returns : 
+  Args    : </code></code></pre>
+
+<h2 id="file_handle">_file_handle</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_file_handle</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">_file_handle</span><span class="operator">(</span> <span class="variable">INT</span> <span class="operator">)</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">an</span> <span class="keyword">open</span> <span class="variable">filehandle</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">file</span>
+            <span class="keyword">index</span> <span class="variable">INT</span><span class="operator">.</span>  <span class="variable">On</span> <span class="variable">opening</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">filehandle</span> <span class="variable">it</span>
+            <span class="variable">caches</span> <span class="variable">it</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">_filehandle</span><span class="operator">}</span> <span class="variable">array</span><span class="operator">.</span>
+            <span class="variable">If</span> <span class="variable">the</span> <span class="variable">requested</span> <span class="variable">filehandle</span> <span class="variable">is</span> <span class="variable">already</span> <span class="keyword">open</span><span class="operator">,</span>
+            <span class="variable">it</span> <span class="variable">simply</span> <span class="variable">returns</span> <span class="variable">it</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">array</span><span class="operator">.</span>
+  <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">$fist_file_indexed</span> <span class="operator">=</span> <span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">_file_handle</span><span class="operator">(</span> <span class="number">0</span> <span class="operator">);</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">ref</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">filehandle</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">INT</span>
+</code></code></pre>
+
+<h2 id="file_count">_file_count</h2>
+
+<pre><code><code>  Title   : _file_count
+  Usage   : $index-&gt;_file_count( INT )
+  Function: Used by the index building sub in a sub class to
+            track the number of files indexed.  Sets or gets
+            the number of files indexed when called with or
+            without an argument.
+  Example : 
+  Returns : INT
+  Args    : INT</code></code></pre>
+
+<h2 id="add_record">add_record</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add_record</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">add_record</span><span class="operator">(</span> <span class="variable">$id</span><span class="operator">,</span> <span class="variable">@stuff</span> <span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Calls</span> <span class="variable">pack_record</span> <span class="variable">on</span> <span class="variable">@stuff</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">adds</span> <span class="variable">the</span> <span class="variable">result</span>
+            <span class="variable">of</span> <span class="variable">pack_record</span> <span class="variable">to</span> <span class="variable">the</span> <span class="keyword">index</span> <span class="variable">database</span> <span class="variable">under</span> <span class="variable">key</span> <span class="variable">$id</span><span class="operator">.</span>
+            <span class="variable">If</span> <span class="variable">$id</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">an</span> <span class="variable">array</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">entry</span>
+            <span class="variable">is</span> <span class="variable">added</span> <span class="variable">under</span> <span class="variable">a</span> <span class="variable">key</span> <span class="variable">corresponding</span> <span class="variable">to</span> <span class="keyword">each</span> <span class="variable">element</span>
+            <span class="variable">of</span> <span class="variable">the</span> <span class="variable">array</span><span class="operator">.</span>
+  <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">add_record</span><span class="operator">(</span> <span class="variable">$id</span><span class="operator">,</span> <span class="variable">$fileNumber</span><span class="operator">,</span> <span class="variable">$begin</span><span class="operator">,</span> <span class="variable">$end</span> <span class="operator">)</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">TRUE</span> <span class="variable">on</span> <span class="variable">success</span> <span class="keyword">or</span> <span class="variable">FALSE</span> <span class="variable">on</span> <span class="variable">failure</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">ID</span> <span class="variable">LIST</span>
+</code></code></pre>
+
+<h2 id="pack_record">pack_record</h2>
+
+<pre><code><code>  Title   : pack_record
+  Usage   : $packed_string = $index-&gt;pack_record( LIST )
+  Function: Packs an array of scalars into a single string
+            joined by ASCII 034 (which is unlikely to be used
+            in any of the strings), and returns it. 
+  Example : $packed_string = $index-&gt;pack_record( $fileNumber, $begin, $end )
+  Returns : STRING or undef
+  Args    : LIST</code></code></pre>
+
+<h2 id="unpack_record">unpack_record</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">unpack_record</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">unpack_record</span><span class="operator">(</span> <span class="variable">STRING</span> <span class="operator">)</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Splits</span> <span class="variable">the</span> <span class="variable">sting</span> <span class="variable">provided</span> <span class="variable">into</span> <span class="variable">an</span> <span class="variable">array</span><span class="operator">,</span>
+            <span class="variable">splitting</span> <span class="variable">on</span> <span class="variable">ASCII</span> <span class="number">034</span><span class="operator">.</span>
+  <span class="variable">Example</span> <span class="operator">:</span> <span class="operator">(</span> <span class="variable">$fileNumber</span><span class="operator">,</span> <span class="variable">$begin</span><span class="operator">,</span> <span class="variable">$end</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">$index</span><span class="operator">-&gt;</span><span class="variable">unpack_record</span><span class="operator">(</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">db</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$id</span><span class="operator">}</span> <span class="operator">)</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="number">3</span> <span class="variable">element</span> <span class="variable">ARRAY</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">STRING</span> <span class="variable">containing</span> <span class="variable">ASCII</span> <span class="number">034</span>
+</code></code></pre>
+
+<h2 id="DESTROY">DESTROY</h2>
+
+<pre><code><code> Title   : DESTROY
+ Usage   : Called automatically when index goes out of scope
+ Function: Closes connection to database and handles to
+           sequence files
+ Returns : NEVER
+ Args    : NONE</code></code></pre>
+
+
+</body>
+
+</html>
+
+

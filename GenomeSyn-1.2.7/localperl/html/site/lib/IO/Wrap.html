@@ -1,0 +1,162 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#NOTES">NOTES</a></li>
+  <li><a href="#WARNINGS">WARNINGS</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>IO::Wrap - wrap raw filehandles in IO::Handle interface</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="keyword">use</span> <span class="variable">IO::Wrap</span><span class="operator">;</span>
+       
+   <span class="comment">### Do stuff with any kind of filehandle (including a bare globref), or </span>
+   <span class="comment">### any kind of blessed object that responds to a print() message.</span>
+   <span class="comment">###</span>
+   <span class="keyword">sub</span><span class="variable"> do_stuff </span><span class="operator">{</span>
+       <span class="keyword">my</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>         
+       
+       <span class="comment">### At this point, we have no idea what the user gave us... </span>
+       <span class="comment">### a globref? a FileHandle? a scalar filehandle name?</span>
+       
+       <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">wraphandle</span><span class="operator">(</span><span class="variable">$fh</span><span class="operator">);</span>  
+        
+       <span class="comment">### At this point, we know we have an IO::Handle-like object!</span>
+       
+       <span class="variable">$fh</span><span class="operator">-&gt;</span><span class="variable">print</span><span class="operator">(</span><span class="string">"Hey there!"</span><span class="operator">);</span>
+       <span class="operator">...</span>
+   <span class="operator">}</span>
+    
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Let&#39;s say you want to write some code which does I/O, but you don&#39;t want to force the caller to provide you with a FileHandle or IO::Handle object. You want them to be able to say:</p>
+
+<pre><code><code>    <span class="variable">do_stuff</span><span class="operator">(\</span><span class="variable">*STDOUT</span><span class="operator">);</span>
+    <span class="variable">do_stuff</span><span class="operator">(</span><span class="string">'STDERR'</span><span class="operator">);</span>
+    <span class="variable">do_stuff</span><span class="operator">(</span><span class="variable">$some_FileHandle_object</span><span class="operator">);</span>
+    <span class="variable">do_stuff</span><span class="operator">(</span><span class="variable">$some_IO_Handle_object</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>And even:</p>
+
+<pre><code><code>    <span class="variable">do_stuff</span><span class="operator">(</span><span class="variable">$any_object_with_a_print_method</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Sure, one way to do it is to force the caller to use tiehandle(). But that puts the burden on them. Another way to do it is to use <b>IO::Wrap</b>, which provides you with the following functions:</p>
+
+<dl>
+
+<dt id="wraphandle-SCALAR">wraphandle SCALAR</dt>
+<dd>
+
+<p>This function will take a single argument, and &quot;wrap&quot; it based on what it seems to be...</p>
+
+<ul>
+
+<li><p><b>A raw scalar filehandle name,</b> like <code><code>&quot;STDOUT&quot;</code></code> or <code><code>&quot;Class::HANDLE&quot;</code></code>. In this case, the filehandle name is wrapped in an IO::Wrap object, which is returned.</p>
+
+</li>
+<li><p><b>A raw filehandle glob,</b> like <code><code>\*STDOUT</code></code>. In this case, the filehandle glob is wrapped in an IO::Wrap object, which is returned.</p>
+
+</li>
+<li><p><b>A blessed FileHandle object.</b> In this case, the FileHandle is wrapped in an IO::Wrap object if and only if your FileHandle class does not support the <code><code>read()</code></code> method.</p>
+
+</li>
+<li><p><b>Any other kind of blessed object,</b> which is assumed to be already conformant to the IO::Handle interface. In this case, you just get back that object.</p>
+
+</li>
+</ul>
+
+</dd>
+</dl>
+
+<p>If you get back an IO::Wrap object, it will obey a basic subset of the IO:: interface. That is, the following methods (note: I said <i>methods</i>, not named operators) should work on the thing you get back:</p>
+
+<pre><code><code>    close 
+    getline 
+    getlines 
+    print ARGS...
+    read BUFFER,NBYTES
+    seek POS,WHENCE
+    tell </code></code></pre>
+
+<h1 id="NOTES">NOTES</h1>
+
+<p>Clearly, when wrapping a raw external filehandle (like \*STDOUT), I didn&#39;t want to close the file descriptor when the &quot;wrapper&quot; object is destroyed... since the user might not appreciate that! Hence, there&#39;s no DESTROY method in this class.</p>
+
+<p>When wrapping a FileHandle object, however, I believe that Perl will invoke the FileHandle::DESTROY when the last reference goes away, so in that case, the filehandle is closed if the wrapped FileHandle really was the last reference to it.</p>
+
+<h1 id="WARNINGS">WARNINGS</h1>
+
+<p>This module does not allow you to wrap filehandle names which are given as strings that lack the package they were opened in. That is, if a user opens FOO in package Foo, they must pass it to you either as <code><code>\*FOO</code></code> or as <code><code>&quot;Foo::FOO&quot;</code></code>. However, <code><code>&quot;STDIN&quot;</code></code> and friends will work just fine.</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>$Id: Wrap.pm,v 1.2 2005/02/10 21:21:53 dfs Exp $</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<dl>
+
+<dt id="Primary-Maintainer">Primary Maintainer</dt>
+<dd>
+
+<p>David F. Skoll (<i>dfs@roaringpenguin.com</i>).</p>
+
+</dd>
+<dt id="Original-Author">Original Author</dt>
+<dd>
+
+<p>Eryq (<i>eryq@zeegee.com</i>). President, ZeeGee Software Inc (<i>http://www.zeegee.com</i>).</p>
+
+</dd>
+</dl>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt id="Around-line-212:">Around line 212:</dt>
+<dd>
+
+<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+

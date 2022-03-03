@@ -1,0 +1,346 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Lincoln-Stein">AUTHOR - Lincoln Stein</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#types">types</a></li>
+      <li><a href="#parse_types">parse_types</a></li>
+      <li><a href="#segment">segment</a></li>
+      <li><a href="#features">features</a></li>
+      <li><a href="#get_feature_by_name">get_feature_by_name</a></li>
+      <li><a href="#get_feature_by_target">get_feature_by_target</a></li>
+      <li><a href="#get_feature_by_id">get_feature_by_id</a></li>
+      <li><a href="#get_feature_by_attribute">get_feature_by_attribute</a></li>
+      <li><a href="#search_notes">search_notes</a></li>
+      <li><a href="#get_seq_stream">get_seq_stream</a></li>
+      <li><a href="#refclass">refclass</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DasI - DAS-style access to a feature database</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># Open up a feature database somehow...</span>
+  <span class="variable">$db</span> <span class="operator">=</span> <span class="variable">Bio::DasI</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">);</span>
+  
+  <span class="variable">@segments</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">segment</span><span class="operator">(</span><span class="string">-name</span>  <span class="operator">=&gt;</span> <span class="string">'NT_29921.4'</span><span class="operator">,</span>
+                           <span class="string">-start</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                           <span class="string">-end</span>   <span class="operator">=&gt;</span> <span class="number">1000000</span><span class="operator">);</span>
+  
+  <span class="comment"># segments are Bio::Das::SegmentI - compliant objects</span>
+  
+  <span class="comment"># fetch a list of features</span>
+  <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">-type</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">'type1'</span><span class="operator">,</span><span class="string">'type2'</span><span class="operator">,</span><span class="string">'type3'</span><span class="operator">]</span><span class="operator">);</span>
+  
+  <span class="comment"># invoke a callback over features</span>
+  <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">-type</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">'type1'</span><span class="operator">,</span><span class="string">'type2'</span><span class="operator">,</span><span class="string">'type3'</span><span class="operator">]</span><span class="operator">,</span>
+                <span class="string">-callback</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span>
+                <span class="operator">);</span>
+  
+  <span class="variable">$stream</span>   <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_seq_stream</span><span class="operator">(</span><span class="string">-type</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">'type1'</span><span class="operator">,</span><span class="string">'type2'</span><span class="operator">,</span><span class="string">'type3'</span><span class="operator">]</span><span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+     <span class="comment"># each feature is a Bio::SeqFeatureI-compliant object</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># get all feature types</span>
+  <span class="variable">@types</span>   <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">types</span><span class="operator">;</span>
+  
+  <span class="comment"># count types</span>
+  <span class="variable">%types</span>   <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">types</span><span class="operator">(</span><span class="string">-enumerate</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span>
+  
+  <span class="variable">@feature</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_feature_by_name</span><span class="operator">(</span><span class="variable">$class</span><span class="operator">=&gt;</span><span class="variable">$name</span><span class="operator">);</span>
+  <span class="variable">@feature</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_feature_by_target</span><span class="operator">(</span><span class="variable">$target_name</span><span class="operator">);</span>
+  <span class="variable">@feature</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_feature_by_attribute</span><span class="operator">(</span><span class="variable">$att1</span><span class="operator">=&gt;</span><span class="variable">$value1</span><span class="operator">,</span><span class="variable">$att2</span><span class="operator">=&gt;</span><span class="variable">$value2</span><span class="operator">);</span>
+  <span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_feature_by_id</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">);</span>
+  
+  <span class="variable">$error</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">error</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::DasI is a simplified alternative interface to sequence annotation databases used by the distributed annotation system (see <a>Bio::Das</a>). In this scheme, the genome is represented as a series of features, a subset of which are named. Named features can be used as reference points for retrieving &quot;segments&quot; (see <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Das/SegmentI.html">Bio::Das::SegmentI</a>), and these can, in turn, be used as the basis for exploring the genome further.</p>
+
+<p>In addition to a name, each feature has a &quot;class&quot;, which is essentially a namespace qualifier and a &quot;type&quot;, which describes what type of feature it is. Das uses the GO consortium&#39;s ontology of feature types, and so the type is actually an object of class Bio::Das::FeatureTypeI (see <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Das/FeatureTypeI.html">Bio::Das::FeatureTypeI</a>). Bio::DasI provides methods for interrogating the database for the types it contains and the counts of each type.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Lincoln-Stein">AUTHOR - Lincoln Stein</h1>
+
+<p>Email lstein@cshl.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : Bio::DasI-&gt;new(@args)
+ Function: Create new Bio::DasI object
+ Returns : a Bio::DasI object
+ Args    : see below</code></code></pre>
+
+<p>The new() method creates a new object. The argument list is either a single argument consisting of a connection string, or the following list of -name=&gt;value arguments:</p>
+
+<pre><code><code>   Argument        Description
+   --------        -----------
+
+   -dsn            Connection string for database
+   -adaptor        Name of an adaptor class to use when connecting
+   -aggregator     Array ref containing list of aggregators
+                     &quot;semantic mappers&quot; to apply to database
+   -user           Authentication username
+   -pass           Authentication password</code></code></pre>
+
+<p>Implementors of DasI may add other arguments.</p>
+
+<h2 id="types">types</h2>
+
+<pre><code><code> Title   : types
+ Usage   : $db-&gt;types(@args)
+ Function: return list of feature types in database
+ Returns : a list of Bio::Das::FeatureTypeI objects
+ Args    : see below</code></code></pre>
+
+<p>This routine returns a list of feature types known to the database. It is also possible to find out how many times each feature occurs.</p>
+
+<p>Arguments are -option=&gt;value pairs as follows:</p>
+
+<pre><code><code>  -enumerate  if true, count the features</code></code></pre>
+
+<p>The returned value will be a list of Bio::Das::FeatureTypeI objects (see <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Das/FeatureTypeI.html">Bio::Das::FeatureTypeI</a>.</p>
+
+<p>If -enumerate is true, then the function returns a hash (not a hash reference) in which the keys are the stringified versions of Bio::Das::FeatureTypeI and the values are the number of times each feature appears in the database.</p>
+
+<h2 id="parse_types">parse_types</h2>
+
+<pre><code><code> Title   : parse_types
+ Usage   : $db-&gt;parse_types(@args)
+ Function: parses list of types
+ Returns : an array ref containing [&#39;method&#39;,&#39;source&#39;] pairs
+ Args    : a list of types in &#39;method:source&#39; form
+ Status  : internal</code></code></pre>
+
+<p>This method takes an array of type names in the format &quot;method:source&quot; and returns an array reference of [&#39;method&#39;,&#39;source&#39;] pairs. It will also accept a single argument consisting of an array reference with the list of type names.</p>
+
+<h2 id="segment">segment</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">segment</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">segment</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">create</span> <span class="variable">a</span> <span class="variable">segment</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">segment</span> <span class="variable">object</span><span class="operator">(</span><span class="regex">s)
+ Args    : see below
+ </span>
+</code></code></pre>
+
+<p>This method generates a Bio::Das::SegmentI object (see <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Das/SegmentI.html">Bio::Das::SegmentI</a>). The segment can be used to find overlapping features and the raw sequence.</p>
+
+<p>When making the segment() call, you specify the ID of a sequence landmark (e.g. an accession number, a clone or contig), and a positional range relative to the landmark. If no range is specified, then the entire region spanned by the landmark is used to generate the segment.</p>
+
+<p>Arguments are -option=&gt;value pairs as follows:</p>
+
+<pre><code><code> -name         ID of the landmark sequence.
+
+ -class        A namespace qualifier.  It is not necessary for the
+               database to honor namespace qualifiers, but if it
+               does, this is where the qualifier is indicated.
+
+ -version      Version number of the landmark.  It is not necessary for
+               the database to honor versions, but if it does, this is
+               where the version is indicated.
+
+ -start        Start of the segment relative to landmark.  Positions
+               follow standard 1-based sequence rules.  If not specified,
+               defaults to the beginning of the landmark.
+
+ -end          End of the segment relative to the landmark.  If not specified,
+               defaults to the end of the landmark.</code></code></pre>
+
+<p>The return value is a list of Bio::Das::SegmentI objects. If the method is called in a scalar context and there are no more than one segments that satisfy the request, then it is allowed to return the segment. Otherwise, the method must throw a &quot;multiple segment exception&quot;.</p>
+
+<h2 id="features">features</h2>
+
+<pre><code><code> Title   : features
+ Usage   : $db-&gt;features(@args)
+ Function: get all features, possibly filtered by type
+ Returns : a list of Bio::SeqFeatureI objects
+ Args    : see below
+ Status  : public</code></code></pre>
+
+<p>This routine will retrieve features in the database regardless of position. It can be used to return all features, or a subset based on their type</p>
+
+<p>Arguments are -option=&gt;value pairs as follows:</p>
+
+<pre><code><code>  -types     List of feature types to return.  Argument is an array
+             of Bio::Das::FeatureTypeI objects or a set of strings
+             that can be converted into FeatureTypeI objects.
+
+  -callback   A callback to invoke on each feature.  The subroutine
+              will be passed each Bio::SeqFeatureI object in turn.
+
+  -attributes A hash reference containing attributes to match.</code></code></pre>
+
+<p>The -attributes argument is a hashref containing one or more attributes to match against:</p>
+
+<pre><code><code>  <span class="string">-attributes</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">Gene</span> <span class="operator">=&gt;</span> <span class="string">'abc-1'</span><span class="operator">,</span>
+                   <span class="string">Note</span> <span class="operator">=&gt;</span> <span class="string">'confirmed'</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>Attribute matching is simple exact string matching, and multiple attributes are ANDed together. See <a>Bio::DB::ConstraintsI</a> for a more sophisticated take on this.</p>
+
+<p>If one provides a callback, it will be invoked on each feature in turn. If the callback returns a false value, iteration will be interrupted. When a callback is provided, the method returns undef.</p>
+
+<h2 id="get_feature_by_name">get_feature_by_name</h2>
+
+<pre><code><code> Title   : get_feature_by_name
+ Usage   : $db-&gt;get_feature_by_name(-class=&gt;$class,-name=&gt;$name)
+ Function: fetch features by their name
+ Returns : a list of Bio::SeqFeatureI objects
+ Args    : the class and name of the desired feature
+ Status  : public</code></code></pre>
+
+<p>This method can be used to fetch named feature(s) from the database. The -class and -name arguments have the same meaning as in segment(), and the method also accepts the following short-cut forms:</p>
+
+<pre><code><code>  1) one argument: the argument is treated as the feature name
+  2) two arguments: the arguments are treated as the class and name
+     (note: this uses _rearrange() so the first argument must not
+     begin with a hyphen or it will be interpreted as a named
+     argument).</code></code></pre>
+
+<p>This method may return zero, one, or several Bio::SeqFeatureI objects. The implementor may allow the name to contain wildcards, in which case standard C-shell glob semantics are expected.</p>
+
+<h2 id="get_feature_by_target">get_feature_by_target</h2>
+
+<pre><code><code> Title   : get_feature_by_target
+ Usage   : $db-&gt;get_feature_by_target($class =&gt; $name)
+ Function: fetch features by their similarity target
+ Returns : a list of Bio::SeqFeatureI objects
+ Args    : the class and name of the desired feature
+ Status  : public</code></code></pre>
+
+<p>This method can be used to fetch a named feature from the database based on its similarity hit. The arguments are the same as get_feature_by_name(). If this is not implemented, the interface defaults to using get_feature_by_name().</p>
+
+<h2 id="get_feature_by_id">get_feature_by_id</h2>
+
+<pre><code><code> Title   : get_feature_by_id
+ Usage   : $db-&gt;get_feature_by_target($id)
+ Function: fetch a feature by its ID
+ Returns : a Bio::SeqFeatureI objects
+ Args    : the ID of the feature
+ Status  : public</code></code></pre>
+
+<p>If the database provides unique feature IDs, this can be used to retrieve a single feature from the database. If not overridden, this interface calls get_feature_by_name() and returns the first element.</p>
+
+<h2 id="get_feature_by_attribute">get_feature_by_attribute</h2>
+
+<pre><code><code> Title   : get_feature_by_attribute
+ Usage   : $db-&gt;get_feature_by_attribute(attribute1=&gt;value1,attribute2=&gt;value2)
+ Function: fetch features by combinations of attribute values
+ Returns : a list of Bio::SeqFeatureI objects
+ Args    : the class and name of the desired feature
+ Status  : public</code></code></pre>
+
+<p>This method can be used to fetch a set of features from the database. Attributes are a list of name=&gt;value pairs. They will be logically ANDed together. If an attribute value is an array reference, the list of values in the array is treated as an alternative set of values to be ORed together.</p>
+
+<h2 id="search_notes">search_notes</h2>
+
+<pre><code><code> Title   : search_notes
+ Usage   : $db-&gt;search_notes($search_term,$max_results)
+ Function: full-text search on features, ENSEMBL-style
+ Returns : an array of [$name,$description,$score]
+ Args    : see below
+ Status  : public</code></code></pre>
+
+<p>This routine performs a full-text search on feature attributes (which attributes depend on implementation) and returns a list of [$name,$description,$score], where $name is the feature ID, $description is a human-readable description such as a locus line, and $score is the match strength.</p>
+
+<p>Since this is a decidedly non-standard thing to do (but the generic genome browser uses it), the default method returns an empty list. You do not have to implement it.</p>
+
+<h2 id="get_seq_stream">get_seq_stream</h2>
+
+<pre><code><code> Title   : get_seq_stream
+ Usage   : $seqio = $db-&gt;get_seq_stream(@args)
+ Function: Performs a query and returns an iterator over it
+ Returns : a Bio::SeqIO stream capable of returning Bio::SeqFeatureI objects
+ Args    : As in features()
+ Status  : public</code></code></pre>
+
+<p>This routine takes the same arguments as features(), but returns a Bio::SeqIO::Stream-compliant object. Use it like this:</p>
+
+<pre><code><code>  <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_seq_stream</span><span class="operator">(</span><span class="string">'exon'</span><span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$exon</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+     <span class="keyword">print</span> <span class="variable">$exon</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>NOTE: In the interface this method is aliased to get_feature_stream(), as the name is more descriptive.</p>
+
+<h2 id="refclass">refclass</h2>
+
+<pre><code><code> Title   : refclass
+ Usage   : $class = $db-&gt;refclass
+ Function: returns the default class to use for segment() calls
+ Returns : a string
+ Args    : none
+ Status  : public</code></code></pre>
+
+<p>For data sources which use namespaces to distinguish reference sequence accessions, this returns the default namespace (or &quot;class&quot;) to use. This interface defines a default of &quot;Accession&quot;.</p>
+
+
+</body>
+
+</html>
+
+

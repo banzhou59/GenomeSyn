@@ -1,0 +1,310 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#OPTIONS">OPTIONS</a></li>
+  <li><a href="#FILES">FILES</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new-">new()</a></li>
+      <li><a href="#run">run</a></li>
+      <li><a href="#run_maq-">run_maq()</a></li>
+      <li><a href="#stdout-">stdout()</a></li>
+      <li><a href="#stderr-">stderr()</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::Tools::Run::AssemblerBase-overrides">Bio::Tools::Run::AssemblerBase overrides</a>
+    <ul>
+      <li><a href="#check_sequence_input-">_check_sequence_input()</a></li>
+      <li><a href="#check_optional_quality_input-">_check_optional_quality_input()</a></li>
+      <li><a href="#prepare_input_sequences">_prepare_input_sequences</a></li>
+      <li><a href="#collate_subcmd_args-">_collate_subcmd_args()</a></li>
+      <li><a href="#run-">_run()</a></li>
+      <li><a href="#available_parameters-">available_parameters()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::Maq - Run wrapper for the Maq short-read assembler *BETA*</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="comment"># create an assembly</span>
+ <span class="variable">$maq_fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Maq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">$maq_assy</span> <span class="operator">=</span> <span class="variable">$maq_fac</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">'reads.fastq'</span><span class="operator">,</span> <span class="string">'refseq.fas'</span> <span class="operator">);</span>
+ <span class="comment"># if IO::Uncompress::Gunzip is available...</span>
+ <span class="variable">$maq_assy</span> <span class="operator">=</span> <span class="variable">$maq_fac</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">'reads.fastq.gz'</span><span class="operator">,</span> <span class="string">'refseq.gz'</span><span class="operator">);</span>
+ <span class="comment"># paired-end </span>
+ <span class="variable">$maq_assy</span> <span class="operator">=</span> <span class="variable">$maq_fac</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">'reads.fastq'</span><span class="operator">,</span> <span class="string">'refseq.fas'</span><span class="operator">,</span> <span class="string">'paired-reads.fastq'</span><span class="operator">);</span>
+ <span class="comment"># be more strict</span>
+ <span class="variable">$maq_fac</span><span class="operator">-&gt;</span><span class="variable">set_parameters</span><span class="operator">(</span> <span class="string">-c2q_min_map_quality</span> <span class="operator">=&gt;</span> <span class="number">60</span> <span class="operator">);</span>
+ <span class="variable">$maq_assy</span> <span class="operator">=</span> <span class="variable">$maq_fac</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">'reads.fastq'</span><span class="operator">,</span> <span class="string">'refseq.fas'</span><span class="operator">,</span> <span class="string">'paired-reads.fastq'</span><span class="operator">);</span>
+ 
+ <span class="comment"># run maq commands separately</span>
+ <span class="variable">$maq_fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Maq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+    <span class="string">-command</span> <span class="operator">=&gt;</span> <span class="string">'pileup'</span><span class="operator">,</span>
+    <span class="string">-single_end_quality</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+ <span class="variable">$maq_fac</span><span class="operator">-&gt;</span><span class="variable">run_maq</span><span class="operator">(</span> <span class="string">-bfa</span> <span class="operator">=&gt;</span> <span class="string">'refseq.bfa'</span><span class="operator">,</span>
+                    <span class="string">-map</span> <span class="operator">=&gt;</span> <span class="string">'maq_assy.map'</span><span class="operator">,</span>
+                    <span class="string">-txt</span> <span class="operator">=&gt;</span> <span class="string">'maq_assy.pup.txt'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module provides a wrapper interface for Heng Li&#39;s reference-directed short read assembly suite <code><code>maq</code></code> (see <a href="http://maq.sourceforge.net/maq-man.shtml">http://maq.sourceforge.net/maq-man.shtml</a> for manuals and downloads).</p>
+
+<p>There are two modes of action.</p>
+
+<ul>
+
+<li><p>EasyMaq</p>
+
+<p>The first is a simple pipeline through the <code><code>maq</code></code> commands, taking your read data in and squirting out an assembly object of type <a href="../../../../../lib/perl5/Bio/Assembly/IO/maq.html">Bio::Assembly::IO::maq</a>. The pipeline is based on the one performed by <code><code>maq.pl easyrun</code></code>:</p>
+
+<pre><code><code> Action                  maq commands
+ ------                  ------------
+ data conversion to      fasta2bfa, fastq2bfq
+ maq binary formats
+
+ map sequence reads      map
+ to reference seq
+
+ assemble, creating      assemble
+ consensus
+
+ convert map &amp; cns       mapview, cns2fq
+ files to plaintext
+ (for B:A:IO:maq)</code></code></pre>
+
+<p>Command-line options can be directed to the <code><code>map</code></code>, <code><code>assemble</code></code>, and <code><code>cns2fq</code></code> steps. See <a href="#OPTIONS">&quot;OPTIONS&quot;</a> below.</p>
+
+</li>
+<li><p>BigMaq</p>
+
+<p>The second mode is direct access to <code><code>maq</code></code> commands. To run a <code><code>maq</code></code> command, construct a run factory, specifying the desired command using the <code><code>-command</code></code> argument in the factory constructor, along with options specific to that command (see <a href="#OPTIONS">&quot;OPTIONS&quot;</a>):</p>
+
+<pre><code><code> <span class="variable">$maqfac</span><span class="operator">-&gt;</span><span class="variable">Bio::Tools::Run::Maq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-command</span> <span class="operator">=&gt;</span> <span class="string">'fasta2bfa'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>To execute, use the <code><code>run_maq</code></code> methods. Input and output files are specified in the arguments of <code><code>run_maq</code></code> (see <a href="#FILES">&quot;FILES&quot;</a>):</p>
+
+<pre><code><code> <span class="variable">$maqfac</span><span class="operator">-&gt;</span><span class="variable">run_maq</span><span class="operator">(</span> <span class="string">-fas</span> <span class="operator">=&gt;</span> <span class="string">"myref.fas"</span><span class="operator">,</span> <span class="string">-bfa</span> <span class="operator">=&gt;</span> <span class="string">"myref.bfa"</span> <span class="operator">);</span>
+</code></code></pre>
+
+</li>
+</ul>
+
+<h1 id="OPTIONS">OPTIONS</h1>
+
+<p><code><code>maq</code></code> is complex, with many subprograms (commands) and command-line options and file specs for each. This module attempts to provide commands and options comprehensively. You can browse the choices like so:</p>
+
+<pre><code><code> <span class="variable">$maqfac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Maq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-command</span> <span class="operator">=&gt;</span> <span class="string">'assemble'</span> <span class="operator">);</span>
+ <span class="comment"># all maq commands</span>
+ <span class="variable">@all_commands</span> <span class="operator">=</span> <span class="variable">$maqfac</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">(</span><span class="string">'commands'</span><span class="operator">);</span> 
+ <span class="variable">@all_commands</span> <span class="operator">=</span> <span class="variable">$maqfac</span><span class="operator">-&gt;</span><span class="variable">available_commands</span><span class="operator">;</span> <span class="comment"># alias</span>
+ <span class="comment"># just for assemble</span>
+ <span class="variable">@assemble_params</span> <span class="operator">=</span> <span class="variable">$maqfac</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">(</span><span class="string">'params'</span><span class="operator">);</span>
+ <span class="variable">@assemble_switches</span> <span class="operator">=</span> <span class="variable">$maqfac</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">(</span><span class="string">'switches'</span><span class="operator">);</span>
+ <span class="variable">@assemble_all_options</span> <span class="operator">=</span> <span class="variable">$maqfac</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">();</span>
+</code></code></pre>
+
+<p>Reasonably mnemonic names have been assigned to the single-letter command line options. These are the names returned by <code><code>available_parameters</code></code>, and can be used in the factory constructor like typical BioPerl named parameters.</p>
+
+<p>See <a href="http://maq.sourceforge.net/maq-manpage.shtml">http://maq.sourceforge.net/maq-manpage.shtml</a> for the gory details.</p>
+
+<h1 id="FILES">FILES</h1>
+
+<p>When a command requires filenames, these are provided to the <code><code>run_maq</code></code> method, not the constructor (<code><code>new()</code></code>). To see the set of files required by a command, use <code><code>available_parameters(&#39;filespec&#39;)</code></code> or the alias <code><code>filespec()</code></code>:</p>
+
+<pre><code><code>  <span class="variable">$maqfac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Maq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-command</span> <span class="operator">=&gt;</span> <span class="string">'map'</span> <span class="operator">);</span>
+  <span class="variable">@filespec</span> <span class="operator">=</span> <span class="variable">$maqfac</span><span class="operator">-&gt;</span><span class="variable">filespec</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This example returns the following array:</p>
+
+<pre><code><code> map
+ bfa 
+ bfq1 
+ #bfq2 
+ 2&gt;#log</code></code></pre>
+
+<p>This indicates that map (<code><code>maq</code></code> binary mapfile), bfa (<code><code>maq</code></code> binary fasta), and bfq (<code><code>maq</code></code> binary fastq) files MUST be specified, another bfq file MAY be specified, and a log file receiving STDERR also MAY be specified. Use these in the <code><code>run_maq</code></code> call like so:</p>
+
+<pre><code><code> <span class="variable">$maqfac</span><span class="operator">-&gt;</span><span class="variable">run_maq</span><span class="operator">(</span> <span class="string">-map</span> <span class="operator">=&gt;</span> <span class="string">'my.map'</span><span class="operator">,</span> <span class="string">-bfa</span> <span class="operator">=&gt;</span> <span class="string">'myrefseq.bfa'</span><span class="operator">,</span>
+                   <span class="string">-bfq1</span> <span class="operator">=&gt;</span> <span class="string">'reads1.bfq'</span><span class="operator">,</span> <span class="string">-bfq2</span> <span class="operator">=&gt;</span> <span class="string">'reads2.bfq'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Here, the <code><code>log</code></code> parameter was unspecified. Therefore, the object will store the programs STDERR output for you in the <code><code>stderr()</code></code> attribute:</p>
+
+<pre><code><code> <span class="variable">handle_map_warning</span><span class="operator">(</span><span class="variable">$maqfac</span><span class="operator">)</span> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$maqfac</span><span class="operator">-&gt;</span><span class="variable">stderr</span> <span class="operator">=~</span> <span class="regex">/warning/</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>STDOUT for a run is also saved, in <code><code>stdout()</code></code>, unless a file is specified to slurp it according to the filespec. <code><code>maq</code></code> STDOUT usually contains useful information on the run.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><a>bioperl-l@bioperl.org</a></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<pre><code><code> Email maj -at- fortinbras -dot- us</code></code></pre>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new-">new()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::Tools::Run::Maq</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Tools::Run::Maq</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">of</span> <span class="variable">Bio::Tools::Run::Maq</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="run">run</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">run</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$assembly</span> <span class="operator">=</span> <span class="variable">$maq_assembler</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$read1_fastq_file</span><span class="operator">,</span> 
+                                           <span class="variable">$refseq_fasta_file</span><span class="operator">,</span>
+                                           <span class="variable">$read2_fastq_file</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Run</span> <span class="variable">the</span> <span class="variable">maq</span> <span class="variable">assembly</span> <span class="variable">pipeline</span><span class="operator">.</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Assembly</span> <span class="variable">results</span> <span class="operator">(</span><span class="variable">file</span><span class="operator">,</span> <span class="variable">IO</span> <span class="variable">object</span> <span class="keyword">or</span> <span class="variable">Assembly</span> <span class="variable">object</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">-</span> <span class="variable">fastq</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">single</span><span class="operator">-</span><span class="variable">end</span> <span class="variable">reads</span>
+           <span class="operator">-</span> <span class="variable">fasta</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">the</span> <span class="variable">reference</span> <span class="variable">sequence</span>
+           <span class="operator">-</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">fastq</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">paired</span><span class="operator">-</span><span class="variable">end</span> <span class="variable">reads</span> 
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">gzipped</span> <span class="variable">inputs</span> <span class="variable">are</span> <span class="variable">allowed</span> <span class="keyword">if</span> <span class="variable">IO::Uncompress::Gunzip</span>
+           <span class="variable">is</span> <span class="variable">available</span>
+             
+</code></code></pre>
+
+<h2 id="run_maq-">run_maq()</h2>
+
+<pre><code><code> Title   : run_maq
+ Usage   : $obj-&gt;run_maq( @file_args )
+ Function: Run a maq command as specified during object contruction
+ Returns : 
+ Args    : a specification of the files to operate on:</code></code></pre>
+
+<h2 id="stdout-">stdout()</h2>
+
+<pre><code><code> Title   : stdout
+ Usage   : $fac-&gt;stdout()
+ Function: store the output from STDOUT for the run, 
+           if no file specified in run_maq()
+ Example : 
+ Returns : scalar string
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="stderr-">stderr()</h2>
+
+<pre><code><code> Title   : stderr
+ Usage   : $fac-&gt;stderr()
+ Function: store the output from STDERR for the run, 
+           if no file is specified in run_maq()
+ Example : 
+ Returns : scalar string
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h1 id="Bio::Tools::Run::AssemblerBase-overrides">Bio::Tools::Run::AssemblerBase overrides</h1>
+
+<h2 id="check_sequence_input-">_check_sequence_input()</h2>
+
+<pre><code><code> No-op.</code></code></pre>
+
+<h2 id="check_optional_quality_input-">_check_optional_quality_input()</h2>
+
+<pre><code><code> No-op.</code></code></pre>
+
+<h2 id="prepare_input_sequences">_prepare_input_sequences</h2>
+
+<pre><code><code> Convert input fastq and fasta to maq format.</code></code></pre>
+
+<h2 id="collate_subcmd_args-">_collate_subcmd_args()</h2>
+
+<pre><code><code> Title   : _collate_subcmd_args
+ Usage   : $args_hash = $self-&gt;_collate_subcmd_args
+ Function: collate parameters and switches into command-specific
+           arg lists for passing to new()
+ Returns : hash of named argument lists
+ Args    : [optional] composite cmd prefix (scalar string) 
+           [default is &#39;run&#39;]</code></code></pre>
+
+<h2 id="run-">_run()</h2>
+
+<pre><code><code> Title   :   _run
+ Usage   :   $factory-&gt;_run()
+ Function:   Run a maq assembly pipeline
+ Returns :   depends on call (An assembly file)
+ Args    :   - single end read file in maq bfq format
+             - reference seq file in maq bfa format
+             - [optional] paired end read file in maq bfq format</code></code></pre>
+
+<h2 id="available_parameters-">available_parameters()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">available_parameters</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@cmds</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">available_commands</span><span class="operator">(</span><span class="string">'commands'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Use</span> <span class="variable">to</span> <span class="variable">browse</span> <span class="variable">available</span> <span class="variable">commands</span><span class="operator">,</span> <span class="variable">params</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">switches</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="keyword">scalar</span> <span class="variable">strings</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">'commands'</span> <span class="operator">:</span> <span class="variable">all</span> <span class="variable">maq</span> <span class="variable">commands</span>
+           <span class="string">'params'</span>   <span class="operator">:</span> <span class="variable">parameters</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">object's</span> <span class="variable">command</span>
+           <span class="string">'switches'</span> <span class="operator">:</span> <span class="variable">boolean</span> <span class="variable">switches</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">object's</span> <span class="variable">command</span>
+           <span class="string">'filespec'</span> <span class="operator">:</span> <span class="variable">the</span> <span class="variable">filename</span> <span class="variable">spec</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">object's</span> <span class="variable">command</span>
+ <span class="number">4</span><span class="variable">Geeks</span>  <span class="operator">:</span> <span class="variable">Overrides</span> <span class="variable">Bio::ParameterBaseI</span> <span class="variable">via</span> 
+           <span class="variable">Bio::Tools::Run::AssemblerBase</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

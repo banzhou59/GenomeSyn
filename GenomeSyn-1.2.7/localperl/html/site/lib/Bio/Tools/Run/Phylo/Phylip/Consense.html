@@ -1,0 +1,376 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#PARAMETERS-FOR-Consense">PARAMETERS FOR Consense</a>
+    <ul>
+      <li><a href="#TYPE">TYPE</a></li>
+      <li><a href="#ROOTED">ROOTED</a></li>
+      <li><a href="#OUTGROUP">OUTGROUP</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#idlength">idlength</a></li>
+      <li><a href="#run">run</a></li>
+      <li><a href="#run1">_run</a></li>
+      <li><a href="#setinput-">_setinput()</a></li>
+      <li><a href="#names-">names()</a></li>
+      <li><a href="#setparams-">_setparams()</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::Tools::Run::Wrapper-methods">Bio::Tools::Run::Wrapper methods</a>
+    <ul>
+      <li><a href="#no_param_checks">no_param_checks</a></li>
+      <li><a href="#save_tempfiles">save_tempfiles</a></li>
+      <li><a href="#outfile_name">outfile_name</a></li>
+      <li><a href="#tempdir">tempdir</a></li>
+      <li><a href="#cleanup">cleanup</a></li>
+      <li><a href="#io">io</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::Phylo::Phylip::Consense - Wrapper for the phylip program Consense</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::Consense</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::SeqBoot</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::ProtDist</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::Neighbor</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::DrawTree</span><span class="operator">;</span>
+  
+  
+  <span class="comment">#first get an alignment</span>
+  <span class="keyword">my</span> <span class="variable">$aio</span><span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$ARGV</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">,</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">"clustalw"</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$aio</span><span class="operator">-&gt;</span><span class="variable">next_aln</span><span class="operator">;</span>
+  
+  <span class="comment"># To prevent truncation of sequence names by PHYLIP runs, use set_displayname_safe</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$aln_safe</span><span class="operator">,</span> <span class="variable">$ref_name</span><span class="operator">)=</span><span class="variable">$aln</span><span class="operator">-&gt;</span><span class="variable">set_displayname_safe</span><span class="operator">();</span>
+  
+  <span class="comment">#next use seqboot to generate multiple aligments</span>
+  <span class="keyword">my</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'datatype'</span><span class="operator">=&gt;</span><span class="string">'SEQUENCE'</span><span class="operator">,</span><span class="string">'replicates'</span><span class="operator">=&gt;</span><span class="number">10</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$seqboot_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::SeqBoot</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$aln_ref</span><span class="operator">=</span> <span class="variable">$seqboot_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+  
+  <span class="variable">Or</span><span class="operator">,</span> <span class="keyword">for</span> <span class="variable">long</span> <span class="variable">sequence</span> <span class="variable">names</span><span class="operator">:</span>
+  
+  <span class="keyword">my</span> <span class="variable">$aln_ref</span><span class="operator">=</span> <span class="variable">$seqboot_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$aln_safe</span><span class="operator">);</span>
+  
+  <span class="comment">#next build distance matrices and construct trees</span>
+  <span class="keyword">my</span> <span class="variable">$pd_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::ProtDist</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+  <span class="keyword">my</span> <span class="variable">$ne_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::Neighbor</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+  
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$a</span> <span class="operator">(</span><span class="variable">@</span><span class="operator">{</span><span class="variable">$aln_ref</span><span class="operator">}</span><span class="operator">){</span>
+    <span class="keyword">my</span> <span class="variable">$mat</span> <span class="operator">=</span> <span class="variable">$pd_factory</span><span class="operator">-&gt;</span><span class="variable">create_distance_matrix</span><span class="operator">(</span><span class="variable">$a</span><span class="operator">);</span>
+    <span class="keyword">push</span> <span class="variable">@tree</span><span class="operator">,</span> <span class="variable">$ne_factory</span><span class="operator">-&gt;</span><span class="variable">create_tree</span><span class="operator">(</span><span class="variable">$mat</span><span class="operator">);</span>
+  <span class="operator">}</span>
+  
+  <span class="comment">#now use consense to get a final tree</span>
+  <span class="keyword">my</span> <span class="variable">$con_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::Consense</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+  
+  <span class="comment">#you may set outgroup either by the number representing the order in</span>
+  <span class="comment">#which species are entered or by the name of the species</span>
+  
+  <span class="variable">$con_factory</span><span class="operator">-&gt;</span><span class="variable">outgroup</span><span class="operator">(</span><span class="number">1</span><span class="operator">);</span>
+  <span class="variable">$con_factory</span><span class="operator">-&gt;</span><span class="variable">outgroup</span><span class="operator">(</span><span class="string">'HUMAN'</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$tree</span> <span class="operator">=</span> <span class="variable">$con_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(\</span><span class="variable">@tree</span><span class="operator">);</span>
+  
+  <span class="comment"># Restore original sequence names, after ALL phylip runs:</span>
+  <span class="keyword">my</span> <span class="variable">@nodes</span> <span class="operator">=</span> <span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">get_nodes</span><span class="operator">();</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$nd</span> <span class="operator">(</span><span class="variable">@nodes</span><span class="operator">){</span>
+     <span class="variable">$nd</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">(</span><span class="variable">$ref_name</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$nd</span><span class="operator">-&gt;</span><span class="variable">id_output</span><span class="operator">}</span><span class="operator">)</span> <span class="keyword">if</span> <span class="variable">$nd</span><span class="operator">-&gt;</span><span class="variable">is_Leaf</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="comment">#now draw the tree</span>
+  <span class="keyword">my</span> <span class="variable">$draw_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::DrawTree</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+  <span class="keyword">my</span> <span class="variable">$image_filename</span> <span class="operator">=</span> <span class="variable">$draw_factory</span><span class="operator">-&gt;</span><span class="variable">draw_tree</span><span class="operator">(</span><span class="variable">$tree</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Wrapper for phylip consense program</p>
+
+<p>Taken from phylip documentation...</p>
+
+<p>CONSENSE reads a file of computer-readable trees and prints out (and may also write out onto a file) a consensus tree. At the moment it carries out a family of consensus tree methods called the M[l] methods (Margush and McMorris, 1981). These include strict consensus and majority rule consensus. Basically the consensus tree consists of monophyletic groups that occur as often as possible in the data.</p>
+
+<p>More documentation on using Consense and setting parameters may be found in the phylip package.</p>
+
+<p>VERSION Support</p>
+
+<p>This wrapper currently supports v3.5 of phylip. There is also support for v3.6 although this is still experimental as v3.6 is still under alpha release and not all functionalities maybe supported.</p>
+
+<h1 id="PARAMETERS-FOR-Consense">PARAMETERS FOR Consense</h1>
+
+<h2 id="TYPE">TYPE</h2>
+
+<p>Title : TYPE Description : (optional) Only avaliable in phylip v3.6</p>
+
+<pre><code><code>                  <span class="variable">This</span> <span class="variable">program</span> <span class="variable">supports</span> <span class="number">3</span> <span class="variable">types</span> <span class="variable">of</span> <span class="variable">consensus</span> <span class="variable">generation</span> 
+                  
+                  <span class="variable">MRe</span>   <span class="operator">:</span> <span class="variable">Majority</span> <span class="variable">Rule</span> <span class="operator">(</span><span class="variable">extended</span><span class="operator">)</span> <span class="variable">Any</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">species</span> <span class="variable">that</span>
+                          <span class="variable">appears</span> <span class="variable">in</span> <span class="variable">more</span> <span class="variable">than</span> <span class="number">50</span><span class="operator">% </span><span class="variable">of</span> <span class="variable">the</span> <span class="variable">trees</span> <span class="variable">is</span> <span class="variable">included</span><span class="operator">.</span> 
+                          <span class="variable">The</span> <span class="variable">program</span> <span class="variable">then</span> <span class="variable">considers</span> <span class="variable">the</span> <span class="variable">other</span> <span class="variable">sets</span> <span class="variable">of</span> <span class="variable">species</span> 
+                          <span class="variable">in</span> <span class="variable">order</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">frequency</span> <span class="variable">with</span> <span class="variable">which</span> <span class="variable">they</span> <span class="variable">have</span> <span class="variable">appeared</span><span class="operator">,</span> 
+                          <span class="variable">adding</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">consensus</span> <span class="variable">tree</span> <span class="variable">any</span> <span class="variable">which</span> <span class="variable">are</span> <span class="variable">compatible</span> 
+                          <span class="variable">with</span> <span class="variable">it</span> <span class="keyword">until</span>
+                  
+                  <span class="variable">STRICT</span><span class="operator">:</span> <span class="variable">A</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">species</span> <span class="variable">must</span> <span class="variable">appear</span> <span class="variable">in</span> <span class="variable">all</span> <span class="variable">input</span> <span class="variable">trees</span> <span class="variable">to</span> <span class="variable">be</span> 
+                          <span class="variable">included</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">strict</span> <span class="variable">consensus</span> <span class="variable">tree</span><span class="operator">.</span> 
+                  
+                  <span class="variable">MR</span>    <span class="operator">:</span>  <span class="variable">A</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">species</span> <span class="variable">is</span> <span class="variable">included</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">consensus</span> <span class="variable">tree</span> 
+                          <span class="keyword">if</span> <span class="variable">it</span> <span class="variable">is</span> <span class="variable">present</span> <span class="variable">in</span> <span class="variable">more</span> <span class="variable">than</span> <span class="variable">half</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">input</span> <span class="variable">trees</span><span class="operator">.</span> 
+                  
+                  <span class="variable">Ml</span>    <span class="operator">:</span> <span class="variable">The</span> <span class="variable">user</span> <span class="variable">is</span> <span class="variable">asked</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">fraction</span> <span class="variable">between</span> <span class="number">0</span><span class="operator">.</span><span class="number">5</span> <span class="keyword">and</span> <span class="number">1</span><span class="operator">,</span> <span class="keyword">and</span> 
+                          <span class="variable">the</span> <span class="variable">program</span> <span class="variable">then</span> <span class="variable">includes</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">consensus</span> <span class="variable">tree</span> <span class="variable">any</span> <span class="variable">set</span> 
+                          <span class="variable">of</span> <span class="variable">species</span> <span class="variable">that</span> <span class="variable">occurs</span> <span class="variable">among</span> <span class="variable">the</span> <span class="variable">input</span> <span class="variable">trees</span> <span class="variable">more</span> <span class="variable">than</span> 
+                          <span class="variable">that</span> <span class="variable">fraction</span> <span class="variable">of</span> <span class="variable">then</span> <span class="keyword">time</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">Strict</span> <span class="variable">consensus</span> <span class="keyword">and</span> <span class="variable">the</span> 
+                          <span class="variable">Majority</span> <span class="variable">Rule</span> <span class="variable">consensus</span> <span class="variable">are</span> <span class="variable">extreme</span> <span class="variable">cases</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">M</span><span class="operator">[</span><span class="variable">l</span><span class="operator">]</span> <span class="variable">consensus</span><span class="operator">,</span>
+                          <span class="variable">being</span> <span class="keyword">for</span> <span class="variable">fractions</span> <span class="variable">of</span> <span class="number">1</span> <span class="keyword">and</span> <span class="number">0</span><span class="operator">.</span><span class="number">5</span> <span class="variable">respectively</span>
+                  
+                  <span class="variable">usage</span><span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::Consense</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-type</span><span class="operator">=&gt;</span><span class="string">"Ml 0.7"</span><span class="operator">);</span>
+                  
+                  
+                               <span class="variable">Defaults</span> <span class="variable">to</span> <span class="variable">MRe</span> 
+</code></code></pre>
+
+<h2 id="ROOTED">ROOTED</h2>
+
+<pre><code><code>  <span class="variable">Title</span><span class="operator">:</span> <span class="variable">ROOTED</span> 
+  <span class="variable">Description</span><span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+  
+             <span class="variable">toggles</span> <span class="variable">between</span> <span class="variable">the</span> <span class="keyword">default</span> <span class="variable">assumption</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">input</span> <span class="variable">trees</span> <span class="variable">are</span> <span class="variable">unrooted</span> <span class="variable">trees</span> <span class="keyword">and</span> 
+             <span class="variable">the</span> <span class="variable">selection</span> <span class="variable">that</span> <span class="variable">specifies</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">tree</span> <span class="variable">is</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">treated</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">rooted</span> <span class="variable">tree</span> <span class="keyword">and</span> <span class="keyword">not</span> 
+             <span class="variable">re</span><span class="operator">-</span><span class="variable">rooted</span><span class="operator">.</span> <span class="variable">Otherwise</span> <span class="variable">the</span> <span class="variable">tree</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">treated</span> <span class="variable">as</span> <span class="variable">outgroup</span><span class="operator">-</span><span class="variable">rooted</span> <span class="keyword">and</span> <span class="variable">will</span> <span class="variable">be</span>
+             <span class="variable">re</span><span class="operator">-</span><span class="variable">rooted</span> <span class="variable">automatically</span> <span class="variable">at</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">species</span> <span class="variable">encountered</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">tree</span> 
+             <span class="operator">(</span><span class="keyword">or</span> <span class="variable">at</span> <span class="variable">a</span> <span class="variable">species</span> <span class="variable">designated</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">Outgroup</span> <span class="variable">option</span><span class="operator">)</span>
+  
+             <span class="variable">usage</span><span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::Consense</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-rooted</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span>
+  
+             <span class="variable">Defaults</span> <span class="variable">to</span> <span class="variable">unrooted</span> 
+</code></code></pre>
+
+<h2 id="OUTGROUP">OUTGROUP</h2>
+
+<pre><code><code>  <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">OUTGROUP</span>
+  <span class="variable">Description</span>   <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+  
+                <span class="variable">It</span> <span class="variable">is</span> <span class="variable">in</span> <span class="variable">effect</span> <span class="variable">only</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="variable">Rooted</span> <span class="variable">option</span> <span class="variable">selection</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">in</span> <span class="variable">effect</span><span class="operator">.</span>
+                <span class="variable">The</span> <span class="variable">trees</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">re</span><span class="operator">-</span><span class="variable">rooted</span> <span class="variable">with</span> <span class="variable">a</span> <span class="variable">species</span> <span class="variable">of</span> <span class="variable">your</span> <span class="variable">choosing</span><span class="operator">.</span>
+  
+                <span class="variable">usage</span>  <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::Consense</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-outgroup</span><span class="operator">=&gt;</span><span class="number">2</span><span class="operator">);</span>
+  
+                <span class="variable">Defaults</span> <span class="variable">to</span> <span class="variable">first</span> <span class="variable">species</span> <span class="variable">encountered</span><span class="operator">.</span> 
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</h1>
+
+<p>Email shawnh@fugu-sg.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : $obj-&gt;program_name()
+ Function: holds the program name
+ Returns:  string
+ Args    : None</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> Title   : program_dir
+ Usage   : -&gt;program_dir()
+ Function: returns the program directory, obtained from ENV variable.
+ Returns:  string
+ Args    :</code></code></pre>
+
+<h2 id="idlength">idlength</h2>
+
+<pre><code><code> Title   : idlength 
+ Usage   : $obj-&gt;idlength ($newval)
+ Function: 
+ Returns : value of idlength 
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="run">run</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">run</span> 
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+        <span class="variable">$inputfilename</span> <span class="operator">=</span> <span class="string">'t/data/prot.treefile'</span><span class="operator">;</span>
+        <span class="variable">$tree</span><span class="operator">=</span> <span class="variable">$Consense_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$inputfilename</span><span class="operator">);</span>
+ <span class="keyword">or</span>
+ 
+        <span class="variable">$tree</span><span class="operator">=</span> <span class="variable">$consense_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(\</span><span class="variable">@tree</span><span class="operator">);</span>
+ 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Create</span> <span class="variable">bootstrap</span> <span class="variable">sets</span> <span class="variable">of</span> <span class="variable">alignments</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Tree::Tree</span><span class="operator">&gt;</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">either</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">trees</span> <span class="variable">in</span> <span class="variable">newick</span> <span class="keyword">format</span>
+           <span class="keyword">or</span> <span class="variable">an</span> <span class="variable">array</span> <span class="keyword">ref</span> <span class="variable">of</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Tree::Tree</span><span class="operator">&gt;</span>
+ 
+ <span class="variable">Throws</span> <span class="variable">an</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">argument</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">either</span> <span class="variable">a</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">eg</span> <span class="variable">a</span>
+ <span class="variable">filename</span><span class="operator">)</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">Bio::Tree::TreeI</span> <span class="variable">object</span><span class="operator">.</span> <span class="variable">If</span>
+ <span class="variable">argument</span> <span class="variable">is</span> <span class="variable">string</span><span class="operator">,</span> <span class="variable">throws</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">file</span> <span class="variable">corresponding</span> <span class="variable">to</span> <span class="variable">string</span>
+ <span class="variable">name</span> <span class="variable">can</span> <span class="keyword">not</span> <span class="variable">be</span> <span class="variable">found</span><span class="operator">.</span> 
+</code></code></pre>
+
+<h2 id="run1">_run</h2>
+
+<pre><code><code> Title   :  _run
+ Usage   :  Internal function, not to be called directly        
+ Function:  makes actual system call to Consense program
+ Example :
+ Returns : an array ref of &lt;Bio::Tree::Tree&gt; 
+ Args    : Name of a file containing a set of tree in newick format 
+           and a parameter string to be passed to Consense</code></code></pre>
+
+<h2 id="setinput-">_setinput()</h2>
+
+<pre><code><code> Title   :  _setinput
+ Usage   :  Internal function, not to be called directly        
+ Function:   Create input file for Consense program
+ Example :
+ Returns : name of file containing a trees in newick format
+ Args    : an array ref of Bio::Tree::Tree object or input file name</code></code></pre>
+
+<h2 id="names-">names()</h2>
+
+<pre><code><code> Title   :  names
+ Usage   :  $tree-&gt;names(\%names)
+ Function:  get/set for a hash ref for storing names in matrix
+            with rank as values.
+ Example :
+ Returns : hash reference
+ Args    : hash reference</code></code></pre>
+
+<h2 id="setparams-">_setparams()</h2>
+
+<pre><code><code> Title   :  _setparams
+ Usage   :  Internal function, not to be called directly        
+ Function:   Create parameter inputs for Consense program
+ Example :
+ Returns : parameter string to be passed to Consense
+ Args    : name of calling object</code></code></pre>
+
+<h1 id="Bio::Tools::Run::Wrapper-methods">Bio::Tools::Run::Wrapper methods</h1>
+
+<h2 id="no_param_checks">no_param_checks</h2>
+
+<pre><code><code> Title   : no_param_checks
+ Usage   : $obj-&gt;no_param_checks($newval)
+ Function: Boolean flag as to whether or not we should
+           trust the sanity checks for parameter values  
+ Returns : value of no_param_checks
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="save_tempfiles">save_tempfiles</h2>
+
+<pre><code><code> Title   : save_tempfiles
+ Usage   : $obj-&gt;save_tempfiles($newval)
+ Function: 
+ Returns : value of save_tempfiles
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="outfile_name">outfile_name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">outfile_name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$outfile</span> <span class="operator">=</span> <span class="variable">$Consense</span><span class="operator">-&gt;</span><span class="variable">outfile_name</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">output</span> <span class="variable">file</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">run</span>
+           <span class="operator">(</span><span class="keyword">if</span> <span class="variable">you</span> <span class="variable">wanted</span> <span class="variable">to</span> <span class="keyword">do</span> <span class="variable">something</span> <span class="variable">special</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">value</span> <span class="variable">to</span>
+</code></code></pre>
+
+<h2 id="tempdir">tempdir</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">tempdir</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$tmpdir</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">tempdir</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieve</span> <span class="variable">a</span> <span class="variable">temporary</span> <span class="variable">directory</span> <span class="variable">name</span> <span class="operator">(</span><span class="variable">which</span> <span class="variable">is</span> <span class="variable">created</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">which</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">temporary</span> <span class="variable">directory</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="cleanup">cleanup</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">cleanup</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$codeml</span><span class="operator">-&gt;</span><span class="variable">cleanup</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Will</span> <span class="variable">cleanup</span> <span class="variable">the</span> <span class="variable">tempdir</span> <span class="variable">directory</span> <span class="variable">after</span> <span class="variable">a</span> <span class="variable">Consense</span> <span class="variable">run</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="io">io</h2>
+
+<pre><code><code> Title   : io
+ Usage   : $obj-&gt;io($newval)
+ Function:  Gets a L&lt;Bio::Root::IO&gt; object
+ Returns : L&lt;Bio::Root::IO&gt;
+ Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

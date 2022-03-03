@@ -1,0 +1,517 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#REFERENCES">REFERENCES</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#distance">distance</a></li>
+      <li><a href="#available_distance_methods">available_distance_methods</a></li>
+      <li><a href="#D---distance-methods">D - distance methods</a></li>
+      <li><a href="#D_JukesCantor">D_JukesCantor</a></li>
+      <li><a href="#D_F81">D_F81</a></li>
+      <li><a href="#D_Uncorrected">D_Uncorrected</a></li>
+      <li><a href="#D_Kimura">D_Kimura</a></li>
+      <li><a href="#D_Kimura_variance">D_Kimura_variance</a></li>
+      <li><a href="#D_Tamura">D_Tamura</a></li>
+      <li><a href="#D_F84">D_F84</a></li>
+      <li><a href="#D_TajimaNei">D_TajimaNei</a></li>
+      <li><a href="#D_JinNei">D_JinNei</a></li>
+      <li><a href="#transversions">transversions</a></li>
+      <li><a href="#transitions">transitions</a></li>
+      <li><a href="#Data-Methods">Data Methods</a></li>
+      <li><a href="#pairwise_stats">pairwise_stats</a></li>
+      <li><a href="#calc_KaKs_pair">calc_KaKs_pair</a></li>
+      <li><a href="#calc_all_KaKs_pairs">calc_all_KaKs_pairs</a></li>
+      <li><a href="#calc_average_KaKs">calc_average_KaKs</a></li>
+      <li><a href="#get_syn_changes">get_syn_changes</a></li>
+      <li><a href="#dnds_pattern_number">dnds_pattern_number</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Align::DNAStatistics - Calculate some statistics for a DNA alignment</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::AlignIO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Align::DNAStatistics</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$stats</span> <span class="operator">=</span> <span class="variable">Bio::Align::DNAStatistics</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+  <span class="keyword">my</span> <span class="variable">$alignin</span> <span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'emboss'</span><span class="operator">,</span>
+                                 <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'t/data/insulin.water'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$alignin</span><span class="operator">-&gt;</span><span class="variable">next_aln</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$jcmatrix</span> <span class="operator">=</span> <span class="variable">$stats</span><span class="operator">-&gt;</span><span class="variable">distance</span><span class="operator">(</span><span class="string">-align</span> <span class="operator">=&gt;</span> <span class="variable">$aln</span><span class="operator">,</span> 
+                                  <span class="string">-method</span> <span class="operator">=&gt;</span> <span class="string">'Jukes-Cantor'</span><span class="operator">);</span>
+  
+  <span class="keyword">print</span> <span class="variable">$jcmatrix</span><span class="operator">-&gt;</span><span class="variable">print_matrix</span><span class="operator">;</span>
+  <span class="comment">## and for measurements of synonymous /nonsynonymous substitutions ##</span>
+  
+  <span class="keyword">my</span> <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'fasta'</span><span class="operator">,</span>
+                            <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'t/data/nei_gojobori_test.aln'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$alnobj</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_aln</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$seq1id</span><span class="operator">,</span><span class="variable">$seq2id</span><span class="operator">)</span> <span class="operator">=</span> <span class="keyword">map</span> <span class="operator">{</span> <span class="variable">$_</span><span class="operator">-&gt;</span><span class="variable">display_id</span> <span class="operator">}</span> <span class="variable">$alnobj</span><span class="operator">-&gt;</span><span class="variable">each_seq</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$results</span> <span class="operator">=</span> <span class="variable">$stats</span><span class="operator">-&gt;</span><span class="variable">calc_KaKs_pair</span><span class="operator">(</span><span class="variable">$alnobj</span><span class="operator">,</span> <span class="variable">$seq1id</span><span class="operator">,</span> <span class="variable">$seq2id</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="string">"comparing "</span><span class="operator">.</span><span class="variable">$results</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">0</span><span class="operator">]{</span><span class="string">'Seq1'</span><span class="operator">}</span><span class="operator">.</span><span class="string">" and "</span><span class="operator">.</span><span class="variable">$results</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">0</span><span class="operator">]{</span><span class="string">'Seq2'</span><span class="operator">}</span><span class="operator">.</span><span class="string">"\n"</span><span class="operator">;</span>
+  <span class="keyword">for</span> <span class="operator">(</span><span class="keyword">sort</span> <span class="keyword">keys</span> <span class="variable">%</span><span class="operator">{</span><span class="variable">$results</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">0</span><span class="operator">]}</span> <span class="operator">){</span>
+      <span class="keyword">next</span> <span class="keyword">if</span> <span class="regex">/Seq/</span><span class="operator">;</span>
+      <span class="keyword">printf</span><span class="operator">(</span><span class="string">"%-9s %.4f \n"</span><span class="operator">,</span><span class="variable">$_</span> <span class="operator">,</span> <span class="variable">$results</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">0</span><span class="operator">]{</span><span class="variable">$_</span><span class="operator">}</span><span class="operator">);</span>
+  <span class="operator">}</span>
+  
+  <span class="keyword">my</span> <span class="variable">$results2</span> <span class="operator">=</span> <span class="variable">$stats</span><span class="operator">-&gt;</span><span class="variable">calc_all_KaKs_pairs</span><span class="operator">(</span><span class="variable">$alnobj</span><span class="operator">);</span>
+  <span class="keyword">for</span> <span class="keyword">my</span> <span class="variable">$an</span> <span class="operator">(</span><span class="variable">@$results2</span><span class="operator">){</span>
+      <span class="keyword">print</span> <span class="string">"comparing "</span><span class="operator">.</span> <span class="variable">$an</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'Seq1'</span><span class="operator">}</span><span class="operator">.</span><span class="string">" and "</span><span class="operator">.</span> <span class="variable">$an</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'Seq2'</span><span class="operator">}</span><span class="operator">.</span> <span class="string">" \n"</span><span class="operator">;</span>
+      <span class="keyword">for</span> <span class="operator">(</span><span class="keyword">sort</span> <span class="keyword">keys</span> <span class="variable">%$an</span> <span class="operator">){</span>
+          <span class="keyword">next</span> <span class="keyword">if</span> <span class="regex">/Seq/</span><span class="operator">;</span>
+          <span class="keyword">printf</span><span class="operator">(</span><span class="string">"%-9s %.4f \n"</span><span class="operator">,</span><span class="variable">$_</span> <span class="operator">,</span> <span class="variable">$an</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$_</span><span class="operator">}</span><span class="operator">);</span>
+      <span class="operator">}</span>
+      <span class="keyword">print</span> <span class="string">"\n\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="keyword">my</span> <span class="variable">$result3</span> <span class="operator">=</span> <span class="variable">$stats</span><span class="operator">-&gt;</span><span class="variable">calc_average_KaKs</span><span class="operator">(</span><span class="variable">$alnobj</span><span class="operator">,</span> <span class="number">1000</span><span class="operator">);</span>
+  <span class="keyword">for</span> <span class="operator">(</span><span class="keyword">sort</span> <span class="keyword">keys</span> <span class="variable">%$result3</span> <span class="operator">){</span>
+      <span class="keyword">next</span> <span class="keyword">if</span> <span class="regex">/Seq/</span><span class="operator">;</span>
+      <span class="keyword">printf</span><span class="operator">(</span><span class="string">"%-9s %.4f \n"</span><span class="operator">,</span><span class="variable">$_</span> <span class="operator">,</span> <span class="variable">$result3</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$_</span><span class="operator">}</span><span class="operator">);</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object contains routines for calculating various statistics and distances for DNA alignments. The routines are not well tested and do contain errors at this point. Work is underway to correct them, but do not expect this code to give you the right answer currently! Use dnadist/distmat in the PHLYIP or EMBOSS packages to calculate the distances.</p>
+
+<p>Several different distance method calculations are supported. Listed in brackets are the pattern which will match</p>
+
+<ul>
+
+<li><p>JukesCantor [jc|jukes|jukescantor|jukes-cantor]</p>
+
+</li>
+<li><p>Uncorrected [jcuncor|uncorrected]</p>
+
+</li>
+<li><p>F81 [f81|felsenstein]</p>
+
+</li>
+<li><p>Kimura [k2|k2p|k80|kimura]</p>
+
+</li>
+<li><p>Tamura [t92|tamura|tamura92]</p>
+
+</li>
+<li><p>F84 [f84|felsenstein84]</p>
+
+</li>
+<li><p>TajimaNei [tajimanei|tajima\-nei]</p>
+
+</li>
+<li><p>JinNei [jinnei|jin\-nei] (not implemented)</p>
+
+</li>
+</ul>
+
+<p>There are also three methods to calculate the ratio of synonymous to non-synonymous mutations. All are implementations of the Nei-Gojobori evolutionary pathway method and use the Jukes-Cantor method of nucleotide substitution. This method works well so long as the nucleotide frequencies are roughly equal and there is no significant transition/transversion bias. In order to use these methods there are several pre-requisites for the alignment.</p>
+
+<ol>
+
+<li><p>DNA alignment must be based on protein alignment. Use the subroutine <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Align/Utilities.html#aa_to_dna_aln">&quot;aa_to_dna_aln&quot; in Bio::Align::Utilities</a> to achieve this.</p>
+
+</li>
+<li><p>Therefore alignment gaps must be in multiples of 3 (representing an aa deletion/insertion) and at present must be indicated by a &#39;-&#39; symbol.</p>
+
+</li>
+<li><p>Alignment must be solely of coding region and be in reading frame 0 to achieve meaningful results</p>
+
+</li>
+<li><p>Alignment must therefore be a multiple of 3 nucleotides long.</p>
+
+</li>
+<li><p>All sequences must be the same length (including gaps). This should be the case anyway if the sequences have been automatically aligned using a program like Clustal.</p>
+
+</li>
+<li><p>Only the standard codon alphabet is supported at present.</p>
+
+</li>
+</ol>
+
+<p>calc_KaKs_pair() calculates a number of statistics for a named pair of sequences in the alignment.</p>
+
+<p>calc_all_KaKs_pairs() calculates these statistics for all pairwise comparisons in an MSA. The statistics returned are:</p>
+
+<ul>
+
+<li><p>S_d - Number of synonymous mutations between the 2 sequences.</p>
+
+</li>
+<li><p>N_d - Number of non-synonymous mutations between the 2 sequences.</p>
+
+</li>
+<li><p>S - Mean number of synonymous sites in both sequences.</p>
+
+</li>
+<li><p>N - mean number of synonymous sites in both sequences.</p>
+
+</li>
+<li><p>P_s - proportion of synonymous differences in both sequences given by P_s = S_d/S.</p>
+
+</li>
+<li><p>P_n - proportion of non-synonymous differences in both sequences given by P_n = S_n/S.</p>
+
+</li>
+<li><p>D_s - estimation of synonymous mutations per synonymous site (by Jukes-Cantor).</p>
+
+</li>
+<li><p>D_n - estimation of non-synonymous mutations per non-synonymous site (by Jukes-Cantor).</p>
+
+</li>
+<li><p>D_n_var - estimation of variance of D_n .</p>
+
+</li>
+<li><p>D_s_var - estimation of variance of S_n.</p>
+
+</li>
+<li><p>z_value - calculation of z value.Positive value indicates D_n &gt; D_s, negative value indicates D_s &gt; D_n.</p>
+
+</li>
+</ul>
+
+<p>The statistics returned by calc_average_KaKs are:</p>
+
+<ul>
+
+<li><p>D_s - Average number of synonymous mutations/synonymous site.</p>
+
+</li>
+<li><p>D_n - Average number of non-synonymous mutations/non-synonymous site.</p>
+
+</li>
+<li><p>D_s_var - Estimated variance of Ds from bootstrapped alignments.</p>
+
+</li>
+<li><p>D_n_var - Estimated variance of Dn from bootstrapped alignments.</p>
+
+</li>
+<li><p>z_score - calculation of z value. Positive value indicates D_n &gt;D_s, negative values vice versa.</p>
+
+</li>
+</ul>
+
+<p>The design of the code is based around the explanation of the Nei-Gojobori algorithm in the excellent book &quot;Molecular Evolution and Phylogenetics&quot; by Nei and Kumar, published by Oxford University Press. The methods have been tested using the worked example 4.1 in the book, and reproduce those results. If people like having this sort of analysis in BioPerl other methods for estimating Ds and Dn can be provided later.</p>
+
+<p>Much of the DNA distance code is based on implementations in EMBOSS (Rice et al, www.emboss.org) [distmat.c] and PHYLIP (J. Felsenstein et al) [dnadist.c]. Insight also gained from Eddy, Durbin, Krogh, &amp; Mitchison.</p>
+
+<h1 id="REFERENCES">REFERENCES</h1>
+
+<ul>
+
+<li><p>D_JukesCantor</p>
+
+<p>&quot;Phylogenetic Inference&quot;, Swoffrod, Olsen, Waddell and Hillis, in Mol. Systematics, 2nd ed, 1996, Ch 11. Derived from &quot;Evolution of Protein Molecules&quot;, Jukes &amp; Cantor, in Mammalian Prot. Metab., III, 1969, pp. 21-132.</p>
+
+</li>
+<li><p>D_Tamura</p>
+
+<p>K Tamura, Mol. Biol. Evol. 1992, 9, 678.</p>
+
+</li>
+<li><p>D_Kimura</p>
+
+<p>M Kimura, J. Mol. Evol., 1980, 16, 111.</p>
+
+</li>
+<li><p>JinNei</p>
+
+<p>Jin and Nei, Mol. Biol. Evol. 82, 7, 1990.</p>
+
+</li>
+<li><p>D_TajimaNei</p>
+
+<p>Tajima and Nei, Mol. Biol. Evol. 1984, 1, 269.</p>
+
+</li>
+</ul>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</h1>
+
+<p>Email jason-AT-bioperl.org</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Richard Adams, richard.adams@ed.ac.uk</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Align::DNAStatistics</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Align::DNAStatistics</span> <span class="variable">object</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Align::DNAStatistics</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="distance">distance</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">distance</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$distance_mat</span> <span class="operator">=</span> <span class="variable">$stats</span><span class="operator">-&gt;</span><span class="variable">distance</span><span class="operator">(</span><span class="string">-align</span>  <span class="operator">=&gt;</span> <span class="variable">$aln</span><span class="operator">,</span> 
+                                               <span class="string">-method</span> <span class="operator">=&gt;</span> <span class="variable">$method</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Calculates</span> <span class="variable">a</span> <span class="variable">distance</span> <span class="variable">matrix</span> <span class="keyword">for</span> <span class="variable">all</span> <span class="variable">pairwise</span> <span class="variable">distances</span> <span class="variable">of</span>
+           <span class="variable">sequences</span> <span class="variable">in</span> <span class="variable">an</span> <span class="variable">alignment</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Matrix::PhylipDist</span><span class="operator">&gt;</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-align</span>  <span class="operator">=&gt;</span> <span class="variable">Bio::Align::AlignI</span> <span class="variable">object</span>
+           <span class="operator">-</span><span class="string">method</span> <span class="operator">=&gt;</span> <span class="variable">String</span> <span class="variable">specifying</span> <span class="variable">specific</span> <span class="variable">distance</span> <span class="variable">method</span> 
+                      <span class="operator">(</span><span class="variable">implementing</span> <span class="variable">class</span> <span class="variable">may</span> <span class="variable">assume</span> <span class="variable">a</span> <span class="keyword">default</span><span class="operator">)</span>
+ <span class="variable">See</span> <span class="variable">also</span><span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Matrix::PhylipDist</span><span class="operator">&gt;</span>
+</code></code></pre>
+
+<h2 id="available_distance_methods">available_distance_methods</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">available_distance_methods</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@methods</span> <span class="operator">=</span> <span class="variable">$stats</span><span class="operator">-&gt;</span><span class="variable">available_distance_methods</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Enumerates</span> <span class="variable">the</span> <span class="variable">possible</span> <span class="variable">distance</span> <span class="variable">methods</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">of</span> <span class="variable">strings</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="D---distance-methods">D - distance methods</h2>
+
+<h2 id="D_JukesCantor">D_JukesCantor</h2>
+
+<pre><code><code> Title   : D_JukesCantor
+ Usage   : my $d = $stat-&gt;D_JukesCantor($aln)
+ Function: Calculates D (pairwise distance) between 2 sequences in an 
+           alignment using the Jukes-Cantor 1 parameter model. 
+ Returns : L&lt;Bio::Matrix::PhylipDist&gt;
+ Args    : L&lt;Bio::Align::AlignI&gt; of DNA sequences
+           double - gap penalty</code></code></pre>
+
+<h2 id="D_F81">D_F81</h2>
+
+<pre><code><code> Title   : D_F81
+ Usage   : my $d = $stat-&gt;D_F81($aln)
+ Function: Calculates D (pairwise distance) between 2 sequences in an 
+           alignment using the Felsenstein 1981 distance model. 
+           Relaxes the assumption of equal base frequencies that is
+           in JC.
+ Returns : L&lt;Bio::Matrix::PhylipDist&gt;
+ Args    : L&lt;Bio::Align::AlignI&gt; of DNA sequences</code></code></pre>
+
+<h2 id="D_Uncorrected">D_Uncorrected</h2>
+
+<pre><code><code> Title   : D_Uncorrected
+ Usage   : my $d = $stats-&gt;D_Uncorrected($aln)
+ Function: Calculate a distance D, no correction for multiple substitutions 
+           is used.  In rare cases where sequences may not overlap, &#39;NA&#39; is
+           substituted for the distance.
+ Returns : L&lt;Bio::Matrix::PhylipDist&gt;
+ Args    : L&lt;Bio::Align::AlignI&gt; (DNA Alignment)
+           [optional] gap penalty</code></code></pre>
+
+<h2 id="D_Kimura">D_Kimura</h2>
+
+<pre><code><code> Title   : D_Kimura
+ Usage   : my $d = $stat-&gt;D_Kimura($aln)
+ Function: Calculates D (pairwise distance) between all pairs of sequences 
+           in an alignment using the Kimura 2 parameter model.
+ Returns : L&lt;Bio::Matrix::PhylipDist&gt;
+ Args    : L&lt;Bio::Align::AlignI&gt; of DNA sequences</code></code></pre>
+
+<h2 id="D_Kimura_variance">D_Kimura_variance</h2>
+
+<pre><code><code> Title   : D_Kimura
+ Usage   : my $d = $stat-&gt;D_Kimura_variance($aln)
+ Function: Calculates D (pairwise distance) between all pairs of sequences 
+           in an alignment using the Kimura 2 parameter model.
+ Returns : array of 2 L&lt;Bio::Matrix::PhylipDist&gt;,
+           the first is the Kimura distance and the second is
+           a matrix of variance V(K)
+ Args    : L&lt;Bio::Align::AlignI&gt; of DNA sequences</code></code></pre>
+
+<h2 id="D_Tamura">D_Tamura</h2>
+
+<pre><code><code> Title   : D_Tamura
+ Usage   : Calculates D (pairwise distance) between 2 sequences in an 
+           alignment using Tamura 1992 distance model. 
+ Returns : L&lt;Bio::Matrix::PhylipDist&gt;
+ Args    : L&lt;Bio::Align::AlignI&gt; of DNA sequences</code></code></pre>
+
+<h2 id="D_F84">D_F84</h2>
+
+<pre><code><code> Title   : D_F84
+ Usage   : my $d = $stat-&gt;D_F84($aln)
+ Function: Calculates D (pairwise distance) between 2 sequences in an 
+           alignment using the Felsenstein 1984 distance model. 
+ Returns : L&lt;Bio::Matrix::PhylipDist&gt;
+ Args    : L&lt;Bio::Align::AlignI&gt; of DNA sequences
+           [optional] double - gap penalty</code></code></pre>
+
+<h2 id="D_TajimaNei">D_TajimaNei</h2>
+
+<pre><code><code> Title   : D_TajimaNei
+ Usage   : my $d = $stat-&gt;D_TajimaNei($aln)
+ Function: Calculates D (pairwise distance) between 2 sequences in an 
+           alignment using the TajimaNei 1984 distance model. 
+ Returns : L&lt;Bio::Matrix::PhylipDist&gt;
+ Args    : Bio::Align::AlignI of DNA sequences</code></code></pre>
+
+<h2 id="D_JinNei">D_JinNei</h2>
+
+<pre><code><code> Title   : D_JinNei
+ Usage   : my $d = $stat-&gt;D_JinNei($aln)
+ Function: Calculates D (pairwise distance) between 2 sequences in an 
+           alignment using the Jin-Nei 1990 distance model. 
+ Returns : L&lt;Bio::Matrix::PhylipDist&gt;
+ Args    : L&lt;Bio::Align::AlignI&gt; of DNA sequences</code></code></pre>
+
+<h2 id="transversions">transversions</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">transversions</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$transversions</span> <span class="operator">=</span> <span class="variable">$stats</span><span class="operator">-&gt;</span><span class="variable">transversion</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Calculates</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">transversions</span> <span class="variable">between</span> <span class="variable">two</span> <span class="variable">sequences</span> <span class="variable">in</span> 
+           <span class="variable">an</span> <span class="variable">alignment</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Bio::Align::AlignI</span>
+</code></code></pre>
+
+<h2 id="transitions">transitions</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">transitions</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$transitions</span> <span class="operator">=</span> <span class="variable">Bio::Align::DNAStatistics</span><span class="operator">-&gt;</span><span class="variable">transitions</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Calculates</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">transitions</span> <span class="variable">in</span> <span class="variable">a</span> <span class="keyword">given</span> <span class="variable">DNA</span> <span class="variable">alignment</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span> <span class="variable">representing</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">transitions</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Bio::Align::AlignI</span> <span class="variable">object</span>
+</code></code></pre>
+
+<h2 id="Data-Methods">Data Methods</h2>
+
+<h2 id="pairwise_stats">pairwise_stats</h2>
+
+<pre><code><code> Title   : pairwise_stats
+ Usage   : $obj-&gt;pairwise_stats($newval)
+ Function: 
+ Returns : value of pairwise_stats
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="calc_KaKs_pair">calc_KaKs_pair</h2>
+
+<pre><code><code> Title    : calc_KaKs_pair
+ Useage   : my $results = $stats-&gt;calc_KaKs_pair($alnobj,
+            $name1, $name2).
+ Function : calculates Nei-Gojobori statistics for pairwise 
+            comparison.
+ Args     : A Bio::Align::AlignI compliant object such as a 
+            Bio::SimpleAlign object, and 2 sequence name strings.
+ Returns  : a reference to a hash of statistics with keys as 
+            listed in Description.</code></code></pre>
+
+<h2 id="calc_all_KaKs_pairs">calc_all_KaKs_pairs</h2>
+
+<pre><code><code> Title    : calc_all_KaKs_pairs
+ Useage   : my $results2 = $stats-&gt;calc_KaKs_pair($alnobj).
+ Function : Calculates Nei_gojobori statistics for all pairwise
+            combinations in sequence.
+ Arguments: A Bio::Align::ALignI compliant object such as
+            a Bio::SimpleAlign object.
+ Returns  : A reference to an array of hashes of statistics of
+            all pairwise comparisons in the alignment.</code></code></pre>
+
+<h2 id="calc_average_KaKs">calc_average_KaKs</h2>
+
+<pre><code><code> Title    : calc_average_KaKs.  
+ Useage   : my $res= $stats-&gt;calc_average_KaKs($alnobj, 1000).
+ Function : calculates Nei_Gojobori stats for average of all 
+            sequences in the alignment.
+ Args     : A Bio::Align::AlignI compliant object such as a
+            Bio::SimpleAlign object, number of bootstrap iterations
+            (default 1000).
+ Returns  : A reference to a hash of statistics as listed in Description.</code></code></pre>
+
+<h2 id="get_syn_changes">get_syn_changes</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_syn_changes</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">Bio::Align::DNAStatitics</span><span class="operator">-&gt;</span><span class="variable">get_syn_changes</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Generate</span> <span class="variable">a</span> <span class="variable">hashref</span> <span class="variable">of</span> <span class="variable">all</span> <span class="variable">pairwise</span> <span class="variable">combinations</span> <span class="variable">of</span> <span class="variable">codns</span>
+           <span class="variable">differing</span> <span class="variable">by</span> <span class="number">1</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Symetic</span> <span class="variable">matrix</span> <span class="variable">using</span> <span class="variable">hashes</span>
+           <span class="variable">First</span> <span class="variable">key</span> <span class="variable">is</span> <span class="variable">codon</span>
+           <span class="keyword">and</span> <span class="keyword">each</span> <span class="variable">codon</span> <span class="variable">points</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">hashref</span> <span class="variable">of</span> <span class="variable">codons</span>
+           <span class="variable">the</span> <span class="keyword">values</span> <span class="variable">of</span> <span class="variable">which</span> <span class="variable">describe</span> <span class="variable">type</span> <span class="variable">of</span> <span class="variable">change</span><span class="operator">.</span>
+           <span class="keyword">my</span> <span class="variable">$type</span> <span class="operator">=</span> <span class="variable">$hash</span><span class="operator">{</span><span class="variable">$codon1</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$codon2</span><span class="operator">}</span><span class="operator">;</span>
+           <span class="keyword">values</span> <span class="variable">are</span> <span class="operator">:</span>
+             <span class="number">1</span>   <span class="variable">synonymous</span>
+             <span class="number">0</span>   <span class="variable">non</span><span class="operator">-</span><span class="variable">syn</span>
+            <span class="operator">-</span><span class="number">1</span>   <span class="variable">either</span> <span class="variable">codon</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">stop</span> <span class="variable">codon</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="dnds_pattern_number">dnds_pattern_number</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">dnds_pattern_number</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$patterns</span> <span class="operator">=</span> <span class="variable">$stats</span><span class="operator">-&gt;</span><span class="variable">dnds_pattern_number</span><span class="operator">(</span><span class="variable">$alnobj</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Counts</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">codons</span> <span class="variable">with</span> <span class="keyword">no</span> <span class="variable">gaps</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">MSA</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Number</span> <span class="variable">of</span> <span class="variable">codons</span> <span class="variable">with</span> <span class="keyword">no</span> <span class="variable">gaps</span> <span class="operator">(</span><span class="string">'patterns'</span> <span class="variable">in</span> <span class="variable">PAML</span> <span class="variable">notation</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Align::AlignI</span> <span class="variable">compliant</span> <span class="variable">object</span> <span class="variable">such</span> <span class="variable">as</span> <span class="variable">a</span>
+            <span class="variable">Bio::SimpleAlign</span> <span class="variable">object</span><span class="operator">.</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,288 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Chris-Fields">AUTHOR - Chris Fields</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::HandlerBaseI-implementing-methods">Bio::HandlerBaseI implementing methods</a>
+    <ul>
+      <li><a href="#handler_methods">handler_methods</a></li>
+      <li><a href="#data_handler">data_handler</a></li>
+      <li><a href="#reset_parameters">reset_parameters</a></li>
+      <li><a href="#format">format</a></li>
+      <li><a href="#get_params">get_params</a></li>
+      <li><a href="#set_params">set_params</a></li>
+    </ul>
+  </li>
+  <li><a href="#Methods-unique-to-this-implementation">Methods unique to this implementation</a>
+    <ul>
+      <li><a href="#seqbuilder">seqbuilder</a></li>
+      <li><a href="#build_sequence">build_sequence</a></li>
+      <li><a href="#location_factory">location_factory</a></li>
+      <li><a href="#annotation_collection">annotation_collection</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqIO::Handler::GenericRichSeqHandler - Bio::HandlerI-based data handler for GenBank/EMBL/UniProt (and other) sequence data</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># MyHandler is a GenericRichSeqHandler object.</span>
+  <span class="comment"># inside a parser (driver) constructor....</span>
+  
+  <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">seq_handler</span><span class="operator">(</span><span class="variable">$handler</span> <span class="operator">||</span> <span class="variable">MyHandler</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'genbank'</span><span class="operator">));</span>
+  
+  <span class="comment"># in next_seq() in driver...</span>
+  
+  <span class="variable">$hobj</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">seqhandler</span><span class="operator">();</span>
+  
+  <span class="comment"># roll data up into hashref chunks, pass off into Handler for processing...</span>
+  
+  <span class="variable">$hobj</span><span class="operator">-&gt;</span><span class="variable">data_handler</span><span class="operator">(</span><span class="variable">$data</span><span class="operator">);</span>
+  
+  <span class="comment"># or retrieve Handler methods and pass data directly to Handler methods...</span>
+  
+  <span class="keyword">my</span> <span class="variable">$hmeth</span> <span class="operator">=</span> <span class="variable">$hobj</span><span class="operator">-&gt;</span><span class="variable">handler_methods</span><span class="operator">;</span>
+  
+  <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$hmeth</span><span class="operator">-&gt;</span><span class="operator">{</span> <span class="variable">$data</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">NAME</span><span class="operator">}</span> <span class="operator">}</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">my</span> <span class="variable">$mth</span> <span class="operator">=</span> <span class="variable">$hmeth</span><span class="operator">-&gt;</span><span class="operator">{</span> <span class="variable">$data</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">NAME</span><span class="operator">}</span> <span class="operator">}</span><span class="operator">;</span>
+      <span class="variable">$hobj</span><span class="operator">-&gt;</span><span class="variable">$mth</span><span class="operator">(</span><span class="variable">$data</span><span class="operator">);</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is an experimental implementation of a sequence-based HandlerBaseI parser and may change over time. It is possible (nay, likely) that the way handler methods are set up will change over development to allow more flexibility. Release pumpkins, please do not add this to a release until the API has settled. It is also likely that write_seq() will not work properly for some data.</p>
+
+<p>Standard Developer caveats:</p>
+
+<p>Do not use for production purposes. Not responsible for destroying (your data|computer|world). Do not stare directly at GenericRichSeqHandler. If GenericRichSeqHandler glows, back slowly away and call for help.</p>
+
+<p>Consider yourself warned!</p>
+
+<p>This class acts as a demonstration on how to handle similar data chunks derived from Bio::SeqIO::gbdriver, Bio::SeqIO::embldriver, and Bio::SeqIO::swissdriver using similar (or the same) handler methods.</p>
+
+<p>The modules currently pass all previous tests in t/genbank.t, t/embl.t, and t/swiss.t yet all use the same handler methods (the collected tests for handlers can be found in t/Handler.t). Some tweaking of the methods themselves is probably in order over the long run to ensure that data is consistently handled for each parser. Round-trip tests are probably in order here...</p>
+
+<p>Though a Bio::Seq::SeqBuilder is employed for building sequence objects no bypassing of data based on builder slots has been implemented (yet); this is planned in the near future.</p>
+
+<p>As a reminder: this is the current Annotation data chunk (via Data::Dumper):</p>
+
+<pre><code><code>  <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">{</span>
+            <span class="string">'NAME'</span> <span class="operator">=&gt;</span> <span class="string">'REFERENCE'</span><span class="operator">,</span>
+            <span class="string">'DATA'</span> <span class="operator">=&gt;</span> <span class="string">'1  (bases 1 to 10001)'</span>
+            <span class="string">'AUTHORS'</span> <span class="operator">=&gt;</span> <span class="string">'International Human Genome Sequencing Consortium.'</span>
+            <span class="string">'TITLE'</span> <span class="operator">=&gt;</span> <span class="string">'The DNA sequence of Homo sapiens'</span>
+            <span class="string">'JOURNAL'</span> <span class="operator">=&gt;</span> <span class="string">'Unpublished (2003)'</span>
+          <span class="operator">}</span><span class="operator">;</span>
+  <span class="operator">...</span>
+</code></code></pre>
+
+<p>This is the current SeqFeature data chunk (again via Data::Dumper):</p>
+
+<pre><code><code>  <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">{</span>
+            <span class="string">'mol_type'</span> <span class="operator">=&gt;</span> <span class="string">'genomic DNA'</span><span class="operator">,</span>
+            <span class="string">'LOCATION'</span> <span class="operator">=&gt;</span> <span class="string">'&lt;1..&gt;10001'</span><span class="operator">,</span>
+            <span class="string">'NAME'</span> <span class="operator">=&gt;</span> <span class="string">'FEATURES'</span><span class="operator">,</span>
+            <span class="string">'FEATURE_KEY'</span> <span class="operator">=&gt;</span> <span class="string">'source'</span><span class="operator">,</span>
+            <span class="string">'note'</span> <span class="operator">=&gt;</span> <span class="string">'Accession AL451081 sequenced by The Sanger Centre'</span><span class="operator">,</span>
+            <span class="string">'db_xref'</span> <span class="operator">=&gt;</span> <span class="string">'taxon:9606'</span><span class="operator">,</span>
+            <span class="string">'clone'</span> <span class="operator">=&gt;</span> <span class="string">'RP11-302I18'</span><span class="operator">,</span>
+            <span class="string">'organism'</span> <span class="operator">=&gt;</span> <span class="string">'Homo sapiens'</span>
+          <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Chris-Fields">AUTHOR - Chris Fields</h1>
+
+<p>Email cjfields at bioperl dot org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   :  new
+ Usage   :  
+ Function:  
+ Returns :  
+ Args    :  -format    Sequence format to be mapped for handler methods
+            -builder   Bio::Seq::SeqBuilder object (normally defined in
+                       SequenceStreamI object implementation constructor)
+ Throws  :  On undefined &#39;-format&#39; sequence format parameter
+ Note    :  Still under heavy development</code></code></pre>
+
+<h1 id="Bio::HandlerBaseI-implementing-methods"><a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/HandlerBaseI.html">Bio::HandlerBaseI</a> implementing methods</h1>
+
+<h2 id="handler_methods">handler_methods</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span>  <span class="variable">handler_methods</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>  <span class="variable">$handler</span><span class="operator">-&gt;</span><span class="variable">handler_methods</span><span class="operator">(</span><span class="string">'GenBank'</span><span class="operator">)</span>
+            <span class="variable">%handlers</span> <span class="operator">=</span> <span class="variable">$handler</span><span class="operator">-&gt;</span><span class="variable">handler_methods</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span>  <span class="variable">Retrieve</span> <span class="variable">the</span> <span class="variable">handler</span> <span class="variable">methods</span> <span class="variable">used</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">current</span> <span class="keyword">format</span><span class="operator">()</span> <span class="variable">in</span>
+            <span class="variable">the</span> <span class="variable">handler</span><span class="operator">.</span>  <span class="variable">This</span> <span class="variable">assumes</span> <span class="variable">the</span> <span class="variable">handler</span> <span class="variable">methods</span> <span class="variable">are</span> <span class="variable">already</span>
+            <span class="variable">described</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">HandlerI</span><span class="operator">-</span><span class="variable">implementing</span> <span class="variable">class</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>  <span class="variable">a</span> <span class="variable">hash</span> <span class="variable">reference</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">data</span> <span class="variable">type</span> <span class="variable">handled</span> <span class="keyword">and</span> <span class="variable">the</span> <span class="variable">code</span> <span class="keyword">ref</span>
+            <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">it</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>  <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">String</span> <span class="variable">representing</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="keyword">format</span><span class="operator">.</span>  <span class="variable">If</span> <span class="variable">set</span> <span class="variable">here</span>
+            <span class="variable">this</span> <span class="variable">will</span> <span class="variable">also</span> <span class="variable">set</span> <span class="variable">sequence_format</span><span class="operator">()</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span>  <span class="variable">On</span> <span class="variable">unimplemented</span> <span class="variable">sequence</span> <span class="keyword">format</span> <span class="variable">in</span> <span class="variable">%HANDLERS</span>
+</code></code></pre>
+
+<h2 id="data_handler">data_handler</h2>
+
+<pre><code><code> Title   :  data_handler
+ Usage   :  $handler-&gt;data_handler($data)
+ Function:  Centralized method which accepts all data chunks, then distributes
+            to the appropriate methods for processing based on the chunk name
+            from within the HandlerBaseI object.
+
+            One can also use 
+ Returns :  None
+ Args    :  an hash ref containing a data chunk.  </code></code></pre>
+
+<h2 id="reset_parameters">reset_parameters</h2>
+
+<pre><code><code> Title   :  reset_parameters
+ Usage   :  $handler-&gt;reset_parameters()
+ Function:  Resets the internal cache of data (normally object parameters for
+            a builder or factory)
+ Returns :  None
+ Args    :  None</code></code></pre>
+
+<h2 id="format">format</h2>
+
+<pre><code><code> Title   :  format
+ Usage   :  $handler-&gt;format(&#39;GenBank&#39;)
+ Function:  Get/Set the format for the report/record being parsed. This can be
+            used to set handlers in classes which are capable of processing
+            similar data chunks from multiple driver modules.
+ Returns :  String with the sequence format
+ Args    :  [optional] String with the sequence format
+ Note    :  The format may be used to set the handlers (as in the
+            current GenericRichSeqHandler implementation)</code></code></pre>
+
+<h2 id="get_params">get_params</h2>
+
+<pre><code><code> Title   :  get_params
+ Usage   :  $handler-&gt;get_params(&#39;-species&#39;)
+ Function:  Convenience method used to retrieve the specified
+            parameters from the internal parameter cache
+ Returns :  Hash ref containing parameters requested and data as
+            key-value pairs.  Note that some parameter values may be 
+            objects, arrays, etc.
+ Args    :  List (array) representing the parameters requested</code></code></pre>
+
+<h2 id="set_params">set_params</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span>  <span class="variable">set_params</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>  <span class="variable">$handler</span><span class="operator">-&gt;</span><span class="variable">set_param</span><span class="operator">(</span><span class="operator">{</span><span class="string">'-species'</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span>  <span class="variable">Convenience</span> <span class="variable">method</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">specific</span> <span class="variable">parameters</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>  <span class="variable">None</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>  <span class="variable">Hash</span> <span class="keyword">ref</span> <span class="variable">containing</span> <span class="variable">the</span> <span class="variable">data</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">passed</span> <span class="variable">as</span> <span class="variable">key</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span>
+</code></code></pre>
+
+<h1 id="Methods-unique-to-this-implementation">Methods unique to this implementation</h1>
+
+<h2 id="seqbuilder">seqbuilder</h2>
+
+<pre><code><code> Title   :  seqbuilder
+ Usage   :  
+ Function:  
+ Returns :  
+ Args    :
+ Throws  :
+ Note    :  </code></code></pre>
+
+<h2 id="build_sequence">build_sequence</h2>
+
+<pre><code><code> Title   :  build_sequence
+ Usage   :  
+ Function:  
+ Returns :  
+ Args    :
+ Throws  :
+ Note    :  </code></code></pre>
+
+<h2 id="location_factory">location_factory</h2>
+
+<pre><code><code> Title   :  location_factory
+ Usage   :  
+ Function:  
+ Returns :  
+ Args    :
+ Throws  :
+ Note    :  </code></code></pre>
+
+<h2 id="annotation_collection">annotation_collection</h2>
+
+<pre><code><code> Title   :  annotation_collection
+ Usage   :  
+ Function:  
+ Returns :  
+ Args    :
+ Throws  :
+ Note    :  </code></code></pre>
+
+
+</body>
+
+</html>
+
+

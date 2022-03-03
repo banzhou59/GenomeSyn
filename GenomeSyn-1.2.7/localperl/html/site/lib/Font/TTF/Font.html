@@ -1,0 +1,303 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#INSTANCE-VARIABLES">INSTANCE VARIABLES</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#Font::TTF::Font-AddTable-tablename-class-">Font::TTF::Font-&gt;AddTable($tablename, $class)</a></li>
+      <li><a href="#Font::TTF::Font-Init">Font::TTF::Font-&gt;Init</a></li>
+      <li><a href="#Font::TTF::Font-new-props-">Font::TTF::Font-&gt;new(%props)</a></li>
+      <li><a href="#Font::TTF::Font-open-fname-">Font::TTF::Font-&gt;open($fname)</a></li>
+      <li><a href="#f-read">$f-&gt;read</a></li>
+      <li><a href="#f-out-fname-tablelist-">$f-&gt;out($fname [, @tablelist])</a></li>
+      <li><a href="#f-out_xml-filename-tables-">$f-&gt;out_xml($filename [, @tables])</a></li>
+      <li><a href="#f-XML_start-context-tag-attrs-">$f-&gt;XML_start($context, $tag, %attrs)</a></li>
+      <li><a href="#f-update">$f-&gt;update</a></li>
+      <li><a href="#f-dirty">$f-&gt;dirty</a></li>
+      <li><a href="#f-tables_do-func-tables-">$f-&gt;tables_do(&amp;func [, tables])</a></li>
+      <li><a href="#f-release">$f-&gt;release</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#LICENSING">LICENSING</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Font::TTF::Font - Memory representation of a font</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Here is the regression test (you provide your own font). Run it once and then again on the output of the first run. There should be no differences between the outputs of the two runs.</p>
+
+<pre><code><code>    <span class="variable">$f</span> <span class="operator">=</span> <span class="variable">Font::TTF::Font</span><span class="operator">-&gt;</span><span class="variable">open</span><span class="operator">(</span><span class="variable">$ARGV</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">);</span>
+    
+    <span class="comment"># force a read of all the tables</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="variable">tables_do</span><span class="operator">(</span><span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="variable">read</span><span class="operator">;</span> <span class="operator">});</span>
+    
+    <span class="comment"># force read of all glyphs (use read_dat to use lots of memory!)</span>
+    <span class="comment"># $f-&gt;{'loca'}-&gt;glyphs_do(sub { $_[0]-&gt;read; });</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'loca'</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">glyphs_do</span><span class="operator">(</span><span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="variable">read_dat</span><span class="operator">;</span> <span class="operator">});</span>
+    <span class="comment"># NB. no need to $g-&gt;update since $f-&gt;{'glyf'}-&gt;out will do it for us</span>
+    
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="variable">out</span><span class="operator">(</span><span class="variable">$ARGV</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">);</span>
+    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="variable">release</span><span class="operator">;</span>            <span class="comment"># clear up memory forcefully!</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>A Truetype font consists of a header containing a directory of tables which constitute the rest of the file. This class holds that header and directory and also creates objects of the appropriate type for each table within the font. Note that it does not read each table into memory, but creates a short reference which can be read using the form:</p>
+
+<pre><code><code>    <span class="variable">$f</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$tablename</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">read</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Classes are included that support many of the different TrueType tables. For those for which no special code exists, the table type <code><code>table</code></code> is used, which defaults to <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Table.html">Font::TTF::Table</a>. The current tables which are supported are:</p>
+
+<pre><code><code>    table       Font::TTF::Table      - for unknown tables
+    EBDT        Font::TTF::EBDT
+    EBLC        Font::TTF::EBLC
+    Feat        Font::TTF::GrFeat
+    GDEF        Font::TTF::GDEF
+    GPOS        Font::TTF::GPOS
+    GSUB        Font::TTF::GSUB
+    Glat        Font::TTF::Glat
+    Gloc        Font::TTF::Gloc
+    LTSH        Font::TTF::LTSH
+    OS/2        Font::TTF::OS_2
+    PCLT        Font::TTF::PCLT
+    Sill        Font::TTF::Sill
+    Silf        Font::TTF::Silf
+    bsln        Font::TTF::Bsln
+    cmap        Font::TTF::Cmap       - see also Font::TTF::OldCmap
+    cvt         Font::TTF::Cvt_
+    fdsc        Font::TTF::Fdsc
+    feat        Font::TTF::Feat
+    fmtx        Font::TTF::Fmtx
+    fpgm        Font::TTF::Fpgm
+    glyf        Font::TTF::Glyf       - see also Font::TTF::Glyph
+    hdmx        Font::TTF::Hdmx
+    head        Font::TTF::Head
+    hhea        Font::TTF::Hhea
+    hmtx        Font::TTF::Hmtx
+    kern        Font::TTF::Kern       - see alternative Font::TTF::AATKern
+    loca        Font::TTF::Loca
+    maxp        Font::TTF::Maxp
+    mort        Font::TTF::Mort       - see also Font::TTF::OldMort
+    name        Font::TTF::Name
+    post        Font::TTF::Post
+    prep        Font::TTF::Prep
+    prop        Font::TTF::Prop
+    vhea        Font::TTF::Vhea
+    vmtx        Font::TTF::Vmtx
+    DSIG        FONT::TTF::DSIG</code></code></pre>
+
+<p>Links are:</p>
+
+<p><a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Table.html">Font::TTF::Table</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/EBDT.html">Font::TTF::EBDT</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/EBLC.html">Font::TTF::EBLC</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/GrFeat.html">Font::TTF::GrFeat</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/GDEF.html">Font::TTF::GDEF</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/GPOS.html">Font::TTF::GPOS</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/GSUB.html">Font::TTF::GSUB</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Glat.html">Font::TTF::Glat</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Gloc.html">Font::TTF::Gloc</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/LTSH.html">Font::TTF::LTSH</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/OS_2.html">Font::TTF::OS_2</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/PCLT.html">Font::TTF::PCLT</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Sill.html">Font::TTF::Sill</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Silf.html">Font::TTF::Silf</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Bsln.html">Font::TTF::Bsln</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Cmap.html">Font::TTF::Cmap</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Cvt_.html">Font::TTF::Cvt_</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Fdsc.html">Font::TTF::Fdsc</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Feat.html">Font::TTF::Feat</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Fmtx.html">Font::TTF::Fmtx</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Fpgm.html">Font::TTF::Fpgm</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Glyf.html">Font::TTF::Glyf</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Hdmx.html">Font::TTF::Hdmx</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Head.html">Font::TTF::Head</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Hhea.html">Font::TTF::Hhea</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Hmtx.html">Font::TTF::Hmtx</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Kern.html">Font::TTF::Kern</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Loca.html">Font::TTF::Loca</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Maxp.html">Font::TTF::Maxp</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Mort.html">Font::TTF::Mort</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Name.html">Font::TTF::Name</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Post.html">Font::TTF::Post</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Prep.html">Font::TTF::Prep</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Prop.html">Font::TTF::Prop</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Vhea.html">Font::TTF::Vhea</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Vmtx.html">Font::TTF::Vmtx</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/OldCmap.html">Font::TTF::OldCmap</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Glyph.html">Font::TTF::Glyph</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/AATKern.html">Font::TTF::AATKern</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/OldMort.html">Font::TTF::OldMort</a> <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/DSIG.html">Font::TTF::DSIG</a></p>
+
+<h1 id="INSTANCE-VARIABLES">INSTANCE VARIABLES</h1>
+
+<p>Instance variables begin with a space (and have lengths greater than the 4 characters which make up table names).</p>
+
+<dl>
+
+<dt id="nocsum">nocsum</dt>
+<dd>
+
+<p>This is used during output to disable the creation of the file checksum in the head table. For example, during DSIG table creation, this flag will be set to ensure that the file checksum is left at zero.</p>
+
+</dd>
+<dt id="noharmony">noharmony</dt>
+<dd>
+
+<p>If set, do not harmonize the script and lang trees of GPOS and GSUB tables. See <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Ttopen.html">Font::TTF::Ttopen</a> for more info.</p>
+
+</dd>
+<dt id="nocompress">nocompress</dt>
+<dd>
+
+<p>Is the default value controlling WOFF output table compression. If undef, all tables will be compressed if there is a size benefit in doing so. It may be set to an array of tagnames naming tables that should not be compressed, or to a scalar integer specifying a table size threshold below which tables will not be compressed. Note that individual <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Table.html">Font::TTF::Table</a> objects may override this default. See <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Table.html">Font::TTF::Table</a> for more info.</p>
+
+</dd>
+<dt id="fname-R-">fname (R)</dt>
+<dd>
+
+<p>Contains the filename of the font which this object was read from.</p>
+
+</dd>
+<dt id="INFILE-P-">INFILE (P)</dt>
+<dd>
+
+<p>The file handle which reflects the source file for this font.</p>
+
+</dd>
+<dt id="OFFSET-P-">OFFSET (P)</dt>
+<dd>
+
+<p>Contains the offset from the beginning of the read file of this particular font directory, thus providing support for TrueType Collections.</p>
+
+</dd>
+<dt id="WOFF">WOFF</dt>
+<dd>
+
+<p>Contains a reference to a <code><code>Font::TTF::Woff</code></code> object.</p>
+
+</dd>
+</dl>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="Font::TTF::Font-AddTable-tablename-class-">Font::TTF::Font-&gt;AddTable($tablename, $class)</h2>
+
+<p>Adds the given class to be used when representing the given table name. It also &#39;requires&#39; the class for you.</p>
+
+<h2 id="Font::TTF::Font-Init">Font::TTF::Font-&gt;Init</h2>
+
+<p>For those people who like making fonts without reading them. This subroutine will require all the table code for the various table types for you. Not needed if using Font::TTF::Font::read before using a table.</p>
+
+<h2 id="Font::TTF::Font-new-props-">Font::TTF::Font-&gt;new(%props)</h2>
+
+<p>Creates a new font object and initialises with the given properties. This is primarily for use when a TTF is embedded somewhere. Notice that the properties are automatically preceded by a space when inserted into the object. This is in order that fields do not clash with tables.</p>
+
+<h2 id="Font::TTF::Font-open-fname-">Font::TTF::Font-&gt;open($fname)</h2>
+
+<p>Reads the header and directory for the given font file and creates appropriate objects for each table in the font.</p>
+
+<h2 id="f-read">$f-&gt;read</h2>
+
+<p>Reads a Truetype font directory starting from location <code><code>$self-</code></code>{&#39; OFFSET&#39;}&gt; in the file. This has been separated from the <code><code>open</code></code> function to allow support for embedded TTFs for example in TTCs. Also reads the <code><code>head</code></code> and <code><code>maxp</code></code> tables immediately.</p>
+
+<h2 id="f-out-fname-tablelist-">$f-&gt;out($fname [, @tablelist])</h2>
+
+<p>Writes a TTF file consisting of the tables in tablelist. The list is checked to ensure that only tables that exist are output. (This means that you cannot have non table information stored in the font object with key length of exactly 4)</p>
+
+<p>In many cases the user simply wants to output all the tables in alphabetical order. This can be done by not including a @tablelist, in which case the subroutine will output all the defined tables in the font in alphabetical order.</p>
+
+<p>Returns $f on success and undef on failure, including warnings.</p>
+
+<p>All output files must include the <code><code>head</code></code> table.</p>
+
+<h2 id="f-out_xml-filename-tables-">$f-&gt;out_xml($filename [, @tables])</h2>
+
+<p>Outputs the font in XML format</p>
+
+<h2 id="f-XML_start-context-tag-attrs-">$f-&gt;XML_start($context, $tag, %attrs)</h2>
+
+<p>Handles start messages from the XML parser. Of particular interest to us are &lt;font&gt; and &lt;table&gt;.</p>
+
+<h2 id="f-update">$f-&gt;update</h2>
+
+<p>Sends update to all the tables in the font and then resets all the isDirty flags on each table. The data structure in now consistent as a font (we hope).</p>
+
+<h2 id="f-dirty">$f-&gt;dirty</h2>
+
+<p>Dirties all the tables in the font</p>
+
+<h2 id="f-tables_do-func-tables-">$f-&gt;tables_do(&amp;func [, tables])</h2>
+
+<p>Calls &amp;func for each table in the font. Calls the table in alphabetical sort order as per the order in the directory:</p>
+
+<pre><code><code>    <span class="operator">&amp;</span><span class="variable">func</span><span class="operator">(</span><span class="variable">$table</span><span class="operator">,</span> <span class="variable">$name</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>May optionally take a list of table names in which case func is called for each of them in the given order.</p>
+
+<h2 id="f-release">$f-&gt;release</h2>
+
+<p>Releases ALL of the memory used by the TTF font and all of its component objects. After calling this method, do <b>NOT</b> expect to have anything left in the <code><code>Font::TTF::Font</code></code> object.</p>
+
+<p><b>NOTE</b>, that it is important that you call this method on any <code><code>Font::TTF::Font</code></code> object when you wish to destruct it and free up its memory. Internally, we track things in a structure that can result in circular references, and without calling &#39;<code><code>release()</code></code>&#39; these will not properly get cleaned up by Perl. Once you&#39;ve called this method, though, don&#39;t expect to be able to do anything else with the <code><code>Font::TTF::Font</code></code> object; it&#39;ll have <b>no</b> internal state whatsoever.</p>
+
+<p><b>Developer note:</b> As part of the brute-force cleanup done here, this method will throw a warning message whenever unexpected key values are found within the <code><code>Font::TTF::Font</code></code> object. This is done to help ensure that any unexpected and unfreed values are brought to your attention so that you can bug us to keep the module updated properly; otherwise the potential for memory leaks due to dangling circular references will exist.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Bugs abound aplenty I am sure. There is a lot of code here and plenty of scope. The parts of the code which haven&#39;t been implemented yet are:</p>
+
+<dl>
+
+<dt id="Post">Post</dt>
+<dd>
+
+<p>Version 4 format types are not supported yet.</p>
+
+</dd>
+<dt id="Cmap">Cmap</dt>
+<dd>
+
+<p>Format type 2 (MBCS) has not been implemented yet and therefore may cause somewhat spurious results for this table type.</p>
+
+</dd>
+<dt id="Kern">Kern</dt>
+<dd>
+
+<p>Only type 0 &amp; type 2 tables are supported (type 1 &amp; type 3 yet to come).</p>
+
+</dd>
+<dt id="TTC-and-WOFF">TTC and WOFF</dt>
+<dd>
+
+<p>The current Font::TTF::Font::out method does not support the writing of TrueType Collections or WOFF files.</p>
+
+</dd>
+<dt id="DSIG">DSIG</dt>
+<dd>
+
+<p>Haven&#39;t figured out how to correctly calculate and output digital signature (DSIG) table</p>
+
+</dd>
+</dl>
+
+<p>In addition there are weaknesses or features of this module library</p>
+
+<ul>
+
+<li><p>There is very little (or no) error reporting. This means that if you have garbled data or garbled data structures, then you are liable to generate duff fonts.</p>
+
+</li>
+<li><p>The exposing of the internal data structures everywhere means that doing radical re-structuring is almost impossible. But it stop the code from becoming ridiculously large.</p>
+
+</li>
+</ul>
+
+<p>Apart from these, I try to keep the code in a state of &quot;no known bugs&quot;, which given the amount of testing this code has had, is not a guarantee of high quality, yet.</p>
+
+<p>For more details see the appropriate class files.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Martin Hosken <a href="http://scripts.sil.org/FontUtils">http://scripts.sil.org/FontUtils</a>.</p>
+
+<h1 id="LICENSING">LICENSING</h1>
+
+<p>Copyright (c) 1998-2014, SIL International (http://www.sil.org)</p>
+
+<p>This module is released under the terms of the Artistic License 2.0. For details, see the full text of the license in the file LICENSE.</p>
+
+
+</body>
+
+</html>
+
+

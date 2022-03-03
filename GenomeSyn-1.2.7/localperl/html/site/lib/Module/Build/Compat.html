@@ -1,0 +1,176 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#METHODS">METHODS</a></li>
+  <li><a href="#SCENARIOS">SCENARIOS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Module::Build::Compat - Compatibility with ExtUtils::MakeMaker</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># In a Build.PL :</span>
+  <span class="keyword">use</span> <span class="variable">Module::Build</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$build</span> <span class="operator">=</span> <span class="variable">Module::Build</span><span class="operator">-&gt;</span><span class="variable">new</span>
+    <span class="operator">(</span> <span class="string">module_name</span> <span class="operator">=&gt;</span> <span class="string">'Foo::Bar'</span><span class="operator">,</span>
+      <span class="string">license</span>     <span class="operator">=&gt;</span> <span class="string">'perl'</span><span class="operator">,</span>
+      <span class="string">create_makefile_pl</span> <span class="operator">=&gt;</span> <span class="string">'traditional'</span> <span class="operator">);</span>
+  <span class="operator">...</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Because <code><code>ExtUtils::MakeMaker</code></code> has been the standard way to distribute modules for a long time, many tools (CPAN.pm, or your system administrator) may expect to find a working <i>Makefile.PL</i> in every distribution they download from CPAN. If you want to throw them a bone, you can use <code><code>Module::Build::Compat</code></code> to automatically generate a <i>Makefile.PL</i> for you, in one of several different styles.</p>
+
+<p><code><code>Module::Build::Compat</code></code> also provides some code that helps out the <i>Makefile.PL</i> at runtime.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<dl>
+
+<dt id="create_makefile_pl-style-build-">create_makefile_pl($style, $build)</dt>
+<dd>
+
+<p>Creates a <i>Makefile.PL</i> in the current directory in one of several styles, based on the supplied <code><code>Module::Build</code></code> object <code><code>$build</code></code>. This is typically controlled by passing the desired style as the <code><code>create_makefile_pl</code></code> parameter to <code><code>Module::Build</code></code>&#39;s <code><code>new()</code></code> method; the <i>Makefile.PL</i> will then be automatically created during the <code><code>distdir</code></code> action.</p>
+
+<p>The currently supported styles are:</p>
+
+<dl>
+
+<dt id="traditional">traditional</dt>
+<dd>
+
+<p>A <i>Makefile.PL</i> will be created in the &quot;traditional&quot; style, i.e. it will use <code><code>ExtUtils::MakeMaker</code></code> and won&#39;t rely on <code><code>Module::Build</code></code> at all. In order to create the <i>Makefile.PL</i>, we&#39;ll include the <code><code>requires</code></code> and <code><code>build_requires</code></code> dependencies as the <code><code>PREREQ_PM</code></code> parameter.</p>
+
+<p>You don&#39;t want to use this style if during the <code><code>perl Build.PL</code></code> stage you ask the user questions, or do some auto-sensing about the user&#39;s environment, or if you subclass <code><code>Module::Build</code></code> to do some customization, because the vanilla <i>Makefile.PL</i> won&#39;t do any of that.</p>
+
+</dd>
+<dt id="small">small</dt>
+<dd>
+
+<p>A small <i>Makefile.PL</i> will be created that passes all functionality through to the <i>Build.PL</i> script in the same directory. The user must already have <code><code>Module::Build</code></code> installed in order to use this, or else they&#39;ll get a module-not-found error.</p>
+
+</dd>
+<dt id="passthrough-DEPRECATED-">passthrough (DEPRECATED)</dt>
+<dd>
+
+<p>This is just like the <code><code>small</code></code> option above, but if <code><code>Module::Build</code></code> is not already installed on the user&#39;s system, the script will offer to use <code><code>CPAN.pm</code></code> to download it and install it before continuing with the build.</p>
+
+<p>This option has been deprecated and may be removed in a future version of Module::Build. Modern CPAN.pm and CPANPLUS will recognize the <code><code>configure_requires</code></code> metadata property and install Module::Build before running Build.PL if Module::Build is listed and Module::Build now adds itself to configure_requires by default.</p>
+
+<p>Perl 5.10.1 includes <code><code>configure_requires</code></code> support. In the future, when <code><code>configure_requires</code></code> support is deemed sufficiently widespread, the <code><code>passthrough</code></code> style will be removed.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="run_build_pl-args-ARGV-">run_build_pl(args =&gt; \@ARGV)</dt>
+<dd>
+
+<p>This method runs the <i>Build.PL</i> script, passing it any arguments the user may have supplied to the <code><code>perl Makefile.PL</code></code> command. Because <code><code>ExtUtils::MakeMaker</code></code> and <code><code>Module::Build</code></code> accept different arguments, this method also performs some translation between the two.</p>
+
+<p><code><code>run_build_pl()</code></code> accepts the following named parameters:</p>
+
+<dl>
+
+<dt id="args">args</dt>
+<dd>
+
+<p>The <code><code>args</code></code> parameter specifies the parameters that would usually appear on the command line of the <code><code>perl Makefile.PL</code></code> command - typically you&#39;ll just pass a reference to <code><code>@ARGV</code></code>.</p>
+
+</dd>
+<dt id="script">script</dt>
+<dd>
+
+<p>This is the filename of the script to run - it defaults to <code><code>Build.PL</code></code>.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="write_makefile-">write_makefile()</dt>
+<dd>
+
+<p>This method writes a &#39;dummy&#39; <i>Makefile</i> that will pass all commands through to the corresponding <code><code>Module::Build</code></code> actions.</p>
+
+<p><code><code>write_makefile()</code></code> accepts the following named parameters:</p>
+
+<dl>
+
+<dt id="makefile">makefile</dt>
+<dd>
+
+<p>The name of the file to write - defaults to the string <code><code>Makefile</code></code>.</p>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<h1 id="SCENARIOS">SCENARIOS</h1>
+
+<p>So, some common scenarios are:</p>
+
+<ol>
+
+<li><p>Just include a <i>Build.PL</i> script (without a <i>Makefile.PL</i> script), and give installation directions in a <i>README</i> or <i>INSTALL</i> document explaining how to install the module. In particular, explain that the user must install <code><code>Module::Build</code></code> before installing your module.</p>
+
+<p>Note that if you do this, you may make things easier for yourself, but harder for people with older versions of CPAN or CPANPLUS on their system, because those tools generally only understand the <i>Makefile.PL</i>/<code><code>ExtUtils::MakeMaker</code></code> way of doing things.</p>
+
+</li>
+<li><p>Include a <i>Build.PL</i> script and a &quot;traditional&quot; <i>Makefile.PL</i>, created either manually or with <code><code>create_makefile_pl()</code></code>. Users won&#39;t ever have to install <code><code>Module::Build</code></code> if they use the <i>Makefile.PL</i>, but they won&#39;t get to take advantage of <code><code>Module::Build</code></code>&#39;s extra features either.</p>
+
+<p>For good measure, of course, test both the <i>Makefile.PL</i> and the <i>Build.PL</i> before shipping.</p>
+
+</li>
+<li><p>Include a <i>Build.PL</i> script and a &quot;pass-through&quot; <i>Makefile.PL</i> built using <code><code>Module::Build::Compat</code></code>. This will mean that people can continue to use the &quot;old&quot; installation commands, and they may never notice that it&#39;s actually doing something else behind the scenes. It will also mean that your installation process is compatible with older versions of tools like CPAN and CPANPLUS.</p>
+
+</li>
+</ol>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Ken Williams &lt;kwilliams@cpan.org&gt;</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2001-2006 Ken Williams. All rights reserved.</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../lib/Module/Build.html">Module::Build</a>(3), <a href="../../../../lib/ExtUtils/MakeMaker.html">ExtUtils::MakeMaker</a>(3)</p>
+
+
+</body>
+
+</html>
+
+

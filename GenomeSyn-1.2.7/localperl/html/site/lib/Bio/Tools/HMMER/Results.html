@@ -1,0 +1,287 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Ewan-Birney">AUTHOR - Ewan Birney</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#next_feature">next_feature</a></li>
+      <li><a href="#number">number</a></li>
+      <li><a href="#seqfile">seqfile</a></li>
+      <li><a href="#hmmfile">hmmfile</a></li>
+      <li><a href="#add_Domain">add_Domain</a></li>
+      <li><a href="#each_Domain">each_Domain</a></li>
+      <li><a href="#domain_bits_cutoff_from_evalue">domain_bits_cutoff_from_evalue</a></li>
+      <li><a href="#write_FT_output">write_FT_output</a></li>
+      <li><a href="#filter_on_cutoff">filter_on_cutoff</a></li>
+      <li><a href="#write_ascii_out">write_ascii_out</a></li>
+      <li><a href="#write_GDF_bits">write_GDF_bits</a></li>
+      <li><a href="#add_Set">add_Set</a></li>
+      <li><a href="#each_Set">each_Set</a></li>
+      <li><a href="#get_Set">get_Set</a></li>
+      <li><a href="#parse_hmmpfam">_parse_hmmpfam</a></li>
+      <li><a href="#parse_hmmsearch">_parse_hmmsearch</a></li>
+      <li><a href="#parsetype">parsetype</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::HMMER::Results - Object representing HMMER output results</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="comment"># parse a hmmsearch file (can also parse a hmmpfam file)</span>
+   <span class="variable">$res</span> <span class="operator">=</span> <span class="variable">Bio::Tools::HMMER::Results</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'output.hmm'</span> <span class="operator">,</span>
+                                          <span class="string">-type</span> <span class="operator">=&gt;</span> <span class="string">'hmmsearch'</span><span class="operator">);</span>
+   
+   <span class="comment"># print out the results for each sequence</span>
+   <span class="keyword">foreach</span> <span class="variable">$seq</span> <span class="operator">(</span> <span class="variable">$res</span><span class="operator">-&gt;</span><span class="variable">each_Set</span> <span class="operator">)</span> <span class="operator">{</span>
+       <span class="keyword">print</span> <span class="string">"Sequence bit score is"</span><span class="operator">,</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">bits</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+       <span class="keyword">foreach</span> <span class="variable">$domain</span> <span class="operator">(</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">each_Domain</span> <span class="operator">)</span> <span class="operator">{</span>
+           <span class="keyword">print</span> <span class="string">" Domain start "</span><span class="operator">,</span><span class="variable">$domain</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">,</span><span class="string">" end "</span><span class="operator">,</span><span class="variable">$domain</span><span class="operator">-&gt;</span><span class="variable">end</span><span class="operator">,</span>
+           <span class="string">" score "</span><span class="operator">,</span><span class="variable">$domain</span><span class="operator">-&gt;</span><span class="variable">bits</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+       <span class="operator">}</span>
+   <span class="operator">}</span>
+   
+   <span class="comment"># new result object on a sequence/domain cutoff of</span>
+   <span class="comment"># 25 bits sequence, 15 bits domain</span>
+   <span class="variable">$newresult</span> <span class="operator">=</span> <span class="variable">$res</span><span class="operator">-&gt;</span><span class="variable">filter_on_cutoff</span><span class="operator">(</span><span class="number">25</span><span class="operator">,</span><span class="number">15</span><span class="operator">);</span>
+   
+   <span class="comment"># alternative way of getting out all domains directly</span>
+   <span class="keyword">foreach</span> <span class="variable">$domain</span> <span class="operator">(</span> <span class="variable">$res</span><span class="operator">-&gt;</span><span class="variable">each_Domain</span> <span class="operator">)</span> <span class="operator">{</span>
+       <span class="keyword">print</span> <span class="string">"Domain on "</span><span class="operator">,</span><span class="variable">$domain</span><span class="operator">-&gt;</span><span class="variable">seq_id</span><span class="operator">,</span><span class="string">" with score "</span><span class="operator">,</span>
+       <span class="variable">$domain</span><span class="operator">-&gt;</span><span class="variable">bits</span><span class="operator">,</span><span class="string">" evalue "</span><span class="operator">,</span><span class="variable">$domain</span><span class="operator">-&gt;</span><span class="variable">evalue</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+   <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object represents HMMER output, either from hmmsearch or hmmpfam. For hmmsearch, a series of HMMER::Set objects are made, one for each sequence, which have the the bits score for the object. For hmmpfam searches, only one Set object is made.</p>
+
+<p>These objects come from the original HMMResults modules used internally in Pfam, written by Ewan Birney. Ewan then converted them to BioPerl objects in 1999. That conversion is meant to be backwardly compatible, but may not be (caveat emptor).</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Ewan-Birney">AUTHOR - Ewan Birney</h1>
+
+<p>Email birney@ebi.ac.uk</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Jason Stajich, jason-at-bioperl.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="next_feature">next_feature</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_feature</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$feat</span> <span class="operator">=</span> <span class="variable">$res</span><span class="operator">-&gt;</span><span class="variable">next_feature</span> <span class="operator">)</span> <span class="operator">{</span> <span class="comment"># do something }</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">SeqAnalysisParserI</span> <span class="variable">implementing</span> <span class="variable">function</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">compliant</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">in</span> <span class="variable">this</span> <span class="variable">case</span><span class="operator">,</span>
+           <span class="keyword">each</span> <span class="variable">DomainUnit</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">ie</span><span class="operator">,</span> <span class="variable">flattening</span> <span class="variable">the</span> <span class="variable">Sequence</span>
+           <span class="variable">aspect</span> <span class="variable">of</span> <span class="variable">this</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span>
+</code></code></pre>
+
+<h2 id="number">number</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">number</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">print</span> <span class="string">"There are "</span><span class="operator">,</span><span class="variable">$res</span><span class="operator">-&gt;</span><span class="variable">number</span><span class="operator">,</span><span class="string">" domains hit\n"</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">provides</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">domains</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">HMMER</span> <span class="variable">report</span>
+</code></code></pre>
+
+<h2 id="seqfile">seqfile</h2>
+
+<pre><code><code> Title   : seqfile
+ Usage   : $obj-&gt;seqfile($newval)
+ Function:
+ Example :
+ Returns : value of seqfile
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="hmmfile">hmmfile</h2>
+
+<pre><code><code> Title   : hmmfile
+ Usage   : $obj-&gt;hmmfile($newval)
+ Function:
+ Example :
+ Returns : value of hmmfile
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="add_Domain">add_Domain</h2>
+
+<pre><code><code> Title   : add_Domain
+ Usage   : $res-&gt;add_Domain($unit)
+ Function: adds a domain to the results array. Mainly used internally.
+ Args    : A Bio::Tools::HMMER::Domain</code></code></pre>
+
+<h2 id="each_Domain">each_Domain</h2>
+
+<pre><code><code> Title   : each_Domain
+ Usage   : foreach $domain ( $res-&gt;each_Domain() )
+ Function: array of Domain units which are held in this report
+ Returns : array
+ Args    : none</code></code></pre>
+
+<h2 id="domain_bits_cutoff_from_evalue">domain_bits_cutoff_from_evalue</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">domain_bits_cutoff_from_evalue</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$cutoff</span> <span class="operator">=</span> <span class="variable">domain_bits_cutoff_from_evalue</span><span class="operator">(</span><span class="number">0</span><span class="operator">.</span><span class="number">01</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="keyword">return</span> <span class="variable">a</span> <span class="variable">bits</span> <span class="variable">cutoff</span> <span class="variable">from</span> <span class="variable">an</span> <span class="variable">evalue</span> <span class="variable">using</span> <span class="variable">the</span>
+           <span class="variable">scores</span> <span class="variable">here</span><span class="operator">.</span> <span class="variable">Somewhat</span> <span class="variable">interesting</span> <span class="variable">logic</span><span class="operator">:</span>
+            <span class="variable">Find</span> <span class="variable">the</span> <span class="variable">two</span> <span class="variable">bit</span> <span class="variable">score</span> <span class="variable">which</span> <span class="variable">straddle</span> <span class="variable">the</span> <span class="variable">evalue</span>
+            <span class="keyword">if</span><span class="operator">(</span> <span class="number">25</span> <span class="variable">is</span> <span class="variable">between</span> <span class="variable">these</span> <span class="variable">two</span> <span class="variable">points</span><span class="operator">)</span> <span class="keyword">return</span> <span class="number">25</span>
+            <span class="keyword">else</span> <span class="keyword">return</span> <span class="variable">the</span> <span class="variable">midpoint</span><span class="operator">.</span>
+ 
+           <span class="variable">This</span> <span class="variable">logic</span> <span class="variable">tries</span> <span class="variable">to</span> <span class="variable">ensure</span> <span class="variable">that</span> <span class="variable">with</span> <span class="variable">large</span> <span class="variable">signal</span> <span class="variable">to</span>
+           <span class="variable">noise</span> <span class="variable">separation</span> <span class="variable">one</span> <span class="variable">still</span> <span class="variable">has</span> <span class="variable">sensible</span> <span class="number">25</span> <span class="variable">bit</span> <span class="variable">cutoff</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="write_FT_output">write_FT_output</h2>
+
+<pre><code><code> Title   : write_FT_output
+ Usage   : $res-&gt;write_FT_output(\*STDOUT,&#39;DOMAIN&#39;)
+ Function: writes feature table output ala swissprot
+ Returns :
+ Args    :</code></code></pre>
+
+<h2 id="filter_on_cutoff">filter_on_cutoff</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">filter_on_cutoff</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$newresults</span> <span class="operator">=</span> <span class="variable">$results</span><span class="operator">-&gt;</span><span class="variable">filter_on_cutoff</span><span class="operator">(</span><span class="number">25</span><span class="operator">,</span><span class="number">15</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Produces</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">HMMER::Results</span> <span class="variable">module</span> <span class="variable">which</span> <span class="variable">has</span>
+           <span class="variable">been</span> <span class="variable">trimmed</span> <span class="variable">at</span> <span class="variable">the</span> <span class="variable">cutoff</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Tools::HMMER::Results</span> <span class="variable">module</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">sequence</span> <span class="variable">cutoff</span> <span class="keyword">and</span> <span class="variable">domain</span> <span class="variable">cutoff</span><span class="operator">.</span> <span class="variable">in</span> <span class="variable">bits</span> <span class="variable">score</span>
+           <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">want</span> <span class="variable">one</span> <span class="variable">cutoff</span><span class="operator">,</span> <span class="variable">simply</span> <span class="keyword">use</span> <span class="variable">same</span> <span class="variable">number</span> <span class="variable">both</span> <span class="variable">places</span>
+</code></code></pre>
+
+<h2 id="write_ascii_out">write_ascii_out</h2>
+
+<pre><code><code> Title   : write_ascii_out
+ Usage   : $res-&gt;write_ascii_out(\*STDOUT)
+ Function: writes as
+           seq seq_start seq_end model-acc model_start model_end model_name
+ Returns :
+ Args    :
+
+  FIXME: Now that we have no modelacc, this is probably a bad thing.</code></code></pre>
+
+<h2 id="write_GDF_bits">write_GDF_bits</h2>
+
+<pre><code><code> Title   : write_GDF_bits
+ Usage   : $res-&gt;write_GDF_bits(25,15,\*STDOUT)
+ Function: writes GDF format with a sequence,domain threshold
+ Returns :
+ Args    :</code></code></pre>
+
+<h2 id="add_Set">add_Set</h2>
+
+<pre><code><code> Title   : add_Set
+ Usage   : Mainly internal function
+ Function:
+ Returns :
+ Args    :</code></code></pre>
+
+<h2 id="each_Set">each_Set</h2>
+
+<pre><code><code> Title   : each_Set
+ Usage   :
+ Function:
+ Returns :
+ Args    :</code></code></pre>
+
+<h2 id="get_Set">get_Set</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Set</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$set</span> <span class="operator">=</span> <span class="variable">$res</span><span class="operator">-&gt;</span><span class="variable">get_Set</span><span class="operator">(</span><span class="string">'sequence-name'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">Set</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">particular</span> <span class="variable">sequence</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">HMMER::Set</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span>
+</code></code></pre>
+
+<h2 id="parse_hmmpfam">_parse_hmmpfam</h2>
+
+<pre><code><code> Title   : _parse_hmmpfam
+ Usage   : $res-&gt;_parse_hmmpfam($filehandle)
+ Function:
+ Returns :
+ Args    :</code></code></pre>
+
+<h2 id="parse_hmmsearch">_parse_hmmsearch</h2>
+
+<pre><code><code> Title   : _parse_hmmsearch
+ Usage   : $res-&gt;_parse_hmmsearch($filehandle)
+ Function:
+ Returns :
+ Args    :</code></code></pre>
+
+<h2 id="parsetype">parsetype</h2>
+
+<pre><code><code> Title   : parsetype
+ Usage   : $obj-&gt;parsetype($newval)
+ Function:
+ Returns : value of parsetype
+ Args    : newvalue (optional)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

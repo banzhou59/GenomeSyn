@@ -1,0 +1,286 @@
+=head1 ActivePerl 1603 -- Release Notes
+
+Welcome, and thank you for downloading ActivePerl.  This release
+corresponds to Perl version 5.16.3.
+
+The following platforms are supported by this release:
+
+=over 3
+
+=item *
+
+AIX 5.3 or later (rs6000)
+
+=item *
+
+HP-UX: 11.11 or later (PA-RISC)
+
+=item *
+
+Linux: glibc 2.3 or later (x86 and x64)
+
+=item *
+
+Mac OS X 10.6 or later (x86, 32 and 64 bit)
+
+=item *
+
+Solaris 2.9 or later (sparc, 32 and 64 bit)
+
+=item *
+
+Solaris 10 or later (x86)
+
+=item *
+
+Windows XP (x86)
+
+=item *
+
+Windows Server 2003, Vista, Server 2008, 7, Server 2012, 8 (x86 and x64)
+
+=back
+
+=for text
+For a chronological list of changes included in this and past releases,
+see the ActivePerl 5.16 Change Log.
+
+=for html
+<p>For a chronological list of changes included in this and past releases,
+see the <a href="changes.html">ActivePerl 5.16 Change Log</a>.</p>
+
+=head1 Incompatibilities
+
+Perl 5.16 is not binary compatible with Perl 5.14, 5.12, 5.10 or 5.8.  In particular, do not
+attempt to use extensions or PPM packages built for ActivePerl 800, 1000, 1200 and 1400
+series builds with ActivePerl 1600 series builds and vice versa.  Please
+check L<perl5140delta/Incompatible Changes> for known source level
+incompatibilities between the Perl 5.16 releases and the earlier release
+series.
+
+=head1 Known Issues
+
+=head2 PPM
+
+There are some known outstanding issues with the PPM 4 client:
+
+=over 3
+
+=item *
+
+The PPM state database (containing configuration information for
+repositories, view options in the GUI, and repository state) is not
+imported from previous installations.
+
+If you have added custom PPM 4 repositories in previous ActivePerl releases
+then you should reconfigure them manually with C<ppm repo add ...> or in the
+GUI.  The repository state will be automatically re-synchronized when
+PPM is run.
+
+=item *
+
+Post install scripts for packages installed from the GUI will not be able to
+receive non-default answers for any prompts it might produce.  Packages that
+need non-default answers must be installed with the command line version
+of ppm.
+
+=item *
+
+List icons will sometimes not repaint properly after scrolling under
+X11.  This does not affect the Windows and Mac OS X builds.
+
+=item *
+
+Running C<sudo ppm ...> the first time C<ppm> is invoked from a
+regular user account on Unix will create a I<root> owned state
+database.  This effectively makes the database read-only when running
+C<ppm> without C<sudo>, and might manifest itself as Application Error
+dialogs when running the GUI.  Workaround is to run C<sudo chown -R
+$USER ~/.ActivePerl> once to fix up ownership of the state database.
+
+=back
+
+=head2 AIX
+
+=over 3
+
+=item *
+
+GNU tar is required to extract the ActivePerl tarball into the filesystem. A
+precompiled version of GNU tar for AIX 5L can be found here:
+
+    http://www-03.ibm.com/systems/p/os/aix/linux/toolbox/download.html
+
+You can also get the source package for GNU tar from:
+
+    http://www.gnu.org/
+
+=item *
+
+The reloc_perl script does not correctly update the perl-dynamic executable.
+The workaround is to install directly from the tarball into the new location.
+
+=back
+
+=head2 Solaris
+
+=over 3
+
+=item *
+
+GNU tar is required to extract the ActivePerl tarball into the filesystem. A
+precompiled version of GNU tar for Solaris is available from:
+
+    http://www.sunfreeware.com/
+
+You can also get the source package for GNU tar from:
+
+    http://www.gnu.org/
+
+=back
+
+=head2 Mac OS X
+
+=over 3
+
+=item *
+
+Perl library paths, and thus PPM Areas, defined in the shell by the
+PERL5LIB environment variable are not available to PPM when it is
+launched by clicking the PPM icon in OS X. To to make this variable
+available in the OS X GUI, add an entry similar to the following to
+F<~/.MacOSX/environment.plist>:
+
+ <key>PERL5LIB</key>
+ <string>/path/to/perl/lib</string>
+
+=item *
+
+Running C<sudo ppm> or C<sudo ppm gui> does not start up the GUI with
+I<root> privileges.  Use C<ppm> as a command line tool with C<sudo>.
+
+=back
+
+=head2 Windows
+
+=over 3
+
+=item *
+
+The fork() emulation has known limitations.  See L<perlfork> for a
+detailed summary.  In particular, fork() emulation will not work
+correctly with extensions that are either not thread-safe, or maintain
+internal state that cannot be cloned in the pseudo-child process.  This
+caveat currently applies to extensions such as Tk and Storable.
+
+=item *
+
+It seems that some people are having problems with the ActivePerl MSI
+installer.  The first thing to note is that you CANNOT install
+ActivePerl 5.16 over an older version of ActivePerl based on 5.14, 5.12, 5.10, 5.8, 5.6 or
+5.005, such as build 1204 or any other 1200, 1000, 800, 600 or 500 series build.  We
+have determined that some of these problems are due to other
+installations of Perl that may be pointed at by something in the
+environment.
+
+The sure-fire solution is to make absolutely certain that no other
+installations of Perl are on the target machine. Realizing that this is not
+always possible, you can follow these steps to ensure the other
+installations will not interfere.
+
+=over 4
+
+=item 1
+
+Stop the "Windows Installer" service. This can be accomplished from the
+command prompt using the following command:
+
+    c:\> net stop "Windows Installer"
+
+=item 2
+
+Temporarily remove or rename PERLLIB and PERL5LIB environment
+variables in the system environment.
+
+=item 3
+
+Temporarily remove or rename the following registry values:
+
+    [\\HKEY_LOCAL_MACHINE\Software\Perl] lib = <directory> (REG_SV)
+    [\\HKEY_LOCAL_MACHINE\Software\Perl] sitelib = <directory> (REG_SV)
+    [\\HKEY_LOCAL_MACHINE\Software\Perl] lib-<PerlVersion> = <directory> (REG_SV)
+    [\\HKEY_LOCAL_MACHINE\Software\Perl] sitelib-<PerlVersion> = <directory>(REG_SV)
+
+=item 4
+
+Proceed with the installation.
+
+=back
+
+Once the installation has completed successfully, the above actions may be
+undone although restoring the environment variables or the registry values
+may interfere with the proper operation of your new ActivePerl
+installation.
+In order to perform all of the above steps, you will need to have
+Administrative privileges on the target machine. If you do not have the
+required privileges you should contact your Administrator.
+
+=back
+
+=head2 Further Information
+
+The Perl distribution comes with extensive documentation.  On Unix platforms,
+all the standard documentation is installed as man pages under the Perl
+install location.  The location of the man pages may need to be added to the
+MANPATH environment variable in order to access them.  For example, in
+the C shell:
+
+    % setenv MANPATH /opt/ActivePerl-5.16/man:$MANPATH
+
+The documentation is installed in HTML format on all platforms. If ActivePerl
+was installed in F</opt/ActivePerl-5.16> then the HTML documentation
+would be located in F</opt/ActivePerl-5.16/html>.
+
+On Windows, the standard documentation along with Windows-specific Perl
+documentation is installed in HTML format, and is accessible from the
+"Start" menu.
+
+Updated versions of the HTML documentation will always be available at
+the ActiveState website:
+
+    http://www.activestate.com/ActivePerl
+
+=head1 Reporting Problems
+
+Please report any bugs you encounter with this release in the ActiveState bug
+database:
+
+    http://bugs.activestate.com
+
+If you do not have web access, reports can be also sent via email to
+ActivePerl-Bugs@ActiveState.com.  Please be sure to include detailed
+information about the platform in your message.
+
+As far as possible, please ensure that there is enough information in
+the report to reproduce the bug elsewhere.  It also helps to submit a
+minimal test case that exhibits the bug.
+
+=head1 ActivePerl Community Edition Support Policy
+
+The two most recent stable releases are available for free
+download. This corresponds to the Perl community's own version support
+policy.
+
+Whenever the underlying Perl version becomes "unsupported" by the Perl
+community itself, support for the corresponding ActivePerl versions
+will be limited to Business Edition and Enterprise Edition customers.
+
+You can continue to use older ActivePerl releases indefinitely under
+the terms of the Community Edition license, but won't be able to
+download the installers from ActiveState.
+
+The PPM repositories for unsupported ActivePerl releases will remain
+freely accessible for at least 6 months after support ends, but will
+no longer be updated with new builds from CPAN.
+
+=cut

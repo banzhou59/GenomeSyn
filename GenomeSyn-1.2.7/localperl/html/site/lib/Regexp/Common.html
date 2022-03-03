@@ -1,0 +1,615 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#General-syntax-for-requesting-patterns">General syntax for requesting patterns</a></li>
+      <li><a href="#Flag-syntax">Flag syntax</a></li>
+      <li><a href="#Universal-flags">Universal flags</a></li>
+      <li><a href="#OO-interface-and-inline-matching-substitution">OO interface and inline matching/substitution</a></li>
+      <li><a href="#Subroutine-based-interface">Subroutine-based interface</a></li>
+      <li><a href="#Adding-new-regular-expressions">Adding new regular expressions</a></li>
+      <li><a href="#Loading-specific-sets-of-patterns.">Loading specific sets of patterns.</a></li>
+      <li><a href="#List-of-available-patterns">List of available patterns</a></li>
+      <li><a href="#Forthcoming-patterns-and-features">Forthcoming patterns and features</a></li>
+    </ul>
+  </li>
+  <li><a href="#DIAGNOSTICS">DIAGNOSTICS</a></li>
+  <li><a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#MAINTAINANCE">MAINTAINANCE</a></li>
+  <li><a href="#BUGS-AND-IRRITATIONS">BUGS AND IRRITATIONS</a></li>
+  <li><a href="#NOT-A-BUG">NOT A BUG</a></li>
+  <li><a href="#LICENSE-and-COPYRIGHT">LICENSE and COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Regexp::Common - Provide commonly requested regular expressions</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="comment"># STANDARD USAGE </span>
+ 
+ <span class="keyword">use</span> <span class="variable">Regexp::Common</span><span class="operator">;</span>
+ 
+ <span class="keyword">while</span> <span class="operator">(&lt;&gt;)</span> <span class="operator">{</span>
+     <span class="regex">/</span><span class="variable">$RE</span><span class="regex">{num}{real}/</span>               <span class="keyword">and</span> <span class="keyword">print</span> <span class="string">q{a number}</span><span class="operator">;</span>
+     <span class="regex">/</span><span class="variable">$RE</span><span class="regex">{quoted}/</span>                  <span class="keyword">and</span> <span class="keyword">print</span> <span class="string">q{a ['"`] quoted string}</span><span class="operator">;</span>
+     <span class="regex">/</span><span class="variable">$RE</span><span class="regex">{delimited}{-delim=&gt;'/</span><span class="string">'}/  and print q{a /.../ sequence};
+     /$RE{balanced}{-parens=&gt;'</span><span class="operator">()</span><span class="string">'}/ and print q{balanced parentheses};
+     /$RE{profanity}/               and print q{a #*@%-ing word};
+ }
+ 
+ 
+ # SUBROUTINE-BASED INTERFACE
+ 
+ use Regexp::Common '</span><span class="variable">RE_ALL</span><span class="string">';
+ 
+ while (&lt;&gt;) {
+     $_ =~ RE_num_real()              and print q{a number};
+     $_ =~ RE_quoted()                and print q{a ['</span><span class="string">"`] quoted string};
+     </span><span class="variable">$_</span><span class="string"> =~ RE_delimited(-delim=&gt;'/')  and print q{a /.../ sequence};
+     </span><span class="variable">$_</span><span class="string"> =~ RE_balanced(-parens=&gt;'()'} and print q{balanced parentheses};
+     </span><span class="variable">$_</span><span class="string"> =~ RE_profanity()             and print q{a #*@%-ing word};
+ }
+ 
+ 
+ # IN-LINE MATCHING...
+ 
+ if ( </span><span class="variable">$RE</span><span class="string">{num}{int}-&gt;matches(</span><span class="variable">$text</span><span class="string">) ) {...}
+ 
+ 
+ # ...AND SUBSTITUTION
+ 
+ my </span><span class="variable">$cropped</span><span class="string"> = </span><span class="variable">$RE</span><span class="string">{ws}{crop}-&gt;subs(</span><span class="variable">$uncropped</span><span class="string">);
+ 
+ 
+ # ROLL-YOUR-OWN PATTERNS
+ 
+ use Regexp::Common 'pattern';
+ 
+ pattern name   =&gt; ['name', 'mine'],
+         create =&gt; '(?i:J[.]?\s+A[.]?\s+Perl-Hacker)',
+         ;
+ 
+ my </span><span class="variable">$name_matcher</span><span class="string"> = </span><span class="variable">$RE</span><span class="string">{name}{mine};
+ 
+ pattern name    =&gt; [ 'lineof', '-char=_' ],
+         create  =&gt; sub {
+                        my </span><span class="variable">$flags</span><span class="string"> = shift;
+                        my </span><span class="variable">$char</span><span class="string"> = quotemeta </span><span class="variable">$flags</span><span class="string">-&gt;{-char};
+                        return '(?:^</span><span class="variable">$char</span><span class="string">+$)';
+                    },
+         match   =&gt; sub {
+                        my (</span><span class="variable">$self</span><span class="string">, </span><span class="variable">$str</span><span class="string">) = </span><span class="variable">@_</span><span class="string">;
+                        return </span><span class="variable">$str</span><span class="string"> !~ /[^</span><span class="variable">$self</span><span class="string">-&gt;{flags}{-char}]/;
+                    },
+         subs   =&gt; sub {
+                        my (</span><span class="variable">$self</span><span class="string">, </span><span class="variable">$str</span><span class="string">, </span><span class="variable">$replacement</span><span class="string">) = </span><span class="variable">@_</span><span class="string">;
+                        </span><span class="variable">$_</span><span class="string">[1] =~ s/^</span><span class="variable">$self</span><span class="string">-&gt;{flags}{-char}+$//g;
+                   },
+         ;
+ 
+ my </span><span class="variable">$asterisks</span><span class="string"> = </span><span class="variable">$RE</span><span class="string">{lineof}{-char=&gt;'*'};
+ 
+ # DECIDING WHICH PATTERNS TO LOAD.
+ 
+ use Regexp::Common qw /comment number/;  # Comment and number patterns.
+ use Regexp::Common qw /no_defaults/;     # Don't load any patterns.
+ use Regexp::Common qw /!delimited/;      # All, but delimited patterns.
+ </span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>By default, this module exports a single hash (<code><code>%RE</code></code>) that stores or generates commonly needed regular expressions (see <a href="#List-of-available-patterns">&quot;List of available patterns&quot;</a>).</p>
+
+<p>There is an alternative, subroutine-based syntax described in <a href="#Subroutine-based-interface">&quot;Subroutine-based interface&quot;</a>.</p>
+
+<h2 id="General-syntax-for-requesting-patterns">General syntax for requesting patterns</h2>
+
+<p>To access a particular pattern, <code><code>%RE</code></code> is treated as a hierarchical hash of hashes (of hashes...), with each successive key being an identifier. For example, to access the pattern that matches real numbers, you specify:</p>
+
+<pre><code><code>        <span class="variable">$RE</span><span class="operator">{</span><span class="string">num</span><span class="operator">}{</span><span class="string">real</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>and to access the pattern that matches integers:</p>
+
+<pre><code><code>        <span class="variable">$RE</span><span class="operator">{</span><span class="string">num</span><span class="operator">}{</span><span class="string">int</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>Deeper layers of the hash are used to specify <i>flags</i>: arguments that modify the resulting pattern in some way. The keys used to access these layers are prefixed with a minus sign and may have a value; if a value is given, it&#39;s done by using a multidimensional key. For example, to access the pattern that matches base-2 real numbers with embedded commas separating groups of three digits (e.g. 10,101,110.110101101):</p>
+
+<pre><code><code>        <span class="variable">$RE</span><span class="operator">{</span><span class="string">num</span><span class="operator">}{</span><span class="string">real</span><span class="operator">}{</span><span class="string">-base</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">}{</span><span class="string">-sep</span> <span class="operator">=&gt;</span> <span class="string">','</span><span class="operator">}{</span><span class="string">-group</span> <span class="operator">=&gt;</span> <span class="number">3</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>Through the magic of Perl, these flag layers may be specified in any order (and even interspersed through the identifier keys!) so you could get the same pattern with:</p>
+
+<pre><code><code>        <span class="variable">$RE</span><span class="operator">{</span><span class="string">num</span><span class="operator">}{</span><span class="string">real</span><span class="operator">}{</span><span class="string">-sep</span> <span class="operator">=&gt;</span> <span class="string">','</span><span class="operator">}{</span><span class="string">-group</span> <span class="operator">=&gt;</span> <span class="number">3</span><span class="operator">}{</span><span class="string">-base</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>or:</p>
+
+<pre><code><code>        <span class="variable">$RE</span><span class="operator">{</span><span class="string">num</span><span class="operator">}{</span><span class="string">-base</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">}{</span><span class="string">real</span><span class="operator">}{</span><span class="string">-group</span> <span class="operator">=&gt;</span> <span class="number">3</span><span class="operator">}{</span><span class="string">-sep</span> <span class="operator">=&gt;</span> <span class="string">','</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>or even:</p>
+
+<pre><code><code>        <span class="variable">$RE</span><span class="operator">{</span><span class="string">-base</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">}{</span><span class="string">-group</span> <span class="operator">=&gt;</span> <span class="number">3</span><span class="operator">}{</span><span class="string">-sep</span> <span class="operator">=&gt;</span> <span class="string">','</span><span class="operator">}{</span><span class="string">num</span><span class="operator">}{</span><span class="string">real</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>etc.</p>
+
+<p>Note, however, that the relative order of amongst the identifier keys <i>is</i> significant. That is:</p>
+
+<pre><code><code>        <span class="variable">$RE</span><span class="operator">{</span><span class="string">list</span><span class="operator">}{</span><span class="string">set</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>would not be the same as:</p>
+
+<pre><code><code>        <span class="variable">$RE</span><span class="operator">{</span><span class="string">set</span><span class="operator">}{</span><span class="string">list</span><span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="Flag-syntax">Flag syntax</h2>
+
+<p>In versions prior to 2.113, flags could also be written as <code><code><span class="operator">{</span><span class="string">"-flag=value"</span><span class="operator">}</span>
+</code></code>. This no longer works, although <code><code><span class="operator">{</span><span class="string">"-flag$;value"</span><span class="operator">}</span>
+</code></code> still does. However, <code><code><span class="operator">{</span><span class="string">-flag</span> <span class="operator">=&gt;</span> <span class="string">'value'</span><span class="operator">}</span>
+</code></code> is the preferred syntax.</p>
+
+<h2 id="Universal-flags">Universal flags</h2>
+
+<p>Normally, flags are specific to a single pattern. However, there is two flags that all patterns may specify.</p>
+
+<dl>
+
+<dt id="keep"><code><code>-keep</code></code></dt>
+<dd>
+
+<p>By default, the patterns provided by <code><code>%RE</code></code> contain no capturing parentheses. However, if the <code><code>-keep</code></code> flag is specified (it requires no value) then any significant substrings that the pattern matches are captured. For example:</p>
+
+<pre><code><code>        <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$str</span> <span class="operator">=~</span> <span class="variable">$RE</span><span class="operator">{</span><span class="string">num</span><span class="operator">}{</span><span class="string">real</span><span class="operator">}{</span><span class="string">-keep</span><span class="operator">}</span><span class="operator">)</span> <span class="operator">{</span>
+                <span class="variable">$number</span>   <span class="operator">=</span> <span class="variable">$1</span><span class="operator">;</span>
+                <span class="variable">$whole</span>    <span class="operator">=</span> <span class="variable">$3</span><span class="operator">;</span>
+                <span class="variable">$decimals</span> <span class="operator">=</span> <span class="variable">$5</span><span class="operator">;</span>
+        <span class="operator">}</span>
+</code></code></pre>
+
+<p>Special care is needed if a &quot;kept&quot; pattern is interpolated into a larger regular expression, as the presence of other capturing parentheses is likely to change the &quot;number variables&quot; into which significant substrings are saved.</p>
+
+<p>See also <a href="#Adding-new-regular-expressions">&quot;Adding new regular expressions&quot;</a>, which describes how to create new patterns with &quot;optional&quot; capturing brackets that respond to <code><code>-keep</code></code>.</p>
+
+</dd>
+<dt id="i"><code><code>-i</code></code></dt>
+<dd>
+
+<p>Some patterns or subpatterns only match lowercase or uppercase letters. If one wants the do case insensitive matching, one option is to use the <code><code>/i</code></code> regexp modifier, or the special sequence <code><code>(?i)</code></code>. But if the functional interface is used, one does not have this option. The <code><code>-i</code></code> switch solves this problem; by using it, the pattern will do case insensitive matching.</p>
+
+</dd>
+</dl>
+
+<h2 id="OO-interface-and-inline-matching-substitution">OO interface and inline matching/substitution</h2>
+
+<p>The patterns returned from <code><code>%RE</code></code> are objects, so rather than writing:</p>
+
+<pre><code><code>        <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$str</span> <span class="operator">=~</span> <span class="regex">/</span><span class="variable">$RE</span><span class="regex">{some}{pattern}/</span> <span class="operator">)</span> <span class="operator">{...}</span>
+</code></code></pre>
+
+<p>you can write:</p>
+
+<pre><code><code>        <span class="keyword">if</span> <span class="operator">(</span> <span class="variable">$RE</span><span class="operator">{</span><span class="string">some</span><span class="operator">}{</span><span class="string">pattern</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">matches</span><span class="operator">(</span><span class="variable">$str</span><span class="operator">)</span> <span class="operator">)</span> <span class="operator">{...}</span>
+</code></code></pre>
+
+<p>For matching this would seem to have no great advantage apart from readability (but see below).</p>
+
+<p>For substitutions, it has other significant benefits. Frequently you want to perform a substitution on a string without changing the original. Most people use this:</p>
+
+<pre><code><code>        <span class="variable">$changed</span> <span class="operator">=</span> <span class="variable">$original</span><span class="operator">;</span>
+        <span class="variable">$changed</span> <span class="operator">=~</span> <span class="regex">s/</span><span class="variable">$RE</span><span class="regex">{some}{pattern}/$replacement/</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The more adept use:</p>
+
+<pre><code><code>        <span class="operator">(</span><span class="variable">$changed</span> <span class="operator">=</span> <span class="variable">$original</span><span class="operator">)</span> <span class="operator">=~</span> <span class="regex">s/</span><span class="variable">$RE</span><span class="regex">{some}{pattern}/$replacement/</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Regexp::Common allows you do write this:</p>
+
+<pre><code><code>        <span class="variable">$changed</span> <span class="operator">=</span> <span class="variable">$RE</span><span class="operator">{</span><span class="string">some</span><span class="operator">}{</span><span class="string">pattern</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">subs</span><span class="operator">(</span><span class="variable">$original</span><span class="operator">=&gt;</span><span class="variable">$replacement</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Apart from reducing precedence-angst, this approach has the added advantages that the substitution behaviour can be optimized from the regular expression, and the replacement string can be provided by default (see <a href="#Adding-new-regular-expressions">&quot;Adding new regular expressions&quot;</a>).</p>
+
+<p>For example, in the implementation of this substitution:</p>
+
+<pre><code><code>        <span class="variable">$cropped</span> <span class="operator">=</span> <span class="variable">$RE</span><span class="operator">{</span><span class="string">ws</span><span class="operator">}{</span><span class="string">crop</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">subs</span><span class="operator">(</span><span class="variable">$uncropped</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>the default empty string is provided automatically, and the substitution is optimized to use:</p>
+
+<pre><code><code>        <span class="variable">$uncropped</span> <span class="operator">=~</span> <span class="regex">s/^\s+//</span><span class="operator">;</span>
+        <span class="variable">$uncropped</span> <span class="operator">=~</span> <span class="regex">s/\s+$//</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>rather than:</p>
+
+<pre><code><code>        <span class="variable">$uncropped</span> <span class="operator">=~</span> <span class="regex">s/^\s+|\s+$//g</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="Subroutine-based-interface">Subroutine-based interface</h2>
+
+<p>The hash-based interface was chosen because it allows regexes to be effortlessly interpolated, and because it also allows them to be &quot;curried&quot;. For example:</p>
+
+<pre><code><code>        <span class="keyword">my</span> <span class="variable">$num</span> <span class="operator">=</span> <span class="variable">$RE</span><span class="operator">{</span><span class="string">num</span><span class="operator">}{</span><span class="string">int</span><span class="operator">}</span><span class="operator">;</span>
+        
+        <span class="keyword">my</span> <span class="variable">$commad</span>     <span class="operator">=</span> <span class="variable">$num</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">-sep</span><span class="operator">=&gt;</span><span class="string">','</span><span class="operator">}{</span><span class="string">-group</span><span class="operator">=&gt;</span><span class="number">3</span><span class="operator">}</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$duodecimal</span> <span class="operator">=</span> <span class="variable">$num</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">-base</span><span class="operator">=&gt;</span><span class="number">12</span><span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>However, the use of tied hashes does make the access to Regexp::Common patterns slower than it might otherwise be. In contexts where impatience overrules laziness, Regexp::Common provides an additional subroutine-based interface.</p>
+
+<p>For each (sub-)entry in the <code><code>%RE</code></code> hash (<code><code><span class="variable">$RE</span><span class="operator">{</span><span class="string">key1</span><span class="operator">}{</span><span class="string">key2</span><span class="operator">}{</span><span class="string">etc</span><span class="operator">}</span>
+</code></code>), there is a corresponding exportable subroutine: <code><code>RE_key1_key2_etc()</code></code>. The name of each subroutine is the underscore-separated concatenation of the <i>non-flag</i> keys that locate the same pattern in <code><code>%RE</code></code>. Flags are passed to the subroutine in its argument list. Thus:</p>
+
+<pre><code><code>        <span class="keyword">use</span> <span class="variable">Regexp::Common</span> <span class="string">qw( RE_ws_crop RE_num_real RE_profanity )</span><span class="operator">;</span>
+        
+        <span class="variable">$str</span> <span class="operator">=~</span> <span class="variable">RE_ws_crop</span><span class="operator">()</span> <span class="keyword">and</span> <span class="keyword">die</span> <span class="string">"Surrounded by whitespace"</span><span class="operator">;</span>
+        
+        <span class="variable">$str</span> <span class="operator">=~</span> <span class="variable">RE_num_real</span><span class="operator">(</span><span class="string">-base</span><span class="operator">=&gt;</span><span class="number">8</span><span class="operator">,</span> <span class="string">-sep</span><span class="operator">=&gt;</span><span class="string">" "</span><span class="operator">)</span> <span class="keyword">or</span> <span class="keyword">next</span><span class="operator">;</span>
+        
+        <span class="variable">$offensive</span> <span class="operator">=</span> <span class="variable">RE_profanity</span><span class="operator">(-</span><span class="variable">keep</span><span class="operator">);</span>
+        <span class="variable">$str</span> <span class="operator">=~</span> <span class="regex">s/</span><span class="variable">$offensive</span><span class="regex">/$bad{$1}++; "&lt;expletive deleted&gt;"/ge</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Note that, unlike the hash-based interface (which returns objects), these subroutines return ordinary <code><code>qr</code></code>&#39;d regular expressions. Hence they do not curry, nor do they provide the OO match and substitution inlining described in the previous section.</p>
+
+<p>It is also possible to export subroutines for all available patterns like so:</p>
+
+<pre><code><code>        <span class="keyword">use</span> <span class="variable">Regexp::Common</span> <span class="string">'RE_ALL'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Or you can export all subroutines with a common prefix of keys like so:</p>
+
+<pre><code><code>        <span class="keyword">use</span> <span class="variable">Regexp::Common</span> <span class="string">'RE_num_ALL'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>which will export <code><code>RE_num_int</code></code> and <code><code>RE_num_real</code></code> (and if you have create more patterns who have first key <i>num</i>, those will be exported as well). In general, <i>RE_key1_..._keyn_ALL</i> will export all subroutines whose pattern names have first keys <i>key1</i> ... <i>keyn</i>.</p>
+
+<h2 id="Adding-new-regular-expressions">Adding new regular expressions</h2>
+
+<p>You can add your own regular expressions to the <code><code>%RE</code></code> hash at run-time, using the exportable <code><code>pattern</code></code> subroutine. It expects a hash-like list of key/value pairs that specify the behaviour of the pattern. The various possible argument pairs are:</p>
+
+<dl>
+
+<dt id="name-list-"><code><code>name =&gt; [ @list ]</code></code></dt>
+<dd>
+
+<p>A required argument that specifies the name of the pattern, and any flags it may take, via a reference to a list of strings. For example:</p>
+
+<pre><code><code>         <span class="variable">pattern</span> <span class="string">name</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">qw( line of -char )</span><span class="operator">]</span><span class="operator">,</span>
+                 <span class="comment"># other args here</span>
+                 <span class="operator">;</span>
+</code></code></pre>
+
+<p>This specifies an entry <code><code><span class="variable">$RE</span><span class="operator">{</span><span class="string">line</span><span class="operator">}{</span><span class="string">of</span><span class="operator">}</span>
+</code></code>, which may take a <code><code>-char</code></code> flag.</p>
+
+<p>Flags may also be specified with a default value, which is then used whenever the flag is specified without an explicit value (but not when the flag is omitted). For example:</p>
+
+<pre><code><code>         <span class="variable">pattern</span> <span class="string">name</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">qw( line of -char=_ )</span><span class="operator">]</span><span class="operator">,</span>
+                 <span class="comment"># default char is '_'</span>
+                 <span class="comment"># other args here</span>
+                 <span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="create-sub_ref_or_string"><code><code>create =&gt; $sub_ref_or_string</code></code></dt>
+<dd>
+
+<p>A required argument that specifies either a string that is to be returned as the pattern:</p>
+
+<pre><code><code>        <span class="variable">pattern</span> <span class="string">name</span>    <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">qw( line of underscores )</span><span class="operator">]</span><span class="operator">,</span>
+                <span class="string">create</span>  <span class="operator">=&gt;</span> <span class="string">q/(?:^_+$)/</span>
+                <span class="operator">;</span>
+</code></code></pre>
+
+<p>or a reference to a subroutine that will be called to create the pattern:</p>
+
+<pre><code><code>        <span class="variable">pattern</span> <span class="string">name</span>    <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">qw( line of -char=_ )</span><span class="operator">]</span><span class="operator">,</span>
+                <span class="string">create</span>  <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+                                <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$self</span><span class="operator">,</span> <span class="variable">$flags</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+                                <span class="keyword">my</span> <span class="variable">$char</span> <span class="operator">=</span> <span class="keyword">quotemeta</span> <span class="variable">$flags</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="operator">-</span><span class="string">char</span><span class="operator">}</span><span class="operator">;</span>
+                                <span class="keyword">return</span> <span class="string">'(?:^$char+$)'</span><span class="operator">;</span>
+                            <span class="operator">},</span>
+                <span class="operator">;</span>
+</code></code></pre>
+
+<p>If the subroutine version is used, the subroutine will be called with three arguments: a reference to the pattern object itself, a reference to a hash containing the flags and their values, and a reference to an array containing the non-flag keys.</p>
+
+<p>Whatever the subroutine returns is stringified as the pattern.</p>
+
+<p>No matter how the pattern is created, it is immediately postprocessed to include or exclude capturing parentheses (according to the value of the <code><code>-keep</code></code> flag). To specify such &quot;optional&quot; capturing parentheses within the regular expression associated with <code><code>create</code></code>, use the notation <code><code>(?k:...)</code></code>. Any parentheses of this type will be converted to <code><code>(...)</code></code> when the <code><code>-keep</code></code> flag is specified, or <code><code>(?:...)</code></code> when it is not. It is a Regexp::Common convention that the outermost capturing parentheses always capture the entire pattern, but this is not enforced.</p>
+
+</dd>
+<dt id="match-sub_ref"><code><code>match =&gt; $sub_ref</code></code></dt>
+<dd>
+
+<p>An optional argument that specifies a subroutine that is to be called when the <code><code><span class="variable">$RE</span><span class="operator">{</span><span class="operator">...</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">matches</span><span class="operator">(...)</span>
+</code></code> method of this pattern is invoked.</p>
+
+<p>The subroutine should expect two arguments: a reference to the pattern object itself, and the string to be matched against.</p>
+
+<p>It should return the same types of values as a <code><code>m/.../</code></code> does.</p>
+
+<pre><code><code>     <span class="variable">pattern</span> <span class="string">name</span>    <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">qw( line of -char )</span><span class="operator">]</span><span class="operator">,</span>
+             <span class="string">create</span>  <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{...},</span>
+             <span class="string">match</span>   <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+                             <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$self</span><span class="operator">,</span> <span class="variable">$str</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+                             <span class="variable">$str</span> <span class="operator">!~</span> <span class="regex">/[^</span><span class="variable">$self</span><span class="regex">-&gt;{flags}{-char}]/</span><span class="operator">;</span>
+                        <span class="operator">},</span>
+             <span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="subs-sub_ref"><code><code>subs =&gt; $sub_ref</code></code></dt>
+<dd>
+
+<p>An optional argument that specifies a subroutine that is to be called when the <code><code><span class="variable">$RE</span><span class="operator">{</span><span class="operator">...</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">subs</span><span class="operator">(...)</span>
+</code></code> method of this pattern is invoked.</p>
+
+<p>The subroutine should expect three arguments: a reference to the pattern object itself, the string to be changed, and the value to be substituted into it. The third argument may be <code><code>undef</code></code>, indicating the default substitution is required.</p>
+
+<p>The subroutine should return the same types of values as an <code><code>s/.../.../</code></code> does.</p>
+
+<p>For example:</p>
+
+<pre><code><code>     <span class="variable">pattern</span> <span class="string">name</span>    <span class="operator">=&gt;</span> <span class="operator">[</span> <span class="string">'lineof'</span><span class="operator">,</span> <span class="string">'-char=_'</span> <span class="operator">]</span><span class="operator">,</span>
+             <span class="string">create</span>  <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{...},</span>
+             <span class="string">subs</span>    <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+                          <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$self</span><span class="operator">,</span> <span class="variable">$str</span><span class="operator">,</span> <span class="variable">$ignore_replacement</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+                          <span class="variable">$_</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span> <span class="operator">=~</span> <span class="regex">s/^</span><span class="variable">$self</span><span class="regex">-&gt;{flags}{-char}+$//g</span><span class="operator">;</span>
+                        <span class="operator">},</span>
+             <span class="operator">;</span>
+</code></code></pre>
+
+<p>Note that such a subroutine will almost always need to modify <code><code>$_[1]</code></code> directly.</p>
+
+</dd>
+<dt id="version-minimum_perl_version"><code><code>version =&gt; $minimum_perl_version</code></code></dt>
+<dd>
+
+<p>If this argument is given, it specifies the minimum version of perl required to use the new pattern. Attempts to use the pattern with earlier versions of perl will generate a fatal diagnostic.</p>
+
+</dd>
+</dl>
+
+<h2 id="Loading-specific-sets-of-patterns.">Loading specific sets of patterns.</h2>
+
+<p>By default, all the sets of patterns listed below are made available. However, it is possible to indicate which sets of patterns should be made available - the wanted sets should be given as arguments to <code><code>use</code></code>. Alternatively, it is also possible to indicate which sets of patterns should not be made available - those sets will be given as argument to the <code><code>use</code></code> statement, but are preceeded with an exclaimation mark. The argument <i>no_defaults</i> indicates none of the default patterns should be made available. This is useful for instance if all you want is the <code><code>pattern()</code></code> subroutine.</p>
+
+<p>Examples:</p>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Regexp::Common</span> <span class="string">qw /comment number/</span><span class="operator">;</span>  <span class="comment"># Comment and number patterns.</span>
+ <span class="keyword">use</span> <span class="variable">Regexp::Common</span> <span class="string">qw /no_defaults/</span><span class="operator">;</span>     <span class="comment"># Don't load any patterns.</span>
+ <span class="keyword">use</span> <span class="variable">Regexp::Common</span> <span class="string">qw /!delimited/</span><span class="operator">;</span>      <span class="comment"># All, but delimited patterns.</span>
+</code></code></pre>
+
+<p>It&#39;s also possible to load your own set of patterns. If you have a module <code><code>Regexp::Common::my_patterns</code></code> that makes patterns available, you can have it made available with</p>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Regexp::Common</span> <span class="string">qw /my_patterns/</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Note that the default patterns will still be made available - only if you use <i>no_defaults</i>, or mention one of the default sets explicitely, the non mentioned defaults aren&#39;t made available.</p>
+
+<h2 id="List-of-available-patterns">List of available patterns</h2>
+
+<p>The patterns listed below are currently available. Each set of patterns has its own manual page describing the details. For each pattern set named <i>name</i>, the manual page <i>Regexp::Common::name</i> describes the details.</p>
+
+<p>Currently available are:</p>
+
+<dl>
+
+<dt id="Regexp::Common::balanced">Regexp::Common::balanced</dt>
+<dd>
+
+<p>Provides regexes for strings with balanced parenthesized delimiters.</p>
+
+</dd>
+<dt id="Regexp::Common::comment">Regexp::Common::comment</dt>
+<dd>
+
+<p>Provides regexes for comments of various languages (43 languages currently).</p>
+
+</dd>
+<dt id="Regexp::Common::delimited">Regexp::Common::delimited</dt>
+<dd>
+
+<p>Provides regexes for delimited strings.</p>
+
+</dd>
+<dt id="Regexp::Common::lingua">Regexp::Common::lingua</dt>
+<dd>
+
+<p>Provides regexes for palindromes.</p>
+
+</dd>
+<dt id="Regexp::Common::list">Regexp::Common::list</dt>
+<dd>
+
+<p>Provides regexes for lists.</p>
+
+</dd>
+<dt id="Regexp::Common::net">Regexp::Common::net</dt>
+<dd>
+
+<p>Provides regexes for IPv4 addresses and MAC addresses.</p>
+
+</dd>
+<dt id="Regexp::Common::number">Regexp::Common::number</dt>
+<dd>
+
+<p>Provides regexes for numbers (integers and reals).</p>
+
+</dd>
+<dt id="Regexp::Common::profanity">Regexp::Common::profanity</dt>
+<dd>
+
+<p>Provides regexes for profanity.</p>
+
+</dd>
+<dt id="Regexp::Common::whitespace">Regexp::Common::whitespace</dt>
+<dd>
+
+<p>Provides regexes for leading and trailing whitespace.</p>
+
+</dd>
+<dt id="Regexp::Common::zip">Regexp::Common::zip</dt>
+<dd>
+
+<p>Provides regexes for zip codes.</p>
+
+</dd>
+</dl>
+
+<h2 id="Forthcoming-patterns-and-features">Forthcoming patterns and features</h2>
+
+<p>Future releases of the module will also provide patterns for the following:</p>
+
+<pre><code><code>        * email addresses 
+        * HTML/XML tags
+        * more numerical matchers,
+        * mail headers (including multiline ones),
+        * more URLS
+        * telephone numbers of various countries
+        * currency (universal 3 letter format, Latin-1, currency names)
+        * dates
+        * binary formats (e.g. UUencoded, MIMEd)</code></code></pre>
+
+<p>If you have other patterns or pattern generators that you think would be generally useful, please send them to the maintainer -- preferably as source code using the <code><code>pattern</code></code> subroutine. Submissions that include a set of tests will be especially welcome.</p>
+
+<h1 id="DIAGNOSTICS">DIAGNOSTICS</h1>
+
+<dl>
+
+<dt id="Cant-export-unknown-subroutine-s"><code><code>Can&#39;t export unknown subroutine %s</code></code></dt>
+<dd>
+
+<p>The subroutine-based interface didn&#39;t recognize the requested subroutine. Often caused by a spelling mistake or an incompletely specified name.</p>
+
+</dd>
+<dt id="Can-t-create-unknown-regex:-RE-...-"><code><code><span class="variable">Can't</span> <span class="variable">create</span> <span class="variable">unknown</span> <span class="variable">regex</span><span class="operator">:</span> <span class="variable">$RE</span><span class="operator">{</span><span class="operator">...</span><span class="operator">}</span>
+</code></code></dt>
+<dd>
+
+<p>Regexp::Common doesn&#39;t have a generator for the requested pattern. Often indicates a mispelt or missing parameter.</p>
+
+</dd>
+<dt id="Perl-f-does-not-support-the-pattern-RE-...-.-You-need-Perl-f-or-later"><code><code><span class="variable">Perl</span> <span class="variable">%f</span> <span class="variable">does</span> <span class="keyword">not</span> <span class="variable">support</span> <span class="variable">the</span> <span class="variable">pattern</span> <span class="variable">$RE</span><span class="operator">{</span><span class="operator">...</span><span class="operator">}</span><span class="operator">.</span> <span class="variable">You</span> <span class="variable">need</span> <span class="variable">Perl</span> <span class="variable">%f</span> <span class="keyword">or</span> <span class="variable">later</span>
+</code></code></dt>
+<dd>
+
+<p>The requested pattern requires advanced regex features (e.g. recursion) that not available in your version of Perl. Time to upgrade.</p>
+
+</dd>
+<dt id="pattern-requires-argument:-name-list-"><code><code>pattern() requires argument: name =&gt; [ @list ]</code></code></dt>
+<dd>
+
+<p>Every user-defined pattern specification must have a name.</p>
+
+</dd>
+<dt id="pattern-requires-argument:-create-sub_ref_or_string"><code><code>pattern() requires argument: create =&gt; $sub_ref_or_string</code></code></dt>
+<dd>
+
+<p>Every user-defined pattern specification must provide a pattern creation mechanism: either a pattern string or a reference to a subroutine that returns the pattern string.</p>
+
+</dd>
+<dt id="Base-must-be-between-1-and-36"><code><code>Base must be between 1 and 36</code></code></dt>
+<dd>
+
+<p>The <code><code><span class="variable">$RE</span><span class="operator">{</span><span class="string">num</span><span class="operator">}{</span><span class="string">real</span><span class="operator">}{</span><span class="string">-base</span><span class="operator">=&gt;</span><span class="string">'</span>
+</code><i><code>N</code></i><code>&#39;}</code></code> pattern uses the characters [0-9A-Z] to represent the digits of various bases. Hence it only produces regular expressions for bases up to hexatricensimal.</p>
+
+</dd>
+<dt id="Must-specify-delimiter-in-RE-delimited-"><code><code><span class="variable">Must</span> <span class="variable">specify</span> <span class="variable">delimiter</span> <span class="variable">in</span> <span class="variable">$RE</span><span class="operator">{</span><span class="string">delimited</span><span class="operator">}</span>
+</code></code></dt>
+<dd>
+
+<p>The pattern has no default delimiter. You need to write: <code><code><span class="variable">$RE</span><span class="operator">{</span><span class="string">delimited</span><span class="operator">}{</span><span class="string">-delim</span><span class="operator">=&gt;</span>
+</code><i><code>X</code></i><code>&#39;}</code></code> for some character <i>X</i></p>
+
+</dd>
+</dl>
+
+<h1 id="ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</h1>
+
+<p>Deepest thanks to the many people who have encouraged and contributed to this project, especially: Elijah, Jarkko, Tom, Nat, Ed, and Vivek.</p>
+
+<p>Further thanks go to: Alexandr Ciornii, Blair Zajac, Bob Stockdale, Charles Thomas, Chris Vertonghen, the CPAN Testers, David Hand, Fany, Geoffrey Leach, Hermann-Marcus Behrens, Jerome Quelin, Jim Cromie, Lars Wilke, Linda Julien, Mike Arms, Mike Castle, Mikko, Murat Uenalan, Rafa&euml;l Garcia-Suarez, Ron Savage, Sam Vilain, Slaven Rezic, Smylers, Tim Maher, and all the others I&#39;ve forgotten.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Damian Conway (damian@conway.org)</p>
+
+<h1 id="MAINTAINANCE">MAINTAINANCE</h1>
+
+<p>This package is maintained by Abigail <span style="white-space: nowrap;">(<i>regexp-common@abigail.be</i>)</span>.</p>
+
+<h1 id="BUGS-AND-IRRITATIONS">BUGS AND IRRITATIONS</h1>
+
+<p>Bound to be plenty.</p>
+
+<p>For a start, there are many common regexes missing. Send them in to <i>regexp-common@abigail.be</i>.</p>
+
+<p>There are some POD issues when installing this module using a pre-5.6.0 perl; some manual pages may not install, or may not install correctly using a perl that is that old. You might consider upgrading your perl.</p>
+
+<h1 id="NOT-A-BUG">NOT A BUG</h1>
+
+<ul>
+
+<li><p>The various patterns are not anchored. That is, a pattern like <code><code><span class="variable">$RE</span> <span class="operator">{</span><span class="string">num</span><span class="operator">}</span> <span class="operator">{</span><span class="string">int</span><span class="operator">}</span>
+</code></code> will match against &quot;abc4def&quot;, because a substring of the subject matches. This is by design, and not a bug. If you want the pattern to be anchored, use something like:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$integer</span> <span class="operator">=</span> <span class="variable">$RE</span> <span class="operator">{</span><span class="string">num</span><span class="operator">}</span> <span class="operator">{</span><span class="string">int</span><span class="operator">}</span><span class="operator">;</span>
+ <span class="variable">$subj</span> <span class="operator">=~</span> <span class="regex">/^</span><span class="variable">$integer</span><span class="regex">$/</span> <span class="keyword">and</span> <span class="keyword">print</span> <span class="string">"Matches!\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+</li>
+</ul>
+
+<h1 id="LICENSE-and-COPYRIGHT">LICENSE and COPYRIGHT</h1>
+
+<p>This software is Copyright (c) 2001 - 2011, Damian Conway and Abigail.</p>
+
+<p>This module is free software, and maybe used under any of the following licenses:</p>
+
+<pre><code><code> 1) The Perl Artistic License.     See the file COPYRIGHT.AL.
+ 2) The Perl Artistic License 2.0. See the file COPYRIGHT.AL2.
+ 3) The BSD Licence.               See the file COPYRIGHT.BSD.
+ 4) The MIT Licence.               See the file COPYRIGHT.MIT.</code></code></pre>
+
+
+</body>
+
+</html>
+
+

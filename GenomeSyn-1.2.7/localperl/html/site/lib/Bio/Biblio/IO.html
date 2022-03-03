@@ -1,0 +1,257 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#DISCLAIMER">DISCLAIMER</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#next_bibref">next_bibref</a></li>
+      <li><a href="#load_format_module">_load_format_module</a></li>
+      <li><a href="#guess_format">_guess_format</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Biblio::IO - Handling the bibliographic references</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">;</span>
+    
+    <span class="comment"># getting citations from a file</span>
+    <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span> <span class="operator">(</span><span class="string">'-file'</span> <span class="operator">=&gt;</span> <span class="string">'myfile.xml'</span> <span class="operator">,</span>
+                                <span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'medlinexml'</span><span class="operator">);</span>
+      <span class="comment"># --- OR ---</span>
+    
+    <span class="comment"># getting citations from a string</span>
+    <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span> <span class="operator">(</span><span class="string">'-data'</span> <span class="operator">=&gt;</span> <span class="string">'&lt;MedlineCitation&gt;...&lt;/MedlineCitation&gt;'</span> <span class="operator">,</span>
+                                <span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'medlinexml'</span><span class="operator">);</span>
+      <span class="comment">#--- OR ---</span>
+    
+    <span class="comment"># getting citations from a string if IO::String is installed</span>
+    <span class="keyword">use</span> <span class="variable">IO::String</span><span class="operator">;</span>
+    <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span> <span class="operator">(</span><span class="string">'-fh'</span> <span class="operator">=&gt;</span> <span class="variable">IO::String</span><span class="operator">-&gt;</span><span class="variable">new</span> <span class="operator">(</span><span class="variable">$citation</span><span class="operator">),</span>
+                                <span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'medlinexml'</span><span class="operator">);</span>
+    
+    <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-fh</span> <span class="operator">=&gt;</span> <span class="variable">$io_handle</span> <span class="operator">,</span> <span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'medlinexml'</span><span class="operator">);</span>
+    
+      <span class="comment">#--- OR ---</span>
+    
+    <span class="comment"># getting citations from any IO handler</span>
+    <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-fh'</span> <span class="operator">=&gt;</span> <span class="variable">$io_handle</span> <span class="operator">,</span>
+                               <span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'medlinexml'</span><span class="operator">);</span>
+    
+    
+    <span class="comment"># now, having $in, we can read all citations</span>
+    <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$citation</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_bibref</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="operator">&amp;</span><span class="variable">do_something_with_citation</span> <span class="operator">(</span><span class="variable">$citation</span><span class="operator">);</span>
+    <span class="operator">}</span>
+    
+      <span class="comment">#--- OR ---</span>
+    
+    <span class="comment"># again reading all citation but now a callback defined in your</span>
+    <span class="comment"># code is used (note that the reading starts already when new()</span>
+    <span class="comment"># is called)</span>
+    <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-format'</span>   <span class="operator">=&gt;</span> <span class="string">'medlinexml'</span><span class="operator">,</span>
+                               <span class="string">'-file'</span>     <span class="operator">=&gt;</span> <span class="variable">$testfile</span><span class="operator">,</span>
+                               <span class="string">'-callback'</span> <span class="operator">=&gt;</span> <span class="operator">\&amp;</span><span class="variable">callback</span><span class="operator">);</span>
+    <span class="keyword">sub</span><span class="variable"> callback </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$citation</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="keyword">print</span> <span class="variable">$citation</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'_identifier'</span><span class="operator">}</span> <span class="operator">.</span> <span class="string">"\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+      <span class="comment">#Now, to actually get a citation in an XML format,</span>
+      <span class="comment">#use I&lt;Bio::Biblio&gt; module which returns an XML string:</span>
+    
+    <span class="keyword">use</span> <span class="variable">Bio::Biblio</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$xml</span> <span class="operator">=</span> <span class="variable">Bio::Biblio</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">-&gt;</span><span class="variable">get_by_id</span> <span class="operator">(</span><span class="string">'12368254'</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$reader</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span> <span class="operator">(</span><span class="string">'-data'</span> <span class="operator">=&gt;</span> <span class="variable">$xml</span><span class="operator">,</span>
+                                       <span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'medlinexml'</span><span class="operator">);</span>
+    
+    <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$citation</span> <span class="operator">=</span> <span class="variable">$reader</span><span class="operator">-&gt;</span><span class="variable">next_bibref</span><span class="operator">())</span> <span class="operator">{</span>
+       <span class="comment">#... do something here with $citation</span>
+       <span class="operator">}</span>
+    
+      <span class="comment">#And, finally, the resulting citation can be received in different</span>
+      <span class="comment">#output formats:</span>
+    
+    <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'medlinexml'</span><span class="operator">,</span>
+                               <span class="string">'-result'</span> <span class="operator">=&gt;</span> <span class="string">'raw'</span><span class="operator">);</span>
+      <span class="comment">#--- OR ---</span>
+    
+    <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'medlinexml'</span><span class="operator">,</span>
+                               <span class="string">'-result'</span> <span class="operator">=&gt;</span> <span class="string">'medline2ref'</span><span class="operator">);</span>
+    
+      <span class="comment">#--- OR ---</span>
+    
+    <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'pubmedxml'</span><span class="operator">,</span>
+                               <span class="string">'-result'</span> <span class="operator">=&gt;</span> <span class="string">'pubmed2ref'</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::Biblio::IO is a handler module for accessing bibliographic citations. The citations can be in different formats - assuming that there is a corresponding module knowing that format in Bio::Biblio::IO directory (e.g. Bio::Biblio::IO::medlinexml). The format (and the module name) is given by the argument <i>-format</i>.</p>
+
+<p>Once an instance of <code><code>Bio::Biblio::IO</code></code> class is available, the citations can be read by calling repeatedly method <i>next_bibref</i>:</p>
+
+<pre><code><code>    <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$citation</span> <span class="operator">=</span> <span class="variable">$reader</span><span class="operator">-&gt;</span><span class="variable">next_bibref</span><span class="operator">())</span> <span class="operator">{</span>
+       <span class="operator">...</span> <span class="keyword">do</span> <span class="variable">something</span> <span class="variable">here</span> <span class="variable">with</span> <span class="variable">$citation</span>
+       <span class="operator">}</span>
+</code></code></pre>
+
+<p>However, this may imply that all citations were already read into the memory. If you expect a huge amount of citations to be read, you may choose a <i>callback</i> option. Your subroutine is specified in the <code><code>new()</code></code> method and is called everytime a new citation is available (see an example above in SYNOPSIS).</p>
+
+<p>The citations returned by <i>next_bibref</i> or given to your callback routine can be of different formats depending on the argument <i>-result</i>. One result type is <i>raw</i> and it is represented by a simple, not blessed hash table:</p>
+
+<pre><code><code>    <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-result'</span> <span class="operator">=&gt;</span> <span class="string">'raw'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>What other result formats are available depends on the module who reads the citations in the first place. At the moment, the following ones are available:</p>
+
+<pre><code><code>    <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-result'</span> <span class="operator">=&gt;</span> <span class="string">'medline2ref'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>This is a default result format for reading citations by the <i>medlinexml</i> module. The <code><code>medlinexml</code></code> module is again the default one. Which means that you can almost omit arguments (you still need to say where the citations come from):</p>
+
+<pre><code><code>    <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-file'</span> <span class="operator">=&gt;</span> <span class="string">'data/medline_data.xml'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Another result format available is for PUBMED citations (which is a super-set of the MEDLINE citations having few more tags):</p>
+
+<pre><code><code>    <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'pubmedxml'</span><span class="operator">,</span>
+                               <span class="string">'-result'</span> <span class="operator">=&gt;</span> <span class="string">'pubmed2ref'</span><span class="operator">,</span>
+                               <span class="string">'-data'</span>   <span class="operator">=&gt;</span> <span class="variable">$citation</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Or, because <code><code>pubmed2ref</code></code> is a default one for PUBMED citations, you can say just:</p>
+
+<pre><code><code>    <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'pubmedxml'</span><span class="operator">,</span>
+                               <span class="string">'-data'</span>   <span class="operator">=&gt;</span> <span class="variable">$citation</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Both <code><code>medline2ref</code></code> and <code><code>pubmed2ref</code></code> results are objects defined in the directory <code><code>Bio::Biblio</code></code>.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<ul>
+
+<li><p>An example script <i>examples/biblio.pl</i>. It has many options and its own help. The relevant options to this IO module are <i>-f</i> (specifying what file to read) and <i>-O</i> (specifying what result format to achieve).</p>
+
+</li>
+<li><p>OpenBQS home page: http://www.ebi.ac.uk/~senger/openbqs</p>
+
+</li>
+<li><p>Comments to the Perl client: http://www.ebi.ac.uk/~senger/openbqs/Client_perl.html</p>
+
+</li>
+</ul>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Martin Senger (senger@ebi.ac.uk)</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2002 European Bioinformatics Institute. All Rights Reserved.</p>
+
+<p>This module is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="DISCLAIMER">DISCLAIMER</h1>
+
+<p>This software is provided &quot;as is&quot; without warranty of any kind.</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are preceded with a _</p>
+
+<h2 id="next_bibref">next_bibref</h2>
+
+<pre><code><code> Usage   : $citation = stream-&gt;next_bibref
+ Function: Reads the next citation object from the stream and returns it.
+ Returns : a Bio::Biblio::Ref citation object, or something else
+           (depending on the &#39;-result&#39; argument given in the &#39;new()&#39;
+            method).
+ Args    : none</code></code></pre>
+
+<h2 id="load_format_module">_load_format_module</h2>
+
+<pre><code><code> Usage   : $class-&gt;_load_format_module ($format)
+ Returns : 1 on success, undef on failure
+ Args    : &#39;format&#39; should contain the last part of the
+           name of a module who does the real implementation</code></code></pre>
+
+<p>It does (in run-time) a similar thing as</p>
+
+<pre><code><code>   require Bio::Biblio::IO::$format</code></code></pre>
+
+<p>It throws an exception if it fails to find and load the module (for example, because of the compilation errors in the module).</p>
+
+<h2 id="guess_format">_guess_format</h2>
+
+<pre><code><code> Usage   : $class-&gt;_guess_format ($filename)
+ Returns : string with a guessed format of the input data (e.g. &#39;medlinexml&#39;)
+ Args    : a file name whose extension can help to guess its format</code></code></pre>
+
+<p>It makes an expert guess what kind of data are in the given file (but be prepare that $filename may be empty).</p>
+
+
+</body>
+
+</html>
+
+

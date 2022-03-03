@@ -1,0 +1,306 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Implemention">Implemention</a></li>
+      <li><a href="#Variants">Variants</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Robson-Francisco-de-Souza">AUTHOR - Robson Francisco de Souza</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+  <li><a href="#Parser-methods">Parser methods</a>
+    <ul>
+      <li><a href="#next_assembly">next_assembly</a></li>
+      <li><a href="#next_contig">next_contig</a></li>
+      <li><a href="#scaffold_annotations">scaffold_annotations</a></li>
+      <li><a href="#write_assembly">write_assembly</a></li>
+      <li><a href="#write_contig">write_contig</a></li>
+      <li><a href="#write_header">write_header</a></li>
+      <li><a href="#write_footer">write_footer</a></li>
+      <li><a href="#variant">variant</a></li>
+      <li><a href="#write_read">_write_read</a></li>
+      <li><a href="#formatted_seq">_formatted_seq</a></li>
+      <li><a href="#formatted_qual">_formatted_qual</a></li>
+      <li><a href="#input_qual">_input_qual</a></li>
+      <li><a href="#initialize">_initialize</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Assembly::IO::ace - module to load ACE files from various assembly programs</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment"># Building an input stream</span>
+    <span class="keyword">use</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">;</span>
+    
+    <span class="comment"># Load a reference ACE assembly</span>
+    <span class="keyword">my</span> <span class="variable">$in_io</span> <span class="operator">=</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'results.ace'</span><span class="operator">,</span>
+                                        <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'ace'</span>          <span class="operator">);</span>
+    
+    <span class="comment"># Read the entire scaffold</span>
+    <span class="keyword">my</span> <span class="variable">$scaffold</span> <span class="operator">=</span> <span class="variable">$in_io</span><span class="operator">-&gt;</span><span class="variable">next_assembly</span><span class="operator">;</span>
+    
+    <span class="comment"># Or read one contig at a time to save resources</span>
+    <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$contig</span> <span class="operator">=</span> <span class="variable">$in_io</span><span class="operator">-&gt;</span><span class="variable">next_contig</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="comment"># Do something ...</span>
+    <span class="operator">}</span>
+    
+    <span class="comment"># Assembly writing methods</span>
+    <span class="keyword">my</span> <span class="variable">$out_io</span> <span class="operator">=</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">"&gt;output.ace"</span><span class="operator">,</span>
+                                         <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'ace'</span> <span class="operator">);</span>
+    <span class="variable">$out_io</span><span class="operator">-&gt;</span><span class="variable">write_assembly</span><span class="operator">(</span> <span class="string">-scaffold</span> <span class="operator">=&gt;</span> <span class="variable">$scaffold</span><span class="operator">,</span>
+                             <span class="string">-singlets</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+    
+    <span class="comment"># Read the '454' Newbler variant of ACE instead of the default 'consed'</span>
+    <span class="comment"># reference ACE variant</span>
+    <span class="keyword">my</span> <span class="variable">$in_io</span> <span class="operator">=</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'results.ace'</span><span class="operator">,</span>
+                                        <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'ace-454'</span>      <span class="operator">);</span>
+    <span class="comment"># or ...</span>
+    <span class="keyword">my</span> <span class="variable">$in_io</span> <span class="operator">=</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span>    <span class="operator">=&gt;</span> <span class="string">'results.ace'</span><span class="operator">,</span>
+                                        <span class="string">-format</span>  <span class="operator">=&gt;</span> <span class="string">'ace'</span><span class="operator">,</span>
+                                        <span class="string">-variant</span> <span class="operator">=&gt;</span> <span class="string">'454'</span>      <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This package loads the standard ACE files generated by various assembly programs (Phrap, CAP3, Newbler, Arachne, ...). It was written to be used as a driver module for Bio::Assembly::IO input/output.</p>
+
+<h2 id="Implemention">Implemention</h2>
+
+<p>Assemblies are loaded into Bio::Assembly::Scaffold objects composed by Bio::Assembly::Contig and Bio::Assembly::Singlet objects. Only the ACE file is used, so if you need singlets, make sure that they are present in the ACE file.</p>
+
+<p>A brief description of the ACE format is available at http://www.cbcb.umd.edu/research/contig_representation.shtml#ACE Read the full format description from http://bozeman.mbt.washington.edu/consed/distributions/README.14.0.txt</p>
+
+<p>In addition to default &quot;_aligned_coord:$seqID&quot; feature class from Bio::Assembly::Contig, contig objects loaded by this module will have the following special feature classes in their feature collection:</p>
+
+<p>&quot;_align_clipping:$seqID&quot; (AF) Location of subsequence in read $seqID which is aligned to the contig. The coordinates are relative to the contig. If no feature containing this tag is present the read is considered low quality by Consed.</p>
+
+<p>&quot;_quality_clipping:$seqID&quot; (AF) The location of high quality subsequence in read $seqID (relative to contig)</p>
+
+<p>&quot;_base_segments&quot; (BS) Location of read subsequences used to build the consensus</p>
+
+<p>&quot;_read_tags:$readID&quot; (RT) Sequence features stored as sub_SeqFeatures of the sequence&#39;s coordinate feature (the corresponding &quot;_aligned_coord:$seqID&quot; feature, easily accessed through get_seq_coord() method).</p>
+
+<p>&quot;_read_desc:$readID&quot; (DS) Sequence features stored as sub_SeqFeatures of the read&#39;s coordinate feature</p>
+
+<p>&quot;consensus tags&quot; (CT) Equivalent to a bioperl sequence feature and, therefore, are added to the feature collection using their type field (see Consed&#39;s README.txt file) as primary tag.</p>
+
+<p>&quot;whole assembly tags&quot; (WA) They have no start and end, as they are not associated to any particular sequence in the assembly, and are added to the assembly&#39;s annotation collection using &quot;whole assembly&quot; as tag.</p>
+
+<h2 id="Variants">Variants</h2>
+
+<p>The default ACE variant is called &#39;consed&#39; and corresponds to the reference ACE format.</p>
+
+<p>The ACE files produced by the 454 GS Assembler (Newbler) do not conform to the reference ACE format. In 454 ACE, the consensus sequence reported covers only its clear range and the start of the clear range consensus is defined as position 1. Consequently, aligned reads in the contig can have negative positions. Be sure to use the &#39;454&#39; variant to have positive alignment positions. No attempt is made to construct the missing part of the consensus sequence (beyond the clear range) based on the underlying reads in the contig. Instead the ends of the consensus are simply padded with the gap character &#39;-&#39;.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing lists Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Robson-Francisco-de-Souza">AUTHOR - Robson Francisco de Souza</h1>
+
+<p>Email rfsouza@citri.iq.usp.br</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h1 id="Parser-methods">Parser methods</h1>
+
+<h2 id="next_assembly">next_assembly</h2>
+
+<pre><code><code> Title   : next_assembly
+ Usage   : $scaffold = $stream-&gt;next_assembly()
+ Function: returns the next assembly in the stream
+ Returns : a Bio::Assembly::Scaffold object
+ Args    : none</code></code></pre>
+
+<h2 id="next_contig">next_contig</h2>
+
+<pre><code><code> Title   : next_contig
+ Usage   : $scaffold = $stream-&gt;next_contig()
+ Function: Returns the next contig or singlet in the ACE stream.
+ Returns : a Bio::Assembly::Contig or Bio::Assembly::Single object
+ Args    : none</code></code></pre>
+
+<h2 id="scaffold_annotations">scaffold_annotations</h2>
+
+<pre><code><code> Title   : scaffold_annotations
+ Usage   : $stream-&gt;scaffold_annotations($scaffold)
+ Function: Add assembly and contig annotations to a scaffold. In the ACE format,
+           annotations are the WA and CT tags.
+ Returns : 1 for success
+ Args    : a Bio::Assembly::Scaffold object to attach the annotations to</code></code></pre>
+
+<h2 id="write_assembly">write_assembly</h2>
+
+<pre><code><code>    Title   : write_assembly
+    Usage   : $ass_io-&gt;write_assembly($assembly)
+    Function: Write the assembly object in ACE compatible format. The contig IDs
+              are sorted naturally if the Sort::Naturally module is present, or
+              lexically otherwise. Internally, write_assembly use the
+              write_contig, write_footer and write_header methods. Use these
+              methods if you want more control on the writing process.
+    Returns : 1 on success, 0 for error
+    Args    : A Bio::Assembly::Scaffold object</code></code></pre>
+
+<h2 id="write_contig">write_contig</h2>
+
+<pre><code><code>    Title   : write_contig
+    Usage   : $ass_io-&gt;write_contig($contig)
+    Function: Write a contig or singlet object in ACE compatible format. Quality
+              scores are automatically generated if the contig does not contain
+              any
+    Returns : 1 on success, 0 for error
+    Args    : A Bio::Assembly::Contig or Singlet object</code></code></pre>
+
+<h2 id="write_header">write_header</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">write_header</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$ass_io</span><span class="operator">-&gt;</span><span class="variable">write_header</span><span class="operator">(</span><span class="variable">$scaffold</span><span class="operator">)</span>
+                  <span class="keyword">or</span>
+              <span class="variable">$ass_io</span><span class="operator">-&gt;</span><span class="variable">write_header</span><span class="operator">(\</span><span class="variable">@contigs</span><span class="operator">);</span>
+                  <span class="keyword">or</span>
+              <span class="variable">$ass_io</span><span class="operator">-&gt;</span><span class="variable">write_header</span><span class="operator">();</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Write</span> <span class="variable">ACE</span> <span class="variable">header</span> <span class="operator">(</span><span class="variable">AS</span> <span class="variable">tags</span><span class="operator">).</span> <span class="variable">You</span> <span class="variable">can</span> <span class="variable">call</span> <span class="variable">this</span> <span class="variable">function</span> <span class="variable">at</span> <span class="variable">any</span> <span class="keyword">time</span><span class="operator">,</span>
+              <span class="variable">i</span><span class="operator">.</span><span class="variable">e</span><span class="operator">.</span> <span class="keyword">not</span> <span class="variable">necessarily</span> <span class="variable">at</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">stream</span> <span class="operator">-</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">useful</span>
+              <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">have</span> <span class="variable">an</span> <span class="variable">undetermined</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">contigs</span> <span class="variable">to</span> <span class="keyword">write</span> <span class="variable">to</span> <span class="variable">ACE</span><span class="operator">,</span> <span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">:</span>
+                <span class="keyword">for</span> <span class="keyword">my</span> <span class="variable">$contig</span> <span class="operator">(</span><span class="variable">@list_of_contigs</span><span class="operator">)</span> <span class="operator">{</span>
+                  <span class="variable">$ass_io</span><span class="operator">-&gt;</span><span class="variable">_write_contig</span><span class="operator">(</span><span class="variable">$contig</span><span class="operator">);</span>
+                <span class="operator">}</span>
+                <span class="variable">$ass_io</span><span class="operator">-&gt;</span><span class="variable">_write_header</span><span class="operator">();</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">1</span> <span class="variable">on</span> <span class="variable">success</span><span class="operator">,</span> <span class="number">0</span> <span class="keyword">for</span> <span class="variable">error</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Assembly::Scaffold</span>
+                  <span class="keyword">or</span>
+              <span class="variable">an</span> <span class="variable">arrayref</span> <span class="variable">of</span> <span class="variable">Bio::Assembly::Contig</span>
+                  <span class="keyword">or</span>
+              <span class="variable">nothing</span> <span class="operator">(</span><span class="variable">the</span> <span class="variable">header</span> <span class="variable">is</span> <span class="variable">dynamically</span> <span class="variable">written</span> <span class="variable">based</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">ACE</span> <span class="variable">file</span>
+              <span class="variable">content</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="write_footer">write_footer</h2>
+
+<pre><code><code>    Title   : write_footer
+    Usage   : $ass_io-&gt;write_footer($scaffold)
+    Function: Write ACE footer (WA and CT tags).
+    Returns : 1 on success, 0 for error
+    Args    : A Bio::Assembly::Scaffold object (optional)</code></code></pre>
+
+<h2 id="variant">variant</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">variant</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$format</span>  <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">variant</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="keyword">and</span> <span class="variable">set</span> <span class="variable">method</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">assembly</span> <span class="variable">variant</span><span class="operator">.</span> <span class="variable">This</span> <span class="variable">is</span> <span class="variable">important</span> <span class="variable">since</span>
+           <span class="keyword">not</span> <span class="variable">all</span> <span class="variable">assemblers</span> <span class="variable">respect</span> <span class="variable">the</span> <span class="variable">reference</span> <span class="variable">ACE</span> <span class="keyword">format</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span><span class="operator">:</span> <span class="string">'consed'</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">)</span> <span class="keyword">or</span> <span class="string">'454'</span>
+</code></code></pre>
+
+<h2 id="write_read">_write_read</h2>
+
+<pre><code><code>    Title   : _write_read
+    Usage   : $ass_io-&gt;_write_read($read, $contig)
+    Function: Write a read object in ACE compatible format
+    Returns : 1 on success, 0 for error
+    Args    : a Bio::LocatableSeq read
+              the Contig or Singlet object that this read belongs to</code></code></pre>
+
+<h2 id="formatted_seq">_formatted_seq</h2>
+
+<pre><code><code>    Title   : _formatted_seq
+    Usage   : Bio::Assembly::IO::ace::_formatted_seq($sequence, $line_width)
+    Function: Format a sequence for ACE output:
+              i ) replace gaps in the sequence by the &#39;*&#39; char
+              ii) split the sequence on multiple lines as needed
+    Returns : new sequence string
+    Args    : sequence string on one line
+              maximum line width</code></code></pre>
+
+<h2 id="formatted_qual">_formatted_qual</h2>
+
+<pre><code><code>    Title   : _formatted_qual
+    Usage   : Bio::Assembly::IO::ace::_formatted_qual($qual_arr, $sequence, $line_width, $qual_default)
+    Function: Format quality scores for ACE output:
+              i  ) use the default quality values when they are missing
+              ii ) remove gaps (they get no score in ACE)
+              iii) split the quality scores on several lines as needed
+    Returns : new quality score string
+    Args    : quality score array reference
+              corresponding sequence string
+              maximum line width
+              default quality score</code></code></pre>
+
+<h2 id="input_qual">_input_qual</h2>
+
+<pre><code><code>    Title   : _input_qual
+    Usage   : Bio::Assembly::IO::ace::_input_qual($qual_string, $sequence)
+    Function: Reads input quality string and converts it to an array of quality
+              scores. Gaps get a quality score equals to the average of the
+              quality score of its neighbours.
+    Returns : new quality score array
+    Args    : quality score string
+              corresponding sequence string</code></code></pre>
+
+<h2 id="initialize">_initialize</h2>
+
+<pre><code><code>    Title   : _initialize
+    Usage   : $ass_io-&gt;_initialize(@args)
+    Function: Initialize the Bio::Assembly::IO object with the proper ACE variant
+    Returns : 
+    Args    : </code></code></pre>
+
+
+</body>
+
+</html>
+
+

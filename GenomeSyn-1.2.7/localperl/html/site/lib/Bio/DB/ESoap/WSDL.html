@@ -1,0 +1,311 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+    </ul>
+  </li>
+  <li><a href="#Getters">Getters</a>
+    <ul>
+      <li><a href="#request_parameters-">request_parameters()</a></li>
+      <li><a href="#result_parameters-">result_parameters()</a></li>
+      <li><a href="#operations-">operations()</a></li>
+      <li><a href="#service-">service()</a></li>
+      <li><a href="#db-">db()</a></li>
+    </ul>
+  </li>
+  <li><a href="#Internals">Internals</a>
+    <ul>
+      <li><a href="#operation_bookmarks-">_operation_bookmarks()</a></li>
+      <li><a href="#parse-">_parse()</a></li>
+      <li><a href="#root-">root()</a></li>
+      <li><a href="#url-">url()</a></li>
+      <li><a href="#wsdl-">wsdl()</a></li>
+      <li><a href="#twig-">_twig()</a></li>
+      <li><a href="#sections-">_sections()</a></li>
+      <li><a href="#cache-">_cache()</a></li>
+      <li><a href="#parsed-">_parsed()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::ESoap::WSDL - WSDL parsing for Entrez SOAP EUtilities</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Used by <a href="../../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/DB/ESoap.html">Bio::DB::ESoap</a></p>
+
+<pre><code><code> <span class="comment"># url</span>
+ <span class="variable">$wsdl</span> <span class="operator">=</span> <span class="variable">Bio::DB::ESoap::WSDL</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+    <span class="string">-url</span> <span class="operator">=&gt;</span> <span class="string">"http://www.ncbi.nlm.nih.gov/entrez/eutils/soap/v2.0/eutils.wsdl"</span>
+  <span class="operator">);</span>
+ <span class="comment"># local copy</span>
+ <span class="variable">$wsdl</span> <span class="operator">=</span> <span class="variable">Bio::DB::ESoap::WSDL</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+    <span class="string">-wsdl</span> <span class="operator">=&gt;</span> <span class="string">"local/eutils.wsdl"</span>
+  <span class="operator">);</span>
+ 
+  <span class="variable">%opns</span> <span class="operator">=</span> <span class="variable">%</span><span class="operator">{</span> <span class="variable">$wsdl</span><span class="operator">-&gt;</span><span class="variable">operations</span> <span class="operator">}</span><span class="operator">;</span>
+  
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module is a lightweight parser and container for WSDL XML files associated with the NCBI EUtilities SOAP server. XML facilities are provided by <a href="../../../../../lib/perl5/XML/Twig.html">XML::Twig</a>.</p>
+
+<p>The following accessors provide names and structures useful for creating SOAP messages using <a>SOAP::Lite</a> (e.g.):</p>
+
+<pre><code><code> <span class="variable">service</span><span class="operator">()</span>    <span class="operator">:</span> <span class="variable">the</span> <span class="variable">URL</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">SOAP</span> <span class="variable">service</span>
+ <span class="variable">operations</span><span class="operator">()</span> <span class="operator">:</span> <span class="variable">hashref</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">form</span> <span class="operator">{..,</span> <span class="variable">$operation_name</span> <span class="operator">=&gt;</span> <span class="variable">$soapAction</span><span class="operator">,</span> <span class="operator">...}</span>
+ <span class="variable">request_parameters</span><span class="operator">(</span><span class="variable">$operation</span><span class="operator">)</span> <span class="operator">:</span> 
+    <span class="variable">request</span> <span class="variable">field</span> <span class="variable">names</span> <span class="keyword">and</span> <span class="variable">namelists</span> <span class="variable">as</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">hashes</span>
+ <span class="variable">result_parameters</span><span class="operator">(</span><span class="variable">$operation</span><span class="operator">)</span>  <span class="operator">:</span> 
+    <span class="variable">result</span> <span class="variable">field</span> <span class="variable">names</span> <span class="keyword">and</span> <span class="variable">namelists</span> <span class="variable">as</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">hashes</span>
+</code></code></pre>
+
+<p>The following accessors provide <a>XML::Twig::Elt</a> objects pointing at key locations in the WSDL:</p>
+
+<pre><code><code> root            : the root of the WSDL docment
+ _types_elt      : the &lt;types&gt; element
+ _portType_elt   : the &lt;portType&gt; element
+ _binding_elt    : the &lt;binding&gt; element
+ _service_elt    : the &lt;service&gt; element
+ _message_elts   : an array of all top-level &lt;message&gt; elements
+ _operation_elts : an array of all &lt;operation&gt; elements contained in &lt;binding&gt;
+ </code></code></pre>
+
+<p>Parsing occurs lazily (on first read, not on construction); all information is cached. To clear the cache and force re-parsing, run</p>
+
+<pre><code><code> <span class="variable">$wsdl</span><span class="operator">-&gt;</span><span class="variable">clear_cache</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The globals <code><code>$NCBI_BASEURL</code></code>, <code><code>$NCBI_ADAPTOR</code></code>, and <code><code>%WSDL</code></code> are exported.</p>
+
+<pre><code><code> $NCBI_ADAPTOR : the soap service cgi
+ </code></code></pre>
+
+<p>To construct a URL for a WSDL:</p>
+
+<pre><code><code> <span class="variable">$wsdl_eutils</span> <span class="operator">=</span> <span class="variable">$NCBI_BASEURL</span><span class="operator">.</span><span class="variable">$WSDL</span><span class="operator">{</span><span class="string">'eutils'</span><span class="operator">}</span>
+ <span class="variable">$wsdl_efetch_omim</span> <span class="operator">=</span> <span class="variable">$NCBI_BASEURL</span><span class="operator">.</span><span class="variable">$WSDL</span><span class="operator">{</span><span class="string">'f_omim'</span><span class="operator">}</span>
+ <span class="comment"># etc.</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><a>bioperl-l@bioperl.org</a></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<p>Email maj -at- fortinbras -dot- us</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::ESoap::WSDL</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::DB::ESoap::WSDL</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">of</span> <span class="variable">Bio::DB::ESoap::WSDL</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">named</span> <span class="variable">args</span><span class="operator">:</span>
+           <span class="string">-URL</span> <span class="operator">=&gt;</span> <span class="variable">$url_of_desired_wsdl</span> <span class="operator">-</span><span class="variable">OR</span><span class="operator">-</span>
+           <span class="string">-WSDL</span> <span class="operator">=&gt;</span> <span class="variable">$filename_of_local_wsdl_copy</span>
+           <span class="operator">(</span> <span class="operator">-</span><span class="variable">WSDL</span> <span class="variable">will</span> <span class="variable">take</span> <span class="variable">precedence</span> <span class="keyword">if</span> <span class="variable">both</span> <span class="variable">specified</span> <span class="operator">)</span>
+</code></code></pre>
+
+<h1 id="Getters">Getters</h1>
+
+<h2 id="request_parameters-">request_parameters()</h2>
+
+<pre><code><code> Title   : request_parameters
+ Usage   : @params = $wsdl-&gt;request_parameters($operation_name)
+ Function: get array of request (input) fields required by 
+           specified operation, according to the WSDL
+ Returns : hash of arrays of hashes...
+ Args    : scalar string (operation or action name)</code></code></pre>
+
+<h2 id="result_parameters-">result_parameters()</h2>
+
+<pre><code><code> Title   : result_parameters
+ Usage   : $result_hash = $wsdl-&gt;result_parameters
+ Function: retrieve a hash structure describing the 
+           result of running the specified operation
+           according to the WSDL
+ Returns : hash of arrays of hashes...
+ Args    : operation (scalar string)</code></code></pre>
+
+<h2 id="operations-">operations()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">operations</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@opns</span> <span class="operator">=</span> <span class="variable">$wsdl</span><span class="operator">-&gt;</span><span class="variable">operations</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span> <span class="variable">a</span> <span class="variable">hashref</span> <span class="variable">with</span> <span class="variable">elts</span> <span class="operator">(</span> <span class="variable">$operation_name</span> <span class="operator">=&gt;</span> <span class="variable">$soapAction</span> <span class="operator">)</span>
+           <span class="keyword">for</span> <span class="variable">all</span> <span class="variable">operations</span> <span class="keyword">defined</span> <span class="variable">by</span> <span class="variable">this</span> <span class="variable">WSDL</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="keyword">scalar</span> <span class="variable">strings</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="service-">service()</h2>
+
+<pre><code><code> Title   : service
+ Usage   : $wsdl-&gt;service
+ Function: gets the SOAP service url associated with this WSDL
+ Returns : scalar string
+ Args    : none</code></code></pre>
+
+<h2 id="db-">db()</h2>
+
+<pre><code><code> Title   : db
+ Usage   : 
+ Function: If this is an efetch WSDL, returns the db name
+           associated with it
+ Returns : scalar string or undef
+ Args    : none</code></code></pre>
+
+<h1 id="Internals">Internals</h1>
+
+<h2 id="operation_bookmarks-">_operation_bookmarks()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_operation_bookmarks</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">find</span> <span class="variable">useful</span> <span class="variable">WSDL</span> <span class="variable">elements</span> <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">specified</span>
+           <span class="variable">operation</span><span class="operator">;</span> <span class="keyword">return</span> <span class="variable">a</span> <span class="variable">hashref</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">form</span>
+           <span class="operator">{</span> <span class="variable">$key</span> <span class="operator">=&gt;</span> <span class="variable">$XML_Twig_Elt_obj</span><span class="operator">,</span> <span class="operator">}</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">hashref</span> <span class="variable">with</span> <span class="keyword">keys</span><span class="operator">:</span>
+            <span class="variable">portType</span> <span class="variable">namespace</span> <span class="variable">schema</span>
+            <span class="variable">i_msg_type</span> <span class="variable">i_msg_elt</span>
+            <span class="variable">o_msg_type</span> <span class="variable">o_msg_elt</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">operation</span> <span class="variable">name</span> <span class="operator">(</span><span class="keyword">scalar</span> <span class="variable">string</span><span class="operator">)</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">will</span> <span class="variable">import</span> <span class="variable">schema</span> <span class="keyword">if</span> <span class="variable">necessary</span>
+</code></code></pre>
+
+<h2 id="parse-">_parse()</h2>
+
+<pre><code><code> Title   : _parse
+ Usage   : $wsdl-&gt;_parse
+ Function: parse the wsdl at url and create accessors for 
+           section twig elts
+ Returns : self
+ Args    : </code></code></pre>
+
+<h2 id="root-">root()</h2>
+
+<pre><code><code> Title   : root
+ Usage   : $obj-&gt;root($newval)
+ Function: holds the root Twig elt of the parsed WSDL
+ Example : 
+ Returns : value of root (an XML::Twig::Elt)
+ Args    : on set, new value (an XML::Twig::Elt or undef, optional)</code></code></pre>
+
+<h2 id="url-">url()</h2>
+
+<pre><code><code> Title   : url
+ Usage   : $obj-&gt;url($newval)
+ Function: get/set the WSDL url
+ Example : 
+ Returns : value of url (a scalar string)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="wsdl-">wsdl()</h2>
+
+<pre><code><code> Title   : wsdl
+ Usage   : $obj-&gt;wsdl($newval)
+ Function: get/set wsdl XML filename
+ Example : 
+ Returns : value of wsdl (a scalar string)
+ Args    : on set, new value (a scalar string or undef, optional)</code></code></pre>
+
+<h2 id="twig-">_twig()</h2>
+
+<pre><code><code> Title   : _twig
+ Usage   : $obj-&gt;_twig($newval)
+ Function: XML::Twig object for handling the wsdl
+ Example : 
+ Returns : value of _twig (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="sections-">_sections()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_sections</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_sections</span><span class="operator">(</span><span class="variable">$newval</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">holds</span> <span class="variable">hashref</span> <span class="variable">of</span> <span class="variable">twigs</span> <span class="variable">corresponding</span> <span class="variable">to</span> <span class="variable">main</span> <span class="variable">wsdl</span> 
+           <span class="variable">elements</span><span class="operator">;</span> <span class="variable">filled</span> <span class="variable">by</span> <span class="variable">_parse</span><span class="operator">()</span>
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">_sections</span> <span class="operator">(</span><span class="variable">a</span> <span class="keyword">scalar</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">on</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">a</span> <span class="keyword">scalar</span> <span class="keyword">or</span> <span class="keyword">undef</span><span class="operator">,</span> <span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="cache-">_cache()</h2>
+
+<pre><code><code> Title   : _cache
+ Usage   : $wsdl-&gt;_cache($newval)
+ Function: holds the wsdl info cache
+ Example : 
+ Returns : value of _cache (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="parsed-">_parsed()</h2>
+
+<pre><code><code> Title   : _parsed
+ Usage   : $obj-&gt;_parsed($newval)
+ Function: flag to indicate wsdl already parsed
+ Example : 
+ Returns : value of _parsed (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

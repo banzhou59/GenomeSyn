@@ -1,0 +1,128 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#METHODS">METHODS</a></li>
+  <li><a href="#EXAMPLES">EXAMPLES</a></li>
+  <li><a href="#CAVEATS">CAVEATS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Proc::ProcessTable - Perl extension to access the unix process table</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Proc::ProcessTable</span><span class="operator">;</span>
+  
+  <span class="variable">$p</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Proc::ProcessTable</span><span class="operator">(</span> <span class="string">'cache_ttys'</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span> 
+  <span class="variable">@fields</span> <span class="operator">=</span> <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">fields</span><span class="operator">;</span>
+  <span class="variable">$ref</span> <span class="operator">=</span> <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">table</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Perl interface to the unix process table.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<dl>
+
+<dt id="new">new</dt>
+<dd>
+
+<p>Creates a new ProcessTable object. The constructor can take the following flags:</p>
+
+<p>enable_ttys -- causes the constructor to use the tty determination code, which is the default behavior. Setting this to 0 diables this code, thus preventing the module from traversing the device tree, which on some systems, can be quite large and/or contain invalid device paths (for example, Solaris does not clean up invalid device entries when disks are swapped). If this is specified with cache_ttys, a warning is generated and the cache_ttys is overriden to be false.</p>
+
+<p>cache_ttys -- causes the constructor to look for and use a file that caches a mapping of tty names to device numbers, and to create the file if it doesn&#39;t exist (this file is /tmp/TTYDEVS by default). This feature requires the Storable module.</p>
+
+</dd>
+<dt id="fields">fields</dt>
+<dd>
+
+<p>Returns a list of the field names supported by the module on the current architecture.</p>
+
+</dd>
+<dt id="table">table</dt>
+<dd>
+
+<p>Reads the process table and returns a reference to an array of Proc::ProcessTable::Process objects. Attributes of a process object are returned by accessors named for the attribute; for example, to get the uid of a process just do:</p>
+
+<p>$process-&gt;uid</p>
+
+<p>The priority and pgrp methods also allow values to be set, since these are supported directly by internal perl functions.</p>
+
+</dd>
+</dl>
+
+<h1 id="EXAMPLES">EXAMPLES</h1>
+
+<pre><code><code> <span class="comment"># A cheap and sleazy version of ps</span>
+ <span class="keyword">use</span> <span class="variable">Proc::ProcessTable</span><span class="operator">;</span>
+ 
+ <span class="variable">$FORMAT</span> <span class="operator">=</span> <span class="string">"%-6s %-10s %-8s %-24s %s\n"</span><span class="operator">;</span>
+ <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Proc::ProcessTable</span><span class="operator">;</span>
+ <span class="keyword">printf</span><span class="operator">(</span><span class="variable">$FORMAT</span><span class="operator">,</span> <span class="string">"PID"</span><span class="operator">,</span> <span class="string">"TTY"</span><span class="operator">,</span> <span class="string">"STAT"</span><span class="operator">,</span> <span class="string">"START"</span><span class="operator">,</span> <span class="string">"COMMAND"</span><span class="operator">);</span> 
+ <span class="keyword">foreach</span> <span class="variable">$p</span> <span class="operator">(</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">table</span><span class="operator">}</span> <span class="operator">){</span>
+   <span class="keyword">printf</span><span class="operator">(</span><span class="variable">$FORMAT</span><span class="operator">,</span> 
+          <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">pid</span><span class="operator">,</span> 
+          <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">ttydev</span><span class="operator">,</span> 
+          <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">state</span><span class="operator">,</span> 
+          <span class="keyword">scalar</span><span class="operator">(</span><span class="keyword">localtime</span><span class="operator">(</span><span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">)),</span> 
+          <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">cmndline</span><span class="operator">);</span>
+ <span class="operator">}</span>
+ 
+ 
+ <span class="comment"># Dump all the information in the current process table</span>
+ <span class="keyword">use</span> <span class="variable">Proc::ProcessTable</span><span class="operator">;</span>
+ 
+ <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Proc::ProcessTable</span><span class="operator">;</span>
+ 
+ <span class="keyword">foreach</span> <span class="variable">$p</span> <span class="operator">(</span><span class="variable">@</span><span class="operator">{</span><span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">table</span><span class="operator">}</span><span class="operator">)</span> <span class="operator">{</span>
+  <span class="keyword">print</span> <span class="string">"--------------------------------\n"</span><span class="operator">;</span>
+  <span class="keyword">foreach</span> <span class="variable">$f</span> <span class="operator">(</span><span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">fields</span><span class="operator">){</span>
+    <span class="keyword">print</span> <span class="variable">$f</span><span class="operator">,</span> <span class="string">":  "</span><span class="operator">,</span> <span class="variable">$p</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$f</span><span class="operator">}</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+ <span class="operator">}</span>              
+</code></code></pre>
+
+<h1 id="CAVEATS">CAVEATS</h1>
+
+<p>Please see the file README in the distribution for a list of supported operating systems. Please see the file PORTING for information on how to help make this work on your OS.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>D. Urist, durist@frii.com</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>Proc::ProcessTable::Process.pm, perl(1).</p>
+
+
+</body>
+
+</html>
+
+

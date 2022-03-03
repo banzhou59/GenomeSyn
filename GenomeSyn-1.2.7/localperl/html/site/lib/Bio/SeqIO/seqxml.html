@@ -1,0 +1,406 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHORS---Dave-Messina">AUTHORS - Dave Messina</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#initialize">_initialize</a></li>
+      <li><a href="#next_seq">next_seq</a></li>
+      <li><a href="#write_seq">write_seq</a></li>
+      <li><a href="#initialize_seqxml_node_methods">_initialize_seqxml_node_methods</a></li>
+      <li><a href="#schemaLocation">schemaLocation</a></li>
+      <li><a href="#source">source</a></li>
+      <li><a href="#sourceVersion">sourceVersion</a></li>
+      <li><a href="#seqXMLversion">seqXMLversion</a></li>
+    </ul>
+  </li>
+  <li><a href="#Methods-for-parsing-the-XML-document">Methods for parsing the XML document</a>
+    <ul>
+      <li><a href="#processXMLNode">processXMLNode</a></li>
+      <li><a href="#processAttribute">processAttribute</a></li>
+      <li><a href="#parseHeader">parseHeader</a></li>
+      <li><a href="#element_seqXML">element_seqXML</a></li>
+      <li><a href="#element_entry">element_entry</a></li>
+      <li><a href="#element_species">element_species</a></li>
+      <li><a href="#element_description">element_description</a></li>
+      <li><a href="#element_RNAseq">element_RNAseq</a></li>
+      <li><a href="#element_DNAseq">element_DNAseq</a></li>
+      <li><a href="#element_AAseq">element_AAseq</a></li>
+      <li><a href="#element_DBRef">element_DBRef</a></li>
+      <li><a href="#element_property">element_property</a></li>
+      <li><a href="#end_element_RNAseq">end_element_RNAseq</a></li>
+      <li><a href="#end_element_DNAseq">end_element_DNAseq</a></li>
+      <li><a href="#end_element_AAseq">end_element_AAseq</a></li>
+      <li><a href="#end_element_entry">end_element_entry</a></li>
+      <li><a href="#end_element_default">end_element_default</a></li>
+      <li><a href="#DESTROY">DESTROY</a></li>
+      <li><a href="#close">close</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqIO::seqxml - SeqXML sequence input/output stream</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># Do not use this module directly.  Use it via the Bio::SeqIO class.</span>
+  
+  <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+  
+  <span class="comment"># read a SeqXML file</span>
+  <span class="keyword">my</span> <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'seqxml'</span><span class="operator">,</span>
+                              <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'my_seqs.xml'</span><span class="operator">);</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$seq_object</span> <span class="operator">=</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="keyword">join</span><span class="operator">(</span><span class="string">"\t"</span><span class="operator">,</span> 
+                 <span class="variable">$seq_object</span><span class="operator">-&gt;</span><span class="variable">display_id</span><span class="operator">,</span>
+                 <span class="variable">$seq_object</span><span class="operator">-&gt;</span><span class="variable">description</span><span class="operator">,</span>
+                 <span class="variable">$seq_object</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">,</span>           
+                <span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># write a SeqXML file</span>
+  <span class="comment">#</span>
+  <span class="comment"># Note that you can (optionally) specify the source</span>
+  <span class="comment"># (usually a database) and source version.</span>
+  <span class="keyword">my</span> <span class="variable">$seqwriter</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span>        <span class="operator">=&gt;</span> <span class="string">'seqxml'</span><span class="operator">,</span>
+                                  <span class="string">-file</span>          <span class="operator">=&gt;</span> <span class="string">"&gt;outfile.xml"</span><span class="operator">,</span>
+                                  <span class="string">-source</span>        <span class="operator">=&gt;</span> <span class="string">'Ensembl'</span><span class="operator">,</span>
+                                  <span class="string">-sourceVersion</span> <span class="operator">=&gt;</span> <span class="string">'56'</span><span class="operator">);</span>
+  <span class="variable">$seqwriter</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$seq_object</span><span class="operator">);</span>
+  
+  <span class="comment"># once you've written all of your seqs, you may want to do</span>
+  <span class="comment"># an explicit close to get the closing &lt;/seqXML&gt; tag</span>
+  <span class="variable">$seqwriter</span><span class="operator">-&gt;</span><span class="variable">close</span><span class="operator">;</span> 
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object can transform Bio::Seq objects to and from SeqXML format. For more information on the SeqXML standard, visit <a href="http://www.seqxml.org">http://www.seqxml.org</a>.</p>
+
+<p>In short, SeqXML is a lightweight sequence format that takes advantage of the validation capabilities of XML while not overburdening you with a strict and complicated schema.</p>
+
+<p>This module is based in part (particularly the XML-parsing part) on Bio::TreeIO::phyloxml by Mira Han.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHORS---Dave-Messina">AUTHORS - Dave Messina</h1>
+
+<p>Email: <i>dmessina@cpan.org</i></p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="initialize">_initialize</h2>
+
+<pre><code><code> Title   : _initialize
+ Usage   : $self-&gt;_initialize(@args) 
+ Function: constructor (for internal use only).
+ 
+           Besides the usual SeqIO arguments (-file, -fh, etc.),
+           Bio::SeqIO::seqxml accepts three arguments which are used
+           when writing out a seqxml file. They are all optional.
+ Returns : none
+ Args    : -source         =&gt; source string (usually a database name)
+           -sourceVersion  =&gt; source version. The version number of the source
+           -seqXMLversion  =&gt; the version of seqXML that will be used
+ Throws  : Exception if XML::LibXML::Reader or XML::Writer
+           is not initialized</code></code></pre>
+
+<h2 id="next_seq">next_seq</h2>
+
+<pre><code><code> Title   : next_seq
+ Usage   : $seq = $stream-&gt;next_seq()
+ Function: returns the next sequence in the stream
+ Returns : L&lt;Bio::Seq&gt; object, or nothing if no more available
+ Args    : none</code></code></pre>
+
+<h2 id="write_seq">write_seq</h2>
+
+<pre><code><code> Title   : write_seq
+ Usage   : $stream-&gt;write_seq(@seq)
+ Function: Writes the $seq object into the stream
+ Returns : 1 for success and 0 for error
+ Args    : Array of 1 or more L&lt;Bio::PrimarySeqI&gt; objects</code></code></pre>
+
+<h2 id="initialize_seqxml_node_methods">_initialize_seqxml_node_methods</h2>
+
+<pre><code><code> Title   : _initialize_seqxml_node_methods
+ Usage   : $self-&gt;_initialize_xml_node_methods
+ Function: sets up code ref mapping of each seqXML node type
+           to a method for processing that node type 
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="schemaLocation">schemaLocation</h2>
+
+<pre><code><code> Title   : schemaLocation
+ Usage   : $self-&gt;schemaLocation
+ Function: gets/sets the schema location in the &lt;seqXML&gt; header
+ Returns : the schema location string
+ Args    : To set the schemaLocation, call with a schemaLocation as the argument.</code></code></pre>
+
+<h2 id="source">source</h2>
+
+<pre><code><code> Title   : source
+ Usage   : $self-&gt;source
+ Function: gets/sets the data source in the &lt;seqXML&gt; header
+ Returns : the data source string
+ Args    : To set the source, call with a source string as the argument.</code></code></pre>
+
+<h2 id="sourceVersion">sourceVersion</h2>
+
+<pre><code><code> Title   : sourceVersion
+ Usage   : $self-&gt;sourceVersion
+ Function: gets/sets the data source version in the &lt;seqXML&gt; header
+ Returns : the data source version string
+ Args    : To set the source version, call with a source version string
+           as the argument.</code></code></pre>
+
+<h2 id="seqXMLversion">seqXMLversion</h2>
+
+<pre><code><code> Title   : seqXMLversion
+ Usage   : $self-&gt;seqXMLversion
+ Function: gets/sets the seqXML version in the &lt;seqXML&gt; header
+ Returns : the seqXML version string.
+ Args    : To set the seqXML version, call with a seqXML version string
+           as the argument.</code></code></pre>
+
+<h1 id="Methods-for-parsing-the-XML-document">Methods for parsing the XML document</h1>
+
+<h2 id="processXMLNode">processXMLNode</h2>
+
+<pre><code><code> Title   : processXMLNode
+ Usage   : $seqio-&gt;processXMLNode
+ Function: reads the XML node and processes according to the node type
+ Returns : none
+ Args    : none
+ Throws  : Exception on unexpected XML node type, warnings on unexpected
+           XML element names.</code></code></pre>
+
+<h2 id="processAttribute">processAttribute</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">processAttribute</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">processAttribute</span><span class="operator">(\</span><span class="variable">%hash_for_attribute</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">reads</span> <span class="variable">the</span> <span class="variable">attributes</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">element</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">hash</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">hash</span> <span class="variable">reference</span> <span class="variable">where</span> <span class="variable">the</span> <span class="variable">attributes</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">stored</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="parseHeader">parseHeader</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">parseHeader</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">parseHeader</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">reads</span> <span class="variable">the</span> <span class="variable">opening</span> <span class="operator">&lt;</span><span class="variable">seqXML</span><span class="operator">&gt;</span> <span class="variable">block</span> <span class="keyword">and</span> <span class="variable">grabs</span> <span class="variable">the</span> <span class="variable">metadata</span> <span class="variable">from</span> <span class="variable">it</span><span class="operator">,</span>
+           <span class="variable">namely</span> <span class="variable">the</span> <span class="variable">source</span><span class="operator">,</span> <span class="variable">sourceVersion</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">seqXMLversion</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="variable">Exception</span> <span class="keyword">if</span> <span class="variable">it</span> <span class="variable">hits</span> <span class="variable">an</span> <span class="operator">&lt;</span><span class="variable">entry</span><span class="operator">&gt;</span> <span class="variable">tag</span><span class="operator">,</span> <span class="variable">because</span> <span class="variable">that</span> <span class="variable">means</span> <span class="variable">it's</span>
+           <span class="variable">missed</span> <span class="variable">the</span> <span class="operator">&lt;</span><span class="variable">seqXML</span><span class="operator">&gt;</span> <span class="variable">tag</span> <span class="keyword">and</span> <span class="keyword">read</span> <span class="variable">too</span> <span class="variable">far</span> <span class="variable">into</span> <span class="variable">the</span> <span class="variable">file</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="element_seqXML">element_seqXML</h2>
+
+<pre><code><code> Title   : element_seqXML
+ Usage   : $self-&gt;element_seqXML
+ Function: processes the opening &lt;seqXML&gt; node
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="element_entry">element_entry</h2>
+
+<pre><code><code> Title   : element_entry
+ Usage   : $self-&gt;element_entry
+ Function: processes a sequence &lt;entry&gt; node
+ Returns : none
+ Args    : none
+ Throws  : Exception if sequence ID is not present in &lt;entry&gt; element</code></code></pre>
+
+<h2 id="element_species">element_species</h2>
+
+<pre><code><code> Title   : element_entry
+ Usage   : $self-&gt;element_entry
+ Function: processes a &lt;species&gt; node, creating a Bio::Species object
+ Returns : none
+ Args    : none
+ Throws  : Exception if &lt;species&gt; tag exists but is empty,
+           or if the attributes &#39;name&#39; or &#39;ncbiTaxID&#39; are undefined</code></code></pre>
+
+<h2 id="element_description">element_description</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">element_description</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">element_description</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">processes</span> <span class="variable">a</span> <span class="variable">sequence</span> <span class="operator">&lt;</span><span class="variable">description</span><span class="operator">&gt;</span> <span class="variable">node</span><span class="operator">;</span>
+           <span class="variable">a</span> <span class="keyword">no</span><span class="operator">-</span><span class="variable">op</span> <span class="operator">--</span> <span class="variable">description</span> <span class="variable">text</span> <span class="variable">is</span> <span class="keyword">read</span> <span class="variable">by</span>
+           <span class="variable">processXMLnode</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="element_RNAseq">element_RNAseq</h2>
+
+<pre><code><code> Title   : element_RNAseq
+ Usage   : $self-&gt;element_RNAseq
+ Function: processes a sequence &lt;RNAseq&gt; node
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="element_DNAseq">element_DNAseq</h2>
+
+<pre><code><code> Title   : element_DNAseq
+ Usage   : $self-&gt;element_DNAseq
+ Function: processes a sequence &lt;DNAseq&gt; node
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="element_AAseq">element_AAseq</h2>
+
+<pre><code><code> Title   : element_AAseq
+ Usage   : $self-&gt;element_AAseq
+ Function: processes a sequence &lt;AAseq&gt; node
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="element_DBRef">element_DBRef</h2>
+
+<pre><code><code> Title   : element_DBRef
+ Usage   : $self-&gt;element_DBRef
+ Function: processes a sequence &lt;DBRef&gt; node,
+           creating a Bio::Annotation::DBLink object
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="element_property">element_property</h2>
+
+<pre><code><code> Title   : element_property
+ Usage   : $self-&gt;element_property
+ Function: processes a sequence &lt;property&gt; node, creating a
+           Bio::Annotation::SimpleValue object
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="end_element_RNAseq">end_element_RNAseq</h2>
+
+<pre><code><code> Title   : end_element_RNAseq
+ Usage   : $self-&gt;end_element_RNAseq
+ Function: processes a sequence &lt;RNAseq&gt; node
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="end_element_DNAseq">end_element_DNAseq</h2>
+
+<pre><code><code> Title   : end_element_DNAseq
+ Usage   : $self-&gt;end_element_DNAseq
+ Function: processes a sequence &lt;DNAseq&gt; node
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="end_element_AAseq">end_element_AAseq</h2>
+
+<pre><code><code> Title   : end_element_AAseq
+ Usage   : $self-&gt;end_element_AAseq
+ Function: processes a sequence &lt;AAseq&gt; node
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="end_element_entry">end_element_entry</h2>
+
+<pre><code><code> Title   : end_element_entry
+ Usage   : $self-&gt;end_element_entry
+ Function: processes the closing &lt;/entry&gt; node, creating the Seq object
+ Returns : a Bio::Seq object
+ Args    : none
+ Throws  : Exception if sequence, sequence ID, or alphabet are missing</code></code></pre>
+
+<h2 id="end_element_default">end_element_default</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">end_element_default</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">end_element_default</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">processes</span> <span class="variable">all</span> <span class="variable">other</span> <span class="variable">closing</span> <span class="variable">tags</span><span class="operator">;</span>
+           <span class="variable">a</span> <span class="keyword">no</span><span class="operator">-</span><span class="variable">op</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="DESTROY">DESTROY</h2>
+
+<pre><code><code> Title   : DESTROY
+ Usage   : called automatically by Perl just before object
+           goes out of scope
+ Function: performs a write flush
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="close">close</h2>
+
+<pre><code><code> Title   : close
+ Usage   : $seqio_obj-&gt;close(). 
+ Function: writes closing &lt;/seqXML&gt; tag.
+ 
+           close() will be called automatically by Perl when your
+           program exits, but if you want to use the seqXML file
+           you&#39;ve written before then, you&#39;ll need to do an explicit
+           close first to get the final &lt;/seqXML&gt; tag.
+ Returns : none
+ Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

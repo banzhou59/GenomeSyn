@@ -1,0 +1,434 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Ewan-Birney">AUTHOR - Ewan Birney</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::AnnotationCollectionI-implementing-methods">Bio::AnnotationCollectionI implementing methods</a>
+    <ul>
+      <li><a href="#get_all_annotation_keys">get_all_annotation_keys</a></li>
+      <li><a href="#get_Annotations">get_Annotations</a></li>
+      <li><a href="#get_nested_Annotations">get_nested_Annotations</a></li>
+      <li><a href="#get_all_Annotations">get_all_Annotations</a></li>
+      <li><a href="#get_num_of_annotations">get_num_of_annotations</a></li>
+    </ul>
+  </li>
+  <li><a href="#Implementation-specific-functions---mainly-for-adding">Implementation specific functions - mainly for adding</a>
+    <ul>
+      <li><a href="#add_Annotation">add_Annotation</a></li>
+      <li><a href="#remove_Annotations">remove_Annotations</a></li>
+      <li><a href="#flatten_Annotations">flatten_Annotations</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::AnnotationI-methods-implementations">Bio::AnnotationI methods implementations</a>
+    <ul>
+      <li><a href="#as_text">as_text</a></li>
+      <li><a href="#display_text">display_text</a></li>
+      <li><a href="#hash_tree">hash_tree</a></li>
+      <li><a href="#tagname">tagname</a></li>
+    </ul>
+  </li>
+  <li><a href="#Backward-compatible-functions">Backward compatible functions</a>
+    <ul>
+      <li><a href="#description">description</a></li>
+      <li><a href="#add_gene_name">add_gene_name</a></li>
+      <li><a href="#each_gene_name">each_gene_name</a></li>
+      <li><a href="#add_Reference">add_Reference</a></li>
+      <li><a href="#each_Reference">each_Reference</a></li>
+      <li><a href="#add_Comment">add_Comment</a></li>
+      <li><a href="#each_Comment">each_Comment</a></li>
+      <li><a href="#add_DBLink">add_DBLink</a></li>
+      <li><a href="#each_DBLink">each_DBLink</a></li>
+    </ul>
+  </li>
+  <li><a href="#Implementation-management-functions">Implementation management functions</a>
+    <ul>
+      <li><a href="#typemap">_typemap</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Annotation::Collection - Default Perl implementation of AnnotationCollectionI</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="comment"># get an AnnotationCollectionI somehow, eg</span>
+   
+   <span class="variable">$ac</span> <span class="operator">=</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">annotation</span><span class="operator">();</span>
+   
+   <span class="keyword">foreach</span> <span class="variable">$key</span> <span class="operator">(</span> <span class="variable">$ac</span><span class="operator">-&gt;</span><span class="variable">get_all_annotation_keys</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+       <span class="variable">@values</span> <span class="operator">=</span> <span class="variable">$ac</span><span class="operator">-&gt;</span><span class="variable">get_Annotations</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">);</span>
+       <span class="keyword">foreach</span> <span class="variable">$value</span> <span class="operator">(</span> <span class="variable">@values</span> <span class="operator">)</span> <span class="operator">{</span>
+          <span class="comment"># value is an Bio::AnnotationI, and defines a "as_text" method</span>
+          <span class="keyword">print</span> <span class="string">"Annotation "</span><span class="operator">,</span><span class="variable">$key</span><span class="operator">,</span><span class="string">" stringified value "</span><span class="operator">,</span><span class="variable">$value</span><span class="operator">-&gt;</span><span class="variable">as_text</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+   
+          <span class="comment"># also defined hash_tree method, which allows data orientated</span>
+          <span class="comment"># access into this object</span>
+          <span class="variable">$hash</span> <span class="operator">=</span> <span class="variable">$value</span><span class="operator">-&gt;</span><span class="variable">hash_tree</span><span class="operator">();</span>
+       <span class="operator">}</span>
+   <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bioperl implementation for Bio::AnnotationCollectionI</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Ewan-Birney">AUTHOR - Ewan Birney</h1>
+
+<p>Email birney@ebi.ac.uk</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : $coll = Bio::Annotation::Collection-&gt;new()
+ Function: Makes a new Annotation::Collection object. 
+ Returns : Bio::Annotation::Collection
+ Args    : none</code></code></pre>
+
+<h1 id="Bio::AnnotationCollectionI-implementing-methods"><a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/AnnotationCollectionI.html">Bio::AnnotationCollectionI</a> implementing methods</h1>
+
+<h2 id="get_all_annotation_keys">get_all_annotation_keys</h2>
+
+<pre><code><code> Title   : get_all_annotation_keys
+ Usage   : $ac-&gt;get_all_annotation_keys()
+ Function: gives back a list of annotation keys, which are simple text strings
+ Returns : list of strings
+ Args    : none</code></code></pre>
+
+<h2 id="get_Annotations">get_Annotations</h2>
+
+<pre><code><code> Title   : get_Annotations
+ Usage   : my @annotations = $collection-&gt;get_Annotations(&#39;key&#39;)
+ Function: Retrieves all the Bio::AnnotationI objects for one or more
+           specific key(s).
+
+           If no key is given, returns all annotation objects.
+
+           The returned objects will have their tagname() attribute set to
+           the key under which they were attached, unless the tagname was
+           already set.
+
+ Returns : list of Bio::AnnotationI - empty if no objects stored for a key
+ Args    : keys (list of strings) for annotations (optional)</code></code></pre>
+
+<h2 id="get_nested_Annotations">get_nested_Annotations</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_nested_Annotations</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@annotations</span> <span class="operator">=</span> <span class="variable">$collection</span><span class="operator">-&gt;</span><span class="variable">get_nested_Annotations</span><span class="operator">(</span>
+                                <span class="string">'-key'</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@keys</span><span class="operator">,</span>
+                                <span class="string">'-recursive =&gt; 1);
+ Function: Retrieves all the Bio::AnnotationI objects for one or more
+           specific key(s). If -recursive is set to true, traverses the nested 
+           annotation collections recursively and returns all annotations 
+           matching the key(s).
+ 
+           If no key is given, returns all annotation objects.
+ 
+           The returned objects will have their tagname() attribute set to
+           the key under which they were attached, unless the tagname was
+           already set.
+ 
+ Returns : list of Bio::AnnotationI - empty if no objects stored for a key
+ Args    : -keys      =&gt; arrayref of keys to search for (optional)
+           -recursive =&gt; boolean, whether or not to recursively traverse the 
+            nested annotations and return annotations with matching keys.
+ </span>
+</code></code></pre>
+
+<h2 id="get_all_Annotations">get_all_Annotations</h2>
+
+<pre><code><code> Title   : get_all_Annotations
+ Usage   :
+ Function: Similar to get_Annotations, but traverses and flattens nested
+           annotation collections. This means that collections in the
+           tree will be replaced by their components.
+
+           Keys will not be passed on to nested collections. I.e., if the
+           tag name of a nested collection matches the key, it will be
+           flattened in its entirety.
+
+           Hence, for un-nested annotation collections this will be identical
+           to get_Annotations.
+ Example :
+ Returns : an array of L&lt;Bio::AnnotationI&gt; compliant objects
+ Args    : keys (list of strings) for annotations (optional)</code></code></pre>
+
+<h2 id="get_num_of_annotations">get_num_of_annotations</h2>
+
+<pre><code><code> Title   : get_num_of_annotations
+ Usage   : my $count = $collection-&gt;get_num_of_annotations()
+ Function: Returns the count of all annotations stored in this collection 
+ Returns : integer
+ Args    : none</code></code></pre>
+
+<h1 id="Implementation-specific-functions---mainly-for-adding">Implementation specific functions - mainly for adding</h1>
+
+<h2 id="add_Annotation">add_Annotation</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add_Annotation</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">add_Annotation</span><span class="operator">(</span><span class="string">'reference'</span><span class="operator">,</span><span class="variable">$object</span><span class="operator">);</span>
+           <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">add_Annotation</span><span class="operator">(</span><span class="variable">$object</span><span class="operator">,</span><span class="string">'Bio::MyInterface::DiseaseI'</span><span class="operator">);</span>
+           <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">add_Annotation</span><span class="operator">(</span><span class="variable">$object</span><span class="operator">);</span>
+           <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">add_Annotation</span><span class="operator">(</span><span class="string">'disease'</span><span class="operator">,</span><span class="variable">$object</span><span class="operator">,</span><span class="string">'Bio::MyInterface::DiseaseI'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Adds</span> <span class="variable">an</span> <span class="variable">annotation</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">specific</span> <span class="variable">key</span><span class="operator">.</span>
+ 
+           <span class="variable">If</span> <span class="variable">the</span> <span class="variable">key</span> <span class="variable">is</span> <span class="variable">omitted</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">object</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">added</span> <span class="variable">must</span> <span class="variable">provide</span> <span class="variable">a</span> <span class="variable">value</span>
+           <span class="variable">via</span> <span class="variable">its</span> <span class="variable">tagname</span><span class="operator">().</span>
+ 
+           <span class="variable">If</span> <span class="variable">the</span> <span class="variable">archetype</span> <span class="variable">is</span> <span class="variable">provided</span><span class="operator">,</span> <span class="variable">this</span> <span class="keyword">and</span> <span class="variable">future</span> <span class="variable">objects</span> <span class="variable">added</span> <span class="variable">under</span>
+           <span class="variable">that</span> <span class="variable">tag</span> <span class="variable">have</span> <span class="variable">to</span> <span class="variable">comply</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">archetype</span> <span class="keyword">and</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">rejected</span>
+           <span class="variable">otherwise</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">annotation</span> <span class="variable">key</span> <span class="operator">(</span><span class="string">'disease'</span><span class="operator">,</span> <span class="string">'dblink'</span><span class="operator">,</span> <span class="operator">...)</span>
+           <span class="variable">object</span> <span class="variable">to</span> <span class="variable">store</span> <span class="operator">(</span><span class="variable">must</span> <span class="variable">be</span> <span class="variable">Bio::AnnotationI</span> <span class="variable">compliant</span><span class="operator">)</span>
+           <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">object</span> <span class="variable">archetype</span> <span class="variable">to</span> <span class="keyword">map</span> <span class="variable">future</span> <span class="variable">storage</span> <span class="variable">of</span> <span class="variable">object</span> 
+                      <span class="variable">of</span> <span class="variable">these</span> <span class="variable">types</span> <span class="variable">to</span>
+</code></code></pre>
+
+<h2 id="remove_Annotations">remove_Annotations</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">remove_Annotations</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Remove</span> <span class="variable">the</span> <span class="variable">annotations</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">specified</span> <span class="variable">key</span> <span class="variable">from</span> <span class="variable">this</span> <span class="variable">collection</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">Bio::AnnotationI</span> <span class="variable">compliant</span> <span class="variable">objects</span> <span class="variable">which</span> <span class="variable">were</span> <span class="variable">stored</span>
+           <span class="variable">under</span> <span class="variable">the</span> <span class="keyword">given</span> <span class="variable">key</span><span class="operator">(</span><span class="regex">s)
+ Args    : the key(s) (tag name(s)</span><span class="operator">,</span> <span class="variable">one</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">strings</span><span class="operator">)</span> <span class="keyword">for</span> <span class="variable">which</span> <span class="variable">to</span>
+           <span class="variable">remove</span> <span class="variable">annotations</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">;</span> <span class="keyword">if</span> <span class="variable">none</span> <span class="keyword">given</span><span class="operator">,</span> <span class="variable">flushes</span> <span class="variable">all</span>
+           <span class="variable">annotations</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="flatten_Annotations">flatten_Annotations</h2>
+
+<pre><code><code> Title   : flatten_Annotations
+ Usage   :
+ Function: Flattens part or all of the annotations in this collection.
+
+           This is a convenience method for getting the flattened
+           annotation for the given keys, removing the annotation for
+           those keys, and adding back the flattened array.
+
+           This should not change anything for un-nested collections.
+ Example :
+ Returns : an array Bio::AnnotationI compliant objects which were stored
+           under the given key(s)
+ Args    : list of keys (strings) the annotation for which to flatten,
+           defaults to all keys if not given</code></code></pre>
+
+<h1 id="Bio::AnnotationI-methods-implementations">Bio::AnnotationI methods implementations</h1>
+
+<pre><code><code>   This is to allow nested annotation: you can use a collection as an
+   annotation object for an annotation collection.</code></code></pre>
+
+<h2 id="as_text">as_text</h2>
+
+<pre><code><code> Title   : as_text
+ Usage   :
+ Function: See L&lt;Bio::AnnotationI&gt;
+ Example :
+ Returns : a string
+ Args    : none</code></code></pre>
+
+<h2 id="display_text">display_text</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">display_text</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$str</span> <span class="operator">=</span> <span class="variable">$ann</span><span class="operator">-&gt;</span><span class="variable">display_text</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">a</span> <span class="variable">string</span><span class="operator">.</span> <span class="variable">Unlike</span> <span class="variable">as_text</span><span class="operator">(),</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">returns</span> <span class="variable">a</span> <span class="variable">string</span>
+           <span class="variable">formatted</span> <span class="variable">as</span> <span class="variable">would</span> <span class="variable">be</span> <span class="variable">expected</span> <span class="keyword">for</span> <span class="variable">te</span> <span class="variable">specific</span> <span class="variable">implementation</span><span class="operator">.</span>
+ 
+           <span class="variable">One</span> <span class="variable">can</span> <span class="variable">pass</span> <span class="variable">a</span> <span class="variable">callback</span> <span class="variable">as</span> <span class="variable">an</span> <span class="variable">argument</span> <span class="variable">which</span> <span class="variable">allows</span> <span class="variable">custom</span> <span class="variable">text</span>
+           <span class="variable">generation</span><span class="operator">;</span> <span class="variable">the</span> <span class="variable">callback</span> <span class="variable">is</span> <span class="variable">passed</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">instance</span> <span class="keyword">and</span> <span class="variable">any</span> <span class="variable">text</span>
+           <span class="variable">returned</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">callback</span>
+</code></code></pre>
+
+<h2 id="hash_tree">hash_tree</h2>
+
+<pre><code><code> Title   : hash_tree
+ Usage   :
+ Function: See L&lt;Bio::AnnotationI&gt;
+ Example :
+ Returns : a hash reference
+ Args    : none</code></code></pre>
+
+<h2 id="tagname">tagname</h2>
+
+<pre><code><code> Title   : tagname
+ Usage   : $obj-&gt;tagname($newval)
+ Function: Get/set the tagname for this annotation value.
+
+           Setting this is optional. If set, it obviates the need to
+           provide a tag to Bio::AnnotationCollectionI when adding
+           this object. When obtaining an AnnotationI object from the
+           collection, the collection will set the value to the tag
+           under which it was stored unless the object has a tag
+           stored already.
+
+ Example : 
+ Returns : value of tagname (a scalar)
+ Args    : new value (a scalar, optional)</code></code></pre>
+
+<h1 id="Backward-compatible-functions">Backward compatible functions</h1>
+
+<p>Functions put in for backward compatibility with old Bio::Annotation.pm stuff</p>
+
+<h2 id="description">description</h2>
+
+<pre><code><code> Title   : description
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="add_gene_name">add_gene_name</h2>
+
+<pre><code><code> Title   : add_gene_name
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="each_gene_name">each_gene_name</h2>
+
+<pre><code><code> Title   : each_gene_name
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="add_Reference">add_Reference</h2>
+
+<pre><code><code> Title   : add_Reference
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="each_Reference">each_Reference</h2>
+
+<pre><code><code> Title   : each_Reference
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="add_Comment">add_Comment</h2>
+
+<pre><code><code> Title   : add_Comment
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="each_Comment">each_Comment</h2>
+
+<pre><code><code> Title   : each_Comment
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="add_DBLink">add_DBLink</h2>
+
+<pre><code><code> Title   : add_DBLink
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="each_DBLink">each_DBLink</h2>
+
+<pre><code><code> Title   : each_DBLink
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h1 id="Implementation-management-functions">Implementation management functions</h1>
+
+<h2 id="typemap">_typemap</h2>
+
+<pre><code><code> Title   : _typemap
+ Usage   : $obj-&gt;_typemap($newval)
+ Function: 
+ Example : 
+ Returns : value of _typemap
+ Args    : newvalue (optional)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

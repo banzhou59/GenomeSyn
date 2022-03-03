@@ -1,0 +1,199 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#next_feature">next_feature</a></li>
+      <li><a href="#PAM_model">PAM_model</a></li>
+      <li><a href="#RNA_model">RNA_model</a></li>
+      <li><a href="#seq_file">seq_file</a></li>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#program_version">program_version</a></li>
+      <li><a href="#program_date">program_date</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::QRNA - A Parser for qrna output</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tools::QRNA</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">Bio::Tools::QRNA</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$qrnaoutput</span><span class="operator">);</span>
+  <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">next_feature</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># do something here</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Parses QRNA output (E.Rivas: http://selab.janelia.org/software.html ftp://selab.janelia.org/pub/software/qrna/).</p>
+
+<p>This module is not complete, but currently it packs information from each QRNA alignment into a single Bio::SeqFeature::Generic object.</p>
+
+<p>Not all options for QRNA output have been tested or tried. It has been tested on sliding window output (-w -x) and shuffled output (-b or -B).</p>
+
+<p>See t/QRNA.t for example usage.</p>
+
+<p>At some point we may have more complicated feature object which will support this data rather than forcing most of the information into tag/value pairs in a SeqFeature::Generic.</p>
+
+<p>Running with -verbose =&gt; 1 will store extra data in the feature. The entire unparsed entry for a particular feature will be stored as a string in the tag &#39;entry&#39; it is accessible via:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$entry</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$f</span><span class="operator">-&gt;</span><span class="variable">each_tag_value</span><span class="operator">(</span><span class="string">'entry'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The winning model for any given alignment test will be the name stored in the primary_tag field of feature. The bit score will stored in the score field. The logoddpost is available via the a tag/value pair. This example code will show how to print out the score and log odds post for each model.</p>
+
+<pre><code><code>  <span class="comment"># assuming you got a feature already</span>
+  <span class="keyword">print</span> <span class="string">"model score logoddspost\n"</span><span class="operator">;</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$model</span> <span class="operator">(</span> <span class="string">qw(OTH COD RNA)</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$score</span><span class="operator">)</span>       <span class="operator">=</span> <span class="variable">$f</span><span class="operator">-&gt;</span><span class="variable">get_tag_values</span><span class="operator">(</span><span class="string">"</span><span class="variable">$model</span><span class="string">\_score"</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$logoddspost</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$f</span><span class="operator">-&gt;</span><span class="variable">get_tag_values</span><span class="operator">(</span><span class="string">"</span><span class="variable">$model</span><span class="string">\_logoddspost"</span><span class="operator">);</span>
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$model</span><span class="string"> </span><span class="variable">$score</span><span class="string"> </span><span class="variable">$logoddspost</span><span class="string">\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>The start and end of the alignment for both the query and hit sequence are available through the <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeature/FeaturePair.html">Bio::SeqFeature::FeaturePair</a> interface, specifically <a>Bio::SeqFeature::FeaturePair::feature1</a> and <a>Bio::SeqFeature::FeaturePair::feature2</a>. Additionally if you have run QRNA with an input file which has the location of the alignment stored in the FASTA filename as in (ID/START-END) which is the default output format from <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/AlignIO/fasta.html">Bio::AlignIO::fasta</a> produced alignment output, this module will re-number start/end for the two sequences so they are in the actual coordinates of the sequence rather than the relative coordinates of the alignment. You may find the bioperl utillity script search2alnblocks useful in creating your input files for QRNA.</p>
+
+<p>Some other words of warning, QRNA uses a 0 based numbering system for sequence locations, Bioperl uses a 1 based system. You&#39;ll notice that locations will be +1 they are reported in the raw QRNA output.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</h1>
+
+<p>Email jason-at-bioperl-dot-org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Tools::QRNA</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Tools::QRNA</span> <span class="variable">object</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">of</span> <span class="variable">Bio::Tools::QRNA</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">-</span><span class="variable">fh</span><span class="operator">/-</span><span class="variable">file</span> <span class="variable">filehandle</span><span class="operator">/</span><span class="variable">filename</span> <span class="variable">standard</span> <span class="variable">input</span> <span class="keyword">for</span> 
+                     <span class="variable">Bio::Root</span><span class="operator">:</span><span class="variable">IO</span> <span class="variable">objects</span>
+</code></code></pre>
+
+<h2 id="next_feature">next_feature</h2>
+
+<pre><code><code> Title   : next_feature
+ Usage   : my $feature = $parser-&gt;next_feature
+ Function: Get the next QRNA feature
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="PAM_model">PAM_model</h2>
+
+<pre><code><code> Title   : PAM_model
+ Usage   : $obj-&gt;PAM_model($newval)
+ Function: 
+ Example : 
+ Returns : value of PAM_model (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="RNA_model">RNA_model</h2>
+
+<pre><code><code> Title   : RNA_model
+ Usage   : $obj-&gt;RNA_model($newval)
+ Function: 
+ Example : 
+ Returns : value of RNA_model (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="seq_file">seq_file</h2>
+
+<pre><code><code> Title   : seq_file
+ Usage   : $obj-&gt;seq_file($newval)
+ Function: 
+ Example : 
+ Returns : value of seq_file (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : $obj-&gt;program_name($newval)
+ Function: 
+ Example : 
+ Returns : value of program_name (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="program_version">program_version</h2>
+
+<pre><code><code> Title   : program_version
+ Usage   : $obj-&gt;program_version($newval)
+ Function: 
+ Example : 
+ Returns : value of program_version (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="program_date">program_date</h2>
+
+<pre><code><code> Title   : program_date
+ Usage   : $obj-&gt;program_date($newval)
+ Function: 
+ Example : 
+ Returns : value of program_date (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

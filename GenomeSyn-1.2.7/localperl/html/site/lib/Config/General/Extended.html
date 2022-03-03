@@ -1,0 +1,311 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#METHODS">METHODS</a></li>
+  <li><a href="#AUTOLOAD-METHODS">AUTOLOAD METHODS</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Config::General::Extended - Extended access to Config files</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Config::General</span><span class="operator">;</span>
+ 
+ <span class="variable">$conf</span> <span class="operator">=</span> <span class="variable">Config::General</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+    <span class="string">-ConfigFile</span>     <span class="operator">=&gt;</span> <span class="string">'configfile'</span><span class="operator">,</span>
+    <span class="string">-ExtendedAccess</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is an internal module which makes it possible to use object oriented methods to access parts of your config file.</p>
+
+<p>Normally you don&#39;t call it directly.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<dl>
+
+<dt id="configfile-filename-">configfile(&#39;filename&#39;)</dt>
+<dd>
+
+<p>Set the filename to be used by <b>save</b> to &quot;filename&quot;. It returns the current configured filename if called without arguments.</p>
+
+</dd>
+<dt id="obj-key-">obj(&#39;key&#39;)</dt>
+<dd>
+
+<p>Returns a new object (of Config::General::Extended Class) from the given key. Short example: Assume you have the following config:</p>
+
+<pre><code><code> &lt;individual&gt;
+      &lt;martin&gt;
+         age   23
+      &lt;/martin&gt;
+      &lt;joseph&gt;
+         age   56
+      &lt;/joseph&gt;
+ &lt;/individual&gt;
+ &lt;other&gt;
+      blah     blubber
+      blah     gobble
+      leer
+ &lt;/other&gt;</code></code></pre>
+
+<p>and already read it in using <b>Config::General::Extended::new()</b>, then you can get a new object from the &quot;individual&quot; block this way:</p>
+
+<pre><code><code> <span class="variable">$individual</span> <span class="operator">=</span> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">obj</span><span class="operator">(</span><span class="string">"individual"</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Now if you call <b>getall</b> on <i>$individual</i> (just for reference) you would get:</p>
+
+<pre><code><code> <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">(</span>
+    <span class="string">martin</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">age</span> <span class="operator">=&gt;</span> <span class="number">13</span> <span class="operator">}</span>
+         <span class="operator">);</span>
+</code></code></pre>
+
+<p>Or, here is another use:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$individual</span> <span class="operator">=</span> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">obj</span><span class="operator">(</span><span class="string">"individual"</span><span class="operator">);</span>
+ <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$person</span> <span class="operator">(</span><span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">keys</span><span class="operator">(</span><span class="string">"individual"</span><span class="operator">))</span> <span class="operator">{</span>
+    <span class="variable">$man</span> <span class="operator">=</span> <span class="variable">$individual</span><span class="operator">-&gt;</span><span class="variable">obj</span><span class="operator">(</span><span class="variable">$person</span><span class="operator">);</span>
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$person</span><span class="string"> is "</span> <span class="operator">.</span> <span class="variable">$man</span><span class="operator">-&gt;</span><span class="variable">value</span><span class="operator">(</span><span class="string">"age"</span><span class="operator">)</span> <span class="operator">.</span> <span class="string">" years old\n"</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>See the discussion on <b>hash()</b> and <b>value()</b> below.</p>
+
+<p>If the key from which you want to create a new object is empty, an empty object will be returned. If you run the following on the above config:</p>
+
+<pre><code><code> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">obj</span><span class="operator">(</span><span class="string">"other"</span><span class="operator">)-&gt;</span><span class="variable">obj</span><span class="operator">(</span><span class="string">"leer"</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Then $obj will be empty, just like if you have had run this:</p>
+
+<pre><code><code> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Config::General::Extended</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="operator">()</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Read operations on this empty object will return nothing or even fail. But you can use an empty object for <i>creating</i> a new config using write operations, i.e.:</p>
+
+<pre><code><code> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">someoption</span><span class="operator">(</span><span class="string">"value"</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>See the discussion on <b>AUTOLOAD METHODS</b> below.</p>
+
+<p>If the key points to a list of hashes, a list of objects will be returned. Given the following example config:</p>
+
+<pre><code><code> &lt;option&gt;
+   name = max
+ &lt;/option&gt;
+ &lt;option&gt;
+   name = bea
+ &lt;/option&gt;</code></code></pre>
+
+<p>you could write code like this to access the list the OOP way:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$objlist</span> <span class="operator">=</span> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">obj</span><span class="operator">(</span><span class="string">"option"</span><span class="operator">);</span>
+ <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$option</span> <span class="operator">(</span><span class="variable">@</span><span class="operator">{</span><span class="variable">$objlist</span><span class="operator">}</span><span class="operator">)</span> <span class="operator">{</span>
+  <span class="keyword">print</span> <span class="variable">$option</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>Please note that the list will be returned as a reference to an array.</p>
+
+<p>Empty elements or non-hash elements of the list, if any, will be skipped.</p>
+
+</dd>
+<dt id="hash-key-">hash(&#39;key&#39;)</dt>
+<dd>
+
+<p>This method returns a hash(if it <b>is</b> one!) from the config which is referenced by &quot;key&quot;. Given the sample config above you would get:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">%sub_hash</span> <span class="operator">=</span> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">hash</span><span class="operator">(</span><span class="string">"individual"</span><span class="operator">);</span>
+ <span class="keyword">print</span> <span class="variable">Dumper</span><span class="operator">(\</span><span class="variable">%sub_hash</span><span class="operator">);</span>
+ <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">{</span>
+    <span class="string">martin</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">age</span> <span class="operator">=&gt;</span> <span class="number">13</span> <span class="operator">}</span>
+         <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="array-key-">array(&#39;key&#39;)</dt>
+<dd>
+
+<p>This the equivalent of <b>hash()</b> mentioned above, except that it returns an array. Again, we use the sample config mentioned above:</p>
+
+<pre><code><code> <span class="variable">$other</span> <span class="operator">=</span> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">obj</span><span class="operator">(</span><span class="string">"other"</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">@blahs</span> <span class="operator">=</span> <span class="variable">$other</span><span class="operator">-&gt;</span><span class="variable">array</span><span class="operator">(</span><span class="string">"blah"</span><span class="operator">);</span>
+ <span class="keyword">print</span> <span class="variable">Dumper</span><span class="operator">(\</span><span class="variable">@blahs</span><span class="operator">);</span>
+ <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">[</span> <span class="string">"blubber"</span><span class="operator">,</span> <span class="string">"gobble"</span> <span class="operator">]</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="value-key-">value(&#39;key&#39;)</dt>
+<dd>
+
+<p>This method returns the scalar value of a given key. Given the following sample config:</p>
+
+<pre><code><code> name  = arthur
+ age   = 23</code></code></pre>
+
+<p>you could do something like that:</p>
+
+<pre><code><code> <span class="keyword">print</span> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">value</span><span class="operator">(</span><span class="string">"name"</span><span class="operator">)</span> <span class="operator">.</span> <span class="string">" is "</span> <span class="operator">.</span> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">value</span><span class="operator">(</span><span class="string">"age"</span><span class="operator">)</span> <span class="operator">.</span> <span class="string">" years old\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>You can use this method also to set the value of &quot;key&quot; to something if you give over a hash reference, array reference or a scalar in addition to the key. An example:</p>
+
+<pre><code><code> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">value</span><span class="operator">(</span><span class="string">"key"</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%somehash</span><span class="operator">);</span>
+ <span class="comment"># or</span>
+ <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">value</span><span class="operator">(</span><span class="string">"key"</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@somearray</span><span class="operator">);</span>
+ <span class="comment"># or</span>
+ <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">value</span><span class="operator">(</span><span class="string">"key"</span><span class="operator">,</span> <span class="variable">$somescalar</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Please note, that this method does not complain about existing values within &quot;key&quot;!</p>
+
+</dd>
+<dt id="is_hash-key-is_array-key-is_scalar-key-">is_hash(&#39;key&#39;) is_array(&#39;key&#39;) is_scalar(&#39;key&#39;)</dt>
+<dd>
+
+<p>As seen above, you can access parts of your current config using hash, array or scalar methods. But you are right if you guess, that this might become problematic, if for example you call <b>hash()</b> on a key which is in real not a hash but a scalar. Under normal circumstances perl would refuse this and die.</p>
+
+<p>To avoid such behavior you can use one of the methods is_hash() is_array() is_scalar() to check if the value of &quot;key&quot; is really what you expect it to be.</p>
+
+<p>An example(based on the config example from above):</p>
+
+<pre><code><code> <span class="keyword">if</span><span class="operator">(</span><span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">is_hash</span><span class="operator">(</span><span class="string">"individual"</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">$individual</span> <span class="operator">=</span> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">obj</span><span class="operator">(</span><span class="string">"individual"</span><span class="operator">);</span>
+ <span class="operator">}</span>
+ <span class="keyword">else</span> <span class="operator">{</span>
+    <span class="keyword">die</span> <span class="string">"You need to configure a "</span><span class="variable">individual</span><span class="string">" block!\n"</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+</dd>
+<dt id="exists-key-">exists(&#39;key&#39;)</dt>
+<dd>
+
+<p>This method returns just true if the given key exists in the config.</p>
+
+</dd>
+<dt id="keys-key-">keys(&#39;key&#39;)</dt>
+<dd>
+
+<p>Returns an array of the keys under the specified &quot;key&quot;. If you use the example config above you could do that:</p>
+
+<pre><code><code> <span class="keyword">print</span> <span class="variable">Dumper</span><span class="operator">(</span><span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">keys</span><span class="operator">(</span><span class="string">"individual"</span><span class="operator">);</span>
+ <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">[</span> <span class="string">"martin"</span><span class="operator">,</span> <span class="string">"joseph"</span> <span class="operator">]</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>If no key name was supplied, then the keys of the object itself will be returned.</p>
+
+<p>You can use this method in <b>foreach</b> loops as seen in an example above(obj() ).</p>
+
+</dd>
+<dt id="delete-key-">delete(&#39;key&#39;)</dt>
+<dd>
+
+<p>This method removes the given key and all associated data from the internal hash structure. If &#39;key&#39; contained data, then this data will be returned, otherwise undef will be returned.</p>
+
+</dd>
+<dt id="find-list-">find(@list)</dt>
+<dd>
+
+<p>Given a list of nodes, -&gt;find will search for a tree that branches in just this way, returning the Config::General::Extended object it finds at the bottom if it exists. You can also search partway down the tree and -&gt;find should return where you left off.</p>
+
+<p>For example, given the values <b>find (qw (A B C))</b> and the following tree (&lt;/end&gt; tags ommitted for brevity):</p>
+
+<pre><code><code> &lt;A&gt;
+        &lt;FOO&gt;
+                ...
+        &lt;B&gt;
+                &lt;BAZ&gt;
+                        ...
+                &lt;C&gt;
+                        BAR = shoo</code></code></pre>
+
+<p><b>find()</b> will find the object at <i>C</i> with the value BAR = shoo and return it.</p>
+
+</dd>
+</dl>
+
+<h1 id="AUTOLOAD-METHODS">AUTOLOAD METHODS</h1>
+
+<p>Another useful feature is implemented in this class using the <b>AUTOLOAD</b> feature of perl. If you know the keynames of a block within your config, you can access to the values of each individual key using the method notation. See the following example and you will get it:</p>
+
+<p>We assume the following config:</p>
+
+<pre><code><code> &lt;person&gt;
+    name    = Moser
+    prename = Peter
+    birth   = 12.10.1972
+ &lt;/person&gt;</code></code></pre>
+
+<p>Now we read it in and process it:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$conf</span> <span class="operator">=</span> <span class="variable">Config::General::Extended</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">"configfile"</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">$person</span> <span class="operator">=</span> <span class="variable">$conf</span><span class="operator">-&gt;</span><span class="variable">obj</span><span class="operator">(</span><span class="string">"person"</span><span class="operator">);</span>
+ <span class="keyword">print</span> <span class="variable">$person</span><span class="operator">-&gt;</span><span class="variable">prename</span> <span class="operator">.</span> <span class="string">" "</span> <span class="operator">.</span> <span class="variable">$person</span><span class="operator">-&gt;</span><span class="variable">name</span> <span class="operator">.</span> <span class="string">" is "</span> <span class="operator">.</span> <span class="variable">$person</span><span class="operator">-&gt;</span><span class="variable">age</span> <span class="operator">.</span> <span class="string">" years old\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This notation supports only scalar values! You need to make sure, that the block &lt;person&gt; does not contain any subblock or multiple identical options(which will become an array after parsing)!</p>
+
+<p>If you access a non-existent key this way, Config::General will croak an error. You can turn this behavior off by setting <b>-StrictObjects</b> to 0 or &quot;no&quot;. In this case undef will be returned.</p>
+
+<p>Of course you can use this kind of methods for writing data too:</p>
+
+<pre><code><code> <span class="variable">$person</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">(</span><span class="string">"Neustein"</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>This changes the value of the &quot;name&quot; key to &quot;Neustein&quot;. This feature behaves exactly like <b>value()</b>, which means you can assign hash or array references as well and that existing values under the given key will be overwritten.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2000-2014 Thomas Linden</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>none known yet.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Thomas Linden &lt;tlinden |AT| cpan.org&gt;</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>2.07</p>
+
+
+</body>
+
+</html>
+
+

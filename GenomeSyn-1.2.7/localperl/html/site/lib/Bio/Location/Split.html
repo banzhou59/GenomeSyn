@@ -1,0 +1,365 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#each_Location">each_Location</a></li>
+      <li><a href="#sub_Location">sub_Location</a></li>
+      <li><a href="#add_sub_Location">add_sub_Location</a></li>
+      <li><a href="#splittype">splittype</a></li>
+      <li><a href="#is_single_sequence">is_single_sequence</a></li>
+      <li><a href="#guide_strand">guide_strand</a></li>
+    </ul>
+  </li>
+  <li><a href="#LocationI-methods">LocationI methods</a>
+    <ul>
+      <li><a href="#strand">strand</a></li>
+      <li><a href="#flip_strand">flip_strand</a></li>
+      <li><a href="#start">start</a></li>
+      <li><a href="#end">end</a></li>
+      <li><a href="#min_start">min_start</a></li>
+      <li><a href="#max_start">max_start</a></li>
+      <li><a href="#start_pos_type">start_pos_type</a></li>
+      <li><a href="#min_end">min_end</a></li>
+      <li><a href="#max_end">max_end</a></li>
+      <li><a href="#end_pos_type">end_pos_type</a></li>
+      <li><a href="#seq_id">seq_id</a></li>
+      <li><a href="#coordinate_policy">coordinate_policy</a></li>
+      <li><a href="#to_FTstring">to_FTstring</a></li>
+      <li><a href="#valid_Location">valid_Location</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Location::Split - Implementation of a Location on a Sequence which has multiple locations (start/end points)</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Bio::Location::Split</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$splitlocation</span> <span class="operator">=</span> <span class="variable">Bio::Location::Split</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+    <span class="variable">$splitlocation</span><span class="operator">-&gt;</span><span class="variable">add_sub_Location</span><span class="operator">(</span><span class="variable">Bio::Location::Simple</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-start</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">,</span>
+                                                               <span class="string">-end</span><span class="operator">=&gt;</span><span class="number">30</span><span class="operator">,</span>
+                                                               <span class="string">-strand</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">));</span>
+    <span class="variable">$splitlocation</span><span class="operator">-&gt;</span><span class="variable">add_sub_Location</span><span class="operator">(</span><span class="variable">Bio::Location::Simple</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-start</span><span class="operator">=&gt;</span><span class="number">50</span><span class="operator">,</span>
+                                                               <span class="string">-end</span><span class="operator">=&gt;</span><span class="number">61</span><span class="operator">,</span>
+                                                               <span class="string">-strand</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">));</span>   
+    <span class="keyword">my</span> <span class="variable">@sublocs</span> <span class="operator">=</span> <span class="variable">$splitlocation</span><span class="operator">-&gt;</span><span class="variable">sub_Location</span><span class="operator">();</span>
+    
+    <span class="keyword">my</span> <span class="variable">$count</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span>
+    <span class="comment"># print the start/end points of the sub locations</span>
+    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$location</span> <span class="operator">(</span> <span class="keyword">sort</span> <span class="operator">{</span> <span class="variable">$a</span><span class="operator">-&gt;</span><span class="variable">start</span> <span class="operator">&lt;=&gt;</span> <span class="variable">$b</span><span class="operator">-&gt;</span><span class="variable">start</span> <span class="operator">}</span> 
+                           <span class="variable">@sublocs</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">printf</span> <span class="string">"sub feature %d [%d..%d]\n"</span><span class="operator">,</span> 
+               <span class="variable">$count</span><span class="operator">,</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">,</span><span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">end</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+        <span class="variable">$count</span><span class="operator">++;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This implementation handles locations which span more than one start/end location, or and/or lie on different sequences, and can work with split locations that depend on the specific order of the sublocations (&#39;join&#39;) or don&#39;t have a specific order but represent a feature spanning noncontiguous sublocations (&#39;order&#39;, &#39;bond&#39;).</p>
+
+<p>Note that the order in which sublocations are added may be very important, depending on the specific split location type. For instance, a &#39;join&#39; must have the sublocations added in the order that one expects to join the sublocations, whereas all other types are sorted based on the sequence location.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</h1>
+
+<p>Email jason-AT-bioperl_DOT_org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="each_Location">each_Location</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">each_Location</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@locations</span> <span class="operator">=</span> <span class="variable">$locObject</span><span class="operator">-&gt;</span><span class="variable">each_Location</span><span class="operator">(</span><span class="variable">$order</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Conserved</span> <span class="variable">function</span> <span class="variable">call</span> <span class="variable">across</span> <span class="variable">Location:</span>: <span class="variable">modules</span> <span class="operator">-</span> <span class="variable">will</span>
+           <span class="keyword">return</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">containing</span> <span class="variable">the</span> <span class="variable">component</span> <span class="variable">Location</span><span class="operator">(</span><span class="regex">s) in
+           that object, regardless if the calling object is itself a
+           single location or one containing sublocations.
+ Returns : an array of Bio::LocationI implementing objects
+ Args    : Optional sort order to be passed to sub_Location()
+ </span>
+</code></code></pre>
+
+<h2 id="sub_Location">sub_Location</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">sub_Location</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@sublocs</span> <span class="operator">=</span> <span class="variable">$splitloc</span><span class="operator">-&gt;</span><span class="variable">sub_Location</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">sublocations</span> <span class="variable">making</span> <span class="variable">up</span> <span class="variable">this</span> <span class="variable">compound</span> <span class="operator">(</span><span class="keyword">split</span><span class="operator">)</span>
+           <span class="variable">location</span><span class="operator">.</span> <span class="variable">Those</span> <span class="variable">sublocations</span> <span class="variable">referring</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">sequence</span> <span class="variable">as</span>
+           <span class="variable">the</span> <span class="variable">root</span> <span class="keyword">split</span> <span class="variable">location</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">sorted</span> <span class="variable">by</span> <span class="variable">start</span> <span class="variable">position</span> <span class="operator">(</span><span class="variable">forward</span>
+           <span class="keyword">sort</span><span class="operator">)</span> <span class="keyword">or</span> <span class="variable">end</span> <span class="variable">position</span> <span class="operator">(</span><span class="keyword">reverse</span> <span class="keyword">sort</span><span class="operator">)</span> <span class="keyword">and</span> <span class="variable">come</span> <span class="variable">first</span> <span class="operator">(</span><span class="variable">before</span>
+           <span class="variable">those</span> <span class="variable">on</span> <span class="variable">other</span> <span class="variable">sequences</span><span class="operator">).</span>
+ 
+           <span class="variable">The</span> <span class="keyword">sort</span> <span class="variable">order</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">optionally</span> <span class="variable">specified</span> <span class="keyword">or</span> <span class="variable">suppressed</span> <span class="variable">by</span> <span class="variable">the</span>
+           <span class="variable">value</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">argument</span><span class="operator">.</span> <span class="variable">The</span> <span class="keyword">default</span> <span class="variable">is</span> <span class="keyword">no</span> <span class="keyword">sort</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">Bio::LocationI</span> <span class="variable">implementing</span> <span class="variable">objects</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Optionally</span> <span class="number">1</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="keyword">or</span> <span class="operator">-</span><span class="number">1</span> <span class="keyword">for</span> <span class="variable">specifying</span> <span class="variable">a</span> <span class="variable">forward</span><span class="operator">,</span> <span class="keyword">no</span><span class="operator">,</span> <span class="keyword">or</span> <span class="keyword">reverse</span>
+           <span class="keyword">sort</span> <span class="variable">order</span>
+</code></code></pre>
+
+<h2 id="add_sub_Location">add_sub_Location</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add_sub_Location</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$splitloc</span><span class="operator">-&gt;</span><span class="variable">add_sub_Location</span><span class="operator">(</span><span class="variable">@locationIobjs</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">add</span> <span class="variable">an</span> <span class="variable">additional</span> <span class="variable">sublocation</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">current</span> <span class="keyword">sub</span><span class="variable"> locations
+ Args    : list of Bio::LocationI implementing object</span><span class="operator">(</span>s<span class="operator">)</span> <span class="variable">to</span> <span class="variable">add</span>
+</code></code></pre>
+
+<h2 id="splittype">splittype</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">splittype</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$splittype</span> <span class="operator">=</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">splittype</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">the</span> <span class="keyword">split</span> <span class="variable">splittype</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">the</span> <span class="variable">splittype</span> <span class="variable">of</span> <span class="keyword">split</span> <span class="variable">feature</span> <span class="operator">(</span><span class="keyword">join</span><span class="operator">,</span> <span class="variable">order</span><span class="operator">)</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">splittype</span> <span class="variable">to</span> <span class="variable">set</span>
+</code></code></pre>
+
+<h2 id="is_single_sequence">is_single_sequence</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">is_single_sequence</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">if</span><span class="operator">(</span><span class="variable">$splitloc</span><span class="operator">-&gt;</span><span class="variable">is_single_sequence</span><span class="operator">())</span> <span class="operator">{</span>
+                <span class="keyword">print</span> <span class="string">"Location object </span><span class="variable">$splitloc</span><span class="string"> is split "</span><span class="operator">.</span>
+                      <span class="string">"but only across a single sequence\n"</span><span class="operator">;</span>
+            <span class="operator">}</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Determine</span> <span class="variable">whether</span> <span class="variable">this</span> <span class="variable">location</span> <span class="variable">is</span> <span class="keyword">split</span> <span class="variable">across</span> <span class="variable">a</span> <span class="variable">single</span> <span class="keyword">or</span>
+            <span class="variable">multiple</span> <span class="variable">sequences</span><span class="operator">.</span>
+  
+            <span class="variable">This</span> <span class="variable">implementation</span> <span class="variable">ignores</span> <span class="operator">(</span><span class="variable">sub</span><span class="operator">-)</span><span class="variable">locations</span> <span class="variable">that</span> <span class="keyword">do</span> <span class="keyword">not</span> <span class="variable">define</span>
+            <span class="variable">seq_id</span><span class="operator">().</span> <span class="variable">The</span> <span class="variable">same</span> <span class="variable">holds</span> <span class="variable">true</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">root</span> <span class="variable">location</span><span class="operator">.</span>
+  
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">TRUE</span> <span class="keyword">if</span> <span class="variable">all</span> <span class="variable">sublocations</span> <span class="variable">lie</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">sequence</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">root</span>
+            <span class="variable">location</span> <span class="operator">(</span><span class="variable">feature</span><span class="operator">),</span> <span class="keyword">and</span> <span class="variable">FALSE</span> <span class="variable">otherwise</span><span class="operator">.</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="guide_strand">guide_strand</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">guide_strand</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$str</span> <span class="operator">=</span> <span class="variable">$loc</span><span class="operator">-&gt;</span><span class="variable">guide_strand</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">guide</span> <span class="variable">strand</span><span class="operator">.</span>  <span class="variable">Of</span> <span class="keyword">use</span> <span class="variable">only</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="keyword">split</span> <span class="variable">type</span> <span class="variable">is</span>
+            <span class="variable">a</span> <span class="string">'join'</span> <span class="operator">(</span><span class="variable">this</span> <span class="variable">helps</span> <span class="variable">determine</span> <span class="variable">the</span> <span class="variable">order</span> <span class="variable">of</span> <span class="variable">sublocation</span>
+                        <span class="variable">retrieval</span><span class="operator">)</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">guide</span> <span class="variable">strand</span> <span class="operator">(</span><span class="number">1</span><span class="operator">,</span> <span class="operator">-</span><span class="number">1</span><span class="operator">,</span> <span class="keyword">or</span> <span class="keyword">undef</span><span class="operator">)</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(-</span><span class="number">1</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">,</span> <span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h1 id="LocationI-methods">LocationI methods</h1>
+
+<h2 id="strand">strand</h2>
+
+<pre><code><code> Title   : strand
+ Usage   : $obj-&gt;strand($newval)
+ Function: For SplitLocations, setting the strand of the container
+           (this object) is a short-cut for setting the strand of all
+           sublocations.
+
+           In get-mode, checks if no sub-location is remote, and if
+           all have the same strand. If so, it returns that shared
+           strand value. Otherwise it returns undef.
+
+ Example : 
+ Returns : on get, value of strand if identical between sublocations 
+           (-1, 1, or undef)
+ Args    : new value (-1 or 1, optional)</code></code></pre>
+
+<h2 id="flip_strand">flip_strand</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">flip_strand</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">flip_strand</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Flip</span><span class="operator">-</span><span class="variable">flop</span> <span class="variable">a</span> <span class="variable">strand</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">opposite</span><span class="operator">.</span>  <span class="variable">Also</span> <span class="variable">switch</span> <span class="variable">Split</span> <span class="variable">strand</span>
+            <span class="variable">from</span> <span class="keyword">undef</span> <span class="variable">to</span> <span class="operator">-</span><span class="number">1</span> <span class="keyword">or</span> <span class="operator">-</span><span class="number">1</span> <span class="variable">to</span> <span class="keyword">undef</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">None</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span>
+</code></code></pre>
+
+<h2 id="start">start</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">start</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$start</span> <span class="operator">=</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">starting</span> <span class="variable">point</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">first</span> <span class="operator">(</span><span class="variable">sorted</span><span class="operator">)</span> <span class="variable">sublocation</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="end">end</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">end</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$end</span> <span class="operator">=</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">end</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">ending</span> <span class="variable">point</span> <span class="variable">of</span> <span class="variable">the</span> <span class="keyword">last</span> <span class="operator">(</span><span class="variable">sorted</span><span class="operator">)</span> <span class="variable">sublocation</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="min_start">min_start</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">min_start</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$min_start</span> <span class="operator">=</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">min_start</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">minimum</span> <span class="variable">starting</span> <span class="variable">point</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">the</span> <span class="variable">minimum</span> <span class="variable">starting</span> <span class="variable">point</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">contained</span> <span class="variable">sublocations</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="max_start">max_start</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">max_start</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$maxstart</span> <span class="operator">=</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">max_start</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">maximum</span> <span class="variable">starting</span> <span class="variable">location</span> <span class="variable">of</span> <span class="variable">feature</span> <span class="variable">startpoint</span>  
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span> <span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="keyword">no</span> <span class="variable">maximum</span> <span class="variable">starting</span> <span class="variable">point</span><span class="operator">.</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="start_pos_type">start_pos_type</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">start_pos_type</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$start_pos_type</span> <span class="operator">=</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">start_pos_type</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">start</span> <span class="variable">position</span> <span class="variable">type</span> <span class="operator">(</span><span class="variable">ie</span> <span class="operator">&lt;,&gt;,</span> <span class="operator">^)</span> 
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">type</span> <span class="variable">of</span> <span class="variable">position</span> <span class="variable">coded</span> <span class="variable">as</span> <span class="variable">text</span> 
+            <span class="operator">(</span><span class="string">'BEFORE'</span><span class="operator">,</span> <span class="string">'AFTER'</span><span class="operator">,</span> <span class="string">'EXACT'</span><span class="operator">,</span><span class="string">'WITHIN'</span><span class="operator">,</span> <span class="string">'BETWEEN'</span><span class="operator">)</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="min_end">min_end</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">min_end</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$minend</span> <span class="operator">=</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">min_end</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">minimum</span> <span class="variable">ending</span> <span class="variable">location</span> <span class="variable">of</span> <span class="variable">feature</span> <span class="variable">endpoint</span> 
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span> <span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="keyword">no</span> <span class="variable">minimum</span> <span class="variable">ending</span> <span class="variable">point</span><span class="operator">.</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="max_end">max_end</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">max_end</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$maxend</span> <span class="operator">=</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">max_end</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">maximum</span> <span class="variable">ending</span> <span class="variable">location</span> <span class="variable">of</span> <span class="variable">feature</span> <span class="variable">endpoint</span> 
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span> <span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="keyword">no</span> <span class="variable">maximum</span> <span class="variable">ending</span> <span class="variable">point</span><span class="operator">.</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="end_pos_type">end_pos_type</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">end_pos_type</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$end_pos_type</span> <span class="operator">=</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">end_pos_type</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">end</span> <span class="variable">position</span> <span class="variable">type</span> <span class="operator">(</span><span class="variable">ie</span> <span class="operator">&lt;,&gt;,</span> <span class="operator">^)</span> 
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">type</span> <span class="variable">of</span> <span class="variable">position</span> <span class="variable">coded</span> <span class="variable">as</span> <span class="variable">text</span> 
+            <span class="operator">(</span><span class="string">'BEFORE'</span><span class="operator">,</span> <span class="string">'AFTER'</span><span class="operator">,</span> <span class="string">'EXACT'</span><span class="operator">,</span><span class="string">'WITHIN'</span><span class="operator">,</span> <span class="string">'BETWEEN'</span><span class="operator">)</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="seq_id">seq_id</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">seq_id</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$seqid</span> <span class="operator">=</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">seq_id</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">seq_id</span> <span class="variable">that</span> <span class="variable">location</span> <span class="variable">refers</span> <span class="variable">to</span>
+  
+            <span class="variable">We</span> <span class="variable">override</span> <span class="variable">this</span> <span class="variable">here</span> <span class="variable">in</span> <span class="variable">order</span> <span class="variable">to</span> <span class="variable">propagate</span> <span class="variable">to</span> <span class="variable">all</span> <span class="variable">sublocations</span>
+            <span class="variable">which</span> <span class="variable">are</span> <span class="keyword">not</span> <span class="variable">remote</span> <span class="operator">(</span><span class="variable">provided</span> <span class="variable">this</span> <span class="variable">root</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">remote</span> <span class="variable">either</span><span class="operator">)</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">seq_id</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">seq_id</span> <span class="variable">value</span> <span class="variable">to</span> <span class="variable">set</span>
+</code></code></pre>
+
+<h2 id="coordinate_policy">coordinate_policy</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">coordinate_policy</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$policy</span> <span class="operator">=</span> <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">coordinate_policy</span><span class="operator">();</span>
+            <span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">coordinate_policy</span><span class="operator">(</span><span class="variable">$mypolicy</span><span class="operator">);</span> <span class="comment"># set may not be possible</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">coordinate</span> <span class="variable">computing</span> <span class="variable">policy</span> <span class="variable">employed</span> <span class="variable">by</span> <span class="variable">this</span> <span class="variable">object</span><span class="operator">.</span>
+  
+            <span class="variable">See</span> <span class="variable">Bio::Location::CoordinatePolicyI</span> <span class="keyword">for</span> <span class="variable">documentation</span> <span class="variable">about</span>
+            <span class="variable">the</span> <span class="variable">policy</span> <span class="variable">object</span> <span class="keyword">and</span> <span class="variable">its</span> <span class="keyword">use</span><span class="operator">.</span>
+  
+            <span class="variable">The</span> <span class="variable">interface</span> <span class="variable">*does</span> <span class="keyword">not</span><span class="operator">*</span> <span class="keyword">require</span> <span class="variable">implementing</span> <span class="variable">classes</span> <span class="variable">to</span> <span class="keyword">accept</span>
+            <span class="variable">setting</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">different</span> <span class="variable">policy</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">implementation</span> <span class="variable">provided</span> <span class="variable">here</span>
+            <span class="variable">does</span><span class="operator">,</span> <span class="variable">however</span><span class="operator">,</span> <span class="variable">allow</span> <span class="variable">to</span> <span class="keyword">do</span> <span class="variable">so</span><span class="operator">.</span>
+  
+            <span class="variable">Implementors</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">interface</span> <span class="variable">are</span> <span class="variable">expected</span> <span class="variable">to</span> <span class="variable">initialize</span> <span class="variable">every</span>
+            <span class="variable">new</span> <span class="variable">instance</span> <span class="variable">with</span> <span class="variable">a</span> <span class="variable">CoordinatePolicyI</span> <span class="variable">object</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">implementation</span>
+            <span class="variable">provided</span> <span class="variable">here</span> <span class="variable">will</span> <span class="keyword">return</span> <span class="variable">a</span> <span class="keyword">default</span> <span class="variable">policy</span> <span class="variable">object</span> <span class="keyword">if</span> <span class="variable">none</span> <span class="variable">has</span>
+            <span class="variable">been</span> <span class="variable">set</span> <span class="variable">yet</span><span class="operator">.</span> <span class="variable">To</span> <span class="variable">change</span> <span class="variable">this</span> <span class="keyword">default</span> <span class="variable">policy</span> <span class="variable">object</span> <span class="variable">call</span> <span class="variable">this</span>
+            <span class="variable">method</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">class</span> <span class="variable">method</span> <span class="variable">with</span> <span class="variable">an</span> <span class="variable">appropriate</span> <span class="variable">argument</span><span class="operator">.</span> <span class="variable">Note</span> <span class="variable">that</span>
+            <span class="variable">in</span> <span class="variable">this</span> <span class="variable">case</span> <span class="variable">only</span> <span class="variable">subsequently</span> <span class="variable">created</span> <span class="variable">Location</span> <span class="variable">objects</span> <span class="variable">will</span> <span class="variable">be</span>
+            <span class="variable">affected</span><span class="operator">.</span>
+  
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Location::CoordinatePolicyI</span> <span class="variable">implementing</span> <span class="variable">object</span><span class="operator">.</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">On</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">a</span> <span class="variable">Bio::Location::CoordinatePolicyI</span> <span class="variable">implementing</span> <span class="variable">object</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="to_FTstring">to_FTstring</h2>
+
+<pre><code><code>  Title   : to_FTstring
+  Usage   : my $locstr = $location-&gt;to_FTstring()
+  Function: returns the FeatureTable string of this location
+  Returns : string
+  Args    : none</code></code></pre>
+
+<h2 id="valid_Location">valid_Location</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">valid_Location</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$location</span><span class="operator">-&gt;</span><span class="variable">valid_location</span><span class="operator">)</span> <span class="operator">{...};</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">boolean</span> <span class="variable">method</span> <span class="variable">to</span> <span class="variable">determine</span> <span class="variable">whether</span> <span class="variable">location</span> <span class="variable">is</span> <span class="variable">considered</span> <span class="variable">valid</span>
+           <span class="operator">(</span><span class="variable">has</span> <span class="variable">minimum</span> <span class="variable">requirements</span> <span class="keyword">for</span> <span class="variable">Simple</span> <span class="variable">implementation</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Boolean</span> <span class="variable">value</span><span class="operator">:</span> <span class="variable">true</span> <span class="keyword">if</span> <span class="variable">location</span> <span class="variable">is</span> <span class="variable">valid</span><span class="operator">,</span> <span class="variable">false</span> <span class="variable">otherwise</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

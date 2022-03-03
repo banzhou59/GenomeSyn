@@ -1,0 +1,539 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#USAGE">USAGE</a>
+    <ul>
+      <li><a href="#Factory">Factory</a></li>
+      <li><a href="#Utilities-and-parameters">Utilities and parameters</a></li>
+      <li><a href="#Results">Results</a></li>
+      <li><a href="#Adaptors">Adaptors</a></li>
+      <li><a href="#Web-environments-and-query-keys">Web environments and query keys</a></li>
+      <li><a href="#Error-checking">Error checking</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#run-">run()</a></li>
+      <li><a href="#Useful-Accessors">Useful Accessors</a></li>
+      <li><a href="#response_message-">response_message()</a></li>
+      <li><a href="#webenv-">webenv()</a></li>
+      <li><a href="#errstr-">errstr()</a></li>
+      <li><a href="#Bio::ParameterBaseI-compliance">Bio::ParameterBaseI compliance</a></li>
+      <li><a href="#available_parameters-">available_parameters()</a></li>
+      <li><a href="#set_parameters-">set_parameters()</a></li>
+      <li><a href="#get_parameters-">get_parameters()</a></li>
+      <li><a href="#reset_parameters-">reset_parameters()</a></li>
+      <li><a href="#parameters_changed-">parameters_changed()</a></li>
+      <li><a href="#soap_facs-">_soap_facs()</a></li>
+      <li><a href="#caller_util-">_caller_util()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::SoapEUtilities - Interface to the NCBI Entrez web service *BETA*</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Bio::DB::SoapEUtilities</span><span class="operator">;</span>
+ 
+ <span class="comment"># factory construction</span>
+ 
+ <span class="keyword">my</span> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::DB::SoapEUtilities</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">()</span>
+ 
+ <span class="comment"># executing a utility call</span>
+ 
+ <span class="comment">#get an iteratable adaptor</span>
+ <span class="keyword">my</span> <span class="variable">$links</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">elink</span><span class="operator">(</span> 
+               <span class="string">-dbfrom</span> <span class="operator">=&gt;</span> <span class="string">'protein'</span><span class="operator">,</span>
+               <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'taxonomy'</span><span class="operator">,</span>
+               <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@protein_ids</span> <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">-auto_adapt</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+ 
+ <span class="comment"># get a Bio::DB::SoapEUtilities::Result object</span>
+ <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esearch</span><span class="operator">(</span>
+               <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'gene'</span><span class="operator">,</span>
+               <span class="string">-term</span> <span class="operator">=&gt;</span> <span class="string">'sonic and human'</span><span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">;</span>
+ 
+ <span class="comment"># get the raw XML message</span>
+ <span class="keyword">my</span> <span class="variable">$xml</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">(</span>
+             <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'gene'</span><span class="operator">,</span>
+             <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@gids</span> <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">-raw_xml</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+ 
+ <span class="comment"># change parameters </span>
+ <span class="keyword">my</span> <span class="variable">$new_result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">(</span>
+                   <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'gene'</span><span class="operator">,</span>
+                   <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@more_gids</span><span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">;</span>
+ <span class="comment"># reset parameters</span>
+ <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">-&gt;</span><span class="variable">reset_parameters</span><span class="operator">(</span> <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'nucleotide'</span><span class="operator">,</span>
+                                 <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="variable">$nucid</span> <span class="operator">);</span>
+ <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">;</span>
+                
+ <span class="comment"># parsing and iterating the results</span>
+ 
+ <span class="variable">$count</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">count</span><span class="operator">;</span>
+ <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">ids</span><span class="operator">;</span>
+ 
+ <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$linkset</span> <span class="operator">=</span> <span class="variable">$links</span><span class="operator">-&gt;</span><span class="variable">next_link</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">$submitted</span> <span class="operator">=</span> <span class="variable">$linkset</span><span class="operator">-&gt;</span><span class="variable">submitted_id</span><span class="operator">;</span>
+ <span class="operator">}</span>
+ 
+ <span class="operator">(</span><span class="variable">$taxid</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$links</span><span class="operator">-&gt;</span><span class="variable">id_map</span><span class="operator">(</span><span class="variable">$submitted_prot_id</span><span class="operator">);</span>
+ <span class="variable">$species_io</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">(</span> <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'taxonomy'</span><span class="operator">,</span>
+                             <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="variable">$taxid</span> <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">-auto_adapt</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+ <span class="variable">$species</span> <span class="operator">=</span> <span class="variable">$species_io</span><span class="operator">-&gt;</span><span class="variable">next_species</span><span class="operator">;</span>
+ <span class="variable">$linnaeus</span> <span class="operator">=</span> <span class="variable">$species</span><span class="operator">-&gt;</span><span class="variable">binomial</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module allows the user to query the NCBI Entrez database via its SOAP (Simple Object Access Protocol) web service (described at <a href="http://eutils.ncbi.nlm.nih.gov/entrez/eutils/soap/v2.0/DOC/esoap_help.html">http://eutils.ncbi.nlm.nih.gov/entrez/eutils/soap/v2.0/DOC/esoap_help.html</a>). The basic tools (<code><code>einfo, esearch, elink, efetch, espell, epost</code></code>) are available as methods off a <code><code>SoapEUtilities</code></code> factory object. Parameters for each tool can be queried, set and reset for each method through the <a href="../../../../lib/perl5/Bio/ParameterBaseI.html">Bio::ParameterBaseI</a> standard calls (<code><code>available_parameters(), set_parameters(), get_parameters(), reset_parameters()</code></code>). Returned data can be retrieved, accessed and parsed in several ways, according to user preference. Adaptors and object iterators are available for <code><code>efetch</code></code>, <code><code>egquery</code></code>, <code><code>elink</code></code>, and <code><code>esummary</code></code> results.</p>
+
+<h1 id="USAGE">USAGE</h1>
+
+<p>The <code><code>SoapEU</code></code> system has been designed to be as easy (few includes, available parameter facilities, reasonable defaults, intuitive aliases, built-in pipelines) or as complex (accessors for underlying low-level objects, all parameters accessible, custom hooks for builder objects, facilities for providing local copies of WSDLs) as the user requires or desires. (To the extent that it does not succeed in either direction, it is up to the user to report to the mailing list (<a href="#FEEDBACK">&quot;FEEDBACK&quot;</a>)!)</p>
+
+<h2 id="Factory">Factory</h2>
+
+<p>To begin, make a factory:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::DB::SoapEUtilities</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+</code></code></pre>
+
+<p>From the factory, utilities are called, parameters are set, and results or adaptors are retrieved.</p>
+
+<p>If you have your own copy of the wsdl, use</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Db::SoapEUtilities</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-wsdl_file</span> <span class="operator">=&gt;</span> <span class="variable">$my_wsdl</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>otherwise, the correct one will be obtained over the network (by <a href="../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/DB/ESoap.html">Bio::DB::ESoap</a> and friends).</p>
+
+<h2 id="Utilities-and-parameters">Utilities and parameters</h2>
+
+<p>To run any of the standard NCBI EUtilities (<code><code>einfo, esearch, esummary, elink, egquery, epost, espell</code></code>), call the desired utility from the factory. To use a utility, you must set its parameters and run it to get a result. TMTOWTDI:</p>
+
+<pre><code><code> <span class="comment"># verbose</span>
+ <span class="keyword">my</span> <span class="variable">$fetch</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">();</span>
+ <span class="variable">$fetch</span><span class="operator">-&gt;</span><span class="variable">set_parameters</span><span class="operator">(</span> <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'gene'</span><span class="operator">,</span> <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="number">828392</span><span class="operator">,</span> <span class="number">790</span><span class="operator">]</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fetch</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">;</span>
+ 
+ <span class="comment"># compact</span>
+ <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">(</span><span class="string">-db</span> <span class="operator">=&gt;</span><span class="string">'gene'</span><span class="operator">,</span><span class="string">-id</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="number">828392</span><span class="operator">,</span><span class="number">790</span><span class="operator">]</span><span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">;</span>
+ 
+ <span class="comment"># change ids</span>
+ <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">-&gt;</span><span class="variable">set_parameters</span><span class="operator">(</span> <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="number">470338</span> <span class="operator">);</span>
+ <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">;</span>
+ 
+ <span class="comment"># another util</span>
+ <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esearch</span><span class="operator">(</span><span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'protein'</span><span class="operator">,</span> <span class="string">-term</span> <span class="operator">=&gt;</span> <span class="string">'BRCA and human'</span><span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">;</span>
+ 
+ <span class="comment"># the utilities are kept separate</span>
+ <span class="variable">%search_params</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esearch</span><span class="operator">-&gt;</span><span class="variable">get_parameters</span><span class="operator">;</span>
+ <span class="variable">%fetch_params</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">-&gt;</span><span class="variable">get_parameters</span><span class="operator">;</span>
+ <span class="variable">$search_param</span><span class="operator">{</span><span class="string">db</span><span class="operator">}</span><span class="operator">;</span> <span class="comment"># is 'protein'</span>
+ <span class="variable">$fetch_params</span><span class="operator">{</span><span class="string">db</span><span class="operator">}</span><span class="operator">;</span> <span class="comment"># is 'gene'</span>
+</code></code></pre>
+
+<p>The factory is <a href="../../../../lib/perl5/Bio/ParameterBaseI.html">Bio::ParameterBaseI</a> compliant: that means you can find out what you can set with</p>
+
+<pre><code><code> <span class="variable">@available_search</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esearch</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">;</span>
+ <span class="variable">@available_egquery</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">egquery</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>For more information on parameters, see <a href="http://www.ncbi.nlm.nih.gov/entrez/query/static/eutils_help.html">http://www.ncbi.nlm.nih.gov/entrez/query/static/eutils_help.html</a>.</p>
+
+<h2 id="Results">Results</h2>
+
+<p>The &quot;intermediate&quot; object for <code><code>SoapEU</code></code> query results is the <a href="../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/DB/SoapEUtilities/Result.html">Bio::DB::SoapEUtilities::Result</a>. This is a BioPerly parsing of the SOAP message sent by NCBI when a query is <code><code>run()</code></code>. This can be very useful on it&#39;s own, but most users will likely want to proceed directly to <a href="#Adaptors">&quot;Adaptors&quot;</a>, which take a <code><code>Result</code></code> and turn it into more intuitive/familiar BioPerl objects. Go there if the following details are too gory.</p>
+
+<p>Results can be highly- or lowly-parsed, depending on the parameters passed to the factory <code><code>run()</code></code> method. To get the raw XML message with no parsing, do</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$xml</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">$util</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">-raw_xml</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span> <span class="comment"># $xml is a scalar string</span>
+</code></code></pre>
+
+<p>To retrieve a <a href="../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/DB/SoapEUtilities/Result.html">Bio::DB::SoapEUtilities::Result</a> object with limited parsing, but with accessors to the <a>SOAP::SOM</a> message (provided by <a>SOAP::Lite</a>), do</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">$util</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">-no_parse</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">$som</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">som</span><span class="operator">;</span>
+ <span class="keyword">my</span> <span class="variable">$method_hash</span> <span class="operator">=</span> <span class="variable">$som</span><span class="operator">-&gt;</span><span class="variable">method</span><span class="operator">;</span> <span class="comment"># etc...</span>
+</code></code></pre>
+
+<p>To retrieve a <code><code>Result</code></code> object with message elements parsed into accessors, including <code><code>count()</code></code> and <code><code>ids()</code></code>, run without arguments:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esearch</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">()</span>
+ <span class="keyword">my</span> <span class="variable">$count</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">count</span><span class="operator">;</span>
+ <span class="keyword">my</span> <span class="variable">@Count</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">Count</span><span class="operator">;</span> <span class="comment"># counts for each member of </span>
+                             <span class="comment"># the translation stack</span>
+ <span class="keyword">my</span> <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">IdList_Id</span><span class="operator">;</span> <span class="comment"># from automatic message parsing</span>
+ <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">ids</span><span class="operator">;</span> <span class="comment"># a convenient alias</span>
+</code></code></pre>
+
+<p>See <a href="../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/DB/SoapEUtilities/Result.html">Bio::DB::SoapEUtilities::Result</a> for more, even gorier details.</p>
+
+<h2 id="Adaptors">Adaptors</h2>
+
+<p>Adaptors convert EUtility <code><code>Result</code></code>s into convenient objects, via a handle that usually provides an iterator, in the spirit of <a href="../../../../lib/perl5/Bio/SeqIO.html">Bio::SeqIO</a>. These are probably more useful than the <code><code>Result</code></code> to the typical user, and so you can retrieve them automatically by setting the <code><code>run()</code></code> parameter <code><code>-auto_adapt =</code></code> 1&gt;.</p>
+
+<p>In general, retrieve an adaptor like so:</p>
+
+<pre><code><code> <span class="variable">$adp</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">$util</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">-auto_adapt</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+ <span class="comment"># iterate...</span>
+ <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">$adp</span><span class="operator">-&gt;</span><span class="variable">next_obj</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># do stuff with $obj</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>The adaptor itself occasionally possesses useful methods besides the iterator. The method <code><code>next_obj</code></code> always works, but a natural alias is also always available:</p>
+
+<pre><code><code> <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esearch</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">-auto_adapt</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+ <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># do stuff with $seq</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>In the above example, <code><code>-auto_adapt =</code></code> 1&gt; also instructs the factory to perform an <code><code>efetch</code></code> based on the ids returned by the <code><code>esearch</code></code> (if any), so that the adaptor returned iterates over <a href="../../../../lib/perl5/Bio/SeqI.html">Bio::SeqI</a> objects.</p>
+
+<p>Here is a rundown of the different adaptor flavors:</p>
+
+<ul>
+
+<li><p><code><code>efetch</code></code>, Fetch Adaptors, and BioPerl object iterators</p>
+
+<p>The <code><code>FetchAdaptor</code></code> creates bona fide BioPerl objects. Currently, there are FetchAdaptor subclasses for sequence data (both Genbank and FASTA rettypes) and taxonomy data. The choice of FetchAdaptor is based on information in the result message, and should be transparent to the user.</p>
+
+<pre><code><code> <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">(</span> <span class="string">-db</span> <span class="operator">=&gt;</span><span class="string">'nucleotide'</span><span class="operator">,</span>
+                        <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@ids</span><span class="operator">,</span>
+                        <span class="string">-rettype</span> <span class="operator">=&gt;</span> <span class="string">'gb'</span> <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">-auto_adapt</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+ <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">my</span> <span class="variable">$taxio</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">(</span> 
+        <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'taxonomy'</span><span class="operator">,</span> 
+        <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">species</span><span class="operator">-&gt;</span><span class="variable">ncbi_taxid</span> <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">-auto_adapt</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$tax</span> <span class="operator">=</span> <span class="variable">$taxio</span><span class="operator">-&gt;</span><span class="variable">next_species</span><span class="operator">;</span>
+    <span class="keyword">unless</span> <span class="operator">(</span> <span class="variable">$tax</span><span class="operator">-&gt;</span><span class="variable">TaxId</span> <span class="operator">==</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">species</span><span class="operator">-&gt;</span><span class="variable">ncbi_taxid</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="string">"more work for MAJ"</span>
+    <span class="operator">}</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>See the pod for the FetchAdaptor subclasses (e.g., <a href="../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/DB/SoapEUtilities/FetchAdaptor/seq.html">Bio::DB::SoapEUtilities::FetchAdaptor::seq</a>) for more detail.</p>
+
+</li>
+<li><p><code><code>elink</code></code>, the Link adaptor, and the <code><code>linkset</code></code> iterator</p>
+
+<p>The <code><code>LinkAdaptor</code></code> manages LinkSets. In <code><code>SoapEU</code></code>, an <code><code>elink</code></code> call <b>always</b> preserves the correspondence between submitted and retrieved ids. The mapping between these can be accessed from the adaptor object directly as <code><code>id_map()</code></code></p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$links</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">elink</span><span class="operator">(</span> <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'protein'</span><span class="operator">,</span> 
+                          <span class="string">-dbfrom</span> <span class="operator">=&gt;</span> <span class="string">'nucleotide'</span><span class="operator">,</span>
+                          <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@nucids</span> <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">-auto_adapt</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+ 
+ <span class="comment"># maybe more than one associated id...</span>
+ <span class="keyword">my</span> <span class="variable">@prot_0</span> <span class="operator">=</span> <span class="variable">$links</span><span class="operator">-&gt;</span><span class="variable">id_map</span><span class="operator">(</span> <span class="variable">$nucids</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span> <span class="operator">);</span> 
+</code></code></pre>
+
+<p>Or iterate over the linksets:</p>
+
+<pre><code><code> <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$ls</span> <span class="operator">=</span> <span class="variable">$links</span><span class="operator">-&gt;</span><span class="variable">next_linkset</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$ls</span><span class="operator">-&gt;</span><span class="variable">ids</span><span class="operator">;</span>
+    <span class="variable">@submitted_ids</span> <span class="operator">=</span> <span class="variable">$ls</span><span class="operator">-&gt;</span><span class="variable">submitted_ids</span><span class="operator">;</span>
+    <span class="comment"># etc.</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+</li>
+<li><p><code><code>esummary</code></code>, the DocSum adaptor, and the <code><code>docsum</code></code> iterator</p>
+
+<p>The <code><code>DocSumAdaptor</code></code> manages docsums, the <code><code>esummary</code></code> return type. The objects returned by iterating with a <code><code>DocSumAdaptor</code></code> have accessors that let you obtain field information directly. Docsums contain lots of easy-to-forget fields; use <code><code>item_names()</code></code> to remind yourself.</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$docs</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esummary</span><span class="operator">(</span> <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'taxonomy'</span><span class="operator">,</span>
+                            <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="number">527031</span> <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">-auto_adapt</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span>
+ <span class="comment"># iterate over docsums</span>
+ <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$d</span> <span class="operator">=</span> <span class="variable">$docs</span><span class="operator">-&gt;</span><span class="variable">next_docsum</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">@available_items</span> <span class="operator">=</span> <span class="variable">$docsum</span><span class="operator">-&gt;</span><span class="variable">item_names</span><span class="operator">;</span>
+    <span class="comment"># any available item can be called as an accessor</span>
+    <span class="comment"># from the docsum object...watch your case...</span>
+    <span class="variable">$sci_name</span> <span class="operator">=</span> <span class="variable">$d</span><span class="operator">-&gt;</span><span class="variable">ScientificName</span><span class="operator">;</span>
+    <span class="variable">$taxid</span> <span class="operator">=</span> <span class="variable">$d</span><span class="operator">-&gt;</span><span class="variable">TaxId</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+</li>
+<li><p><code><code>egquery</code></code>, the GQuery adaptor, and the <code><code>query</code></code> iterator</p>
+
+<p>The <code><code>GQueryAdaptor</code></code> manages global query items returned by calls to <code><code>egquery</code></code>, which identifies all NCBI databases containing hits for your query term. The databases actually containing hits can be retrieved directly from the adaptor with <code><code>found_in_dbs</code></code>:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$queries</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">egquery</span><span class="operator">(</span> 
+     <span class="string">-term</span> <span class="operator">=&gt;</span> <span class="string">'BRCA and human'</span>
+    <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">-auto_adapt</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">@dbs</span> <span class="operator">=</span> <span class="variable">$queries</span><span class="operator">-&gt;</span><span class="variable">found_in_dbs</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Retrieve the global query info returned for <b>any</b> database with <code><code>query_by_db</code></code>:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$prot_q</span> <span class="operator">=</span> <span class="variable">$queries</span><span class="operator">-&gt;</span><span class="variable">query_by_db</span><span class="operator">(</span><span class="string">'protein'</span><span class="operator">);</span>
+ <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$prot_q</span><span class="operator">-&gt;</span><span class="variable">count</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment">#do something</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>Or iterate as usual:</p>
+
+<pre><code><code> <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$q</span> <span class="operator">=</span> <span class="variable">$queries</span><span class="operator">-&gt;</span><span class="variable">next_query</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$q</span><span class="operator">-&gt;</span><span class="variable">status</span> <span class="keyword">eq</span> <span class="string">'Ok'</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="comment"># do sth</span>
+    <span class="operator">}</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+</li>
+</ul>
+
+<h2 id="Web-environments-and-query-keys">Web environments and query keys</h2>
+
+<p>To make large or complex requests for data, or to share queries, it may be helpful to use the NCBI WebEnv system to manage your queries. Each EUtility accepts the following parameters:</p>
+
+<pre><code><code> -usehistory
+ -WebEnv
+ -QueryKey</code></code></pre>
+
+<p>for this purpose. These store the details of your queries serverside.</p>
+
+<p><code><code>SoapEU</code></code> attempts to make using these relatively straightforward. Use <code><code>Result</code></code> objects to obtain the correct parameters, and don&#39;t forget <code><code>-usehistory</code></code>:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$result1</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esearch</span><span class="operator">(</span> 
+     <span class="string">-term</span> <span class="operator">=&gt;</span> <span class="string">'BRCA and human'</span><span class="operator">,</span> 
+     <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'nucleotide'</span><span class="operator">,</span>
+     <span class="string">-usehistory</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">-no_parse</span><span class="operator">=&gt;</span><span class="number">1</span> <span class="operator">);</span>
+ 
+ <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esearch</span><span class="operator">(</span> 
+     <span class="string">-term</span> <span class="operator">=&gt;</span> <span class="string">'AND early onset'</span><span class="operator">,</span> 
+     <span class="string">-QueryKey</span> <span class="operator">=&gt;</span> <span class="variable">$result1</span><span class="operator">-&gt;</span><span class="variable">query_key</span><span class="operator">,</span>
+     <span class="string">-WebEnv</span> <span class="operator">=&gt;</span> <span class="variable">$result1</span><span class="operator">-&gt;</span><span class="variable">webenv</span> <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">-no_parse</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+ 
+ <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esearch</span><span class="operator">(</span>
+    <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'protein'</span><span class="operator">,</span>
+    <span class="string">-term</span> <span class="operator">=&gt;</span> <span class="string">'sonic'</span><span class="operator">,</span> 
+    <span class="string">-usehistory</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">-no_parse</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+ 
+ <span class="comment"># later (but not more than 8 hours later) that day...</span>
+ 
+ <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esearch</span><span class="operator">(</span>
+    <span class="string">-WebEnv</span> <span class="operator">=&gt;</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">webenv</span><span class="operator">,</span>
+    <span class="string">-QueryKey</span> <span class="operator">=&gt;</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">query_key</span><span class="operator">,</span>
+    <span class="string">-RetMax</span> <span class="operator">=&gt;</span> <span class="number">800</span> <span class="comment"># get 'em all</span>
+    <span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">;</span> <span class="comment"># note we're parsing the result...</span>
+ <span class="variable">@all_ids</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">ids</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="Error-checking">Error checking</h2>
+
+<p>Two kinds of errors can ensue on an Entrez SOAP run. One is a SOAP fault, and the other is an error sent in non-faulted SOAP message from the server. The distinction is probably systematic, and I would welcome an explanation of it. To check for result errors, try something like:</p>
+
+<pre><code><code> <span class="keyword">unless</span> <span class="operator">(</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">$util</span><span class="operator">-&gt;</span><span class="variable">run</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">die</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">errstr</span><span class="operator">;</span> <span class="comment"># this will catch a SOAP fault</span>
+ <span class="operator">}</span>
+ <span class="comment"># a valid result object was returned, but it may carry an error</span>
+ <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">count</span> <span class="operator">==</span> <span class="number">0</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">warn</span> <span class="string">"No hits returned"</span><span class="operator">;</span>
+    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">ERROR</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">warn</span> <span class="string">"Entrez error : "</span><span class="operator">.</span><span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">ERROR</span><span class="operator">;</span>
+    <span class="operator">}</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>Error handling will be improved in the package eventually.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../lib/perl5/Bio/DB/EUtilities.html">Bio::DB::EUtilities</a>, <a href="../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/DB/SoapEUtilities/Result.html">Bio::DB::SoapEUtilities::Result</a>, <a href="../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/DB/ESoap.html">Bio::DB::ESoap</a>.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><a>bioperl-l@bioperl.org</a></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<p>Email maj -at- fortinbras -dot- us</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$eutil</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::SoapEUtilities</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::DB::SoapEUtilities</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">of</span> <span class="variable">Bio::DB::SoapEUtilities</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="run-">run()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">run</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">$eutility</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Execute</span> <span class="variable">the</span> <span class="variable">EUtility</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">true</span> <span class="variable">on</span> <span class="variable">success</span><span class="operator">,</span> <span class="variable">false</span> <span class="variable">on</span> <span class="variable">fault</span> <span class="keyword">or</span> <span class="variable">error</span>
+           <span class="operator">(</span><span class="variable">reason</span> <span class="variable">in</span> <span class="variable">errstr</span><span class="operator">(),</span> <span class="keyword">for</span> <span class="variable">more</span> <span class="variable">detail</span> <span class="variable">check</span> <span class="variable">the</span> <span class="variable">SOAP</span> <span class="variable">message</span>
+            <span class="variable">in</span> <span class="variable">last_result</span><span class="operator">()</span> <span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">named</span> <span class="variable">params</span> <span class="variable">appropriate</span> <span class="variable">to</span> <span class="variable">utility</span>
+           <span class="operator">-</span><span class="string">auto_adapt</span> <span class="operator">=&gt;</span> <span class="variable">boolean</span> <span class="operator">(</span> <span class="keyword">return</span> <span class="variable">an</span> <span class="variable">iterator</span> <span class="variable">over</span> <span class="variable">results</span> <span class="variable">as</span> 
+                                    <span class="variable">appropriate</span> <span class="variable">to</span> <span class="variable">util</span> <span class="keyword">if</span> <span class="variable">true</span><span class="operator">)</span>
+           <span class="string">-raw_xml</span> <span class="operator">=&gt;</span> <span class="variable">boolean</span> <span class="operator">(</span> <span class="keyword">return</span> <span class="variable">raw</span> <span class="variable">xml</span> <span class="variable">result</span><span class="operator">;</span> <span class="keyword">no</span> <span class="variable">processing</span> <span class="operator">)</span>
+           <span class="variable">Bio::DB::SoapEUtilities::Result</span> <span class="variable">constructor</span> <span class="variable">parms</span>
+</code></code></pre>
+
+<h2 id="Useful-Accessors">Useful Accessors</h2>
+
+<h2 id="response_message-">response_message()</h2>
+
+<pre><code><code> Title   : response_message
+ Aliases : last_response, last_result
+ Usage   : $som = $fac-&gt;response_message
+ Function: get the last response message
+ Returns : a SOAP::SOM object
+ Args    : none</code></code></pre>
+
+<h2 id="webenv-">webenv()</h2>
+
+<pre><code><code> Title   : webenv
+ Usage   : 
+ Function: contains WebEnv key referencing the session
+           (set after run() )
+ Returns : scalar
+ Args    : none</code></code></pre>
+
+<h2 id="errstr-">errstr()</h2>
+
+<pre><code><code> Title   : errstr
+ Usage   : $fac-&gt;errstr
+ Function: get the last error, if any
+ Example : 
+ Returns : value of errstr (a scalar)
+ Args    : none</code></code></pre>
+
+<h2 id="Bio::ParameterBaseI-compliance">Bio::ParameterBaseI compliance</h2>
+
+<h2 id="available_parameters-">available_parameters()</h2>
+
+<pre><code><code> Title   : available_parameters
+ Usage   : 
+ Function: get available request parameters for calling
+           utility
+ Returns : 
+ Args    : -util =&gt; $desired_utility [optional, default is
+           caller utility]</code></code></pre>
+
+<h2 id="set_parameters-">set_parameters()</h2>
+
+<pre><code><code> Title   : set_parameters
+ Usage   : 
+ Function: 
+ Returns : none
+ Args    : -util =&gt; $desired_utility [optional, default is 
+            caller utility],
+           named utility arguments</code></code></pre>
+
+<h2 id="get_parameters-">get_parameters()</h2>
+
+<pre><code><code> Title   : get_parameters
+ Usage   : 
+ Function: 
+ Returns : array of named parameters
+ Args    : utility (scalar string) [optional]
+           (default is caller utility)</code></code></pre>
+
+<h2 id="reset_parameters-">reset_parameters()</h2>
+
+<pre><code><code> Title   : reset_parameters
+ Usage   : 
+ Function: 
+ Returns : none
+ Args    : -util =&gt; $desired_utility [optional, default is 
+            caller utility],
+           named utility arguments</code></code></pre>
+
+<h2 id="parameters_changed-">parameters_changed()</h2>
+
+<pre><code><code> Title   : parameters_changed
+ Usage   : 
+ Function: 
+ Returns : boolean
+ Args    : utility (scalar string) [optional]
+           (default is caller utility)</code></code></pre>
+
+<h2 id="soap_facs-">_soap_facs()</h2>
+
+<pre><code><code> Title   : _soap_facs
+ Usage   : $self-&gt;_soap_facs($util, $fac)
+ Function: caches Bio::DB::ESoap factories for the 
+           eutils in use by this instance
+ Example : 
+ Returns : Bio::DB::ESoap object
+ Args    : $eutility, [optional on set] $esoap_factory_object</code></code></pre>
+
+<h2 id="caller_util-">_caller_util()</h2>
+
+<pre><code><code> Title   : _caller_util
+ Usage   : $self-&gt;_caller_util($newval)
+ Function: the utility requested off the main SoapEUtilities 
+           object
+ Example : 
+ Returns : value of _caller_util (a scalar string, a valid eutility)
+ Args    : on set, new value (a scalar string [optional])</code></code></pre>
+
+
+</body>
+
+</html>
+
+

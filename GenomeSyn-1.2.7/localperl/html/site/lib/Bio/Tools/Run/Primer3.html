@@ -1,0 +1,246 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new-">new()</a></li>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#add_targets-">add_targets()</a></li>
+      <li><a href="#run-">run()</a></li>
+      <li><a href="#arguments-">arguments()</a></li>
+      <li><a href="#version">version</a></li>
+      <li><a href="#input_args-">_input_args()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::Primer3 - Create input for and work with the output from the program primer3</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Bio::Tools::Primer3 creates the input files needed to design primers using primer3 and provides mechanisms to access data in the primer3 output files.</p>
+
+<p>This module provides a bioperl interface to the program primer3. See http://frodo.wi.mit.edu/primer3/primer3_code.html for details and to download the software. This module only works for primer3 release 1 but is not guaranteed to work with earlier versions.</p>
+
+<pre><code><code>  <span class="comment"># design some primers.</span>
+  <span class="comment"># the output will be put into temp.out</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Primer3</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="string">'data/dna1.fa'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$primer3</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Primer3</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$seq</span><span class="operator">,</span>
+                                              <span class="string">-outfile</span> <span class="operator">=&gt;</span> <span class="string">"temp.out"</span><span class="operator">,</span>
+                                              <span class="string">-path</span> <span class="operator">=&gt;</span> <span class="string">"/usr/bin/primer3_core"</span><span class="operator">);</span>
+  
+  <span class="comment"># or after the fact you can change the program_name</span>
+  <span class="variable">$primer3</span><span class="operator">-&gt;</span><span class="variable">program_name</span><span class="operator">(</span><span class="string">'my_suprefast_primer3'</span><span class="operator">);</span>
+  
+  <span class="keyword">unless</span> <span class="operator">(</span><span class="variable">$primer3</span><span class="operator">-&gt;</span><span class="variable">executable</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="variable">STDERR</span> <span class="string">"primer3 can not be found. Is it installed?\n"</span><span class="operator">;</span>
+    <span class="keyword">exit</span><span class="operator">(-</span><span class="number">1</span><span class="operator">)</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># what are the arguments, and what do they mean?</span>
+  <span class="keyword">my</span> <span class="variable">$args</span> <span class="operator">=</span> <span class="variable">$primer3</span><span class="operator">-&gt;</span><span class="variable">arguments</span><span class="operator">;</span>
+  
+  <span class="keyword">print</span> <span class="string">"ARGUMENT\tMEANING\n"</span><span class="operator">;</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$key</span> <span class="operator">(</span><span class="keyword">keys</span> <span class="variable">%</span><span class="operator">{</span><span class="variable">$args</span><span class="operator">}</span><span class="operator">)</span> <span class="operator">{</span><span class="keyword">print</span> <span class="string">"</span><span class="variable">$key</span><span class="string">\t"</span><span class="operator">,</span> <span class="variable">$$args</span><span class="operator">{</span><span class="variable">$key</span><span class="operator">}</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">}</span>
+  
+  <span class="comment"># set the maximum and minimum Tm of the primer</span>
+  <span class="variable">$primer3</span><span class="operator">-&gt;</span><span class="variable">add_targets</span><span class="operator">(</span><span class="string">'PRIMER_MIN_TM'</span><span class="operator">=&gt;</span><span class="number">56</span><span class="operator">,</span> <span class="string">'PRIMER_MAX_TM'</span><span class="operator">=&gt;</span><span class="number">90</span><span class="operator">);</span>
+  
+  <span class="comment"># design the primers. This runs primer3 and returns a </span>
+  <span class="comment"># Bio::Tools::Run::Primer3 object with the results</span>
+  <span class="variable">$results</span> <span class="operator">=</span> <span class="variable">$primer3</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">;</span>
+  
+  <span class="comment"># see the Bio::Tools::Run::Primer3 pod for</span>
+  <span class="comment"># things that you can get from this. For example:</span>
+  
+  <span class="keyword">print</span> <span class="string">"There were "</span><span class="operator">,</span> <span class="variable">$results</span><span class="operator">-&gt;</span><span class="variable">number_of_results</span><span class="operator">,</span> <span class="string">" primers\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Bio::Tools::Run::Primer3 creates the input files needed to design primers using primer3 and provides mechanisms to access data in the primer3 output files.</p>
+
+<p>This module provides a bioperl interface to the program primer3. See http://www-genome.wi.mit.edu/genome_software/other/primer3.html for details and to download the software.</p>
+
+<p>This module is based on one written by Chad Matsalla (bioinformatics1@dieselwurks.com). I have ripped some of his code, and added a lot of my own. I hope he is not mad at me!</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://www.bioperl.org/MailList.html             - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Rob Edwards</p>
+
+<p>redwards@utmem.edu</p>
+
+<p>Based heavily on work of Chad Matsalla</p>
+
+<p>bioinformatics1@dieselwurks.com</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Shawn Hoon shawnh-at-stanford.edu Jason Stajich jason-at-bioperl.org Brian Osborne osborne1-at-optonline.net</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../lib/perl5/Bio/Tools/Primer3.html">Bio::Tools::Primer3</a></p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new-">new()</h2>
+
+<pre><code><code> Title   : new()
+ Usage   : my $primer3 = Bio::Tools::Run::Primer3-&gt;new(-file=&gt;$file) to read 
+           a primer3 output file.
+           my $primer3 = Bio::Tools::Run::Primer3-&gt;new(-seq=&gt;sequence object) 
+           design primers against sequence
+ Function: Start primer3 working and adds a sequence. At the moment it 
+           will not clear out the old sequence, but I suppose it should.
+ Returns : Does not return anything. If called with a filename will allow 
+           you to retrieve the results
+ Args    : -seq (optional) Bio::Seq object of sequence. This is required 
+           to run primer3 but can be added later with add_targets()
+                -outfile file name to output results to (can also be added 
+           with $primer3-&gt;outfile_name
+                -path path to primer3 executable, including program name, e.g. 
+           &quot;/usr/bin/primer3_core&quot;. This can also be set with program_name 
+           and program_dir
+                -verbose (optional) set verbose output
+ Notes   :</code></code></pre>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : $primer3-&gt;program_name()
+ Function: holds the program name
+ Returns:  string
+ Args    : None</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> Title   : program_dir
+ Usage   : $primer3-&gt;program_dir($dir)
+ Function: returns the program directory, which may also be obtained from ENV variable.
+ Returns :  string
+ Args    :</code></code></pre>
+
+<h2 id="add_targets-">add_targets()</h2>
+
+<pre><code><code> Title   : add_targets()
+ Usage   : $primer3-&gt;add_targets(key=&gt;value)
+ Function: Add any legal value to the input command line. 
+ Returns : Returns the number of arguments added.
+ Args    : Use $primer3-&gt;arguments to find a list of all the values 
+           that are allowed, or see the primer3 docs.
+ Notes   : This will only do limited error checking at the moment, 
+           but it should work.</code></code></pre>
+
+<h2 id="run-">run()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">run</span><span class="operator">()</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$primer3</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Run</span> <span class="variable">the</span> <span class="variable">primer3</span> <span class="variable">program</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">arguments</span> <span class="variable">that</span> <span class="variable">you</span> <span class="variable">have</span> <span class="variable">supplied</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Tools::Primer3</span> <span class="variable">object</span> <span class="variable">containing</span> <span class="variable">the</span> <span class="variable">results</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span><span class="operator">.</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">See</span> <span class="variable">the</span> <span class="variable">Bio::Tools::Primer3</span> <span class="variable">documentation</span> <span class="keyword">for</span> <span class="variable">those</span> <span class="variable">functions</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="arguments-">arguments()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">arguments</span><span class="operator">()</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$hashref</span> <span class="operator">=</span> <span class="variable">$primer3</span><span class="operator">-&gt;</span><span class="variable">arguments</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Describes</span> <span class="variable">the</span> <span class="variable">options</span> <span class="variable">that</span> <span class="variable">you</span> <span class="variable">can</span> <span class="variable">set</span> <span class="variable">through</span> <span class="variable">Bio::Tools::Run::Primer3</span><span class="operator">,</span> 
+           <span class="variable">with</span> <span class="variable">a</span> <span class="variable">brief</span> <span class="operator">(</span><span class="variable">one</span> <span class="variable">line</span><span class="operator">)</span> <span class="variable">description</span> <span class="variable">of</span> <span class="variable">what</span> <span class="variable">they</span> <span class="variable">are</span> <span class="keyword">and</span> <span class="variable">their</span> 
+           <span class="keyword">default</span> <span class="keyword">values</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">string</span> <span class="operator">(</span><span class="keyword">if</span> <span class="variable">an</span> <span class="variable">argument</span> <span class="variable">is</span> <span class="variable">supplied</span><span class="operator">)</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">hash</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">If</span> <span class="variable">supplied</span> <span class="variable">with</span> <span class="variable">an</span> <span class="variable">argument</span> <span class="variable">will</span> <span class="keyword">return</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">of</span> <span class="variable">its</span> 
+           <span class="variable">description</span><span class="operator">.</span>
+           <span class="variable">If</span> <span class="keyword">no</span> <span class="variable">arguments</span> <span class="variable">are</span> <span class="variable">supplied</span><span class="operator">,</span> <span class="variable">will</span> <span class="keyword">return</span> <span class="variable">all</span> <span class="variable">the</span> <span class="variable">arguments</span> <span class="variable">as</span> <span class="variable">a</span> 
+           <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">hash</span>
+ <span class="variable">Notes</span>   <span class="operator">:</span> <span class="variable">Much</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">taken</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">primer3</span> <span class="variable">README</span> <span class="variable">file</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">you</span> <span class="variable">should</span> 
+           <span class="keyword">read</span> <span class="variable">that</span> <span class="variable">file</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">more</span> <span class="variable">detailed</span> <span class="variable">description</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="version">version</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">version</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$v</span> <span class="operator">=</span> <span class="variable">$prog</span><span class="operator">-&gt;</span><span class="variable">version</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Determine</span> <span class="variable">the</span> <span class="variable">version</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">program</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">float</span> <span class="keyword">or</span> <span class="keyword">undef</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="input_args-">_input_args()</h2>
+
+<pre><code><code> Title   : _input_args()
+ Usage   : an internal method to set the input arguments for Primer3
+ Function: Define a hash with keys for each of the input arguments and values 
+           as a short one line description
+ Returns : A reference to a hash.
+ Args    : None.
+ Notes   : Much of this is taken from the primer3 README file, and you should 
+           read that file for a more detailed description.</code></code></pre>
+
+
+</body>
+
+</html>
+
+

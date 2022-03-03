@@ -1,0 +1,163 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#eutil">eutil</a></li>
+      <li><a href="#datatype">datatype</a></li>
+      <li><a href="#rewind">rewind</a></li>
+      <li><a href="#add_data">_add_data</a></li>
+      <li><a href="#to_string">to_string</a></li>
+      <li><a href="#text_wrap">_text_wrap</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::EUtilities::EUtilDataI - eutil data object interface</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># say you had some data in a hash ref ($data) and wanted to create hierarchies</span>
+  <span class="comment"># of object using the same interface, starting with the topmost...</span>
+  
+  <span class="comment"># $object is a Bio::Tools::EUtilities::EUtilDataI instance</span>
+  
+  <span class="variable">$object</span><span class="operator">-&gt;</span><span class="variable">_add_data</span><span class="operator">(</span><span class="variable">$data</span><span class="operator">);</span>
+  
+  <span class="comment"># in _add_data()... sort through keys and create subobjects as needed</span>
+  
+  <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$key</span> <span class="keyword">eq</span> <span class="string">'foo'</span><span class="operator">)</span> <span class="operator">{</span>
+     <span class="keyword">my</span> <span class="variable">$sub</span> <span class="operator">=</span> <span class="variable">Bio::Tools::EUtilities::FooData</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-eutil</span> <span class="operator">=&gt;</span> <span class="string">'efoo'</span><span class="operator">,</span>
+                                                    <span class="string">-type</span> <span class="operator">=&gt;</span> <span class="string">'foo'</span><span class="operator">);</span>
+     <span class="variable">$sub</span><span class="operator">-&gt;</span><span class="variable">_add_data</span><span class="operator">(</span><span class="variable">$subdata</span><span class="operator">);</span>
+     <span class="comment"># store into parent object as needed...</span>
+     <span class="operator">...</span>
+   <span class="operator">}</span>
+  
+   <span class="comment"># access stored data</span>
+  
+   <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$sub</span> <span class="operator">=</span> <span class="variable">$parent</span><span class="operator">-&gt;</span><span class="variable">next_Foo</span><span class="operator">)</span> <span class="operator">{...}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is a simple interface which allows creation of simple typed object hierarchies. Single layers can be accessed via simple iterators (next_* methods) or retrieved all at once (get_*) methods; nested data can be iterated through nested iterators for each object, or retrieved using get_all_* methods.</p>
+
+<p>This interface defines common methods required for all eutil data-holding objects: _add_data(), eutil(), and type(). It also specifies inheriting interface classes use at least one of three methods: get_ids(), get_term(), or get_database(), which are the three types of data that eutils mainly centers on.</p>
+
+<p>Generally, eutil() is the Bio::Tools::EUtilities parser used to set the data. Similarly, datatype() is the specific data type for the class.</p>
+
+<p>Implementations which rely on subclasses to store data and have iterators should also define a generalized rewind() method that (by default) rewinds all iterators to the start. Args passed can specify exactly which iterator to rewind and (if possible) recursively rewind nested object iterators.</p>
+
+<p>As the method implies, _add_data() is a private method that adds data chunks to the object and sets internal parameters for the various data objects. Methods corresponding to the data type simply return the set data or iterate through the data sets if the values are more complex. Data can alternatively be passed through the object constructor.</p>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web.</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Email cjfields at bioperl dot org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="eutil">eutil</h2>
+
+<pre><code><code> Title    : eutil
+ Usage    : $eutil-&gt;$foo-&gt;eutil
+ Function : Get/Set eutil
+ Returns  : string
+ Args     : string (eutil)
+ Throws   : on invalid eutil</code></code></pre>
+
+<h2 id="datatype">datatype</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">type</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$type</span> <span class="operator">=</span> <span class="variable">$qd</span><span class="operator">-&gt;</span><span class="variable">datatype</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">retrieve</span> <span class="variable">simple</span> <span class="variable">data</span> <span class="variable">type</span> <span class="variable">object</span> <span class="variable">holds</span> <span class="operator">(</span><span class="variable">linkset</span><span class="operator">,</span> <span class="variable">docsum</span><span class="operator">,</span> <span class="variable">item</span><span class="operator">,</span> <span class="variable">etc</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">eutil</span> <span class="variable">name</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">probably</span> <span class="variable">more</span> <span class="variable">useful</span> <span class="keyword">for</span> <span class="variable">devs</span> <span class="variable">than</span> <span class="keyword">for</span> <span class="variable">users</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">way</span> <span class="variable">to</span> <span class="variable">keep</span>
+           <span class="variable">track</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">various</span> <span class="variable">types</span> <span class="variable">of</span> <span class="variable">modules</span> <span class="variable">used</span>
+</code></code></pre>
+
+<h2 id="rewind">rewind</h2>
+
+<pre><code><code> Title    : rewind
+ Usage    : $esum-&gt;rewind
+ Function : rewinds the requested iterator
+ Returns  : none
+ Args     : [OPTIONAL] may include &#39;all&#39;, &#39;recursive&#39;, etc.</code></code></pre>
+
+<h2 id="add_data">_add_data</h2>
+
+<pre><code><code> Title    : _add_data
+ Usage    : $foo-&gt;_add_data($data)
+ Function : adds data to current object as a chunk
+ Returns  : none
+ Args     : hash ref containing relevant data</code></code></pre>
+
+<h2 id="to_string">to_string</h2>
+
+<pre><code><code> Title    : to_string
+ Usage    : $foo-&gt;to_string()
+ Function : converts current object to string
+ Returns  : none
+ Args     : (optional) simple data for text formatting
+ Note     : Used generally for debugging and for the print_* methods</code></code></pre>
+
+<h2 id="text_wrap">_text_wrap</h2>
+
+<pre><code><code> Title    : _text_wrap
+ Usage    : $foo-&gt;_text_wrap($string)
+ Function : private internal wrapper for Text::Wrap::wrap
+ Returns  : string
+ Args     : string
+ Note     : Internal use only.  Simple wrapper method.</code></code></pre>
+
+
+</body>
+
+</html>
+
+

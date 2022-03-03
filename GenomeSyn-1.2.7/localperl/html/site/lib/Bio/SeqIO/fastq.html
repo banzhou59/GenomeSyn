@@ -1,0 +1,298 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#FASTQ-and-Bio::Seq::Quality-mapping">FASTQ and Bio::Seq::Quality mapping</a></li>
+      <li><a href="#FASTQ-variants">FASTQ variants</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHORS---Chris-Fields-taken-over-from-Tony-Cox-">AUTHORS - Chris Fields (taken over from Tony Cox)</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+  <li><a href="#Bio::SeqIO-interface-methods">Bio::SeqIO interface methods</a>
+    <ul>
+      <li><a href="#next_seq">next_seq</a></li>
+      <li><a href="#write_seq">write_seq</a></li>
+      <li><a href="#variant">variant</a></li>
+    </ul>
+  </li>
+  <li><a href="#Plugin-specific-methods">Plugin-specific methods</a>
+    <ul>
+      <li><a href="#next_dataset">next_dataset</a></li>
+      <li><a href="#write_fastq">write_fastq</a></li>
+      <li><a href="#write_fasta">write_fasta</a></li>
+      <li><a href="#write_qual">write_qual</a></li>
+      <li><a href="#validate">validate</a></li>
+      <li><a href="#quality_header">quality_header</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqIO::fastq - fastq sequence input/output stream</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment">################## pertains to FASTQ parsing only ##################</span>
+  
+  <span class="comment"># grabs the FASTQ parser, specifies the Illumina variant</span>
+  <span class="keyword">my</span> <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span>    <span class="operator">=&gt;</span> <span class="string">'fastq-illumina'</span><span class="operator">,</span>
+                           <span class="string">-file</span>      <span class="operator">=&gt;</span> <span class="string">'mydata.fq'</span><span class="operator">);</span>
+  
+  <span class="comment"># simple 'fastq' format defaults to 'sanger' variant</span>
+  <span class="keyword">my</span> <span class="variable">$out</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span>    <span class="operator">=&gt;</span> <span class="string">'fastq'</span><span class="operator">,</span>  
+                           <span class="string">-file</span>      <span class="operator">=&gt;</span> <span class="string">'&gt;mydata.fq'</span><span class="operator">);</span>
+                           
+  <span class="comment"># $seq is a Bio::Seq::Quality object</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="variable">$out</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>  <span class="comment"># convert Illumina 1.3 to Sanger format</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># for 4x faster parsing, one can do something like this for raw data</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Seq::Quality</span><span class="operator">;</span>
+  
+  <span class="comment"># $data is a hash reference containing all arguments to be passed to</span>
+  <span class="comment"># the Bio::Seq::Quality constructor</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$data</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_dataset</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="comment"># process $data, such as trim, etc</span>
+      <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">Bio::Seq::Quality</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">%$data</span><span class="operator">);</span>
+      
+      <span class="comment"># for now, write_seq only accepts Bio::Seq::Quality, but may be modified</span>
+      <span class="comment"># to allow raw hash references for speed</span>
+      <span class="variable">$out</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$data</span><span class="operator">);</span>  
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object can transform Bio::Seq and Bio::Seq::Quality objects to and from FASTQ flat file databases.</p>
+
+<p>FASTQ is a file format used frequently at the Sanger Centre and in next-gen sequencing to bundle a FASTA sequence and its quality data. A typical FASTQ entry takes the form:</p>
+
+<pre><code><code>  @HCDPQ1D0501
+  GATTTGGGGTTCAAAGCAGTATCGATCAAATAGTAAATCCATTTGTTCAACTCACAGTTT.....
+  +HCDPQ1D0501
+  !&#39;&#39;*((((***+))%%%++)(%%%%).1***-+*&#39;&#39;))**55CCF&gt;&gt;&gt;&gt;&gt;&gt;CCCCCCC65.....</code></code></pre>
+
+<p>where:</p>
+
+<pre><code><code>  @ = descriptor, followed by one or more sequence lines
+  + = optional descriptor (if present, must match first one), followed by one or
+      more qual lines</code></code></pre>
+
+<p>When writing FASTQ output the redundant descriptor following the &#39;+&#39; is by default left off to save disk space. If needed, one can set the quality_header() flag in order for this to be printed.</p>
+
+<h2 id="FASTQ-and-Bio::Seq::Quality-mapping">FASTQ and Bio::Seq::Quality mapping</h2>
+
+<p>FASTQ files have sequence and quality data on single line or multiple lines, and the quality values are single-byte encoded. Data are mapped very simply to Bio::Seq::Quality instances:</p>
+
+<pre><code><code>    Data                                        Bio::Seq::Quality method
+    ------------------------------------------------------------------------
+    first non-whitespace chars in descriptor    id^
+    descriptor line                             desc^
+    sequence lines                              seq
+    quality                                     qual*
+    FASTQ variant                               namespace
+    
+    ^ first nonwhitespace chars are id(), everything else after (to end of line)
+      is in desc()
+    * Converted to PHRED quality scores where applicable (&#39;solexa&#39;)</code></code></pre>
+
+<h2 id="FASTQ-variants">FASTQ variants</h2>
+
+<p>This parser supports all variants of FASTQ, including Illumina v 1.0 and 1.3:</p>
+
+<pre><code><code>    variant                note
+    -----------------------------------------------------------
+    sanger                 original
+    solexa                 Solexa, Inc. (2004), aka Illumina 1.0
+    illumina               Illumina 1.3 </code></code></pre>
+
+<p>The variant can be specified by passing by either passing the additional -variant parameter to the constructor:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span>    <span class="operator">=&gt;</span> <span class="string">'fastq'</span><span class="operator">,</span>
+                           <span class="string">-variant</span>   <span class="operator">=&gt;</span> <span class="string">'solexa'</span><span class="operator">,</span>
+                           <span class="string">-file</span>      <span class="operator">=&gt;</span> <span class="string">'mysol.fq'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>or by passing the format and variant together (Bio::SeqIO will now handle this and convert it accordingly to the proper argument):</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span>    <span class="operator">=&gt;</span> <span class="string">'fastq-solexa'</span><span class="operator">,</span>
+                           <span class="string">-file</span>      <span class="operator">=&gt;</span> <span class="string">'mysol.fq'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Variants can be converted back and forth from one another; however, due to the difference in scaling for solexa quality reads, converting from &#39;illumina&#39; or &#39;sanger&#39; FASTQ to solexa is not recommended.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHORS---Chris-Fields-taken-over-from-Tony-Cox-">AUTHORS - Chris Fields (taken over from Tony Cox)</h1>
+
+<p>Email: cjfields at bioperl dot org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h1 id="Bio::SeqIO-interface-methods">Bio::SeqIO interface methods</h1>
+
+<h2 id="next_seq">next_seq</h2>
+
+<pre><code><code> Title    : next_seq
+ Usage    : $seq = $stream-&gt;next_seq()
+ Function : returns the next sequence in the stream
+ Returns  : Bio::Seq::Quality object
+ Args     : NONE
+ Status   : Stable</code></code></pre>
+
+<h2 id="write_seq">write_seq</h2>
+
+<pre><code><code> Title    : write_seq
+ Usage    : $stream-&gt;write_seq(@seq)
+ Function : writes the $seq object into the stream
+ Returns  : 1 for success and 0 for error
+ Args     : Bio::Seq::Quality
+ Note     : This now conforms to SeqIO spec (module output is same format as
+            next_seq)
+ Status   : Stable</code></code></pre>
+
+<h2 id="variant">variant</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">variant</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$format</span>  <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">variant</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="keyword">and</span> <span class="variable">set</span> <span class="variable">method</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">quality</span> <span class="variable">sequence</span> <span class="variable">variant</span><span class="operator">.</span>  <span class="variable">This</span> <span class="variable">is</span>
+           <span class="variable">important</span> <span class="keyword">for</span> <span class="variable">indicating</span> <span class="variable">the</span> <span class="variable">encoding</span><span class="operator">/</span><span class="variable">decoding</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">used</span> <span class="keyword">for</span>
+           <span class="variable">quality</span> <span class="variable">data</span><span class="operator">.</span>
+           
+           <span class="variable">Current</span> <span class="keyword">values</span> <span class="variable">accepted</span> <span class="variable">are</span><span class="operator">:</span>
+            <span class="string">'sanger'</span>   <span class="operator">(</span><span class="variable">orginal</span> <span class="variable">FASTQ</span><span class="operator">)</span>
+                <span class="variable">ASCII</span> <span class="variable">encoding</span> <span class="variable">from</span> <span class="number">33</span><span class="operator">-</span><span class="number">126</span><span class="operator">,</span> <span class="variable">PHRED</span> <span class="variable">quality</span> <span class="variable">score</span> <span class="variable">from</span> <span class="number">0</span> <span class="variable">to</span> <span class="number">93</span>
+            <span class="string">'solexa'</span>   <span class="operator">(</span><span class="variable">aka</span> <span class="variable">illumina1</span><span class="number">.0</span><span class="operator">)</span>
+                <span class="variable">ASCII</span> <span class="variable">encoding</span> <span class="variable">from</span> <span class="number">59</span><span class="operator">-</span><span class="number">104</span><span class="operator">,</span> <span class="variable">SOLEXA</span> <span class="variable">quality</span> <span class="variable">score</span> <span class="variable">from</span> <span class="operator">-</span><span class="number">5</span> <span class="variable">to</span> <span class="number">40</span>
+            <span class="string">'illumina'</span> <span class="operator">(</span><span class="variable">aka</span> <span class="variable">illumina1</span><span class="number">.3</span><span class="operator">)</span>
+                <span class="variable">ASCII</span> <span class="variable">encoding</span> <span class="variable">from</span> <span class="number">64</span><span class="operator">-</span><span class="number">104</span><span class="operator">,</span> <span class="variable">PHRED</span> <span class="variable">quality</span> <span class="variable">score</span> <span class="variable">from</span> <span class="number">0</span> <span class="variable">to</span> <span class="number">40</span>
+            
+            <span class="operator">(</span><span class="variable">Derived</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">MAQ</span> <span class="variable">website</span><span class="operator">):</span>
+            <span class="variable">For</span> <span class="string">'solexa'</span><span class="operator">,</span> <span class="variable">scores</span> <span class="variable">are</span> <span class="variable">converted</span> <span class="variable">to</span> <span class="variable">PHRED</span> <span class="variable">qual</span> <span class="variable">scores</span> <span class="variable">using</span><span class="operator">:</span>
+                <span class="variable">$Q</span> <span class="operator">=</span> <span class="number">10</span> <span class="operator">*</span> <span class="keyword">log</span><span class="operator">(</span><span class="number">1</span> <span class="operator">+</span> <span class="number">10</span> <span class="operator">**</span> <span class="operator">(</span><span class="keyword">ord</span><span class="operator">(</span><span class="variable">$sq</span><span class="operator">)</span> <span class="operator">-</span> <span class="number">64</span><span class="operator">)</span> <span class="operator">/</span> <span class="number">10.0</span><span class="operator">))</span> <span class="operator">/</span> <span class="keyword">log</span><span class="operator">(</span><span class="number">10</span><span class="operator">)</span>
+            
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">new</span> <span class="variable">value</span><span class="operator">,</span> <span class="variable">string</span>
+</code></code></pre>
+
+<h1 id="Plugin-specific-methods">Plugin-specific methods</h1>
+
+<h2 id="next_dataset">next_dataset</h2>
+
+<pre><code><code> Title    : next_dataset
+ Usage    : $obj-&gt;next_dataset
+ Function : returns a hash reference containing the parsed data
+ Returns  : hash reference
+ Args     : none
+ Status   : Stable</code></code></pre>
+
+<h2 id="write_fastq">write_fastq</h2>
+
+<pre><code><code> Title   : write_fastq
+ Usage   : $stream-&gt;write_fastq(@seq)
+ Function: writes the $seq object into the stream
+ Returns : 1 for success and 0 for error
+ Args    : Bio::Seq::Quality object
+ Status  : Deprecated (delegates to write_seq)</code></code></pre>
+
+<h2 id="write_fasta">write_fasta</h2>
+
+<pre><code><code> Title   : write_fasta
+ Usage   : $stream-&gt;write_fasta(@seq)
+ Function: writes the $seq object into the stream
+ Returns : 1 for success and 0 for error
+ Args    : Bio::Seq object
+ Note    : This method does not currently delegate to Bio::SeqIO::fasta
+           (maybe it should?).  Not sure whether we should keep this as a
+           convenience method.
+ Status  : Unstable</code></code></pre>
+
+<h2 id="write_qual">write_qual</h2>
+
+<pre><code><code> Title   : write_qual
+ Usage   : $stream-&gt;write_qual(@seq)
+ Function: writes the $seq object into the stream
+ Returns : 1 for success and 0 for error
+ Args    : Bio::Seq::Quality object
+ Note    : This method does not currently delegate to Bio::SeqIO::qual
+           (maybe it should?).  Not sure whether we should keep this as a
+           convenience method.
+ Status  : Unstable</code></code></pre>
+
+<h2 id="validate">validate</h2>
+
+<pre><code><code> Title    : validate
+ Usage    : $obj-&gt;validate(0)
+ Function : flag for format/qual range validation - default is 1, validate
+ Returns  : Bool (0/1)
+ Args     : Bool (0/1)
+ Status   : Stable (may be moved to interface)</code></code></pre>
+
+<h2 id="quality_header">quality_header</h2>
+
+<pre><code><code> Title    : quality_header
+ Usage    : $obj-&gt;quality_header
+ Function : flag for printing quality header - default is 0, no header
+ Returns  : Bool (0/1)
+ Args     : Bool (0/1)
+ Status   : Unstable (name may change dep. on feedback)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

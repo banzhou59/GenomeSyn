@@ -1,0 +1,164 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#AUTHOR---Joseph-A.L.-Insana">AUTHOR - Joseph A.L. Insana</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#get_Transcript">get_Transcript</a></li>
+      <li><a href="#get_Translation">get_Translation</a></li>
+      <li><a href="#aa_start">aa_start</a></li>
+      <li><a href="#aa_end">aa_end</a></li>
+      <li><a href="#dna_seq">dna_seq</a></li>
+      <li><a href="#cdna_seq">cdna_seq</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::LiveSeq::AARange - AARange abstract class for LiveSeq</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment">#documentation needed</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is used as possible parent for aminoacid range object classes. Or it can be used straight away to define aminoacid ranges. The idea is that the ranges defined are attached to a Translation object and they refer to its coordinate-system when they are first created (via the new() method). When they are created they are anyway linked to the underlying DNA LiveSeq by way of the LiveSeq labels. This allows to preserve the ranges even if the numbering changes in the Translation due to deletions or insertions.</p>
+
+<p>The protein sequence associated with the AARange can be accessed via the usual seq() or subseq() methods.</p>
+
+<p>The start and end of the AARange in protein coordinate system can be fetched with aa_start() and aa_end() methods. Note: the behaviour of these methods would be influenced by the coordinate_start set in the corresponding Translation object. This can be desirable but can also lead to confusion if the coordinate_start had been changed and the original position of the AARange was to be retrieved.</p>
+
+<p>start() and end() methods of the AARange will point to the labels identifying the first nucleotide of the first and last triplet coding for the start and end of the AminoAcidRange.</p>
+
+<p>The underlying nucleotide sequence of the AARange can be retrieved with the labelsubseq() method. This would retrieve the whole DNA sequence, including possible introns. This is called &quot;DNA_sequence&quot;.</p>
+
+<p>To fetch the nucleotide sequence of the Transcript, without introns, the labelsubseq() of the attached Transcript (the Transcript the Translation comes from) has to be accessed. This is called &quot;cDNA_sequence&quot;.</p>
+
+<p>Here are the operations to retrieve these latter two kinds of sequences:</p>
+
+<pre><code><code>   <span class="variable">$startlabel</span><span class="operator">=</span><span class="variable">$AARange</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">;</span>
+   <span class="variable">$endtripletlabel</span><span class="operator">=</span><span class="variable">$AARange</span><span class="operator">-&gt;</span><span class="variable">end</span><span class="operator">;</span>
+   <span class="variable">$endlabel</span><span class="operator">=</span><span class="variable">$AARange</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'seq'</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">label</span><span class="operator">(</span><span class="number">3</span><span class="operator">,</span><span class="variable">$endtripletlabel</span><span class="operator">,</span><span class="variable">$AARange</span><span class="operator">-&gt;</span><span class="variable">strand</span><span class="operator">);</span>
+   
+   <span class="variable">$dnaseq</span><span class="operator">=</span><span class="variable">$AARange</span><span class="operator">-&gt;</span><span class="variable">labelsubseq</span><span class="operator">(</span><span class="variable">$startlabel</span><span class="operator">,</span><span class="keyword">undef</span><span class="operator">,</span><span class="variable">$endlabel</span><span class="operator">));</span>
+   
+   <span class="variable">$cdnaseq</span><span class="operator">=</span><span class="variable">$AARange</span><span class="operator">-&gt;</span><span class="variable">get_Transcript</span><span class="operator">-&gt;</span><span class="variable">labelsubseq</span><span class="operator">(</span><span class="variable">$startlabel</span><span class="operator">,</span><span class="keyword">undef</span><span class="operator">,</span><span class="variable">$endlabel</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>To simplify, these operations have been included in two additional methods: dna_seq() and cdna_seq().</p>
+
+<p>These would return the whole sequence, as in the examples above. But the above general scheme can be used by specifying different labels, to retrieve hypothetical subsequences of interest.</p>
+
+<h1 id="AUTHOR---Joseph-A.L.-Insana">AUTHOR - Joseph A.L. Insana</h1>
+
+<p>Email: Insana@ebi.ac.uk, jinsana@gmx.net</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$aarange</span> <span class="operator">=</span> <span class="variable">Bio::LiveSeq::AARange</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-translation</span> <span class="operator">=&gt;</span> <span class="variable">$obj_ref</span><span class="operator">,</span>
+                                               <span class="string">-start</span> <span class="operator">=&gt;</span> <span class="variable">$beginaa</span><span class="operator">,</span>
+                                               <span class="string">-end</span> <span class="operator">=&gt;</span> <span class="variable">$endaa</span><span class="operator">,</span>
+                                               <span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">"ABCD"</span><span class="operator">,</span>
+                                               <span class="string">-description</span> <span class="operator">=&gt;</span> <span class="string">"DCBA"</span><span class="operator">,</span>
+                                               <span class="string">-translength</span> <span class="operator">=&gt;</span> <span class="variable">$length</span><span class="operator">);</span>
+  
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">generates</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">AminoAcidRange</span> <span class="variable">LiveSeq</span> <span class="variable">object</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">object</span> <span class="variable">of</span> <span class="variable">class</span> <span class="variable">AARange</span>
+  <span class="variable">Errorcode</span> <span class="operator">-</span><span class="number">1</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">two</span> <span class="variable">positions</span> <span class="variable">in</span> <span class="variable">AminoAcid</span> <span class="variable">coordinate</span> <span class="variable">numbering</span>
+            <span class="variable">an</span> <span class="variable">object</span> <span class="variable">reference</span> <span class="variable">specifying</span> <span class="variable">to</span> <span class="variable">which</span> <span class="variable">translation</span> <span class="variable">the</span> <span class="variable">aminoacid</span>
+            <span class="variable">ranges</span> <span class="variable">refer</span> <span class="variable">to</span>
+            <span class="variable">a</span> <span class="variable">name</span> <span class="keyword">and</span> <span class="variable">a</span> <span class="variable">description</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+            <span class="variable">an</span> <span class="variable">optional</span> <span class="string">"translength"</span> <span class="variable">argument</span><span class="operator">:</span> <span class="variable">this</span> <span class="variable">can</span> <span class="variable">be</span> <span class="keyword">given</span> <span class="keyword">when</span>
+            <span class="variable">a</span> <span class="variable">lot</span> <span class="variable">of</span> <span class="variable">AARanges</span> <span class="variable">are</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">created</span> <span class="variable">at</span> <span class="variable">the</span> <span class="variable">same</span> <span class="keyword">time</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">same</span>
+            <span class="variable">Translation</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">calculating</span> <span class="variable">it</span> <span class="variable">with</span> <span class="variable">$translation</span><span class="operator">-&gt;</span><span class="variable">length</span>
+            <span class="variable">This</span> <span class="variable">would</span> <span class="variable">increase</span> <span class="variable">the</span> <span class="variable">speed</span><span class="operator">,</span> <span class="variable">avoiding</span> <span class="variable">the</span> <span class="variable">new</span><span class="operator">()</span> <span class="variable">function</span> <span class="variable">to</span>
+            <span class="variable">calculate</span> <span class="variable">everytime</span> <span class="variable">the</span> <span class="variable">same</span> <span class="keyword">length</span> <span class="variable">again</span> <span class="keyword">and</span> <span class="variable">again</span> <span class="keyword">for</span> <span class="variable">every</span> <span class="variable">obj</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="get_Transcript">get_Transcript</h2>
+
+<pre><code><code>  Title   : valid
+  Usage   : $transcript = $obj-&gt;get_Transcript()
+  Function: retrieves the reference to the object of class Transcript (if any)
+            attached to a LiveSeq object
+  Returns : object reference
+  Args    : none</code></code></pre>
+
+<h2 id="get_Translation">get_Translation</h2>
+
+<pre><code><code>  Title   : valid
+  Usage   : $translation = $obj-&gt;get_Translation()
+  Function: retrieves the reference to the object of class Translation (if any)
+            attached to a LiveSeq object
+  Returns : object reference
+  Args    : none</code></code></pre>
+
+<h2 id="aa_start">aa_start</h2>
+
+<pre><code><code>  Title   : aa_start
+  Usage   : $end = $aarange-&gt;aa_start()
+  Returns : integer (position, according to Translation coordinate system) of
+            the start of an AminoAcidRange object
+  Args    : none</code></code></pre>
+
+<h2 id="aa_end">aa_end</h2>
+
+<pre><code><code>  Title   : aa_end
+  Usage   : $end = $aarange-&gt;aa_end()
+  Returns : integer (position, according to Translation coordinate system) of
+            the end of an AminoAcidRange object
+  Args    : none</code></code></pre>
+
+<h2 id="dna_seq">dna_seq</h2>
+
+<pre><code><code>  Title   : dna_seq
+  Usage   : $end = $aarange-&gt;dna_seq()
+  Returns : the sequence at DNA level of the entire AminoAcidRange
+            this would include introns (if present)
+  Args    : none</code></code></pre>
+
+<h2 id="cdna_seq">cdna_seq</h2>
+
+<pre><code><code>  Title   : cdna_seq
+  Usage   : $end = $aarange-&gt;cdna_seq()
+  Returns : the sequence at cDNA level of the entire AminoAcidRange
+            i.e. this is the part of the Transcript that codes for the
+            AminoAcidRange. It would be composed just of exonic DNA.
+  Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

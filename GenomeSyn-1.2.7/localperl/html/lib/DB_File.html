@@ -1,0 +1,1538 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../displayToc.js"></script>
+<script language="JavaScript" src="../tocParas.js"></script>
+<script language="JavaScript" src="../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Using-DB_File-with-Berkeley-DB-version-2-or-greater">Using DB_File with Berkeley DB version 2 or greater</a></li>
+      <li><a href="#Interface-to-Berkeley-DB">Interface to Berkeley DB</a></li>
+      <li><a href="#Opening-a-Berkeley-DB-Database-File">Opening a Berkeley DB Database File</a></li>
+      <li><a href="#Default-Parameters">Default Parameters</a></li>
+      <li><a href="#In-Memory-Databases">In Memory Databases</a></li>
+    </ul>
+  </li>
+  <li><a href="#DB_HASH1">DB_HASH</a>
+    <ul>
+      <li><a href="#A-Simple-Example">A Simple Example</a></li>
+    </ul>
+  </li>
+  <li><a href="#DB_BTREE1">DB_BTREE</a>
+    <ul>
+      <li><a href="#Changing-the-BTREE-sort-order">Changing the BTREE sort order</a></li>
+      <li><a href="#Handling-Duplicate-Keys">Handling Duplicate Keys</a></li>
+      <li><a href="#The-get_dup-Method">The get_dup() Method</a></li>
+      <li><a href="#The-find_dup-Method">The find_dup() Method</a></li>
+      <li><a href="#The-del_dup-Method">The del_dup() Method</a></li>
+      <li><a href="#Matching-Partial-Keys">Matching Partial Keys</a></li>
+    </ul>
+  </li>
+  <li><a href="#DB_RECNO1">DB_RECNO</a>
+    <ul>
+      <li><a href="#The-bval-Option">The &#39;bval&#39; Option</a></li>
+      <li><a href="#A-Simple-Example1">A Simple Example</a></li>
+      <li><a href="#Extra-RECNO-Methods">Extra RECNO Methods</a></li>
+      <li><a href="#Another-Example">Another Example</a></li>
+    </ul>
+  </li>
+  <li><a href="#THE-API-INTERFACE">THE API INTERFACE</a></li>
+  <li><a href="#DBM-FILTERS">DBM FILTERS</a>
+    <ul>
+      <li><a href="#The-Filter">The Filter</a></li>
+      <li><a href="#An-Example----the-NULL-termination-problem.">An Example -- the NULL termination problem.</a></li>
+      <li><a href="#Another-Example----Key-is-a-C-int.">Another Example -- Key is a C int.</a></li>
+    </ul>
+  </li>
+  <li><a href="#HINTS-AND-TIPS">HINTS AND TIPS</a>
+    <ul>
+      <li><a href="#Locking:-The-Trouble-with-fd">Locking: The Trouble with fd</a></li>
+      <li><a href="#Safe-ways-to-lock-a-database">Safe ways to lock a database</a></li>
+      <li><a href="#Sharing-Databases-With-C-Applications">Sharing Databases With C Applications</a></li>
+      <li><a href="#The-untie-Gotcha">The untie() Gotcha</a></li>
+    </ul>
+  </li>
+  <li><a href="#COMMON-QUESTIONS">COMMON QUESTIONS</a>
+    <ul>
+      <li><a href="#Why-is-there-Perl-source-in-my-database-">Why is there Perl source in my database?</a></li>
+      <li><a href="#How-do-I-store-complex-data-structures-with-DB_File-">How do I store complex data structures with DB_File?</a></li>
+      <li><a href="#What-does-Invalid-Argument-mean-">What does &quot;Invalid Argument&quot; mean?</a></li>
+      <li><a href="#What-does-Bareword-DB_File-not-allowed-mean-">What does &quot;Bareword &#39;DB_File&#39; not allowed&quot; mean?</a></li>
+    </ul>
+  </li>
+  <li><a href="#REFERENCES">REFERENCES</a></li>
+  <li><a href="#HISTORY">HISTORY</a></li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AVAILABILITY">AVAILABILITY</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DB_File - Perl5 access to Berkeley DB version 1.x</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">DB_File</span><span class="operator">;</span>
+ 
+ <span class="operator">[</span><span class="variable">$X</span> <span class="operator">=</span><span class="operator">]</span> <span class="keyword">tie</span> <span class="variable">%hash</span><span class="operator">,</span>  <span class="string">'DB_File'</span><span class="operator">,</span> <span class="operator">[</span><span class="variable">$filename</span><span class="operator">,</span> <span class="variable">$flags</span><span class="operator">,</span> <span class="variable">$mode</span><span class="operator">,</span> <span class="variable">$DB_HASH</span><span class="operator">]</span> <span class="operator">;</span>
+ <span class="operator">[</span><span class="variable">$X</span> <span class="operator">=</span><span class="operator">]</span> <span class="keyword">tie</span> <span class="variable">%hash</span><span class="operator">,</span>  <span class="string">'DB_File'</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">$flags</span><span class="operator">,</span> <span class="variable">$mode</span><span class="operator">,</span> <span class="variable">$DB_BTREE</span> <span class="operator">;</span>
+ <span class="operator">[</span><span class="variable">$X</span> <span class="operator">=</span><span class="operator">]</span> <span class="keyword">tie</span> <span class="variable">@array</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">$flags</span><span class="operator">,</span> <span class="variable">$mode</span><span class="operator">,</span> <span class="variable">$DB_RECNO</span> <span class="operator">;</span>
+ 
+ <span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">del</span><span class="operator">(</span><span class="variable">$key</span> <span class="operator">[</span><span class="operator">,</span> <span class="variable">$flags</span><span class="operator">]</span><span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">put</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span> <span class="operator">[</span><span class="operator">,</span> <span class="variable">$flags</span><span class="operator">]</span><span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">get</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span> <span class="operator">[</span><span class="operator">,</span> <span class="variable">$flags</span><span class="operator">]</span><span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">$flags</span><span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">sync</span><span class="operator">(</span><span class="operator">[</span><span class="variable">$flags</span><span class="operator">]</span><span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">fd</span> <span class="operator">;</span>
+ 
+ <span class="comment"># BTREE only</span>
+ <span class="variable">$count</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">get_dup</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">@list</span>  <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">get_dup</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">%list</span>  <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">get_dup</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="number">1</span><span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">find_dup</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">del_dup</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">)</span> <span class="operator">;</span>
+ 
+ <span class="comment"># RECNO only</span>
+ <span class="variable">$a</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">;</span>
+ <span class="variable">$a</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">pop</span> <span class="operator">;</span>
+ <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">push</span><span class="operator">(</span><span class="variable">list</span><span class="operator">);</span>
+ <span class="variable">$a</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">shift</span><span class="operator">;</span>
+ <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">unshift</span><span class="operator">(</span><span class="variable">list</span><span class="operator">);</span>
+ <span class="variable">@r</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">splice</span><span class="operator">(</span><span class="variable">offset</span><span class="operator">,</span> <span class="keyword">length</span><span class="operator">,</span> <span class="variable">elements</span><span class="operator">);</span>
+ 
+ <span class="comment"># DBM Filters</span>
+ <span class="variable">$old_filter</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">filter_store_key</span>  <span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span> <span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">$old_filter</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">filter_store_value</span><span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span> <span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">$old_filter</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">filter_fetch_key</span>  <span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span> <span class="operator">)</span> <span class="operator">;</span>
+ <span class="variable">$old_filter</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">filter_fetch_value</span><span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span> <span class="operator">)</span> <span class="operator">;</span>
+ 
+ <span class="keyword">untie</span> <span class="variable">%hash</span> <span class="operator">;</span>
+ <span class="keyword">untie</span> <span class="variable">@array</span> <span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><b>DB_File</b> is a module which allows Perl programs to make use of the facilities provided by Berkeley DB version 1.x (if you have a newer version of DB, see <a href="#Using-DB_File-with-Berkeley-DB-version-2-or-greater">&quot;Using DB_File with Berkeley DB version 2 or greater&quot;</a>). It is assumed that you have a copy of the Berkeley DB manual pages at hand when reading this documentation. The interface defined here mirrors the Berkeley DB interface closely.</p>
+
+<p>Berkeley DB is a C library which provides a consistent interface to a number of database formats. <b>DB_File</b> provides an interface to all three of the database types currently supported by Berkeley DB.</p>
+
+<p>The file types are:</p>
+
+<dl>
+
+<dt id="DB_HASH"><b>DB_HASH</b></dt>
+<dd>
+
+<p>This database type allows arbitrary key/value pairs to be stored in data files. This is equivalent to the functionality provided by other hashing packages like DBM, NDBM, ODBM, GDBM, and SDBM. Remember though, the files created using DB_HASH are not compatible with any of the other packages mentioned.</p>
+
+<p>A default hashing algorithm, which will be adequate for most applications, is built into Berkeley DB. If you do need to use your own hashing algorithm it is possible to write your own in Perl and have <b>DB_File</b> use it instead.</p>
+
+</dd>
+<dt id="DB_BTREE"><b>DB_BTREE</b></dt>
+<dd>
+
+<p>The btree format allows arbitrary key/value pairs to be stored in a sorted, balanced binary tree.</p>
+
+<p>As with the DB_HASH format, it is possible to provide a user defined Perl routine to perform the comparison of keys. By default, though, the keys are stored in lexical order.</p>
+
+</dd>
+<dt id="DB_RECNO"><b>DB_RECNO</b></dt>
+<dd>
+
+<p>DB_RECNO allows both fixed-length and variable-length flat text files to be manipulated using the same key/value pair interface as in DB_HASH and DB_BTREE. In this case the key will consist of a record (line) number.</p>
+
+</dd>
+</dl>
+
+<h2 id="Using-DB_File-with-Berkeley-DB-version-2-or-greater">Using DB_File with Berkeley DB version 2 or greater</h2>
+
+<p>Although <b>DB_File</b> is intended to be used with Berkeley DB version 1, it can also be used with version 2, 3 or 4. In this case the interface is limited to the functionality provided by Berkeley DB 1.x. Anywhere the version 2 or greater interface differs, <b>DB_File</b> arranges for it to work like version 1. This feature allows <b>DB_File</b> scripts that were built with version 1 to be migrated to version 2 or greater without any changes.</p>
+
+<p>If you want to make use of the new features available in Berkeley DB 2.x or greater, use the Perl module <b>BerkeleyDB</b> instead.</p>
+
+<p><b>Note:</b> The database file format has changed multiple times in Berkeley DB version 2, 3 and 4. If you cannot recreate your databases, you must dump any existing databases with either the <code><code>db_dump</code></code> or the <code><code>db_dump185</code></code> utility that comes with Berkeley DB. Once you have rebuilt DB_File to use Berkeley DB version 2 or greater, your databases can be recreated using <code><code>db_load</code></code>. Refer to the Berkeley DB documentation for further details.</p>
+
+<p>Please read <a href="#COPYRIGHT">&quot;COPYRIGHT&quot;</a> before using version 2.x or greater of Berkeley DB with DB_File.</p>
+
+<h2 id="Interface-to-Berkeley-DB">Interface to Berkeley DB</h2>
+
+<p><b>DB_File</b> allows access to Berkeley DB files using the tie() mechanism in Perl 5 (for full details, see <a href="../lib/pod/perlfunc.html#tie-">&quot;tie()&quot; in perlfunc</a>). This facility allows <b>DB_File</b> to access Berkeley DB files using either an associative array (for DB_HASH &amp; DB_BTREE file types) or an ordinary array (for the DB_RECNO file type).</p>
+
+<p>In addition to the tie() interface, it is also possible to access most of the functions provided in the Berkeley DB API directly. See <a href="#THE-API-INTERFACE">&quot;THE API INTERFACE&quot;</a>.</p>
+
+<h2 id="Opening-a-Berkeley-DB-Database-File">Opening a Berkeley DB Database File</h2>
+
+<p>Berkeley DB uses the function dbopen() to open or create a database. Here is the C prototype for dbopen():</p>
+
+<pre><code><code>      DB*
+      dbopen (const char * file, int flags, int mode, 
+              DBTYPE type, const void * openinfo)</code></code></pre>
+
+<p>The parameter <code><code>type</code></code> is an enumeration which specifies which of the 3 interface methods (DB_HASH, DB_BTREE or DB_RECNO) is to be used. Depending on which of these is actually chosen, the final parameter, <i>openinfo</i> points to a data structure which allows tailoring of the specific interface method.</p>
+
+<p>This interface is handled slightly differently in <b>DB_File</b>. Here is an equivalent call using <b>DB_File</b>:</p>
+
+<pre><code><code>        <span class="keyword">tie</span> <span class="variable">%array</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">$flags</span><span class="operator">,</span> <span class="variable">$mode</span><span class="operator">,</span> <span class="variable">$DB_HASH</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>The <code><code>filename</code></code>, <code><code>flags</code></code> and <code><code>mode</code></code> parameters are the direct equivalent of their dbopen() counterparts. The final parameter $DB_HASH performs the function of both the <code><code>type</code></code> and <code><code>openinfo</code></code> parameters in dbopen().</p>
+
+<p>In the example above $DB_HASH is actually a pre-defined reference to a hash object. <b>DB_File</b> has three of these pre-defined references. Apart from $DB_HASH, there is also $DB_BTREE and $DB_RECNO.</p>
+
+<p>The keys allowed in each of these pre-defined references is limited to the names used in the equivalent C structure. So, for example, the $DB_HASH reference will only allow keys called <code><code>bsize</code></code>, <code><code>cachesize</code></code>, <code><code>ffactor</code></code>, <code><code>hash</code></code>, <code><code>lorder</code></code> and <code><code>nelem</code></code>.</p>
+
+<p>To change one of these elements, just assign to it like this:</p>
+
+<pre><code><code>        <span class="variable">$DB_HASH</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'cachesize'</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">10000</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>The three predefined variables $DB_HASH, $DB_BTREE and $DB_RECNO are usually adequate for most applications. If you do need to create extra instances of these objects, constructors are available for each file type.</p>
+
+<p>Here are examples of the constructors and the valid options available for DB_HASH, DB_BTREE and DB_RECNO respectively.</p>
+
+<pre><code><code>     <span class="variable">$a</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">DB_File::HASHINFO</span> <span class="operator">;</span>
+     <span class="variable">$a</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'bsize'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$a</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'cachesize'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$a</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'ffactor'</span><span class="operator">}</span><span class="operator">;</span>
+     <span class="variable">$a</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'hash'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$a</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'lorder'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$a</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'nelem'</span><span class="operator">}</span> <span class="operator">;</span>
+     
+     <span class="variable">$b</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">DB_File::BTREEINFO</span> <span class="operator">;</span>
+     <span class="variable">$b</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'flags'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$b</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'cachesize'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$b</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'maxkeypage'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$b</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'minkeypage'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$b</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'psize'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$b</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'compare'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$b</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'prefix'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$b</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'lorder'</span><span class="operator">}</span> <span class="operator">;</span>
+     
+     <span class="variable">$c</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">DB_File::RECNOINFO</span> <span class="operator">;</span>
+     <span class="variable">$c</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'bval'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$c</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'cachesize'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$c</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'psize'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$c</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'flags'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$c</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'lorder'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$c</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'reclen'</span><span class="operator">}</span> <span class="operator">;</span>
+     <span class="variable">$c</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'bfname'</span><span class="operator">}</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>The values stored in the hashes above are mostly the direct equivalent of their C counterpart. Like their C counterparts, all are set to a default values - that means you don&#39;t have to set <i>all</i> of the values when you only want to change one. Here is an example:</p>
+
+<pre><code><code>     <span class="variable">$a</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">DB_File::HASHINFO</span> <span class="operator">;</span>
+     <span class="variable">$a</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'cachesize'</span><span class="operator">}</span> <span class="operator">=</span>  <span class="number">12345</span> <span class="operator">;</span>
+     <span class="keyword">tie</span> <span class="variable">%y</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="string">"filename"</span><span class="operator">,</span> <span class="variable">$flags</span><span class="operator">,</span> <span class="number">0777</span><span class="operator">,</span> <span class="variable">$a</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>A few of the options need extra discussion here. When used, the C equivalent of the keys <code><code>hash</code></code>, <code><code>compare</code></code> and <code><code>prefix</code></code> store pointers to C functions. In <b>DB_File</b> these keys are used to store references to Perl subs. Below are templates for each of the subs:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> hash
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$data</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span> <span class="operator">;</span>
+        <span class="operator">...</span>
+        <span class="comment"># return the hash value for $data</span>
+        <span class="keyword">return</span> <span class="variable">$hash</span> <span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">sub</span><span class="variable"> compare
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$key2</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span> <span class="operator">;</span>
+        <span class="operator">...</span>
+        <span class="comment"># return  0 if $key1 eq $key2</span>
+        <span class="comment">#        -1 if $key1 lt $key2</span>
+        <span class="comment">#         1 if $key1 gt $key2</span>
+        <span class="keyword">return</span> <span class="operator">(-</span><span class="number">1</span> <span class="operator">,</span> <span class="number">0</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">sub</span><span class="variable"> prefix
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$key2</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span> <span class="operator">;</span>
+        <span class="operator">...</span>
+        <span class="comment"># return number of bytes of $key2 which are </span>
+        <span class="comment"># necessary to determine that it is greater than $key1</span>
+        <span class="keyword">return</span> <span class="variable">$bytes</span> <span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>See <a href="#Changing-the-BTREE-sort-order">&quot;Changing the BTREE sort order&quot;</a> for an example of using the <code><code>compare</code></code> template.</p>
+
+<p>If you are using the DB_RECNO interface and you intend making use of <code><code>bval</code></code>, you should check out <a href="#The-bval-Option">&quot;The &#39;bval&#39; Option&quot;</a>.</p>
+
+<h2 id="Default-Parameters">Default Parameters</h2>
+
+<p>It is possible to omit some or all of the final 4 parameters in the call to <code><code>tie</code></code> and let them take default values. As DB_HASH is the most common file format used, the call:</p>
+
+<pre><code><code>    <span class="keyword">tie</span> <span class="variable">%A</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="string">"filename"</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>is equivalent to:</p>
+
+<pre><code><code>    <span class="keyword">tie</span> <span class="variable">%A</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="string">"filename"</span><span class="operator">,</span> <span class="variable">O_CREAT</span><span class="operator">|</span><span class="variable">O_RDWR</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_HASH</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>It is also possible to omit the filename parameter as well, so the call:</p>
+
+<pre><code><code>    <span class="keyword">tie</span> <span class="variable">%A</span><span class="operator">,</span> <span class="string">"DB_File"</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>is equivalent to:</p>
+
+<pre><code><code>    <span class="keyword">tie</span> <span class="variable">%A</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="keyword">undef</span><span class="operator">,</span> <span class="variable">O_CREAT</span><span class="operator">|</span><span class="variable">O_RDWR</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_HASH</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>See <a href="#In-Memory-Databases">&quot;In Memory Databases&quot;</a> for a discussion on the use of <code><code>undef</code></code> in place of a filename.</p>
+
+<h2 id="In-Memory-Databases">In Memory Databases</h2>
+
+<p>Berkeley DB allows the creation of in-memory databases by using NULL (that is, a <code><code>(char *)0</code></code> in C) in place of the filename. <b>DB_File</b> uses <code><code>undef</code></code> instead of NULL to provide this functionality.</p>
+
+<h1 id="DB_HASH1">DB_HASH</h1>
+
+<p>The DB_HASH file format is probably the most commonly used of the three file formats that <b>DB_File</b> supports. It is also very straightforward to use.</p>
+
+<h2 id="A-Simple-Example">A Simple Example</h2>
+
+<p>This example shows how to create a database, add key/value pairs to the database, delete keys/value pairs and finally how to enumerate the contents of the database.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    <span class="keyword">our</span> <span class="operator">(</span><span class="variable">%h</span><span class="operator">,</span> <span class="variable">$k</span><span class="operator">,</span> <span class="variable">$v</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="keyword">unlink</span> <span class="string">"fruit"</span> <span class="operator">;</span>
+    <span class="keyword">tie</span> <span class="variable">%h</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="string">"fruit"</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_HASH</span> 
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open file 'fruit': $!\n"</span><span class="operator">;</span>
+    
+    <span class="comment"># Add a few key/value pairs to the file</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">"apple"</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"red"</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">"orange"</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"orange"</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">"banana"</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"yellow"</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">"tomato"</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"red"</span> <span class="operator">;</span>
+    
+    <span class="comment"># Check for existence of a key</span>
+    <span class="keyword">print</span> <span class="string">"Banana Exists\n\n"</span> <span class="keyword">if</span> <span class="variable">$h</span><span class="operator">{</span><span class="string">"banana"</span><span class="operator">}</span> <span class="operator">;</span>
+    
+    <span class="comment"># Delete a key/value pair.</span>
+    <span class="keyword">delete</span> <span class="variable">$h</span><span class="operator">{</span><span class="string">"apple"</span><span class="operator">}</span> <span class="operator">;</span>
+    
+    <span class="comment"># print the contents of the file</span>
+    <span class="keyword">while</span> <span class="operator">((</span><span class="variable">$k</span><span class="operator">,</span> <span class="variable">$v</span><span class="operator">)</span> <span class="operator">=</span> <span class="keyword">each</span> <span class="variable">%h</span><span class="operator">)</span>
+      <span class="operator">{</span> <span class="keyword">print</span> <span class="string">"</span><span class="variable">$k</span><span class="string"> -&gt; </span><span class="variable">$v</span><span class="string">\n"</span> <span class="operator">}</span>
+    
+    <span class="keyword">untie</span> <span class="variable">%h</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>here is the output:</p>
+
+<pre><code><code>    Banana Exists
+
+    orange -&gt; orange
+    tomato -&gt; red
+    banana -&gt; yellow</code></code></pre>
+
+<p>Note that the like ordinary associative arrays, the order of the keys retrieved is in an apparently random order.</p>
+
+<h1 id="DB_BTREE1">DB_BTREE</h1>
+
+<p>The DB_BTREE format is useful when you want to store data in a given order. By default the keys will be stored in lexical order, but as you will see from the example shown in the next section, it is very easy to define your own sorting function.</p>
+
+<h2 id="Changing-the-BTREE-sort-order">Changing the BTREE sort order</h2>
+
+<p>This script shows how to override the default sorting algorithm that BTREE uses. Instead of using the normal lexical ordering, a case insensitive compare function will be used.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">%h</span> <span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> Compare
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$key1</span><span class="operator">,</span> <span class="variable">$key2</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span> <span class="operator">;</span>
+        <span class="string">"\L</span><span class="variable">$key1</span><span class="string">"</span> <span class="keyword">cmp</span> <span class="string">"\L</span><span class="variable">$key2</span><span class="string">"</span> <span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="comment"># specify the Perl sub that will do the comparison</span>
+    <span class="variable">$DB_BTREE</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'compare'</span><span class="operator">}</span> <span class="operator">=</span> <span class="operator">\&amp;</span><span class="variable">Compare</span> <span class="operator">;</span>
+    
+    <span class="keyword">unlink</span> <span class="string">"tree"</span> <span class="operator">;</span>
+    <span class="keyword">tie</span> <span class="variable">%h</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="string">"tree"</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_BTREE</span> 
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open file 'tree': $!\n"</span> <span class="operator">;</span>
+    
+    <span class="comment"># Add a key/value pair to the file</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Wall'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'Larry'</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Smith'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'John'</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'mouse'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'mickey'</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'duck'</span><span class="operator">}</span>  <span class="operator">=</span> <span class="string">'donald'</span> <span class="operator">;</span>
+    
+    <span class="comment"># Delete</span>
+    <span class="keyword">delete</span> <span class="variable">$h</span><span class="operator">{</span><span class="string">"duck"</span><span class="operator">}</span> <span class="operator">;</span>
+    
+    <span class="comment"># Cycle through the keys printing them in order.</span>
+    <span class="comment"># Note it is not necessary to sort the keys as</span>
+    <span class="comment"># the btree will have kept them in order automatically.</span>
+    <span class="keyword">foreach</span> <span class="operator">(</span><span class="keyword">keys</span> <span class="variable">%h</span><span class="operator">)</span>
+      <span class="operator">{</span> <span class="keyword">print</span> <span class="string">"</span><span class="variable">$_</span><span class="string">\n"</span> <span class="operator">}</span>
+    
+    <span class="keyword">untie</span> <span class="variable">%h</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>Here is the output from the code above.</p>
+
+<pre><code><code>    mouse
+    Smith
+    Wall</code></code></pre>
+
+<p>There are a few point to bear in mind if you want to change the ordering in a BTREE database:</p>
+
+<ol>
+
+<li><p>The new compare function must be specified when you create the database.</p>
+
+</li>
+<li><p>You cannot change the ordering once the database has been created. Thus you must use the same compare function every time you access the database.</p>
+
+</li>
+<li><p>Duplicate keys are entirely defined by the comparison function. In the case-insensitive example above, the keys: &#39;KEY&#39; and &#39;key&#39; would be considered duplicates, and assigning to the second one would overwrite the first. If duplicates are allowed for (with the R_DUP flag discussed below), only a single copy of duplicate keys is stored in the database --- so (again with example above) assigning three values to the keys: &#39;KEY&#39;, &#39;Key&#39;, and &#39;key&#39; would leave just the first key: &#39;KEY&#39; in the database with three values. For some situations this results in information loss, so care should be taken to provide fully qualified comparison functions when necessary. For example, the above comparison routine could be modified to additionally compare case-sensitively if two keys are equal in the case insensitive comparison:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> compare </span><span class="operator">{</span>
+        <span class="keyword">my</span><span class="operator">(</span><span class="variable">$key1</span><span class="operator">,</span> <span class="variable">$key2</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+        <span class="keyword">lc</span> <span class="variable">$key1</span> <span class="keyword">cmp</span> <span class="keyword">lc</span> <span class="variable">$key2</span> <span class="operator">||</span>
+        <span class="variable">$key1</span> <span class="keyword">cmp</span> <span class="variable">$key2</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>And now you will only have duplicates when the keys themselves are truly the same. (note: in versions of the db library prior to about November 1996, such duplicate keys were retained so it was possible to recover the original keys in sets of keys that compared as equal).</p>
+
+</li>
+</ol>
+
+<h2 id="Handling-Duplicate-Keys">Handling Duplicate Keys</h2>
+
+<p>The BTREE file type optionally allows a single key to be associated with an arbitrary number of values. This option is enabled by setting the flags element of <code><code>$DB_BTREE</code></code> to R_DUP when creating the database.</p>
+
+<p>There are some difficulties in using the tied hash interface if you want to manipulate a BTREE database with duplicate keys. Consider this code:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$filename</span><span class="operator">,</span> <span class="variable">%h</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="variable">$filename</span> <span class="operator">=</span> <span class="string">"tree"</span> <span class="operator">;</span>
+    <span class="keyword">unlink</span> <span class="variable">$filename</span> <span class="operator">;</span>
+    
+    <span class="comment"># Enable duplicate records</span>
+    <span class="variable">$DB_BTREE</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'flags'</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">R_DUP</span> <span class="operator">;</span>
+    
+    <span class="keyword">tie</span> <span class="variable">%h</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_BTREE</span> 
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open </span><span class="variable">$filename</span><span class="string">: $!\n"</span><span class="operator">;</span>
+    
+    <span class="comment"># Add some key/value pairs to the file</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Wall'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'Larry'</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Wall'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'Brick'</span> <span class="operator">;</span> <span class="comment"># Note the duplicate key</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Wall'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'Brick'</span> <span class="operator">;</span> <span class="comment"># Note the duplicate key and value</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Smith'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'John'</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'mouse'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'mickey'</span> <span class="operator">;</span>
+    
+    <span class="comment"># iterate through the associative array</span>
+    <span class="comment"># and print each key/value pair.</span>
+    <span class="keyword">foreach</span> <span class="operator">(</span><span class="keyword">sort</span> <span class="keyword">keys</span> <span class="variable">%h</span><span class="operator">)</span>
+      <span class="operator">{</span> <span class="keyword">print</span> <span class="string">"</span><span class="variable">$_</span><span class="string">  -&gt; </span><span class="variable">$h</span><span class="string">{</span><span class="variable">$_</span><span class="string">}\n"</span> <span class="operator">}</span>
+    
+    <span class="keyword">untie</span> <span class="variable">%h</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>Here is the output:</p>
+
+<pre><code><code>    Smith   -&gt; John
+    Wall    -&gt; Larry
+    Wall    -&gt; Larry
+    Wall    -&gt; Larry
+    mouse   -&gt; mickey</code></code></pre>
+
+<p>As you can see 3 records have been successfully created with key <code><code>Wall</code></code> - the only thing is, when they are retrieved from the database they <i>seem</i> to have the same value, namely <code><code>Larry</code></code>. The problem is caused by the way that the associative array interface works. Basically, when the associative array interface is used to fetch the value associated with a given key, it will only ever retrieve the first value.</p>
+
+<p>Although it may not be immediately obvious from the code above, the associative array interface can be used to write values with duplicate keys, but it cannot be used to read them back from the database.</p>
+
+<p>The way to get around this problem is to use the Berkeley DB API method called <code><code>seq</code></code>. This method allows sequential access to key/value pairs. See <a href="#THE-API-INTERFACE">&quot;THE API INTERFACE&quot;</a> for details of both the <code><code>seq</code></code> method and the API in general.</p>
+
+<p>Here is the script above rewritten using the <code><code>seq</code></code> API method.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$filename</span><span class="operator">,</span> <span class="variable">$x</span><span class="operator">,</span> <span class="variable">%h</span><span class="operator">,</span> <span class="variable">$status</span><span class="operator">,</span> <span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="variable">$filename</span> <span class="operator">=</span> <span class="string">"tree"</span> <span class="operator">;</span>
+    <span class="keyword">unlink</span> <span class="variable">$filename</span> <span class="operator">;</span>
+    
+    <span class="comment"># Enable duplicate records</span>
+    <span class="variable">$DB_BTREE</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'flags'</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">R_DUP</span> <span class="operator">;</span>
+    
+    <span class="variable">$x</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%h</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_BTREE</span> 
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open </span><span class="variable">$filename</span><span class="string">: $!\n"</span><span class="operator">;</span>
+    
+    <span class="comment"># Add some key/value pairs to the file</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Wall'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'Larry'</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Wall'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'Brick'</span> <span class="operator">;</span> <span class="comment"># Note the duplicate key</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Wall'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'Brick'</span> <span class="operator">;</span> <span class="comment"># Note the duplicate key and value</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Smith'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'John'</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'mouse'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'mickey'</span> <span class="operator">;</span>
+    
+    <span class="comment"># iterate through the btree using seq</span>
+    <span class="comment"># and print each key/value pair.</span>
+    <span class="variable">$key</span> <span class="operator">=</span> <span class="variable">$value</span> <span class="operator">=</span> <span class="number">0</span> <span class="operator">;</span>
+    <span class="keyword">for</span> <span class="operator">(</span><span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">R_FIRST</span><span class="operator">)</span> <span class="operator">;</span>
+         <span class="variable">$status</span> <span class="operator">==</span> <span class="number">0</span> <span class="operator">;</span>
+         <span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">R_NEXT</span><span class="operator">)</span> <span class="operator">)</span>
+      <span class="operator">{</span>  <span class="keyword">print</span> <span class="string">"</span><span class="variable">$key</span><span class="string"> -&gt; </span><span class="variable">$value</span><span class="string">\n"</span> <span class="operator">}</span>
+    
+    <span class="keyword">undef</span> <span class="variable">$x</span> <span class="operator">;</span>
+    <span class="keyword">untie</span> <span class="variable">%h</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>that prints:</p>
+
+<pre><code><code>    Smith   -&gt; John
+    Wall    -&gt; Brick
+    Wall    -&gt; Brick
+    Wall    -&gt; Larry
+    mouse   -&gt; mickey</code></code></pre>
+
+<p>This time we have got all the key/value pairs, including the multiple values associated with the key <code><code>Wall</code></code>.</p>
+
+<p>To make life easier when dealing with duplicate keys, <b>DB_File</b> comes with a few utility methods.</p>
+
+<h2 id="The-get_dup-Method">The get_dup() Method</h2>
+
+<p>The <code><code>get_dup</code></code> method assists in reading duplicate values from BTREE databases. The method can take the following forms:</p>
+
+<pre><code><code>    <span class="variable">$count</span> <span class="operator">=</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">get_dup</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="variable">@list</span>  <span class="operator">=</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">get_dup</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="variable">%list</span>  <span class="operator">=</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">get_dup</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="number">1</span><span class="operator">)</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>In a scalar context the method returns the number of values associated with the key, <code><code>$key</code></code>.</p>
+
+<p>In list context, it returns all the values which match <code><code>$key</code></code>. Note that the values will be returned in an apparently random order.</p>
+
+<p>In list context, if the second parameter is present and evaluates TRUE, the method returns an associative array. The keys of the associative array correspond to the values that matched in the BTREE and the values of the array are a count of the number of times that particular value occurred in the BTREE.</p>
+
+<p>So assuming the database created above, we can use <code><code>get_dup</code></code> like this:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$filename</span><span class="operator">,</span> <span class="variable">$x</span><span class="operator">,</span> <span class="variable">%h</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="variable">$filename</span> <span class="operator">=</span> <span class="string">"tree"</span> <span class="operator">;</span>
+    
+    <span class="comment"># Enable duplicate records</span>
+    <span class="variable">$DB_BTREE</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'flags'</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">R_DUP</span> <span class="operator">;</span>
+    
+    <span class="variable">$x</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%h</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_BTREE</span> 
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open </span><span class="variable">$filename</span><span class="string">: $!\n"</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$cnt</span>  <span class="operator">=</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">get_dup</span><span class="operator">(</span><span class="string">"Wall"</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"Wall occurred </span><span class="variable">$cnt</span><span class="string"> times\n"</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">%hash</span> <span class="operator">=</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">get_dup</span><span class="operator">(</span><span class="string">"Wall"</span><span class="operator">,</span> <span class="number">1</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"Larry is there\n"</span> <span class="keyword">if</span> <span class="variable">$hash</span><span class="operator">{</span><span class="string">'Larry'</span><span class="operator">}</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"There are </span><span class="variable">$hash</span><span class="string">{'Brick'} Brick Walls\n"</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">@list</span> <span class="operator">=</span> <span class="keyword">sort</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">get_dup</span><span class="operator">(</span><span class="string">"Wall"</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"Wall =&gt;      [</span><span class="variable">@list</span><span class="string">]\n"</span> <span class="operator">;</span>
+    
+    <span class="variable">@list</span> <span class="operator">=</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">get_dup</span><span class="operator">(</span><span class="string">"Smith"</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"Smith =&gt;     [</span><span class="variable">@list</span><span class="string">]\n"</span> <span class="operator">;</span>
+    
+    <span class="variable">@list</span> <span class="operator">=</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">get_dup</span><span class="operator">(</span><span class="string">"Dog"</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"Dog =&gt;       [</span><span class="variable">@list</span><span class="string">]\n"</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>and it will print:</p>
+
+<pre><code><code>    Wall occurred 3 times
+    Larry is there
+    There are 2 Brick Walls
+    Wall =&gt;     [Brick Brick Larry]
+    Smith =&gt;    [John]
+    Dog =&gt;      []</code></code></pre>
+
+<h2 id="The-find_dup-Method">The find_dup() Method</h2>
+
+<pre><code><code>    <span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">find_dup</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">)</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>This method checks for the existence of a specific key/value pair. If the pair exists, the cursor is left pointing to the pair and the method returns 0. Otherwise the method returns a non-zero value.</p>
+
+<p>Assuming the database from the previous example:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$filename</span><span class="operator">,</span> <span class="variable">$x</span><span class="operator">,</span> <span class="variable">%h</span><span class="operator">,</span> <span class="variable">$found</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="variable">$filename</span> <span class="operator">=</span> <span class="string">"tree"</span> <span class="operator">;</span>
+    
+    <span class="comment"># Enable duplicate records</span>
+    <span class="variable">$DB_BTREE</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'flags'</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">R_DUP</span> <span class="operator">;</span>
+    
+    <span class="variable">$x</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%h</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_BTREE</span> 
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open </span><span class="variable">$filename</span><span class="string">: $!\n"</span><span class="operator">;</span>
+    
+    <span class="variable">$found</span> <span class="operator">=</span> <span class="operator">(</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">find_dup</span><span class="operator">(</span><span class="string">"Wall"</span><span class="operator">,</span> <span class="string">"Larry"</span><span class="operator">)</span> <span class="operator">==</span> <span class="number">0</span> <span class="operator">?</span> <span class="string">""</span> <span class="operator">:</span> <span class="string">"not"</span><span class="operator">)</span> <span class="operator">;</span> 
+    <span class="keyword">print</span> <span class="string">"Larry Wall is </span><span class="variable">$found</span><span class="string"> there\n"</span> <span class="operator">;</span>
+    
+    <span class="variable">$found</span> <span class="operator">=</span> <span class="operator">(</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">find_dup</span><span class="operator">(</span><span class="string">"Wall"</span><span class="operator">,</span> <span class="string">"Harry"</span><span class="operator">)</span> <span class="operator">==</span> <span class="number">0</span> <span class="operator">?</span> <span class="string">""</span> <span class="operator">:</span> <span class="string">"not"</span><span class="operator">)</span> <span class="operator">;</span> 
+    <span class="keyword">print</span> <span class="string">"Harry Wall is </span><span class="variable">$found</span><span class="string"> there\n"</span> <span class="operator">;</span>
+    
+    <span class="keyword">undef</span> <span class="variable">$x</span> <span class="operator">;</span>
+    <span class="keyword">untie</span> <span class="variable">%h</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>prints this</p>
+
+<pre><code><code>    Larry Wall is  there
+    Harry Wall is not there</code></code></pre>
+
+<h2 id="The-del_dup-Method">The del_dup() Method</h2>
+
+<pre><code><code>    <span class="variable">$status</span> <span class="operator">=</span> <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">del_dup</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">)</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>This method deletes a specific key/value pair. It returns 0 if they exist and have been deleted successfully. Otherwise the method returns a non-zero value.</p>
+
+<p>Again assuming the existence of the <code><code>tree</code></code> database</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$filename</span><span class="operator">,</span> <span class="variable">$x</span><span class="operator">,</span> <span class="variable">%h</span><span class="operator">,</span> <span class="variable">$found</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="variable">$filename</span> <span class="operator">=</span> <span class="string">"tree"</span> <span class="operator">;</span>
+    
+    <span class="comment"># Enable duplicate records</span>
+    <span class="variable">$DB_BTREE</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'flags'</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">R_DUP</span> <span class="operator">;</span>
+    
+    <span class="variable">$x</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%h</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_BTREE</span> 
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open </span><span class="variable">$filename</span><span class="string">: $!\n"</span><span class="operator">;</span>
+    
+    <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">del_dup</span><span class="operator">(</span><span class="string">"Wall"</span><span class="operator">,</span> <span class="string">"Larry"</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="variable">$found</span> <span class="operator">=</span> <span class="operator">(</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">find_dup</span><span class="operator">(</span><span class="string">"Wall"</span><span class="operator">,</span> <span class="string">"Larry"</span><span class="operator">)</span> <span class="operator">==</span> <span class="number">0</span> <span class="operator">?</span> <span class="string">""</span> <span class="operator">:</span> <span class="string">"not"</span><span class="operator">)</span> <span class="operator">;</span> 
+    <span class="keyword">print</span> <span class="string">"Larry Wall is </span><span class="variable">$found</span><span class="string"> there\n"</span> <span class="operator">;</span>
+    
+    <span class="keyword">undef</span> <span class="variable">$x</span> <span class="operator">;</span>
+    <span class="keyword">untie</span> <span class="variable">%h</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>prints this</p>
+
+<pre><code><code>    Larry Wall is not there</code></code></pre>
+
+<h2 id="Matching-Partial-Keys">Matching Partial Keys</h2>
+
+<p>The BTREE interface has a feature which allows partial keys to be matched. This functionality is <i>only</i> available when the <code><code>seq</code></code> method is used along with the R_CURSOR flag.</p>
+
+<pre><code><code>    <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">R_CURSOR</span><span class="operator">)</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>Here is the relevant quote from the dbopen man page where it defines the use of the R_CURSOR flag with seq:</p>
+
+<pre><code><code>    Note, for the DB_BTREE access method, the returned key is not
+    necessarily an exact match for the specified key. The returned key
+    is the smallest key greater than or equal to the specified key,
+    permitting partial key matches and range searches.</code></code></pre>
+
+<p>In the example script below, the <code><code>match</code></code> sub uses this feature to find and print the first matching key/value pair given a partial key.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Fcntl</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$filename</span><span class="operator">,</span> <span class="variable">$x</span><span class="operator">,</span> <span class="variable">%h</span><span class="operator">,</span> <span class="variable">$st</span><span class="operator">,</span> <span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> match
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$key</span> <span class="operator">=</span> <span class="keyword">shift</span> <span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$value</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$orig_key</span> <span class="operator">=</span> <span class="variable">$key</span> <span class="operator">;</span>
+        <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">R_CURSOR</span><span class="operator">)</span> <span class="operator">;</span>
+        <span class="keyword">print</span> <span class="string">"</span><span class="variable">$orig_key</span><span class="string">\t-&gt; </span><span class="variable">$key</span><span class="string">\t-&gt; </span><span class="variable">$value</span><span class="string">\n"</span> <span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="variable">$filename</span> <span class="operator">=</span> <span class="string">"tree"</span> <span class="operator">;</span>
+    <span class="keyword">unlink</span> <span class="variable">$filename</span> <span class="operator">;</span>
+    
+    <span class="variable">$x</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%h</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_BTREE</span>
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open </span><span class="variable">$filename</span><span class="string">: $!\n"</span><span class="operator">;</span>
+    
+    <span class="comment"># Add some key/value pairs to the file</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'mouse'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'mickey'</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Wall'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'Larry'</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Walls'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'Brick'</span> <span class="operator">;</span> 
+    <span class="variable">$h</span><span class="operator">{</span><span class="string">'Smith'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'John'</span> <span class="operator">;</span>
+    
+    
+    <span class="variable">$key</span> <span class="operator">=</span> <span class="variable">$value</span> <span class="operator">=</span> <span class="number">0</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"IN ORDER\n"</span> <span class="operator">;</span>
+    <span class="keyword">for</span> <span class="operator">(</span><span class="variable">$st</span> <span class="operator">=</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">R_FIRST</span><span class="operator">)</span> <span class="operator">;</span>
+         <span class="variable">$st</span> <span class="operator">==</span> <span class="number">0</span> <span class="operator">;</span>
+         <span class="variable">$st</span> <span class="operator">=</span> <span class="variable">$x</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">R_NEXT</span><span class="operator">)</span> <span class="operator">)</span>
+    
+      <span class="operator">{</span>  <span class="keyword">print</span> <span class="string">"</span><span class="variable">$key</span><span class="string">    -&gt; </span><span class="variable">$value</span><span class="string">\n"</span> <span class="operator">}</span>
+    
+    <span class="keyword">print</span> <span class="string">"\nPARTIAL MATCH\n"</span> <span class="operator">;</span>
+    
+    <span class="variable">match</span> <span class="string">"Wa"</span> <span class="operator">;</span>
+    <span class="variable">match</span> <span class="string">"A"</span> <span class="operator">;</span>
+    <span class="variable">match</span> <span class="string">"a"</span> <span class="operator">;</span>
+    
+    <span class="keyword">undef</span> <span class="variable">$x</span> <span class="operator">;</span>
+    <span class="keyword">untie</span> <span class="variable">%h</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>Here is the output:</p>
+
+<pre><code><code>    IN ORDER
+    Smith -&gt; John
+    Wall  -&gt; Larry
+    Walls -&gt; Brick
+    mouse -&gt; mickey
+
+    PARTIAL MATCH
+    Wa -&gt; Wall  -&gt; Larry
+    A  -&gt; Smith -&gt; John
+    a  -&gt; mouse -&gt; mickey</code></code></pre>
+
+<h1 id="DB_RECNO1">DB_RECNO</h1>
+
+<p>DB_RECNO provides an interface to flat text files. Both variable and fixed length records are supported.</p>
+
+<p>In order to make RECNO more compatible with Perl, the array offset for all RECNO arrays begins at 0 rather than 1 as in Berkeley DB.</p>
+
+<p>As with normal Perl arrays, a RECNO array can be accessed using negative indexes. The index -1 refers to the last element of the array, -2 the second last, and so on. Attempting to access an element before the start of the array will raise a fatal run-time error.</p>
+
+<h2 id="The-bval-Option">The &#39;bval&#39; Option</h2>
+
+<p>The operation of the bval option warrants some discussion. Here is the definition of bval from the Berkeley DB 1.85 recno manual page:</p>
+
+<pre><code><code>    The delimiting byte to be used to mark  the  end  of  a
+    record for variable-length records, and the pad charac-
+    ter for fixed-length records.  If no  value  is  speci-
+    fied,  newlines  (``\n&#39;&#39;)  are  used to mark the end of
+    variable-length records and  fixed-length  records  are
+    padded with spaces.</code></code></pre>
+
+<p>The second sentence is wrong. In actual fact bval will only default to <code><code>&quot;\n&quot;</code></code> when the openinfo parameter in dbopen is NULL. If a non-NULL openinfo parameter is used at all, the value that happens to be in bval will be used. That means you always have to specify bval when making use of any of the options in the openinfo parameter. This documentation error will be fixed in the next release of Berkeley DB.</p>
+
+<p>That clarifies the situation with regards Berkeley DB itself. What about <b>DB_File</b>? Well, the behavior defined in the quote above is quite useful, so <b>DB_File</b> conforms to it.</p>
+
+<p>That means that you can specify other options (e.g. cachesize) and still have bval default to <code><code>&quot;\n&quot;</code></code> for variable length records, and space for fixed length records.</p>
+
+<p>Also note that the bval option only allows you to specify a single byte as a delimiter.</p>
+
+<h2 id="A-Simple-Example1">A Simple Example</h2>
+
+<p>Here is a simple example that uses RECNO (if you are using a version of Perl earlier than 5.004_57 this example won&#39;t work -- see <a href="#Extra-RECNO-Methods">&quot;Extra RECNO Methods&quot;</a> for a workaround).</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$filename</span> <span class="operator">=</span> <span class="string">"text"</span> <span class="operator">;</span>
+    <span class="keyword">unlink</span> <span class="variable">$filename</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">@h</span> <span class="operator">;</span>
+    <span class="keyword">tie</span> <span class="variable">@h</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_RECNO</span> 
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open file 'text': $!\n"</span> <span class="operator">;</span>
+    
+    <span class="comment"># Add a few key/value pairs to the file</span>
+    <span class="variable">$h</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span> <span class="operator">=</span> <span class="string">"orange"</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span> <span class="operator">=</span> <span class="string">"blue"</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">[</span><span class="number">2</span><span class="operator">]</span> <span class="operator">=</span> <span class="string">"yellow"</span> <span class="operator">;</span>
+    
+    <span class="keyword">push</span> <span class="variable">@h</span><span class="operator">,</span> <span class="string">"green"</span><span class="operator">,</span> <span class="string">"black"</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$elements</span> <span class="operator">=</span> <span class="keyword">scalar</span> <span class="variable">@h</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"The array contains </span><span class="variable">$elements</span><span class="string"> entries\n"</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$last</span> <span class="operator">=</span> <span class="keyword">pop</span> <span class="variable">@h</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"popped </span><span class="variable">$last</span><span class="string">\n"</span> <span class="operator">;</span>
+    
+    <span class="keyword">unshift</span> <span class="variable">@h</span><span class="operator">,</span> <span class="string">"white"</span> <span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$first</span> <span class="operator">=</span> <span class="keyword">shift</span> <span class="variable">@h</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"shifted </span><span class="variable">$first</span><span class="string">\n"</span> <span class="operator">;</span>
+    
+    <span class="comment"># Check for existence of a key</span>
+    <span class="keyword">print</span> <span class="string">"Element 1 Exists with value </span><span class="variable">$h</span><span class="string">[1]\n"</span> <span class="keyword">if</span> <span class="variable">$h</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span> <span class="operator">;</span>
+    
+    <span class="comment"># use a negative index</span>
+    <span class="keyword">print</span> <span class="string">"The last element is </span><span class="variable">$h</span><span class="string">[-1]\n"</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"The 2nd last element is </span><span class="variable">$h</span><span class="string">[-2]\n"</span> <span class="operator">;</span>
+    
+    <span class="keyword">untie</span> <span class="variable">@h</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>Here is the output from the script:</p>
+
+<pre><code><code>    The array contains 5 entries
+    popped black
+    shifted white
+    Element 1 Exists with value blue
+    The last element is green
+    The 2nd last element is yellow</code></code></pre>
+
+<h2 id="Extra-RECNO-Methods">Extra RECNO Methods</h2>
+
+<p>If you are using a version of Perl earlier than 5.004_57, the tied array interface is quite limited. In the example script above <code><code>push</code></code>, <code><code>pop</code></code>, <code><code>shift</code></code>, <code><code>unshift</code></code> or determining the array length will not work with a tied array.</p>
+
+<p>To make the interface more useful for older versions of Perl, a number of methods are supplied with <b>DB_File</b> to simulate the missing array operations. All these methods are accessed via the object returned from the tie call.</p>
+
+<p>Here are the methods:</p>
+
+<dl>
+
+<dt id="X-push-list-"><b>$X-&gt;push(list) ;</b></dt>
+<dd>
+
+<p>Pushes the elements of <code><code>list</code></code> to the end of the array.</p>
+
+</dd>
+<dt id="value-X-pop-"><b>$value = $X-&gt;pop ;</b></dt>
+<dd>
+
+<p>Removes and returns the last element of the array.</p>
+
+</dd>
+<dt id="X-shift"><b>$X-&gt;shift</b></dt>
+<dd>
+
+<p>Removes and returns the first element of the array.</p>
+
+</dd>
+<dt id="X-unshift-list-"><b>$X-&gt;unshift(list) ;</b></dt>
+<dd>
+
+<p>Pushes the elements of <code><code>list</code></code> to the start of the array.</p>
+
+</dd>
+<dt id="X-length"><b>$X-&gt;length</b></dt>
+<dd>
+
+<p>Returns the number of elements in the array.</p>
+
+</dd>
+<dt id="X-splice-offset-length-elements-"><b>$X-&gt;splice(offset, length, elements);</b></dt>
+<dd>
+
+<p>Returns a splice of the array.</p>
+
+</dd>
+</dl>
+
+<h2 id="Another-Example">Another Example</h2>
+
+<p>Here is a more complete example that makes use of some of the methods described above. It also makes use of the API interface directly (see <a href="#THE-API-INTERFACE">&quot;THE API INTERFACE&quot;</a>).</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">@h</span><span class="operator">,</span> <span class="variable">$H</span><span class="operator">,</span> <span class="variable">$file</span><span class="operator">,</span> <span class="variable">$i</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Fcntl</span> <span class="operator">;</span>
+    
+    <span class="variable">$file</span> <span class="operator">=</span> <span class="string">"text"</span> <span class="operator">;</span>
+    
+    <span class="keyword">unlink</span> <span class="variable">$file</span> <span class="operator">;</span>
+    
+    <span class="variable">$H</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">@h</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="variable">$file</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_RECNO</span> 
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open file </span><span class="variable">$file</span><span class="string">: $!\n"</span> <span class="operator">;</span>
+    
+    <span class="comment"># first create a text file to play with</span>
+    <span class="variable">$h</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span> <span class="operator">=</span> <span class="string">"zero"</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span> <span class="operator">=</span> <span class="string">"one"</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">[</span><span class="number">2</span><span class="operator">]</span> <span class="operator">=</span> <span class="string">"two"</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">[</span><span class="number">3</span><span class="operator">]</span> <span class="operator">=</span> <span class="string">"three"</span> <span class="operator">;</span>
+    <span class="variable">$h</span><span class="operator">[</span><span class="number">4</span><span class="operator">]</span> <span class="operator">=</span> <span class="string">"four"</span> <span class="operator">;</span>
+    
+    
+    <span class="comment"># Print the records in order.</span>
+    <span class="comment">#</span>
+    <span class="comment"># The length method is needed here because evaluating a tied</span>
+    <span class="comment"># array in a scalar context does not return the number of</span>
+    <span class="comment"># elements in the array.  </span>
+    
+    <span class="keyword">print</span> <span class="string">"\nORIGINAL\n"</span> <span class="operator">;</span>
+    <span class="keyword">foreach</span> <span class="variable">$i</span> <span class="operator">(</span><span class="number">0</span> <span class="operator">..</span> <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">length</span> <span class="operator">-</span> <span class="number">1</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">print</span> <span class="string">"</span><span class="variable">$i</span><span class="string">: </span><span class="variable">$h</span><span class="string">[</span><span class="variable">$i</span><span class="string">]\n"</span> <span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="comment"># use the push &amp; pop methods</span>
+    <span class="variable">$a</span> <span class="operator">=</span> <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">pop</span> <span class="operator">;</span>
+    <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">push</span><span class="operator">(</span><span class="string">"last"</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"\nThe last record was [</span><span class="variable">$a</span><span class="string">]\n"</span> <span class="operator">;</span>
+    
+    <span class="comment"># and the shift &amp; unshift methods</span>
+    <span class="variable">$a</span> <span class="operator">=</span> <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">shift</span> <span class="operator">;</span>
+    <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">unshift</span><span class="operator">(</span><span class="string">"first"</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"The first record was [</span><span class="variable">$a</span><span class="string">]\n"</span> <span class="operator">;</span>
+    
+    <span class="comment"># Use the API to add a new record after record 2.</span>
+    <span class="variable">$i</span> <span class="operator">=</span> <span class="number">2</span> <span class="operator">;</span>
+    <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">put</span><span class="operator">(</span><span class="variable">$i</span><span class="operator">,</span> <span class="string">"Newbie"</span><span class="operator">,</span> <span class="variable">R_IAFTER</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="comment"># and a new record before record 1.</span>
+    <span class="variable">$i</span> <span class="operator">=</span> <span class="number">1</span> <span class="operator">;</span>
+    <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">put</span><span class="operator">(</span><span class="variable">$i</span><span class="operator">,</span> <span class="string">"New One"</span><span class="operator">,</span> <span class="variable">R_IBEFORE</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="comment"># delete record 3</span>
+    <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">del</span><span class="operator">(</span><span class="number">3</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="comment"># now print the records in reverse order</span>
+    <span class="keyword">print</span> <span class="string">"\nREVERSE\n"</span> <span class="operator">;</span>
+    <span class="keyword">for</span> <span class="operator">(</span><span class="variable">$i</span> <span class="operator">=</span> <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">length</span> <span class="operator">-</span> <span class="number">1</span> <span class="operator">;</span> <span class="variable">$i</span> <span class="operator">&gt;=</span> <span class="number">0</span> <span class="operator">;</span> <span class="operator">--</span> <span class="variable">$i</span><span class="operator">)</span>
+      <span class="operator">{</span> <span class="keyword">print</span> <span class="string">"</span><span class="variable">$i</span><span class="string">: </span><span class="variable">$h</span><span class="string">[</span><span class="variable">$i</span><span class="string">]\n"</span> <span class="operator">}</span>
+    
+    <span class="comment"># same again, but use the API functions instead</span>
+    <span class="keyword">print</span> <span class="string">"\nREVERSE again\n"</span> <span class="operator">;</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$s</span><span class="operator">,</span> <span class="variable">$k</span><span class="operator">,</span> <span class="variable">$v</span><span class="operator">)</span>  <span class="operator">=</span> <span class="operator">(</span><span class="number">0</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="number">0</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="keyword">for</span> <span class="operator">(</span><span class="variable">$s</span> <span class="operator">=</span> <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$k</span><span class="operator">,</span> <span class="variable">$v</span><span class="operator">,</span> <span class="variable">R_LAST</span><span class="operator">)</span> <span class="operator">;</span> 
+             <span class="variable">$s</span> <span class="operator">==</span> <span class="number">0</span> <span class="operator">;</span> 
+             <span class="variable">$s</span> <span class="operator">=</span> <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$k</span><span class="operator">,</span> <span class="variable">$v</span><span class="operator">,</span> <span class="variable">R_PREV</span><span class="operator">))</span>
+      <span class="operator">{</span> <span class="keyword">print</span> <span class="string">"</span><span class="variable">$k</span><span class="string">: </span><span class="variable">$v</span><span class="string">\n"</span> <span class="operator">}</span>
+    
+    <span class="keyword">undef</span> <span class="variable">$H</span> <span class="operator">;</span>
+    <span class="keyword">untie</span> <span class="variable">@h</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>and this is what it outputs:</p>
+
+<pre><code><code>    ORIGINAL
+    0: zero
+    1: one
+    2: two
+    3: three
+    4: four
+
+    The last record was [four]
+    The first record was [zero]
+
+    REVERSE
+    5: last
+    4: three
+    3: Newbie
+    2: one
+    1: New One
+    0: first
+
+    REVERSE again
+    5: last
+    4: three
+    3: Newbie
+    2: one
+    1: New One
+    0: first</code></code></pre>
+
+<p>Notes:</p>
+
+<ol>
+
+<li><p>Rather than iterating through the array, <code><code>@h</code></code> like this:</p>
+
+<pre><code><code>    foreach $i (@h)</code></code></pre>
+
+<p>it is necessary to use either this:</p>
+
+<pre><code><code>    foreach $i (0 .. $H-&gt;length - 1) </code></code></pre>
+
+<p>or this:</p>
+
+<pre><code><code>    <span class="keyword">for</span> <span class="operator">(</span><span class="variable">$a</span> <span class="operator">=</span> <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">get</span><span class="operator">(</span><span class="variable">$k</span><span class="operator">,</span> <span class="variable">$v</span><span class="operator">,</span> <span class="variable">R_FIRST</span><span class="operator">)</span> <span class="operator">;</span>
+         <span class="variable">$a</span> <span class="operator">==</span> <span class="number">0</span> <span class="operator">;</span>
+         <span class="variable">$a</span> <span class="operator">=</span> <span class="variable">$H</span><span class="operator">-&gt;</span><span class="variable">get</span><span class="operator">(</span><span class="variable">$k</span><span class="operator">,</span> <span class="variable">$v</span><span class="operator">,</span> <span class="variable">R_NEXT</span><span class="operator">)</span> <span class="operator">)</span>
+</code></code></pre>
+
+</li>
+<li><p>Notice that both times the <code><code>put</code></code> method was used the record index was specified using a variable, <code><code>$i</code></code>, rather than the literal value itself. This is because <code><code>put</code></code> will return the record number of the inserted line via that parameter.</p>
+
+</li>
+</ol>
+
+<h1 id="THE-API-INTERFACE">THE API INTERFACE</h1>
+
+<p>As well as accessing Berkeley DB using a tied hash or array, it is also possible to make direct use of most of the API functions defined in the Berkeley DB documentation.</p>
+
+<p>To do this you need to store a copy of the object returned from the tie.</p>
+
+<pre><code><code>        <span class="variable">$db</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%hash</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="string">"filename"</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>Once you have done that, you can access the Berkeley DB API functions as <b>DB_File</b> methods directly like this:</p>
+
+<pre><code><code>        <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">put</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">R_NOOVERWRITE</span><span class="operator">)</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p><b>Important:</b> If you have saved a copy of the object returned from <code><code>tie</code></code>, the underlying database file will <i>not</i> be closed until both the tied variable is untied and all copies of the saved object are destroyed.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    <span class="variable">$db</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%hash</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="string">"filename"</span> 
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot tie filename: $!"</span> <span class="operator">;</span>
+    <span class="operator">...</span>
+    <span class="keyword">undef</span> <span class="variable">$db</span> <span class="operator">;</span>
+    <span class="keyword">untie</span> <span class="variable">%hash</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>See <a href="#The-untie-Gotcha">&quot;The untie() Gotcha&quot;</a> for more details.</p>
+
+<p>All the functions defined in <a>dbopen</a> are available except for close() and dbopen() itself. The <b>DB_File</b> method interface to the supported functions have been implemented to mirror the way Berkeley DB works whenever possible. In particular note that:</p>
+
+<ul>
+
+<li><p>The methods return a status value. All return 0 on success. All return -1 to signify an error and set <code><code>$!</code></code> to the exact error code. The return code 1 generally (but not always) means that the key specified did not exist in the database.</p>
+
+<p>Other return codes are defined. See below and in the Berkeley DB documentation for details. The Berkeley DB documentation should be used as the definitive source.</p>
+
+</li>
+<li><p>Whenever a Berkeley DB function returns data via one of its parameters, the equivalent <b>DB_File</b> method does exactly the same.</p>
+
+</li>
+<li><p>If you are careful, it is possible to mix API calls with the tied hash/array interface in the same piece of code. Although only a few of the methods used to implement the tied interface currently make use of the cursor, you should always assume that the cursor has been changed any time the tied hash/array interface is used. As an example, this code will probably not do what you expect:</p>
+
+<pre><code><code>    <span class="variable">$X</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%x</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0777</span><span class="operator">,</span> <span class="variable">$DB_BTREE</span>
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot tie </span><span class="variable">$filename</span><span class="string">: $!"</span> <span class="operator">;</span>
+    
+    <span class="comment"># Get the first key/value pair and set  the cursor</span>
+    <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">R_FIRST</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="comment"># this line will modify the cursor</span>
+    <span class="variable">$count</span> <span class="operator">=</span> <span class="keyword">scalar</span> <span class="keyword">keys</span> <span class="variable">%x</span> <span class="operator">;</span> 
+    
+    <span class="comment"># Get the second key/value pair.</span>
+    <span class="comment"># oops, it didn't, it got the last key/value pair!</span>
+    <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">R_NEXT</span><span class="operator">)</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>The code above can be rearranged to get around the problem, like this:</p>
+
+<pre><code><code>    <span class="variable">$X</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%x</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span><span class="operator">,</span> <span class="number">0777</span><span class="operator">,</span> <span class="variable">$DB_BTREE</span>
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot tie </span><span class="variable">$filename</span><span class="string">: $!"</span> <span class="operator">;</span>
+    
+    <span class="comment"># this line will modify the cursor</span>
+    <span class="variable">$count</span> <span class="operator">=</span> <span class="keyword">scalar</span> <span class="keyword">keys</span> <span class="variable">%x</span> <span class="operator">;</span> 
+    
+    <span class="comment"># Get the first key/value pair and set  the cursor</span>
+    <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">R_FIRST</span><span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="comment"># Get the second key/value pair.</span>
+    <span class="comment"># worked this time.</span>
+    <span class="variable">$X</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">,</span> <span class="variable">R_NEXT</span><span class="operator">)</span> <span class="operator">;</span>
+</code></code></pre>
+
+</li>
+</ul>
+
+<p>All the constants defined in <a>dbopen</a> for use in the flags parameters in the methods defined below are also available. Refer to the Berkeley DB documentation for the precise meaning of the flags values.</p>
+
+<p>Below is a list of the methods available.</p>
+
+<dl>
+
+<dt id="status-X-get-key-value-flags-"><b>$status = $X-&gt;get($key, $value [, $flags]) ;</b></dt>
+<dd>
+
+<p>Given a key (<code><code>$key</code></code>) this method reads the value associated with it from the database. The value read from the database is returned in the <code><code>$value</code></code> parameter.</p>
+
+<p>If the key does not exist the method returns 1.</p>
+
+<p>No flags are currently defined for this method.</p>
+
+</dd>
+<dt id="status-X-put-key-value-flags-"><b>$status = $X-&gt;put($key, $value [, $flags]) ;</b></dt>
+<dd>
+
+<p>Stores the key/value pair in the database.</p>
+
+<p>If you use either the R_IAFTER or R_IBEFORE flags, the <code><code>$key</code></code> parameter will have the record number of the inserted key/value pair set.</p>
+
+<p>Valid flags are R_CURSOR, R_IAFTER, R_IBEFORE, R_NOOVERWRITE and R_SETCURSOR.</p>
+
+</dd>
+<dt id="status-X-del-key-flags-"><b>$status = $X-&gt;del($key [, $flags]) ;</b></dt>
+<dd>
+
+<p>Removes all key/value pairs with key <code><code>$key</code></code> from the database.</p>
+
+<p>A return code of 1 means that the requested key was not in the database.</p>
+
+<p>R_CURSOR is the only valid flag at present.</p>
+
+</dd>
+<dt id="status-X-fd-"><b>$status = $X-&gt;fd ;</b></dt>
+<dd>
+
+<p>Returns the file descriptor for the underlying database.</p>
+
+<p>See <a href="#Locking:-The-Trouble-with-fd">&quot;Locking: The Trouble with fd&quot;</a> for an explanation for why you should not use <code><code>fd</code></code> to lock your database.</p>
+
+</dd>
+<dt id="status-X-seq-key-value-flags-"><b>$status = $X-&gt;seq($key, $value, $flags) ;</b></dt>
+<dd>
+
+<p>This interface allows sequential retrieval from the database. See <a>dbopen</a> for full details.</p>
+
+<p>Both the <code><code>$key</code></code> and <code><code>$value</code></code> parameters will be set to the key/value pair read from the database.</p>
+
+<p>The flags parameter is mandatory. The valid flag values are R_CURSOR, R_FIRST, R_LAST, R_NEXT and R_PREV.</p>
+
+</dd>
+<dt id="status-X-sync-flags-"><b>$status = $X-&gt;sync([$flags]) ;</b></dt>
+<dd>
+
+<p>Flushes any cached buffers to disk.</p>
+
+<p>R_RECNOSYNC is the only valid flag at present.</p>
+
+</dd>
+</dl>
+
+<h1 id="DBM-FILTERS">DBM FILTERS</h1>
+
+<p>A DBM Filter is a piece of code that is be used when you <i>always</i> want to make the same transformation to all keys and/or values in a DBM database.</p>
+
+<p>There are four methods associated with DBM Filters. All work identically, and each is used to install (or uninstall) a single DBM Filter. Each expects a single parameter, namely a reference to a sub. The only difference between them is the place that the filter is installed.</p>
+
+<p>To summarise:</p>
+
+<dl>
+
+<dt id="filter_store_key"><b>filter_store_key</b></dt>
+<dd>
+
+<p>If a filter has been installed with this method, it will be invoked every time you write a key to a DBM database.</p>
+
+</dd>
+<dt id="filter_store_value"><b>filter_store_value</b></dt>
+<dd>
+
+<p>If a filter has been installed with this method, it will be invoked every time you write a value to a DBM database.</p>
+
+</dd>
+<dt id="filter_fetch_key"><b>filter_fetch_key</b></dt>
+<dd>
+
+<p>If a filter has been installed with this method, it will be invoked every time you read a key from a DBM database.</p>
+
+</dd>
+<dt id="filter_fetch_value"><b>filter_fetch_value</b></dt>
+<dd>
+
+<p>If a filter has been installed with this method, it will be invoked every time you read a value from a DBM database.</p>
+
+</dd>
+</dl>
+
+<p>You can use any combination of the methods, from none, to all four.</p>
+
+<p>All filter methods return the existing filter, if present, or <code><code>undef</code></code> in not.</p>
+
+<p>To delete a filter pass <code><code>undef</code></code> to it.</p>
+
+<h2 id="The-Filter">The Filter</h2>
+
+<p>When each filter is called by Perl, a local copy of <code><code>$_</code></code> will contain the key or value to be filtered. Filtering is achieved by modifying the contents of <code><code>$_</code></code>. The return code from the filter is ignored.</p>
+
+<h2 id="An-Example----the-NULL-termination-problem.">An Example -- the NULL termination problem.</h2>
+
+<p>Consider the following scenario. You have a DBM database that you need to share with a third-party C application. The C application assumes that <i>all</i> keys and values are NULL terminated. Unfortunately when Perl writes to DBM databases it doesn&#39;t use NULL termination, so your Perl application will have to manage NULL termination itself. When you write to the database you will have to use something like this:</p>
+
+<pre><code><code>    <span class="variable">$hash</span><span class="operator">{</span><span class="string">"</span><span class="variable">$key</span><span class="string">\0"</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"</span><span class="variable">$value</span><span class="string">\0"</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>Similarly the NULL needs to be taken into account when you are considering the length of existing keys/values.</p>
+
+<p>It would be much better if you could ignore the NULL terminations issue in the main application code and have a mechanism that automatically added the terminating NULL to all keys and values whenever you write to the database and have them removed when you read from the database. As I&#39;m sure you have already guessed, this is a problem that DBM Filters can fix very easily.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">%hash</span> <span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$filename</span> <span class="operator">=</span> <span class="string">"filt"</span> <span class="operator">;</span>
+    <span class="keyword">unlink</span> <span class="variable">$filename</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$db</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%hash</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">O_CREAT</span><span class="operator">|</span><span class="variable">O_RDWR</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_HASH</span> 
+      <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open </span><span class="variable">$filename</span><span class="string">: $!\n"</span> <span class="operator">;</span>
+    
+    <span class="comment"># Install DBM Filters</span>
+    <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">filter_fetch_key</span>  <span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="regex">s/\0$//</span>    <span class="operator">}</span> <span class="operator">)</span> <span class="operator">;</span>
+    <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">filter_store_key</span>  <span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$_</span> <span class="operator">.=</span> <span class="string">"\0"</span> <span class="operator">}</span> <span class="operator">)</span> <span class="operator">;</span>
+    <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">filter_fetch_value</span><span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="regex">s/\0$//</span>    <span class="operator">}</span> <span class="operator">)</span> <span class="operator">;</span>
+    <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">filter_store_value</span><span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$_</span> <span class="operator">.=</span> <span class="string">"\0"</span> <span class="operator">}</span> <span class="operator">)</span> <span class="operator">;</span>
+    
+    <span class="variable">$hash</span><span class="operator">{</span><span class="string">"abc"</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"def"</span> <span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$a</span> <span class="operator">=</span> <span class="variable">$hash</span><span class="operator">{</span><span class="string">"ABC"</span><span class="operator">}</span> <span class="operator">;</span>
+    <span class="comment"># ...</span>
+    <span class="keyword">undef</span> <span class="variable">$db</span> <span class="operator">;</span>
+    <span class="keyword">untie</span> <span class="variable">%hash</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>Hopefully the contents of each of the filters should be self-explanatory. Both &quot;fetch&quot; filters remove the terminating NULL, and both &quot;store&quot; filters add a terminating NULL.</p>
+
+<h2 id="Another-Example----Key-is-a-C-int.">Another Example -- Key is a C int.</h2>
+
+<p>Here is another real-life example. By default, whenever Perl writes to a DBM database it always writes the key and value as strings. So when you use this:</p>
+
+<pre><code><code>    <span class="variable">$hash</span><span class="operator">{</span><span class="string">12345</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"something"</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>the key 12345 will get stored in the DBM database as the 5 byte string &quot;12345&quot;. If you actually want the key to be stored in the DBM database as a C int, you will have to use <code><code>pack</code></code> when writing, and <code><code>unpack</code></code> when reading.</p>
+
+<p>Here is a DBM Filter that does it:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">%hash</span> <span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$filename</span> <span class="operator">=</span> <span class="string">"filt"</span> <span class="operator">;</span>
+    <span class="keyword">unlink</span> <span class="variable">$filename</span> <span class="operator">;</span>
+    
+    
+    <span class="keyword">my</span> <span class="variable">$db</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%hash</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="variable">O_CREAT</span><span class="operator">|</span><span class="variable">O_RDWR</span><span class="operator">,</span> <span class="number">0666</span><span class="operator">,</span> <span class="variable">$DB_HASH</span> 
+      <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open </span><span class="variable">$filename</span><span class="string">: $!\n"</span> <span class="operator">;</span>
+    
+    <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">filter_fetch_key</span>  <span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$_</span> <span class="operator">=</span> <span class="keyword">unpack</span><span class="operator">(</span><span class="string">"i"</span><span class="operator">,</span> <span class="variable">$_</span><span class="operator">)</span> <span class="operator">}</span> <span class="operator">)</span> <span class="operator">;</span>
+    <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">filter_store_key</span>  <span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$_</span> <span class="operator">=</span> <span class="keyword">pack</span> <span class="operator">(</span><span class="string">"i"</span><span class="operator">,</span> <span class="variable">$_</span><span class="operator">)</span> <span class="operator">}</span> <span class="operator">)</span> <span class="operator">;</span>
+    <span class="variable">$hash</span><span class="operator">{</span><span class="string">123</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"def"</span> <span class="operator">;</span>
+    <span class="comment"># ...</span>
+    <span class="keyword">undef</span> <span class="variable">$db</span> <span class="operator">;</span>
+    <span class="keyword">untie</span> <span class="variable">%hash</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>This time only two filters have been used -- we only need to manipulate the contents of the key, so it wasn&#39;t necessary to install any value filters.</p>
+
+<h1 id="HINTS-AND-TIPS">HINTS AND TIPS</h1>
+
+<h2 id="Locking:-The-Trouble-with-fd">Locking: The Trouble with fd</h2>
+
+<p>Until version 1.72 of this module, the recommended technique for locking <b>DB_File</b> databases was to flock the filehandle returned from the &quot;fd&quot; function. Unfortunately this technique has been shown to be fundamentally flawed (Kudos to David Harris for tracking this down). Use it at your own peril!</p>
+
+<p>The locking technique went like this.</p>
+
+<pre><code><code>    <span class="variable">$db</span> <span class="operator">=</span> <span class="keyword">tie</span><span class="operator">(</span><span class="variable">%db</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="string">'foo.db'</span><span class="operator">,</span> <span class="variable">O_CREAT</span><span class="operator">|</span><span class="variable">O_RDWR</span><span class="operator">,</span> <span class="number">0644</span><span class="operator">)</span>
+        <span class="operator">||</span> <span class="keyword">die</span> <span class="string">"dbcreat foo.db $!"</span><span class="operator">;</span>
+    <span class="variable">$fd</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">fd</span><span class="operator">;</span>
+    <span class="keyword">open</span><span class="operator">(</span><span class="variable">DB_FH</span><span class="operator">,</span> <span class="string">"+&lt;&amp;=</span><span class="variable">$fd</span><span class="string">"</span><span class="operator">)</span> <span class="operator">||</span> <span class="keyword">die</span> <span class="string">"dup $!"</span><span class="operator">;</span>
+    <span class="keyword">flock</span> <span class="operator">(</span><span class="variable">DB_FH</span><span class="operator">,</span> <span class="variable">LOCK_EX</span><span class="operator">)</span> <span class="operator">||</span> <span class="keyword">die</span> <span class="string">"flock: $!"</span><span class="operator">;</span>
+    <span class="operator">...</span>
+    <span class="variable">$db</span><span class="operator">{</span><span class="string">"Tom"</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"Jerry"</span> <span class="operator">;</span>
+    <span class="operator">...</span>
+    <span class="keyword">flock</span><span class="operator">(</span><span class="variable">DB_FH</span><span class="operator">,</span> <span class="variable">LOCK_UN</span><span class="operator">);</span>
+    <span class="keyword">undef</span> <span class="variable">$db</span><span class="operator">;</span>
+    <span class="keyword">untie</span> <span class="variable">%db</span><span class="operator">;</span>
+    <span class="keyword">close</span><span class="operator">(</span><span class="variable">DB_FH</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>In simple terms, this is what happens:</p>
+
+<ol>
+
+<li><p>Use &quot;tie&quot; to open the database.</p>
+
+</li>
+<li><p>Lock the database with fd &amp; flock.</p>
+
+</li>
+<li><p>Read &amp; Write to the database.</p>
+
+</li>
+<li><p>Unlock and close the database.</p>
+
+</li>
+</ol>
+
+<p>Here is the crux of the problem. A side-effect of opening the <b>DB_File</b> database in step 2 is that an initial block from the database will get read from disk and cached in memory.</p>
+
+<p>To see why this is a problem, consider what can happen when two processes, say &quot;A&quot; and &quot;B&quot;, both want to update the same <b>DB_File</b> database using the locking steps outlined above. Assume process &quot;A&quot; has already opened the database and has a write lock, but it hasn&#39;t actually updated the database yet (it has finished step 2, but not started step 3 yet). Now process &quot;B&quot; tries to open the same database - step 1 will succeed, but it will block on step 2 until process &quot;A&quot; releases the lock. The important thing to notice here is that at this point in time both processes will have cached identical initial blocks from the database.</p>
+
+<p>Now process &quot;A&quot; updates the database and happens to change some of the data held in the initial buffer. Process &quot;A&quot; terminates, flushing all cached data to disk and releasing the database lock. At this point the database on disk will correctly reflect the changes made by process &quot;A&quot;.</p>
+
+<p>With the lock released, process &quot;B&quot; can now continue. It also updates the database and unfortunately it too modifies the data that was in its initial buffer. Once that data gets flushed to disk it will overwrite some/all of the changes process &quot;A&quot; made to the database.</p>
+
+<p>The result of this scenario is at best a database that doesn&#39;t contain what you expect. At worst the database will corrupt.</p>
+
+<p>The above won&#39;t happen every time competing process update the same <b>DB_File</b> database, but it does illustrate why the technique should not be used.</p>
+
+<h2 id="Safe-ways-to-lock-a-database">Safe ways to lock a database</h2>
+
+<p>Starting with version 2.x, Berkeley DB has internal support for locking. The companion module to this one, <b>BerkeleyDB</b>, provides an interface to this locking functionality. If you are serious about locking Berkeley DB databases, I strongly recommend using <b>BerkeleyDB</b>.</p>
+
+<p>If using <b>BerkeleyDB</b> isn&#39;t an option, there are a number of modules available on CPAN that can be used to implement locking. Each one implements locking differently and has different goals in mind. It is therefore worth knowing the difference, so that you can pick the right one for your application. Here are the three locking wrappers:</p>
+
+<dl>
+
+<dt id="Tie::DB_Lock"><b>Tie::DB_Lock</b></dt>
+<dd>
+
+<p>A <b>DB_File</b> wrapper which creates copies of the database file for read access, so that you have a kind of a multiversioning concurrent read system. However, updates are still serial. Use for databases where reads may be lengthy and consistency problems may occur.</p>
+
+</dd>
+<dt id="Tie::DB_LockFile"><b>Tie::DB_LockFile</b></dt>
+<dd>
+
+<p>A <b>DB_File</b> wrapper that has the ability to lock and unlock the database while it is being used. Avoids the tie-before-flock problem by simply re-tie-ing the database when you get or drop a lock. Because of the flexibility in dropping and re-acquiring the lock in the middle of a session, this can be massaged into a system that will work with long updates and/or reads if the application follows the hints in the POD documentation.</p>
+
+</dd>
+<dt id="DB_File::Lock"><b>DB_File::Lock</b></dt>
+<dd>
+
+<p>An extremely lightweight <b>DB_File</b> wrapper that simply flocks a lockfile before tie-ing the database and drops the lock after the untie. Allows one to use the same lockfile for multiple databases to avoid deadlock problems, if desired. Use for databases where updates are reads are quick and simple flock locking semantics are enough.</p>
+
+</dd>
+</dl>
+
+<h2 id="Sharing-Databases-With-C-Applications">Sharing Databases With C Applications</h2>
+
+<p>There is no technical reason why a Berkeley DB database cannot be shared by both a Perl and a C application.</p>
+
+<p>The vast majority of problems that are reported in this area boil down to the fact that C strings are NULL terminated, whilst Perl strings are not. See <a href="#DBM-FILTERS">&quot;DBM FILTERS&quot;</a> for a generic way to work around this problem.</p>
+
+<p>Here is a real example. Netscape 2.0 keeps a record of the locations you visit along with the time you last visited them in a DB_HASH database. This is usually stored in the file <i>~/.netscape/history.db</i>. The key field in the database is the location string and the value field is the time the location was last visited stored as a 4 byte binary value.</p>
+
+<p>If you haven&#39;t already guessed, the location string is stored with a terminating NULL. This means you need to be careful when accessing the database.</p>
+
+<p>Here is a snippet of code that is loosely based on Tom Christiansen&#39;s <i>ggh</i> script (available from your nearest CPAN archive in <i>authors/id/TOMC/scripts/nshist.gz</i>).</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Fcntl</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$dotdir</span><span class="operator">,</span> <span class="variable">$HISTORY</span><span class="operator">,</span> <span class="variable">%hist_db</span><span class="operator">,</span> <span class="variable">$href</span><span class="operator">,</span> <span class="variable">$binary_time</span><span class="operator">,</span> <span class="variable">$date</span><span class="operator">)</span> <span class="operator">;</span>
+    <span class="variable">$dotdir</span> <span class="operator">=</span> <span class="variable">$ENV</span><span class="operator">{</span><span class="string">HOME</span><span class="operator">}</span> <span class="operator">||</span> <span class="variable">$ENV</span><span class="operator">{</span><span class="string">LOGNAME</span><span class="operator">}</span><span class="operator">;</span>
+    
+    <span class="variable">$HISTORY</span> <span class="operator">=</span> <span class="string">"</span><span class="variable">$dotdir</span><span class="string">/.netscape/history.db"</span><span class="operator">;</span>
+    
+    <span class="keyword">tie</span> <span class="variable">%hist_db</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="variable">$HISTORY</span>
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot open </span><span class="variable">$HISTORY</span><span class="string">: $!\n"</span> <span class="operator">;;</span>
+    
+    <span class="comment"># Dump the complete database</span>
+    <span class="keyword">while</span> <span class="operator">(</span> <span class="operator">(</span><span class="variable">$href</span><span class="operator">,</span> <span class="variable">$binary_time</span><span class="operator">)</span> <span class="operator">=</span> <span class="keyword">each</span> <span class="variable">%hist_db</span> <span class="operator">)</span> <span class="operator">{</span>
+    
+        <span class="comment"># remove the terminating NULL</span>
+        <span class="variable">$href</span> <span class="operator">=~</span> <span class="regex">s/\x00$//</span> <span class="operator">;</span>
+    
+        <span class="comment"># convert the binary time into a user friendly string</span>
+        <span class="variable">$date</span> <span class="operator">=</span> <span class="keyword">localtime</span> <span class="keyword">unpack</span><span class="operator">(</span><span class="string">"V"</span><span class="operator">,</span> <span class="variable">$binary_time</span><span class="operator">);</span>
+        <span class="keyword">print</span> <span class="string">"</span><span class="variable">$date</span><span class="string"> </span><span class="variable">$href</span><span class="string">\n"</span> <span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="comment"># check for the existence of a specific key</span>
+    <span class="comment"># remember to add the NULL</span>
+    <span class="keyword">if</span> <span class="operator">(</span> <span class="variable">$binary_time</span> <span class="operator">=</span> <span class="variable">$hist_db</span><span class="operator">{</span><span class="string">"http://mox.perl.com/\x00"</span><span class="operator">}</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="variable">$date</span> <span class="operator">=</span> <span class="keyword">localtime</span> <span class="keyword">unpack</span><span class="operator">(</span><span class="string">"V"</span><span class="operator">,</span> <span class="variable">$binary_time</span><span class="operator">)</span> <span class="operator">;</span>
+        <span class="keyword">print</span> <span class="string">"Last visited mox.perl.com on </span><span class="variable">$date</span><span class="string">\n"</span> <span class="operator">;</span>
+    <span class="operator">}</span>
+    <span class="keyword">else</span> <span class="operator">{</span>
+        <span class="keyword">print</span> <span class="string">"Never visited mox.perl.com\n"</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">untie</span> <span class="variable">%hist_db</span> <span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="The-untie-Gotcha">The untie() Gotcha</h2>
+
+<p>If you make use of the Berkeley DB API, it is <i>very</i> strongly recommended that you read <a href="../lib/pod/perltie.html#The-untie-Gotcha">&quot;The untie Gotcha&quot; in perltie</a>.</p>
+
+<p>Even if you don&#39;t currently make use of the API interface, it is still worth reading it.</p>
+
+<p>Here is an example which illustrates the problem from a <b>DB_File</b> perspective:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Fcntl</span> <span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">%x</span> <span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$X</span> <span class="operator">;</span>
+    
+    <span class="variable">$X</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%x</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="string">'tst.fil'</span> <span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_TRUNC</span>
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot tie first time: $!"</span> <span class="operator">;</span>
+    
+    <span class="variable">$x</span><span class="operator">{</span><span class="string">123</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">456</span> <span class="operator">;</span>
+    
+    <span class="keyword">untie</span> <span class="variable">%x</span> <span class="operator">;</span>
+    
+    <span class="keyword">tie</span> <span class="variable">%x</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="string">'tst.fil'</span> <span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span>
+        <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Cannot tie second time: $!"</span> <span class="operator">;</span>
+    
+    <span class="keyword">untie</span> <span class="variable">%x</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>When run, the script will produce this error message:</p>
+
+<pre><code><code>    Cannot tie second time: Invalid argument at bad.file line 14.</code></code></pre>
+
+<p>Although the error message above refers to the second tie() statement in the script, the source of the problem is really with the untie() statement that precedes it.</p>
+
+<p>Having read <a href="../lib/pod/perltie.html">perltie</a> you will probably have already guessed that the error is caused by the extra copy of the tied object stored in <code><code>$X</code></code>. If you haven&#39;t, then the problem boils down to the fact that the <b>DB_File</b> destructor, DESTROY, will not be called until <i>all</i> references to the tied object are destroyed. Both the tied variable, <code><code>%x</code></code>, and <code><code>$X</code></code> above hold a reference to the object. The call to untie() will destroy the first, but <code><code>$X</code></code> still holds a valid reference, so the destructor will not get called and the database file <i>tst.fil</i> will remain open. The fact that Berkeley DB then reports the attempt to open a database that is already open via the catch-all &quot;Invalid argument&quot; doesn&#39;t help.</p>
+
+<p>If you run the script with the <code><code>-w</code></code> flag the error message becomes:</p>
+
+<pre><code><code>    untie attempted while 1 inner references still exist at bad.file line 12.
+    Cannot tie second time: Invalid argument at bad.file line 14.</code></code></pre>
+
+<p>which pinpoints the real problem. Finally the script can now be modified to fix the original problem by destroying the API object before the untie:</p>
+
+<pre><code><code>    <span class="operator">...</span>
+    <span class="variable">$x</span><span class="operator">{</span><span class="string">123</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">456</span> <span class="operator">;</span>
+    
+    <span class="keyword">undef</span> <span class="variable">$X</span> <span class="operator">;</span>
+    <span class="keyword">untie</span> <span class="variable">%x</span> <span class="operator">;</span>
+    
+    <span class="variable">$X</span> <span class="operator">=</span> <span class="keyword">tie</span> <span class="variable">%x</span><span class="operator">,</span> <span class="string">'DB_File'</span><span class="operator">,</span> <span class="string">'tst.fil'</span> <span class="operator">,</span> <span class="variable">O_RDWR</span><span class="operator">|</span><span class="variable">O_CREAT</span>
+    <span class="operator">...</span>
+</code></code></pre>
+
+<h1 id="COMMON-QUESTIONS">COMMON QUESTIONS</h1>
+
+<h2 id="Why-is-there-Perl-source-in-my-database-">Why is there Perl source in my database?</h2>
+
+<p>If you look at the contents of a database file created by DB_File, there can sometimes be part of a Perl script included in it.</p>
+
+<p>This happens because Berkeley DB uses dynamic memory to allocate buffers which will subsequently be written to the database file. Being dynamic, the memory could have been used for anything before DB malloced it. As Berkeley DB doesn&#39;t clear the memory once it has been allocated, the unused portions will contain random junk. In the case where a Perl script gets written to the database, the random junk will correspond to an area of dynamic memory that happened to be used during the compilation of the script.</p>
+
+<p>Unless you don&#39;t like the possibility of there being part of your Perl scripts embedded in a database file, this is nothing to worry about.</p>
+
+<h2 id="How-do-I-store-complex-data-structures-with-DB_File-">How do I store complex data structures with DB_File?</h2>
+
+<p>Although <b>DB_File</b> cannot do this directly, there is a module which can layer transparently over <b>DB_File</b> to accomplish this feat.</p>
+
+<p>Check out the MLDBM module, available on CPAN in the directory <i>modules/by-module/MLDBM</i>.</p>
+
+<h2 id="What-does-Invalid-Argument-mean-">What does &quot;Invalid Argument&quot; mean?</h2>
+
+<p>You will get this error message when one of the parameters in the <code><code>tie</code></code> call is wrong. Unfortunately there are quite a few parameters to get wrong, so it can be difficult to figure out which one it is.</p>
+
+<p>Here are a couple of possibilities:</p>
+
+<ol>
+
+<li><p>Attempting to reopen a database without closing it.</p>
+
+</li>
+<li><p>Using the O_WRONLY flag.</p>
+
+</li>
+</ol>
+
+<h2 id="What-does-Bareword-DB_File-not-allowed-mean-">What does &quot;Bareword &#39;DB_File&#39; not allowed&quot; mean?</h2>
+
+<p>You will encounter this particular error message when you have the <code><code>strict &#39;subs&#39;</code></code> pragma (or the full strict pragma) in your script. Consider this script:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">warnings</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span> <span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">DB_File</span> <span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">%x</span> <span class="operator">;</span>
+    <span class="keyword">tie</span> <span class="variable">%x</span><span class="operator">,</span> <span class="variable">DB_File</span><span class="operator">,</span> <span class="string">"filename"</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>Running it produces the error in question:</p>
+
+<pre><code><code>    Bareword &quot;DB_File&quot; not allowed while &quot;strict subs&quot; in use </code></code></pre>
+
+<p>To get around the error, place the word <code><code>DB_File</code></code> in either single or double quotes, like this:</p>
+
+<pre><code><code>    <span class="keyword">tie</span> <span class="variable">%x</span><span class="operator">,</span> <span class="string">"DB_File"</span><span class="operator">,</span> <span class="string">"filename"</span> <span class="operator">;</span>
+</code></code></pre>
+
+<p>Although it might seem like a real pain, it is really worth the effort of having a <code><code>use strict</code></code> in all your scripts.</p>
+
+<h1 id="REFERENCES">REFERENCES</h1>
+
+<p>Articles that are either about <b>DB_File</b> or make use of it.</p>
+
+<ol>
+
+<li><p><i>Full-Text Searching in Perl</i>, Tim Kientzle (tkientzle@ddj.com), Dr. Dobb&#39;s Journal, Issue 295, January 1999, pp 34-41</p>
+
+</li>
+</ol>
+
+<h1 id="HISTORY">HISTORY</h1>
+
+<p>Moved to the Changes file.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Some older versions of Berkeley DB had problems with fixed length records using the RECNO file format. This problem has been fixed since version 1.85 of Berkeley DB.</p>
+
+<p>I am sure there are bugs in the code. If you do find any, or can suggest any enhancements, I would welcome your comments.</p>
+
+<h1 id="AVAILABILITY">AVAILABILITY</h1>
+
+<p><b>DB_File</b> comes with the standard Perl source distribution. Look in the directory <i>ext/DB_File</i>. Given the amount of time between releases of Perl the version that ships with Perl is quite likely to be out of date, so the most recent version can always be found on CPAN (see <a href="../lib/pod/perlmodlib.html#CPAN">&quot;CPAN&quot; in perlmodlib</a> for details), in the directory <i>modules/by-module/DB_File</i>.</p>
+
+<p>This version of <b>DB_File</b> will work with either version 1.x, 2.x or 3.x of Berkeley DB, but is limited to the functionality provided by version 1.</p>
+
+<p>The official web site for Berkeley DB is <i>http://www.oracle.com/technology/products/berkeley-db/db/index.html</i>. All versions of Berkeley DB are available there.</p>
+
+<p>Alternatively, Berkeley DB version 1 is available at your nearest CPAN archive in <i>src/misc/db.1.85.tar.gz</i>.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 1995-2012 Paul Marquess. All rights reserved. This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<p>Although <b>DB_File</b> is covered by the Perl license, the library it makes use of, namely Berkeley DB, is not. Berkeley DB has its own copyright and its own license. Please take the time to read it.</p>
+
+<p>Here are are few words taken from the Berkeley DB FAQ (at <i>http://www.oracle.com/technology/products/berkeley-db/db/index.html</i>) regarding the license:</p>
+
+<pre><code><code>    Do I have to license DB to use it in Perl scripts? 
+
+    No. The Berkeley DB license requires that software that uses
+    Berkeley DB be freely redistributable. In the case of Perl, that
+    software is Perl, and not your scripts. Any Perl scripts that you
+    write are your property, including scripts that make use of
+    Berkeley DB. Neither the Perl license nor the Berkeley DB license
+    place any restriction on what you may do with them.</code></code></pre>
+
+<p>If you are in any doubt about the license situation, contact either the Berkeley DB authors or the author of DB_File. See <a href="#AUTHOR">&quot;AUTHOR&quot;</a> for details.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../lib/pod/perl.html">perl</a>, <a href="http://man.he.net/man3/dbopen">dbopen(3)</a>, <a href="http://man.he.net/man3/hash">hash(3)</a>, <a href="http://man.he.net/man3/recno">recno(3)</a>, <a href="http://man.he.net/man3/btree">btree(3)</a>, <a href="../lib/pod/perldbmfilter.html">perldbmfilter</a></p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>The DB_File interface was written by Paul Marquess &lt;pmqs@cpan.org&gt;.</p>
+
+
+</body>
+
+</html>
+
+

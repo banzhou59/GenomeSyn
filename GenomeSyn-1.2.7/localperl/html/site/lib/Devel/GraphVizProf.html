@@ -1,0 +1,151 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#NOTES">NOTES</a></li>
+  <li><a href="#OPTIONS">OPTIONS</a></li>
+  <li><a href="#INSTALLATION">INSTALLATION</a></li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Devel::GraphVizProf - per-line Perl profiler (with graph output)</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>        perl -d:GraphVizProf test.pl &gt; test.dot
+        dot -Tpng test.dot &gt; test.png</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>NOTE: This module is a hack of Devel::SmallProf by Ted Ashton. It has been modified by Leon Brocard to produce output for GraphViz, but otherwise the only thing I have done is change the name. I hope to get my patches put into the main Devel::SmallProf code eventually, or alternatively read the output of Devel::SmallProf. Anyway, the normal documentation, which you can probably ignore, follows.</p>
+
+<p>The Devel::GraphVizProf profiler is focused on the time taken for a program run on a line-by-line basis. It is intended to be as &quot;small&quot; in terms of impact on the speed and memory usage of the profiled program as possible and also in terms of being simple to use. Those statistics are placed in the file <i>smallprof.out</i> in the following format:</p>
+
+<pre><code><code>        &lt;num&gt; &lt;time&gt; &lt;ctime&gt; &lt;line&gt;:&lt;text&gt;</code></code></pre>
+
+<p>where &lt;num&gt; is the number of times that the line was executed, &lt;time&gt; is the amount of &quot;wall time&quot; (time according the the clock on the wall vs. cpu time) spent executing it, &lt;ctime&gt; is the amount of cpu time expended on it and &lt;line&gt; and &lt;text&gt; are the line number and the actual text of the executed line (read from the file).</p>
+
+<p>The package uses the debugging hooks in Perl and thus needs the <b>-d</b> switch, so to profile <i>test.pl</i>, use the command:</p>
+
+<pre><code><code>        perl5 -d:GraphVizProf test.pl</code></code></pre>
+
+<p>Once the script is done, the statistics in <i>smallprof.out</i> can be sorted to show which lines took the most time. The output can be sorted to find which lines take the longest, either with the sort command:</p>
+
+<pre><code><code>        sort -k 2nr,2 smallprof.out | less</code></code></pre>
+
+<p>or a perl script:</p>
+
+<pre><code><code>        <span class="keyword">open</span><span class="operator">(</span><span class="variable">PROF</span><span class="operator">,</span><span class="string">"smallprof.out"</span><span class="operator">);</span>
+        <span class="variable">@sorted</span> <span class="operator">=</span> <span class="keyword">sort</span> <span class="operator">{(</span><span class="keyword">split</span><span class="operator">(</span><span class="regex">/\s+/</span><span class="operator">,</span><span class="variable">$b</span><span class="operator">))</span><span class="operator">[</span><span class="number">2</span><span class="operator">]</span> <span class="operator">&lt;=&gt;</span> 
+                        <span class="operator">(</span><span class="keyword">split</span><span class="operator">(</span><span class="regex">/\s+/</span><span class="operator">,</span><span class="variable">$a</span><span class="operator">))</span><span class="operator">[</span><span class="number">2</span><span class="operator">]</span><span class="operator">}</span> <span class="operator">&lt;</span><span class="variable">PROF</span><span class="operator">&gt;;</span>
+        <span class="keyword">close</span> <span class="variable">PROF</span><span class="operator">;</span>
+        <span class="keyword">print</span> <span class="keyword">join</span><span class="operator">(</span><span class="string">''</span><span class="operator">,</span><span class="variable">@sorted</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="NOTES">NOTES</h1>
+
+<ul>
+
+<li><p>The &quot;wall time&quot; readings come from Time::HiRes and are reasonably useful, at least on my system. The cpu times come from the &#39;times&#39; built-in and the granularity is not necessarily as small as with the wall time. On some systems this column may be useful. On others it may not.</p>
+
+</li>
+<li><p>GraphVizProf does attempt to make up for its shortcomings by subtracting a small amount from each timing (null time compensation). This should help somewhat with the accuracy.</p>
+
+</li>
+<li><p>GraphVizProf depends on the Time::HiRes package to do its timings. It claims to require version 1.20, but may work with earlier versions, depending on your platform.</p>
+
+</li>
+</ul>
+
+<h1 id="OPTIONS">OPTIONS</h1>
+
+<p>GraphVizProf has 3 variables which can be used during your script to affect what gets profiled.</p>
+
+<ul>
+
+<li><p>If you do not wish to see lines which were never called, set the variable <code><code>$DB::drop_zeros = 1</code></code>. With <code><code>drop_zeros</code></code> set, GraphVizProf can be used for basic coverage analysis.</p>
+
+</li>
+<li><p>To turn off profiling for a time, insert a <code><code>$DB::profile = 0</code></code> into your code (profiling may be turned back on with <code><code>$DB::profile = 1</code></code>). All of the time between profiling being turned off and back on again will be lumped together and reported on the <code><code>$DB::profile = 0</code></code> line. This can be used to summarize a subroutine call or a chunk of code.</p>
+
+</li>
+<li><p>To only profile code in a certain package, set the <code><code>%DB::packages</code></code> array. For example, to see only the code in packages <code><code>main</code></code> and <code><code>Test1</code></code>, do this:</p>
+
+<pre><code><code>        <span class="variable">%DB::packages</span> <span class="operator">=</span> <span class="operator">(</span> <span class="string">'main'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span> <span class="string">'Test1'</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+</code></code></pre>
+
+</li>
+<li><p>These variables can be put in a file called <i>.smallprof</i> in the current directory. For example, a <i>.smallprof</i> containing</p>
+
+<pre><code><code>        <span class="variable">$DB::drop_zeros</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span>
+        <span class="variable">$DB::profile</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>will set GraphVizProf to not report lines which are never touched for any file profiled in that directory and will set profiling off initially (presumably to be turned on only for a small portion of code).</p>
+
+</li>
+</ul>
+
+<h1 id="INSTALLATION">INSTALLATION</h1>
+
+<p>Just the usual</p>
+
+<pre><code><code>        perl Makefile.PL
+        make
+        make test
+        make install</code></code></pre>
+
+<p>and should install fine via the CPAN module.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Subroutine calls are currently not under the control of %DB::packages. This should not be a great inconvenience in general.</p>
+
+<p>The handling of evals is bad news. This is due to Perl&#39;s handling of evals under the <b>-d</b> flag. For certain evals, caller() returns &#39;(eval n)&#39; for the filename and for others it doesn&#39;t. For some of those which it does, the array <code><code><span class="variable">@</span><span class="operator">{</span><span class="string">'_&lt;filename'</span><span class="operator">}</span>
+</code></code> contains the code of the eval. For others it doesn&#39;t. Sometime, when I&#39;ve an extra tuit or two, I&#39;ll figure out why and how I can compensate for this.</p>
+
+<p>Comments, advice and questions are welcome. If you see inefficent stuff in this module and have a better way, please let me know.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Ted Ashton &lt;ashted@southern.edu&gt;</p>
+
+<p>GraphVizProf was developed from code originally posted to usenet by Philippe Verdret &lt;philippe.verdret@sonovision-itep.fr&gt;. Special thanks to Geoffrey Broadwell &lt;habusan2@sprynet.com&gt; for his assistance on the Win32 platform and to Philippe for his patient assistance in testing and debugging.</p>
+
+<p>Copyright (c) 1997 Ted Ashton</p>
+
+<p>This module is free software and can be redistributed and/or modified under the same terms as Perl itself.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a>Devel::DProf</a>, <a href="../../../lib/Time/HiRes.html">Time::HiRes</a>.</p>
+
+
+</body>
+
+</html>
+
+

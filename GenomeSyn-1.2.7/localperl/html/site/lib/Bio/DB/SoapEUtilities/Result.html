@@ -1,0 +1,307 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#parse_methods-">parse_methods()</a></li>
+      <li><a href="#util-">util()</a></li>
+      <li><a href="#som-">som()</a></li>
+      <li><a href="#ok-">ok()</a></li>
+      <li><a href="#errstr-">errstr()</a></li>
+      <li><a href="#accessors-">accessors()</a></li>
+      <li><a href="#webenv-">webenv()</a></li>
+      <li><a href="#query_key-">query_key()()</a></li>
+      <li><a href="#fetch_type-">fetch_type()</a></li>
+    </ul>
+  </li>
+  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::SoapEUtilities::Result - Accessor object for SoapEUtilities results</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::DB::SoapEUtilities</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">esearch</span><span class="operator">(</span> <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'gene'</span><span class="operator">,</span> <span class="string">-term</span> <span class="operator">=&gt;</span> <span class="string">'hedgehog'</span><span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">;</span>
+ <span class="variable">$count</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">count</span><span class="operator">;</span> <span class="comment"># case important; $result-&gt;Count could be arrayref</span>
+ <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">ids</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module attempts to make Entrez Utilities SOAP responses as user-friendly and intuitive as possible. These responses can be complex structures with much useful data; but users will generally desire the values of some key fields. The <a href="../../../../../lib/perl5/TAP/Parser/Result.html">Result</a> object provides access to all response values via systematically named accessor methods, and commonly used values as convenience methods. The &#39;raw&#39; SOAP message (a <a>SOAP::SOM</a> object as returned by <a>SOAP::Lite</a>) is also provided.</p>
+
+<dl>
+
+<dt id="Convenience-accessors">Convenience accessors</dt>
+<dd>
+
+<p>If a list of record ids is returned by the call, <code><code>ids()</code></code> will return these as an array reference:</p>
+
+<pre><code><code> <span class="variable">@seq_ids</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">ids</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The total count of returned records is provided by <code><code>count()</code></code>:</p>
+
+<pre><code><code> <span class="variable">$num_recs</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">count</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>If <code><code>usehistory</code></code> was specified in the SOAP call, the NCBI-assigned web environment (that can be used in future calls) is available in <code><code>webenv</code></code>, and the query key assigned to the result in <code><code>query_key</code></code>:</p>
+
+<pre><code><code> <span class="variable">$next_result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">(</span> <span class="string">-WebEnv</span> <span class="operator">=&gt;</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">webenv</span><span class="operator">,</span> 
+                              <span class="string">-QueryKey</span> <span class="operator">=&gt;</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">query_key</span> <span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="Walking-the-response">Walking the response</dt>
+<dd>
+
+<p>This module uses <code><code>AUTOLOAD</code></code> to provide accessor methods for all response data. Here is an example of a SOAP response as returned by a <code><code>method()</code></code> call off the <a>SOAP::SOM</a> object:</p>
+
+<pre><code><code>    DB&lt;5&gt; x $result-&gt;som-&gt;method
+ 0  HASH(0x2eac9a4)
+    &#39;Count&#39; =&gt; 148
+    &#39;IdList&#39; =&gt; HASH(0x4139578)
+      &#39;Id&#39; =&gt; 100136227
+    &#39;QueryKey&#39; =&gt; 1
+    &#39;QueryTranslation&#39; =&gt; &#39;sonic[All Fields] AND hedgehog[All Fields]&#39;
+    &#39;RetMax&#39; =&gt; 20
+    &#39;RetStart&#39; =&gt; 0
+    &#39;TranslationSet&#39; =&gt; &#39;&#39;
+    &#39;TranslationStack&#39; =&gt; HASH(0x4237b4c)
+       &#39;OP&#39; =&gt; &#39;GROUP&#39;
+       &#39;TermSet&#39; =&gt; HASH(0x42c43bc)
+          &#39;Count&#39; =&gt; 2157
+          &#39;Explode&#39; =&gt; &#39;Y&#39;
+          &#39;Field&#39; =&gt; &#39;All Fields&#39;
+          &#39;Term&#39; =&gt; &#39;hedgehog[All Fields]&#39;
+    &#39;WebEnv&#39; =&gt; &#39;NCID_1_150423569_130.14.22.101_9001_1262703782&#39;</code></code></pre>
+
+<p>Some of the data values here (at the tips of the data structure) are actually arrays of values ( e.g., the tip <code><code>IdList =</code></code> Id&gt; ), other tips are simple scalars. With this in mind, <code><code>Result</code></code> accessor methods work as follows:</p>
+
+<p>Data values (at the tips of the response structure) are acquired by calling a method with the structure keys separated by underscores (if necessary):</p>
+
+<pre><code><code> <span class="variable">$query_key</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">QueryKey</span><span class="operator">;</span> <span class="comment"># $query_key == 1</span>
+ <span class="variable">$ids</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">IdList_Id</span><span class="operator">;</span>      <span class="comment"># @$ids is an array of record ids</span>
+</code></code></pre>
+
+<p>Data <i>sets</i> below a particular node in the response structure can also be obtained with similarly constructed method names. These &#39;internal node accessors&#39; return a hashref, containing all data leaves below the node, keyed by the accessor names:</p>
+
+<pre><code><code>    $data_hash = $result-&gt;TranslationStack
+ 
+    DB&lt;3&gt; x $data_hash
+ 0  HASH(0x43569d4)
+    &#39;TranslationStack_OP&#39; =&gt; ARRAY(0x42d9988)
+       0  &#39;AND&#39;
+       1  &#39;GROUP&#39;
+    &#39;TranslationStack_TermSet_Count&#39; =&gt; ARRAY(0x4369c64)
+       0  148
+       1  148
+       2  2157
+    &#39;TranslationStack_TermSet_Explode&#39; =&gt; ARRAY(0x4368998)
+       0  &#39;Y&#39;
+       1  &#39;Y&#39;
+    &#39;TranslationStack_TermSet_Field&#39; =&gt; ARRAY(0x4368260)
+       0  &#39;All Fields&#39;
+       1  &#39;All Fields&#39;
+    &#39;TranslationStack_TermSet_Term&#39; =&gt; ARRAY(0x436c97c)
+       0  &#39;sonic[All Fields]&#39;
+       1  &#39;hedgehog[All Fields]&#39;</code></code></pre>
+
+<p>Similarly, the call <code><code> $result-</code></code>TranslationStack_TermSet &gt; would return a similar hash containing the last 4 elements of the example hash above.</p>
+
+<p>Creating accessors is somewhat costly, especially for fetch responses which can be deep and complex (not unlike BioPerl developers). Portions of the response tree can be ignored by setting <code><code>-prune_at_node</code></code> to a arrayref of nodes to skip. Nodes should be specified in <a>SOAP::SOM</a> format, e.g.</p>
+
+<pre><code><code> <span class="operator">...</span><span class="variable">::Result</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-prune_at_nodes</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'//GBSeq_references'</span><span class="operator">]</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Accessor creation can be skipped altogether by passing <code><code>-no_parse =</code></code> 1&gt; to the <code><code>Result</code></code> constructor. This is recommended if a result is being passed to a <a href="../../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/DB/SoapEUtilities/FetchAdaptor.html">Bio::DB::SoapEUtilities::FetchAdaptor</a>. The original SOAP message with all data is always available in <code><code>$result-</code></code>som&gt;.</p>
+
+</dd>
+</dl>
+
+<ul>
+
+<p>Other methods</p>
+
+<p>accessors()</p>
+
+<p>An array of available data accessor names. This contains only the data &quot;tips&quot;. The internal node accessors are autoloaded.</p>
+
+<p>ok()</p>
+
+<p>True if no SOAP fault.</p>
+
+<p>errstr()</p>
+
+<p>Returns the SOAP fault error string.</p>
+
+<p>som()</p>
+
+<p>The original <code><code>SOAP::SOM</code></code> message.</p>
+
+<p>util()</p>
+
+<p>The EUtility associated with the result.</p>
+
+</ul>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><a>bioperl-l@bioperl.org</a></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<p>Email maj -at- fortinbras -dot- us</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="parse_methods-">parse_methods()</h2>
+
+<pre><code><code> Title   : parse_methods
+ Usage   : 
+ Function: parse out the accessor methods
+ Returns : self (Result object)
+ Args    : $alias_hash (hashref), $prune_at_nodes (scalar or arrayref)</code></code></pre>
+
+<h2 id="util-">util()</h2>
+
+<pre><code><code> Title   : util
+ Usage   : 
+ Function: Name of the utility producing this result object.
+ Returns : scalar string
+ Args    : </code></code></pre>
+
+<h2 id="som-">som()</h2>
+
+<pre><code><code> Title   : som
+ Usage   : 
+ Function: get the original SOAP::SOM object
+ Returns : a SOAP::SOM object
+ Args    : none</code></code></pre>
+
+<h2 id="ok-">ok()</h2>
+
+<pre><code><code> Title   : ok
+ Usage   : 
+ Function: 
+ Returns : true if no SOAP fault
+ Args    : </code></code></pre>
+
+<h2 id="errstr-">errstr()</h2>
+
+<pre><code><code> Title   : errstr
+ Usage   : 
+ Function: 
+ Returns : fault string of SOAP object
+ Args    : none</code></code></pre>
+
+<h2 id="accessors-">accessors()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">accessors</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">created</span> <span class="variable">accessors</span> <span class="keyword">for</span> <span class="variable">this</span>
+           <span class="variable">result</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="keyword">scalar</span> <span class="variable">strings</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">does</span> <span class="keyword">not</span> <span class="variable">include</span> <span class="variable">valid</span> <span class="variable">AUTOLOADed</span> <span class="variable">accessors</span><span class="operator">;</span> <span class="variable">see</span>
+           <span class="variable">DESCRIPTION</span>
+</code></code></pre>
+
+<h2 id="webenv-">webenv()</h2>
+
+<pre><code><code> Title   : webenv
+ Usage   : 
+ Function: contains WebEnv key referencing this
+           result&#39;s session
+ Returns : scalar
+ Args    : none</code></code></pre>
+
+<h2 id="query_key-">query_key()()</h2>
+
+<pre><code><code> Title   : query_key()
+ Usage   : 
+ Function: contains the web query key assigned
+           to this result
+ Returns : scalar
+ Args    : </code></code></pre>
+
+<h2 id="fetch_type-">fetch_type()</h2>
+
+<pre><code><code> Title   : fetch_type
+ Usage   : 
+ Function: Get the efetch database name according to WSDL
+ Returns : scalar string (db name) or undef if N/A
+ Args    : none</code></code></pre>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt id="Around-line-137:">Around line 137:</dt>
+<dd>
+
+<p>You can&#39;t have =items (as at line 141) unless the first thing after the =over is an =item</p>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+

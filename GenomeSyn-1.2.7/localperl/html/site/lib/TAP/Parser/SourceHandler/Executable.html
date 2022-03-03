@@ -1,0 +1,144 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#Class-Methods">Class Methods</a>
+        <ul>
+          <li><a href="#"></a></li>
+          <li><a href="#1"></a></li>
+          <li><a href="#2"></a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#SUBCLASSING">SUBCLASSING</a>
+    <ul>
+      <li><a href="#Example">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>TAP::Parser::SourceHandler::Executable - Stream output from an executable TAP source</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>Version 3.36</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">TAP::Parser::Source</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">TAP::Parser::SourceHandler::Executable</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$source</span> <span class="operator">=</span> <span class="variable">TAP::Parser::Source</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">-&gt;</span><span class="variable">raw</span><span class="operator">(</span><span class="operator">[</span><span class="string">'/usr/bin/ruby'</span><span class="operator">,</span> <span class="string">'mytest.rb'</span><span class="operator">]</span><span class="operator">);</span>
+  <span class="variable">$source</span><span class="operator">-&gt;</span><span class="variable">assemble_meta</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$class</span> <span class="operator">=</span> <span class="string">'TAP::Parser::SourceHandler::Executable'</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$vote</span>  <span class="operator">=</span> <span class="variable">$class</span><span class="operator">-&gt;</span><span class="variable">can_handle</span><span class="operator">(</span> <span class="variable">$source</span> <span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$iter</span>  <span class="operator">=</span> <span class="variable">$class</span><span class="operator">-&gt;</span><span class="variable">make_iterator</span><span class="operator">(</span> <span class="variable">$source</span> <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is an <i>executable</i> <a href="../../../../../lib/TAP/Parser/SourceHandler.html">TAP::Parser::SourceHandler</a> - it has 2 jobs:</p>
+
+<p>1. Figure out if the <a href="../../../../../lib/TAP/Parser/Source.html">TAP::Parser::Source</a> it&#39;s given is an executable command (<a href="#can_handle">&quot;can_handle&quot;</a>).</p>
+
+<p>2. Creates an iterator for executable commands (<a href="#make_iterator">&quot;make_iterator&quot;</a>).</p>
+
+<p>Unless you&#39;re writing a plugin or subclassing <a href="../../../../../lib/TAP/Parser.html">TAP::Parser</a>, you probably won&#39;t need to use this module directly.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="Class-Methods">Class Methods</h2>
+
+<h3 id=""><code><code>can_handle</code></code></h3>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$vote</span> <span class="operator">=</span> <span class="variable">$class</span><span class="operator">-&gt;</span><span class="variable">can_handle</span><span class="operator">(</span> <span class="variable">$source</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Only votes if $source looks like an executable file. Casts the following votes:</p>
+
+<pre><code><code>  0.9  if it&#39;s a hash with an &#39;exec&#39; key
+  0.8  if it&#39;s a .bat file
+  0.75 if it&#39;s got an execute bit set</code></code></pre>
+
+<h3 id="1"><code><code>make_iterator</code></code></h3>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$iterator</span> <span class="operator">=</span> <span class="variable">$class</span><span class="operator">-&gt;</span><span class="variable">make_iterator</span><span class="operator">(</span> <span class="variable">$source</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Returns a new <a href="../../../../../lib/TAP/Parser/Iterator/Process.html">TAP::Parser::Iterator::Process</a> for the source. <code><code>$source-&gt;raw</code></code> must be in one of the following forms:</p>
+
+<pre><code><code>  <span class="operator">{</span> <span class="string">exec</span> <span class="operator">=&gt;</span> <span class="operator">[</span> <span class="variable">@exec</span> <span class="operator">]</span> <span class="operator">}</span>
+  
+  <span class="operator">[</span> <span class="variable">@exec</span> <span class="operator">]</span>
+  
+  <span class="variable">$file</span>
+</code></code></pre>
+
+<p><code><code>croak</code></code>s on error.</p>
+
+<h3 id="2"><code><code>iterator_class</code></code></h3>
+
+<p>The class of iterator to use, override if you&#39;re sub-classing. Defaults to <a href="../../../../../lib/TAP/Parser/Iterator/Process.html">TAP::Parser::Iterator::Process</a>.</p>
+
+<h1 id="SUBCLASSING">SUBCLASSING</h1>
+
+<p>Please see <a href="../../../../../lib/TAP/Parser.html#SUBCLASSING">&quot;SUBCLASSING&quot; in TAP::Parser</a> for a subclassing overview.</p>
+
+<h2 id="Example">Example</h2>
+
+<pre><code><code>  <span class="keyword">package</span> <span class="variable">MyRubySourceHandler</span><span class="operator">;</span>
+  
+  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  
+  <span class="keyword">use</span> <span class="variable">Carp</span> <span class="string">qw( croak )</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">TAP::Parser::SourceHandler::Executable</span><span class="operator">;</span>
+  
+  <span class="keyword">use</span> <span class="variable">base</span> <span class="string">'TAP::Parser::SourceHandler::Executable'</span><span class="operator">;</span>
+  
+  <span class="comment"># expect $handler-&gt;(['mytest.rb', 'cmdline', 'args']);</span>
+  <span class="keyword">sub</span><span class="variable"> make_iterator </span><span class="operator">{</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$self</span><span class="operator">,</span> <span class="variable">$source</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">@test_args</span> <span class="operator">=</span> <span class="variable">@</span><span class="operator">{</span> <span class="variable">$source</span><span class="operator">-&gt;</span><span class="variable">test_args</span> <span class="operator">}</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$rb_file</span>   <span class="operator">=</span> <span class="variable">$test_args</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+    <span class="variable">croak</span><span class="operator">(</span><span class="string">"error: Ruby file '</span><span class="variable">$rb_file</span><span class="string">' not found!"</span><span class="operator">)</span> <span class="keyword">unless</span> <span class="operator">(</span><span class="keyword">-f</span> <span class="variable">$rb_file</span><span class="operator">);</span>
+    <span class="keyword">return</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">SUPER::raw_source</span><span class="operator">(</span><span class="operator">[</span><span class="string">'/usr/bin/ruby'</span><span class="operator">,</span> <span class="variable">@test_args</span><span class="operator">]</span><span class="operator">);</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../lib/TAP/Object.html">TAP::Object</a>, <a href="../../../../../lib/TAP/Parser.html">TAP::Parser</a>, <a href="../../../../../lib/TAP/Parser/IteratorFactory.html">TAP::Parser::IteratorFactory</a>, <a href="../../../../../lib/TAP/Parser/SourceHandler.html">TAP::Parser::SourceHandler</a>, <a href="../../../../../lib/TAP/Parser/SourceHandler/Perl.html">TAP::Parser::SourceHandler::Perl</a>, <a href="../../../../../lib/TAP/Parser/SourceHandler/File.html">TAP::Parser::SourceHandler::File</a>, <a href="../../../../../lib/TAP/Parser/SourceHandler/Handle.html">TAP::Parser::SourceHandler::Handle</a>, <a href="../../../../../lib/TAP/Parser/SourceHandler/RawTAP.html">TAP::Parser::SourceHandler::RawTAP</a></p>
+
+
+</body>
+
+</html>
+
+

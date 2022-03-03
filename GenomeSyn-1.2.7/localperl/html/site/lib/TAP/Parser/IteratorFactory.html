@@ -1,0 +1,199 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#Class-Methods">Class Methods</a>
+        <ul>
+          <li><a href="#"></a></li>
+          <li><a href="#1"></a></li>
+          <li><a href="#2"></a></li>
+        </ul>
+      </li>
+      <li><a href="#Instance-Methods">Instance Methods</a>
+        <ul>
+          <li><a href="#3"></a></li>
+          <li><a href="#4"></a></li>
+          <li><a href="#5"></a></li>
+          <li><a href="#6"></a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#SUBCLASSING">SUBCLASSING</a>
+    <ul>
+      <li><a href="#Example">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#ATTRIBUTION">ATTRIBUTION</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>TAP::Parser::IteratorFactory - Figures out which SourceHandler objects to use for a given Source</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>Version 3.36</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">TAP::Parser::IteratorFactory</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">TAP::Parser::IteratorFactory</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="operator">{</span> <span class="variable">%config</span> <span class="operator">}</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$iterator</span>  <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">make_iterator</span><span class="operator">(</span> <span class="variable">$filename</span> <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is a factory class that takes a <a href="../../../../lib/TAP/Parser/Source.html">TAP::Parser::Source</a> and runs it through all the registered <a href="../../../../lib/TAP/Parser/SourceHandler.html">TAP::Parser::SourceHandler</a>s to see which one should handle the source.</p>
+
+<p>If you&#39;re a plugin author, you&#39;ll be interested in how to <a href="#register_handler">&quot;register_handler&quot;</a>s, how <a href="#detect_source">&quot;detect_source&quot;</a> works.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="Class-Methods">Class Methods</h2>
+
+<h3 id=""><code><code>new</code></code></h3>
+
+<p>Creates a new factory class:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$sf</span> <span class="operator">=</span> <span class="variable">TAP::Parser::IteratorFactory</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="variable">$config</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p><code><code>$config</code></code> is optional. If given, sets <a href="#config">&quot;config&quot;</a> and calls <a href="#load_handlers">&quot;load_handlers&quot;</a>.</p>
+
+<h3 id="1"><code><code>register_handler</code></code></h3>
+
+<p>Registers a new <a href="../../../../lib/TAP/Parser/SourceHandler.html">TAP::Parser::SourceHandler</a> with this factory.</p>
+
+<pre><code><code>  <span class="keyword">__PACKAGE__</span><span class="operator">-&gt;</span><span class="variable">register_handler</span><span class="operator">(</span> <span class="variable">$handler_class</span> <span class="operator">);</span>
+</code></code></pre>
+
+<h3 id="2"><code><code>handlers</code></code></h3>
+
+<p>List of handlers that have been registered.</p>
+
+<h2 id="Instance-Methods">Instance Methods</h2>
+
+<h3 id="3"><code><code>config</code></code></h3>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$cfg</span> <span class="operator">=</span> <span class="variable">$sf</span><span class="operator">-&gt;</span><span class="variable">config</span><span class="operator">;</span>
+ <span class="variable">$sf</span><span class="operator">-&gt;</span><span class="variable">config</span><span class="operator">(</span><span class="operator">{</span> <span class="string">Perl</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="variable">%config</span> <span class="operator">}</span> <span class="operator">}</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Chaining getter/setter for the configuration of the available source handlers. This is a hashref keyed on handler class whose values contain config to be passed onto the handlers during detection &amp; creation. Class names may be fully qualified or abbreviated, eg:</p>
+
+<pre><code><code>  <span class="comment"># these are equivalent</span>
+  <span class="variable">$sf</span><span class="operator">-&gt;</span><span class="variable">config</span><span class="operator">(</span><span class="operator">{</span> <span class="string">'TAP::Parser::SourceHandler::Perl'</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="variable">%config</span> <span class="operator">}</span> <span class="operator">}</span><span class="operator">);</span>
+  <span class="variable">$sf</span><span class="operator">-&gt;</span><span class="variable">config</span><span class="operator">(</span><span class="operator">{</span> <span class="string">'Perl'</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="variable">%config</span> <span class="operator">}</span> <span class="operator">}</span><span class="operator">);</span>
+</code></code></pre>
+
+<h3 id="4"><code><code>load_handlers</code></code></h3>
+
+<pre><code><code> <span class="variable">$sf</span><span class="operator">-&gt;</span><span class="variable">load_handlers</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Loads the handler classes defined in <a href="#config">&quot;config&quot;</a>. For example, given a config:</p>
+
+<pre><code><code>  <span class="variable">$sf</span><span class="operator">-&gt;</span><span class="variable">config</span><span class="operator">(</span><span class="operator">{</span>
+    <span class="string">MySourceHandler</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">some</span> <span class="operator">=&gt;</span> <span class="string">'config'</span> <span class="operator">}</span><span class="operator">,</span>
+  <span class="operator">}</span><span class="operator">);</span>
+</code></code></pre>
+
+<p><code><code>load_handlers</code></code> will attempt to load the <code><code>MySourceHandler</code></code> class by looking in <code><code>@INC</code></code> for it in this order:</p>
+
+<pre><code><code>  TAP::Parser::SourceHandler::MySourceHandler
+  MySourceHandler</code></code></pre>
+
+<p><code><code>croak</code></code>s on error.</p>
+
+<h3 id="5"><code><code>make_iterator</code></code></h3>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$iterator</span> <span class="operator">=</span> <span class="variable">$src_factory</span><span class="operator">-&gt;</span><span class="variable">make_iterator</span><span class="operator">(</span> <span class="variable">$source</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Given a <a href="../../../../lib/TAP/Parser/Source.html">TAP::Parser::Source</a>, finds the most suitable <a href="../../../../lib/TAP/Parser/SourceHandler.html">TAP::Parser::SourceHandler</a> to use to create a <a href="../../../../lib/TAP/Parser/Iterator.html">TAP::Parser::Iterator</a> (see <a href="#detect_source">&quot;detect_source&quot;</a>). Dies on error.</p>
+
+<h3 id="6"><code><code>detect_source</code></code></h3>
+
+<p>Given a <a href="../../../../lib/TAP/Parser/Source.html">TAP::Parser::Source</a>, detects what kind of source it is and returns <i>one</i> <a href="../../../../lib/TAP/Parser/SourceHandler.html">TAP::Parser::SourceHandler</a> (the most confident one). Dies on error.</p>
+
+<p>The detection algorithm works something like this:</p>
+
+<pre><code><code>  <span class="keyword">for</span> <span class="operator">(</span><span class="variable">@registered_handlers</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># ask them how confident they are about handling this source</span>
+    <span class="variable">$confidence</span><span class="operator">{</span><span class="variable">$handler</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">$handler</span><span class="operator">-&gt;</span><span class="variable">can_handle</span><span class="operator">(</span> <span class="variable">$source</span> <span class="operator">)</span>
+  <span class="operator">}</span>
+  <span class="comment"># choose the most confident handler</span>
+</code></code></pre>
+
+<p>Ties are handled by choosing the first handler.</p>
+
+<h1 id="SUBCLASSING">SUBCLASSING</h1>
+
+<p>Please see <a href="../../../../lib/TAP/Parser.html#SUBCLASSING">&quot;SUBCLASSING&quot; in TAP::Parser</a> for a subclassing overview.</p>
+
+<h2 id="Example">Example</h2>
+
+<p>If we&#39;ve done things right, you&#39;ll probably want to write a new source, rather than sub-classing this (see <a href="../../../../lib/TAP/Parser/SourceHandler.html">TAP::Parser::SourceHandler</a> for that).</p>
+
+<p>But in case you find the need to...</p>
+
+<pre><code><code>  <span class="keyword">package</span> <span class="variable">MyIteratorFactory</span><span class="operator">;</span>
+  
+  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  
+  <span class="keyword">use</span> <span class="variable">base</span> <span class="string">'TAP::Parser::IteratorFactory'</span><span class="operator">;</span>
+  
+  <span class="comment"># override source detection algorithm</span>
+  <span class="keyword">sub</span><span class="variable"> detect_source </span><span class="operator">{</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$self</span><span class="operator">,</span> <span class="variable">$raw_source_ref</span><span class="operator">,</span> <span class="variable">$meta</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+    <span class="comment"># do detective work, using $meta and whatever else...</span>
+  <span class="operator">}</span>
+  
+  <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Steve Purkis</p>
+
+<h1 id="ATTRIBUTION">ATTRIBUTION</h1>
+
+<p>Originally ripped off from <a href="../../../../lib/Test/Harness.html">Test::Harness</a>.</p>
+
+<p>Moved out of <a href="../../../../lib/TAP/Parser.html">TAP::Parser</a> &amp; converted to a factory class to support extensible TAP source detective work by Steve Purkis.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../lib/TAP/Object.html">TAP::Object</a>, <a href="../../../../lib/TAP/Parser.html">TAP::Parser</a>, <a href="../../../../lib/TAP/Parser/SourceHandler.html">TAP::Parser::SourceHandler</a>, <a href="../../../../lib/TAP/Parser/SourceHandler/File.html">TAP::Parser::SourceHandler::File</a>, <a href="../../../../lib/TAP/Parser/SourceHandler/Perl.html">TAP::Parser::SourceHandler::Perl</a>, <a href="../../../../lib/TAP/Parser/SourceHandler/RawTAP.html">TAP::Parser::SourceHandler::RawTAP</a>, <a href="../../../../lib/TAP/Parser/SourceHandler/Handle.html">TAP::Parser::SourceHandler::Handle</a>, <a href="../../../../lib/TAP/Parser/SourceHandler/Executable.html">TAP::Parser::SourceHandler::Executable</a></p>
+
+
+</body>
+
+</html>
+
+

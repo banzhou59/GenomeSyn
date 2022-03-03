@@ -1,0 +1,255 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FUNCTIONS">FUNCTIONS</a>
+    <ul>
+      <li><a href="#runtests-test_files-">runtests( @test_files )</a></li>
+      <li><a href="#execute_tests-tests-test_files-out-FH-">execute_tests( tests =&gt; \@test_files, out =&gt; \*FH )</a></li>
+    </ul>
+  </li>
+  <li><a href="#EXPORT">EXPORT</a></li>
+  <li><a href="#ENVIRONMENT-VARIABLES-THAT-TAP::HARNESS::COMPATIBLE-SETS">ENVIRONMENT VARIABLES THAT TAP::HARNESS::COMPATIBLE SETS</a></li>
+  <li><a href="#ENVIRONMENT-VARIABLES-THAT-AFFECT-TEST::HARNESS">ENVIRONMENT VARIABLES THAT AFFECT TEST::HARNESS</a></li>
+  <li><a href="#Taint-Mode">Taint Mode</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#LICENCE-AND-COPYRIGHT">LICENCE AND COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Test::Harness - Run Perl standard test scripts with statistics</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>Version 3.36</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::Harness</span><span class="operator">;</span>
+  
+  <span class="variable">runtests</span><span class="operator">(</span><span class="variable">@test_files</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Although, for historical reasons, the <a href="../../../lib/Test/Harness.html">Test::Harness</a> distribution takes its name from this module it now exists only to provide <a href="../../../lib/TAP/Harness.html">TAP::Harness</a> with an interface that is somewhat backwards compatible with <a href="../../../lib/Test/Harness.html">Test::Harness</a> 2.xx. If you&#39;re writing new code consider using <a href="../../../lib/TAP/Harness.html">TAP::Harness</a> directly instead.</p>
+
+<p>Emulation is provided for <code><code>runtests</code></code> and <code><code>execute_tests</code></code> but the pluggable &#39;Straps&#39; interface that previous versions of <a href="../../../lib/Test/Harness.html">Test::Harness</a> supported is not reproduced here. Straps is now available as a stand alone module: <a>Test::Harness::Straps</a>.</p>
+
+<p>See <a href="../../../lib/TAP/Parser.html">TAP::Parser</a>, <a href="../../../lib/TAP/Harness.html">TAP::Harness</a> for the main documentation for this distribution.</p>
+
+<h1 id="FUNCTIONS">FUNCTIONS</h1>
+
+<p>The following functions are available.</p>
+
+<h2 id="runtests-test_files-">runtests( @test_files )</h2>
+
+<p>This runs all the given <i>@test_files</i> and divines whether they passed or failed based on their output to STDOUT (details above). It prints out each individual test which failed along with a summary report and a how long it all took.</p>
+
+<p>It returns true if everything was ok. Otherwise it will <code><code>die()</code></code> with one of the messages in the DIAGNOSTICS section.</p>
+
+<h2 id="execute_tests-tests-test_files-out-FH-">execute_tests( tests =&gt; \@test_files, out =&gt; \*FH )</h2>
+
+<p>Runs all the given <code><code>@test_files</code></code> (just like <code><code>runtests()</code></code>) but doesn&#39;t generate the final report. During testing, progress information will be written to the currently selected output filehandle (usually <code><code>STDOUT</code></code>), or to the filehandle given by the <code><code>out</code></code> parameter. The <i>out</i> is optional.</p>
+
+<p>Returns a list of two values, <code><code>$total</code></code> and <code><code>$failed</code></code>, describing the results. <code><code>$total</code></code> is a hash ref summary of all the tests run. Its keys and values are this:</p>
+
+<pre><code><code>    bonus           Number of individual todo tests unexpectedly passed
+    max             Number of individual tests ran
+    ok              Number of individual tests passed
+    sub_skipped     Number of individual tests skipped
+    todo            Number of individual todo tests
+
+    files           Number of test files ran
+    good            Number of test files passed
+    bad             Number of test files failed
+    tests           Number of test files originally given
+    skipped         Number of test files skipped</code></code></pre>
+
+<p>If <code><code><span class="variable">$total</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">bad</span><span class="operator">}</span> <span class="operator">==</span> <span class="number">0</span>
+</code></code> and <code><code><span class="variable">$total</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">max</span><span class="operator">}</span> <span class="operator">&gt;</span> <span class="number">0</span>
+</code></code>, you&#39;ve got a successful test.</p>
+
+<p><code><code>$failed</code></code> is a hash ref of all the test scripts that failed. Each key is the name of a test script, each value is another hash representing how that script failed. Its keys are these:</p>
+
+<pre><code><code>    name        Name of the test which failed
+    estat       Script&#39;s exit value
+    wstat       Script&#39;s wait status
+    max         Number of individual tests
+    failed      Number which failed
+    canon       List of tests which failed (as string).</code></code></pre>
+
+<p><code><code>$failed</code></code> should be empty if everything passed.</p>
+
+<h1 id="EXPORT">EXPORT</h1>
+
+<p><code><code>&amp;runtests</code></code> is exported by <code><code>Test::Harness</code></code> by default.</p>
+
+<p><code><code>&amp;execute_tests</code></code>, <code><code>$verbose</code></code>, <code><code>$switches</code></code> and <code><code>$debug</code></code> are exported upon request.</p>
+
+<h1 id="ENVIRONMENT-VARIABLES-THAT-TAP::HARNESS::COMPATIBLE-SETS">ENVIRONMENT VARIABLES THAT TAP::HARNESS::COMPATIBLE SETS</h1>
+
+<p><code><code>Test::Harness</code></code> sets these before executing the individual tests.</p>
+
+<dl>
+
+<dt id="HARNESS_ACTIVE"><code><code>HARNESS_ACTIVE</code></code></dt>
+<dd>
+
+<p>This is set to a true value. It allows the tests to determine if they are being executed through the harness or by any other means.</p>
+
+</dd>
+<dt id="HARNESS_VERSION"><code><code>HARNESS_VERSION</code></code></dt>
+<dd>
+
+<p>This is the version of <code><code>Test::Harness</code></code>.</p>
+
+</dd>
+</dl>
+
+<h1 id="ENVIRONMENT-VARIABLES-THAT-AFFECT-TEST::HARNESS">ENVIRONMENT VARIABLES THAT AFFECT TEST::HARNESS</h1>
+
+<dl>
+
+<dt id="HARNESS_PERL_SWITCHES"><code><code>HARNESS_PERL_SWITCHES</code></code></dt>
+<dd>
+
+<p>Setting this adds perl command line switches to each test file run.</p>
+
+<p>For example, <code><code>HARNESS_PERL_SWITCHES=-T</code></code> will turn on taint mode. <code><code>HARNESS_PERL_SWITCHES=-MDevel::Cover</code></code> will run <code><code>Devel::Cover</code></code> for each test.</p>
+
+<p><code><code>-w</code></code> is always set. You can turn this off in the test with <code><code><span class="keyword">BEGIN</span> <span class="operator">{</span> <span class="variable">$^W</span> <span class="operator">=</span> <span class="number">0</span> <span class="operator">}</span>
+</code></code>.</p>
+
+</dd>
+<dt id="HARNESS_TIMER"><code><code>HARNESS_TIMER</code></code></dt>
+<dd>
+
+<p>Setting this to true will make the harness display the number of milliseconds each test took. You can also use <i>prove</i>&#39;s <code><code>--timer</code></code> switch.</p>
+
+</dd>
+<dt id="HARNESS_VERBOSE"><code><code>HARNESS_VERBOSE</code></code></dt>
+<dd>
+
+<p>If true, <code><code>Test::Harness</code></code> will output the verbose results of running its tests. Setting <code><code>$Test::Harness::verbose</code></code> will override this, or you can use the <code><code>-v</code></code> switch in the <i>prove</i> utility.</p>
+
+</dd>
+<dt id="HARNESS_OPTIONS"><code><code>HARNESS_OPTIONS</code></code></dt>
+<dd>
+
+<p>Provide additional options to the harness. Currently supported options are:</p>
+
+<dl>
+
+<dt id="jn"><code><code>j&lt;n&gt;</code></code></dt>
+<dd>
+
+<p>Run &lt;n&gt; (default 9) parallel jobs.</p>
+
+</dd>
+<dt id="c"><code><code>c</code></code></dt>
+<dd>
+
+<p>Try to color output. See <a href="../../../lib/TAP/Formatter/Base.html#new">&quot;new&quot; in TAP::Formatter::Base</a>.</p>
+
+</dd>
+<dt id="afile.tgz"><code><code>a&lt;file.tgz&gt;</code></code></dt>
+<dd>
+
+<p>Will use <a>TAP::Harness::Archive</a> as the harness class, and save the TAP to <code><code>file.tgz</code></code></p>
+
+</dd>
+<dt id="fPackage-With-Dashes"><code><code>fPackage-With-Dashes</code></code></dt>
+<dd>
+
+<p>Set the formatter_class of the harness being run. Since the <code><code>HARNESS_OPTIONS</code></code> is seperated by <code><code>:</code></code>, we use <code><code>-</code></code> instead.</p>
+
+</dd>
+</dl>
+
+<p>Multiple options may be separated by colons:</p>
+
+<pre><code><code>    HARNESS_OPTIONS=j9:c make test</code></code></pre>
+
+</dd>
+<dt id="HARNESS_SUBCLASS"><code><code>HARNESS_SUBCLASS</code></code></dt>
+<dd>
+
+<p>Specifies a TAP::Harness subclass to be used in place of TAP::Harness.</p>
+
+</dd>
+<dt id="HARNESS_SUMMARY_COLOR_SUCCESS"><code><code>HARNESS_SUMMARY_COLOR_SUCCESS</code></code></dt>
+<dd>
+
+<p>Determines the <a href="../../../lib/Term/ANSIColor.html">Term::ANSIColor</a> for the summary in case it is successful. This color defaults to <code><code>&#39;green&#39;</code></code>.</p>
+
+</dd>
+<dt id="HARNESS_SUMMARY_COLOR_FAIL"><code><code>HARNESS_SUMMARY_COLOR_FAIL</code></code></dt>
+<dd>
+
+<p>Determines the <a href="../../../lib/Term/ANSIColor.html">Term::ANSIColor</a> for the failure in case it is successful. This color defaults to <code><code>&#39;red&#39;</code></code>.</p>
+
+</dd>
+</dl>
+
+<h1 id="Taint-Mode">Taint Mode</h1>
+
+<p>Normally when a Perl program is run in taint mode the contents of the <code><code>PERL5LIB</code></code> environment variable do not appear in <code><code>@INC</code></code>.</p>
+
+<p>Because <code><code>PERL5LIB</code></code> is often used during testing to add build directories to <code><code>@INC</code></code> <code><code>Test::Harness</code></code> passes the names of any directories found in <code><code>PERL5LIB</code></code> as -I switches. The net effect of this is that <code><code>PERL5LIB</code></code> is honoured even in taint mode.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../lib/TAP/Harness.html">TAP::Harness</a></p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Please report any bugs or feature requests to <code><code>bug-test-harness at rt.cpan.org</code></code>, or through the web interface at <a href="http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Harness">http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Harness</a>. I will be notified, and then you&#39;ll automatically be notified of progress on your bug as I make changes.</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Andy Armstrong <code><code>&lt;andy@hexten.net&gt;</code></code></p>
+
+<p><a href="../../../lib/Test/Harness.html">Test::Harness</a> 2.64 (maintained by Andy Lester and on which this module is based) has this attribution:</p>
+
+<pre><code><code>    Either Tim Bunce or Andreas Koenig, we don&#39;t know. What we know for
+    sure is, that it was inspired by Larry Wall&#39;s F&lt;TEST&gt; script that came
+    with perl distributions for ages. Numerous anonymous contributors
+    exist.  Andreas Koenig held the torch for many years, and then
+    Michael G Schwern.</code></code></pre>
+
+<h1 id="LICENCE-AND-COPYRIGHT">LICENCE AND COPYRIGHT</h1>
+
+<p>Copyright (c) 2007-2011, Andy Armstrong <code><code>&lt;andy@hexten.net&gt;</code></code>. All rights reserved.</p>
+
+<p>This module is free software; you can redistribute it and/or modify it under the same terms as Perl itself. See <a href="../../../lib/pod/perlartistic.html">perlartistic</a>.</p>
+
+
+</body>
+
+</html>
+
+

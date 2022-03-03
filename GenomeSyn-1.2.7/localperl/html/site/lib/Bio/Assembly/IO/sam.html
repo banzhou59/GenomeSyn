@@ -1,0 +1,348 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#DETAILS">DETAILS</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+  <li><a href="#Bio::Assembly::IO-compliance">Bio::Assembly::IO compliance</a>
+    <ul>
+      <li><a href="#next_assembly-">next_assembly()</a></li>
+      <li><a href="#next_contig-">next_contig()</a></li>
+      <li><a href="#write_assembly-">write_assembly()</a></li>
+    </ul>
+  </li>
+  <li><a href="#Internal">Internal</a>
+    <ul>
+      <li><a href="#store_contig-">_store_contig()</a></li>
+      <li><a href="#store_read-">_store_read()</a></li>
+      <li><a href="#store_singlet-">_store_singlet()</a></li>
+    </ul>
+  </li>
+  <li><a href="#REALLY-Internal">REALLY Internal</a>
+    <ul>
+      <li><a href="#init_sam-">_init_sam()</a></li>
+      <li><a href="#get_contig_segs_from_coverage-">_get_contig_segs_from_coverage()</a></li>
+      <li><a href="#calc_consensus_quality-">_calc_consensus_quality()</a></li>
+      <li><a href="#calc_consensus-">_calc_consensus()</a></li>
+      <li><a href="#refdb-">refdb()</a></li>
+      <li><a href="#segset-">_segset()</a></li>
+      <li><a href="#current_refseq_id-">_current_refseq_id()</a></li>
+      <li><a href="#current_contig_seg_idx-">_current_contig_seg_idx()</a></li>
+      <li><a href="#sam-">sam()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Assembly::IO::sam - An IO module for assemblies in Sam format *BETA*</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="variable">$aio</span> <span class="operator">=</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">(</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"mysam.bam"</span><span class="operator">,</span>
+                           <span class="string">-refdb</span> <span class="operator">=&gt;</span> <span class="string">"myrefseqs.fas"</span><span class="operator">);</span>
+ <span class="variable">$assy</span> <span class="operator">=</span> <span class="variable">$aio</span><span class="operator">-&gt;</span><span class="variable">next_assembly</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is a (currently) read-only IO module designed to convert Sequence/Alignment Map (SAM; <a href="http://samtools.sourceforge.net/">http://samtools.sourceforge.net/</a>) formatted alignments to <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Assembly/Scaffold.html">Bio::Assembly::Scaffold</a> representations, containing .<a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Assembly/Contig.html">Bio::Assembly::Contig</a> and <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Assembly/Singlet.html">Bio::Assembly::Singlet</a> objects. It uses lstein&#39;s <a>Bio::DB::Sam</a> to parse binary formatted SAM (.bam) files guided by a reference sequence fasta database.</p>
+
+<p><b>NB</b>: <code><code>Bio::DB::Sam</code></code> is not a BioPerl module; it can be obtained via CPAN. It in turn requires the <code><code>libbam</code></code> library; source can be downloaded at <a href="http://samtools.sourceforge.net/">http://samtools.sourceforge.net/</a>.</p>
+
+<h1 id="DETAILS">DETAILS</h1>
+
+<ul>
+
+<li><p>Required files</p>
+
+<p>A binary SAM (<code><code>.bam</code></code>) alignment and a reference sequence database in FASTA format are required. Various required indexes (<code><code>.fai</code></code>, <code><code>.bai</code></code>) will be created as necessary (via <a>Bio::DB::Sam</a>).</p>
+
+</li>
+<li><p>Compressed files</p>
+
+<p>...can be specified directly , if <a href="../../../../../lib/IO/Uncompress/Gunzip.html">IO::Uncompress::Gunzip</a> is installed. Get it from your local CPAN mirror.</p>
+
+</li>
+<li><p>BAM vs. SAM</p>
+
+<p>The input alignment should be in (possibly gzipped) binary SAM (<code><code>.bam</code></code>) format. If it isn&#39;t, you will get a message explaining how to convert it, viz.:</p>
+
+<pre><code><code> $ samtools view -Sb mysam.sam &gt; mysam.bam</code></code></pre>
+
+<p>The bam file must also be sorted on coordinates: do</p>
+
+<pre><code><code> $ samtools sort mysam.unsorted.bam &gt; mysam.bam</code></code></pre>
+
+</li>
+<li><p>Contigs</p>
+
+<p>Contigs are calculated by this module, using the &#39;coverage&#39; feature of the <a>Bio::DB::Sam</a> object. A contig represents a contiguous portion of a reference sequence having non-zero coverage at each base.</p>
+
+<p>The bwa assembler (<a href="http://bio-bwa.sourceforge.net/">http://bio-bwa.sourceforge.net/</a>) can assign read sequences to multiple reference sequence locations. The present implementation currently assigns such reads only to the first contig in which they appear.</p>
+
+</li>
+<li><p>Consensus sequences</p>
+
+<p>Consensus sequence and quality objects are calculated by this module, using the <code><code>pileup</code></code> callback feature of <code><code>Bio::DB::Sam</code></code>. The consensus is (currently) simply the residue at a position that has the maximum sum of quality values. The consensus quality is the integer portion of the simple average of quality values for the consensus residue.</p>
+
+</li>
+<li><p>SeqFeatures</p>
+
+<p>Read sequences stored in contigs are accompanied by the following features:</p>
+
+<pre><code><code> contig : name of associated contig
+ cigar  : CIGAR string for this read</code></code></pre>
+
+<p>If the read is paired with a successfully mapped mate, these features will also be available:</p>
+
+<pre><code><code> mate_start  : coordinate of to which the mate was aligned
+ mate_len    : length of mate read
+ mate_strand : strand of mate (-1 or 1)
+ insert_size : size of insert spanned by the mate pair</code></code></pre>
+
+<p>These features are obtained as follows:</p>
+
+<pre><code><code> <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$contig</span><span class="operator">-&gt;</span><span class="variable">get_seq_ids</span><span class="operator">;</span>
+ <span class="variable">$an_id</span> <span class="operator">=</span> <span class="variable">$id</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span> <span class="comment"># or whatever</span>
+ <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$contig</span><span class="operator">-&gt;</span><span class="variable">get_seq_by_name</span><span class="operator">(</span><span class="variable">$an_id</span><span class="operator">);</span>
+ <span class="comment"># Bio::LocatableSeq's aren't SeqFeature containers, so...</span>
+ <span class="variable">$feat</span> <span class="operator">=</span> <span class="variable">$contig</span><span class="operator">-&gt;</span><span class="variable">get_seq_feat_by_tag</span><span class="operator">(</span> 
+            <span class="variable">$seq</span><span class="operator">,</span> <span class="string">"_aligned_coord:"</span><span class="operator">.</span><span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">id</span>
+         <span class="operator">);</span>
+ <span class="operator">(</span><span class="variable">$cigar</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">get_tag_values</span><span class="operator">(</span><span class="string">'cigar'</span><span class="operator">);</span>
+ <span class="comment"># etc.</span>
+</code></code></pre>
+
+</li>
+</ul>
+
+<h1 id="TODO">TODO</h1>
+
+<ul>
+
+<li><p>Supporting both text SAM (TAM) and binary SAM (BAM)</p>
+
+</li>
+</ul>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><a>bioperl-l@bioperl.org</a></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<p>Email maj -at- fortinbras -dot- us</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h1 id="Bio::Assembly::IO-compliance">Bio::Assembly::IO compliance</h1>
+
+<h2 id="next_assembly-">next_assembly()</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_assembly</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$scaffold</span> <span class="operator">=</span> <span class="variable">$asmio</span><span class="operator">-&gt;</span><span class="variable">next_assembly</span><span class="operator">();</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="keyword">return</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">assembly</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">sam</span><span class="operator">-</span><span class="variable">formatted</span> <span class="variable">stream</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Assembly::Scaffold</span> <span class="variable">object</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="next_contig-">next_contig()</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_contig</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$contig</span> <span class="operator">=</span> <span class="variable">$asmio</span><span class="operator">-&gt;</span><span class="variable">next_contig</span><span class="operator">();</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="keyword">return</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">contig</span> <span class="keyword">or</span> <span class="variable">singlet</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">sam</span> <span class="variable">stream</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Assembly::Contig</span> <span class="keyword">or</span> <span class="variable">Bio::Assembly::Singlet</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="write_assembly-">write_assembly()</h2>
+
+<pre><code><code> Title   : write_assembly
+ Usage   : 
+ Function: not implemented (module currrently read-only)
+ Returns : 
+ Args    : </code></code></pre>
+
+<h1 id="Internal">Internal</h1>
+
+<h2 id="store_contig-">_store_contig()</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_store_contig</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$contigobj</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_store_contig</span><span class="operator">(\</span><span class="variable">%contiginfo</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">create</span> <span class="keyword">and</span> <span class="variable">load</span> <span class="variable">a</span> <span class="variable">contig</span> <span class="variable">object</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Assembly::Contig</span> <span class="variable">object</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Bio::DB::Sam::Segment</span> <span class="variable">object</span>
+</code></code></pre>
+
+<h2 id="store_read-">_store_read()</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_store_read</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$readobj</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_store_read</span><span class="operator">(</span><span class="variable">$readobj</span><span class="operator">,</span> <span class="variable">$contigobj</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">store</span> <span class="variable">information</span> <span class="variable">of</span> <span class="variable">a</span> <span class="keyword">read</span> <span class="variable">belonging</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">contig</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">contig</span> <span class="variable">object</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::LocatableSeq</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Bio::DB::Bam::AlignWrapper</span><span class="operator">,</span> <span class="variable">Bio::Assembly::Contig</span>
+</code></code></pre>
+
+<h2 id="store_singlet-">_store_singlet()</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_store_singlet</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$singletobj</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_store_singlet</span><span class="operator">(</span><span class="variable">$contigobj</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">convert</span> <span class="variable">a</span> <span class="variable">contig</span> <span class="variable">object</span> <span class="variable">containing</span> <span class="variable">a</span> <span class="variable">single</span> <span class="keyword">read</span> <span class="variable">into</span>
+              <span class="variable">a</span> <span class="variable">singlet</span> <span class="variable">object</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Assembly::Singlet</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Bio::Assembly::Contig</span> <span class="operator">(</span><span class="variable">previously</span> <span class="variable">loaded</span> <span class="variable">with</span> <span class="variable">only</span> <span class="variable">one</span> <span class="variable">seq</span><span class="operator">)</span>
+</code></code></pre>
+
+<h1 id="REALLY-Internal">REALLY Internal</h1>
+
+<h2 id="init_sam-">_init_sam()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_init_sam</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_init_sam</span><span class="operator">(</span><span class="variable">$fasfile</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">obtain</span> <span class="variable">a</span> <span class="variable">Bio::DB::Sam</span> <span class="variable">parsing</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">associated</span> <span class="variable">sam</span> <span class="variable">file</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">true</span> <span class="variable">on</span> <span class="variable">success</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">fasta</span> <span class="variable">reference</span> <span class="variable">db</span> <span class="operator">(</span><span class="keyword">scalar</span> <span class="variable">string</span><span class="operator">)</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">The</span> <span class="variable">associated</span> <span class="variable">file</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">plain</span> <span class="variable">text</span> <span class="operator">(.</span><span class="variable">sam</span><span class="operator">)</span> <span class="keyword">or</span> <span class="variable">binary</span> <span class="operator">(.</span><span class="variable">bam</span><span class="operator">);</span>
+           <span class="variable">If</span> <span class="variable">the</span> <span class="variable">fasta</span> <span class="variable">file</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">specified</span><span class="operator">,</span> <span class="keyword">and</span> <span class="keyword">no</span> <span class="variable">file</span> <span class="variable">is</span> <span class="variable">contained</span> <span class="variable">in</span> 
+           <span class="variable">the</span> <span class="variable">refdb</span><span class="operator">()</span> <span class="variable">attribute</span><span class="operator">,</span> <span class="variable">a</span> <span class="operator">.</span><span class="variable">fas</span> <span class="variable">file</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">same</span>
+           <span class="variable">basename</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">sam</span> <span class="variable">file</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">searched</span> <span class="keyword">for</span><span class="operator">.</span>
+           
+</code></code></pre>
+
+<h2 id="get_contig_segs_from_coverage-">_get_contig_segs_from_coverage()</h2>
+
+<pre><code><code> Title   : _get_contig_segs_from_coverage
+ Usage   : 
+ Function: calculates separate contigs using coverage info 
+           in the segment
+ Returns : array of Bio::DB::Sam::Segment objects, representing
+           each contig
+ Args    : Bio::DB::Sam::Segment object</code></code></pre>
+
+<h2 id="calc_consensus_quality-">_calc_consensus_quality()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_calc_consensus_quality</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@qual</span> <span class="operator">=</span> <span class="variable">$aio</span><span class="operator">-&gt;</span><span class="variable">_calc_consensus_quality</span><span class="operator">(</span> <span class="variable">$contig_seg</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">calculate</span> <span class="variable">an</span> <span class="variable">average</span> <span class="keyword">or</span> <span class="variable">other</span> <span class="variable">data</span><span class="operator">-</span><span class="variable">reduced</span> <span class="variable">quality</span>
+           <span class="variable">over</span> <span class="variable">all</span> <span class="variable">sites</span> <span class="variable">represented</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">features</span> <span class="variable">contained</span>
+           <span class="variable">in</span> <span class="variable">a</span> <span class="variable">Bio::DB::Sam::Segment</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::DB::Sam::Segment</span> <span class="variable">object</span>
+</code></code></pre>
+
+<h2 id="calc_consensus-">_calc_consensus()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_calc_consensus</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@qual</span> <span class="operator">=</span> <span class="variable">$aio</span><span class="operator">-&gt;</span><span class="variable">_calc_consensus</span><span class="operator">(</span> <span class="variable">$contig_seg</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">calculate</span> <span class="variable">a</span> <span class="variable">simple</span> <span class="variable">quality</span><span class="operator">-</span><span class="variable">weighted</span> <span class="variable">consensus</span> <span class="variable">sequence</span>
+           <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">segment</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">SeqWithQuality</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::DB::Sam::Segment</span> <span class="variable">object</span>
+</code></code></pre>
+
+<h2 id="refdb-">refdb()</h2>
+
+<pre><code><code> Title   : refdb
+ Usage   : $obj-&gt;refdb($newval)
+ Function: the name of the reference db fasta file
+ Example : 
+ Returns : value of refdb (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="segset-">_segset()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_segset</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$segset_hashref</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_segset</span><span class="operator">()</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">hash</span> <span class="variable">container</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">Bio::DB::Sam::Segment</span> <span class="variable">objects</span> <span class="variable">that</span>
+           <span class="variable">represent</span> <span class="keyword">each</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">contigs</span> <span class="keyword">for</span> <span class="keyword">each</span> <span class="variable">seq_id</span>
+           <span class="operator">{</span> <span class="variable">$seq_id</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="variable">@contig_segments</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">...</span> <span class="operator">}</span>
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">_segset</span> <span class="operator">(</span><span class="variable">a</span> <span class="variable">hashref</span><span class="operator">)</span> <span class="keyword">if</span> <span class="keyword">no</span> <span class="variable">arg</span><span class="operator">,</span> 
+           <span class="keyword">or</span> <span class="variable">the</span> <span class="variable">arrayref</span> <span class="variable">of</span> <span class="variable">contig</span> <span class="variable">segments</span><span class="operator">,</span> <span class="keyword">if</span> <span class="variable">arg</span> <span class="operator">==</span> <span class="variable">a</span> <span class="variable">seq</span> <span class="variable">id</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">seq</span> <span class="variable">id</span> <span class="operator">(</span><span class="keyword">scalar</span> <span class="variable">string</span><span class="operator">)</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">readonly</span><span class="operator">;</span> <span class="variable">hash</span> <span class="variable">elt</span> <span class="variable">set</span> <span class="variable">in</span> <span class="variable">_init_sam</span><span class="operator">()</span>
+</code></code></pre>
+
+<h2 id="current_refseq_id-">_current_refseq_id()</h2>
+
+<pre><code><code> Title   : _current_refseq_id
+ Usage   : $obj-&gt;_current_refseq_id($newval)
+ Function: the &quot;current&quot; reference sequence id
+ Example : 
+ Returns : value of _current_refseq (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="current_contig_seg_idx-">_current_contig_seg_idx()</h2>
+
+<pre><code><code> Title   : current_contig_seg_idx
+ Usage   : $obj-&gt;current_contig_seg_idx($newval)
+ Function: the &quot;current&quot; segment index in the &quot;current&quot; refseq
+ Example : 
+ Returns : value of current_contig_seg_idx (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="sam-">sam()</h2>
+
+<pre><code><code> Title   : sam
+ Usage   : $obj-&gt;sam($newval)
+ Function: store the associated Bio::DB::Sam object
+ Example : 
+ Returns : value of sam (a Bio::DB::Sam object)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

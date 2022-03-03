@@ -1,0 +1,550 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Nuts-and-bolts-of-testing.">Nuts and bolts of testing.</a></li>
+      <li><a href="#Where-to-start-">Where to start?</a></li>
+      <li><a href="#Names">Names</a></li>
+      <li><a href="#Test-the-manual">Test the manual</a></li>
+      <li><a href="#Sometimes-the-tests-are-wrong">Sometimes the tests are wrong</a></li>
+      <li><a href="#Testing-lots-of-values">Testing lots of values</a></li>
+      <li><a href="#Informative-names">Informative names</a></li>
+      <li><a href="#Skipping-tests">Skipping tests</a></li>
+      <li><a href="#Todo-tests">Todo tests</a></li>
+      <li><a href="#Testing-with-taint-mode.">Testing with taint mode.</a></li>
+    </ul>
+  </li>
+  <li><a href="#FOOTNOTES">FOOTNOTES</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#MAINTAINERS">MAINTAINERS</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Test::Tutorial - A tutorial about writing really basic tests</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><i>AHHHHHHH!!!! NOT TESTING! Anything but testing! Beat me, whip me, send me to Detroit, but don&#39;t make me write tests!</i></p>
+
+<p><i>*sob*</i></p>
+
+<p><i>Besides, I don&#39;t know how to write the damned things.</i></p>
+
+<p>Is this you? Is writing tests right up there with writing documentation and having your fingernails pulled out? Did you open up a test and read</p>
+
+<pre><code><code>    <span class="comment">######## We start with some black magic</span>
+</code></code></pre>
+
+<p>and decide that&#39;s quite enough for you?</p>
+
+<p>It&#39;s ok. That&#39;s all gone now. We&#39;ve done all the black magic for you. And here are the tricks...</p>
+
+<h2 id="Nuts-and-bolts-of-testing.">Nuts and bolts of testing.</h2>
+
+<p>Here&#39;s the most basic test program.</p>
+
+<pre><code><code>    <span class="comment">#!/usr/bin/perl -w</span>
+    
+    <span class="keyword">print</span> <span class="string">"1..1\n"</span><span class="operator">;</span>
+    
+    <span class="keyword">print</span> <span class="number">1</span> <span class="operator">+</span> <span class="number">1</span> <span class="operator">==</span> <span class="number">2</span> <span class="operator">?</span> <span class="string">"ok 1\n"</span> <span class="operator">:</span> <span class="string">"not ok 1\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Because 1 + 1 is 2, it prints:</p>
+
+<pre><code><code>    1..1
+    ok 1</code></code></pre>
+
+<p>What this says is: <code><code>1..1</code></code> &quot;I&#39;m going to run one test.&quot; [1] <code><code>ok 1</code></code> &quot;The first test passed&quot;. And that&#39;s about all magic there is to testing. Your basic unit of testing is the <i>ok</i>. For each thing you test, an <code><code>ok</code></code> is printed. Simple. <a href="../../../lib/Test/Harness.html">Test::Harness</a> interprets your test results to determine if you succeeded or failed (more on that later).</p>
+
+<p>Writing all these print statements rapidly gets tedious. Fortunately, there&#39;s <a href="../../../lib/Test/Simple.html">Test::Simple</a>. It has one function, <code><code>ok()</code></code>.</p>
+
+<pre><code><code>    <span class="comment">#!/usr/bin/perl -w</span>
+    
+    <span class="keyword">use</span> <span class="variable">Test::Simple</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">;</span>
+    
+    <span class="variable">ok</span><span class="operator">(</span> <span class="number">1</span> <span class="operator">+</span> <span class="number">1</span> <span class="operator">==</span> <span class="number">2</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>That does the same thing as the previous code. <code><code>ok()</code></code> is the backbone of Perl testing, and we&#39;ll be using it instead of roll-your-own from here on. If <code><code>ok()</code></code> gets a true value, the test passes. False, it fails.</p>
+
+<pre><code><code>    <span class="comment">#!/usr/bin/perl -w</span>
+    
+    <span class="keyword">use</span> <span class="variable">Test::Simple</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">;</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="number">1</span> <span class="operator">+</span> <span class="number">1</span> <span class="operator">==</span> <span class="number">2</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="number">2</span> <span class="operator">+</span> <span class="number">2</span> <span class="operator">==</span> <span class="number">5</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>From that comes:</p>
+
+<pre><code><code>    1..2
+    ok 1
+    not ok 2
+    #     Failed test (test.pl at line 5)
+    # Looks like you failed 1 tests of 2.</code></code></pre>
+
+<p><code><code>1..2</code></code> &quot;I&#39;m going to run two tests.&quot; This number is a <i>plan</i>. It helps to ensure your test program ran all the way through and didn&#39;t die or skip some tests. <code><code>ok 1</code></code> &quot;The first test passed.&quot; <code><code>not ok 2</code></code> &quot;The second test failed&quot;. Test::Simple helpfully prints out some extra commentary about your tests.</p>
+
+<p>It&#39;s not scary. Come, hold my hand. We&#39;re going to give an example of testing a module. For our example, we&#39;ll be testing a date library, <a>Date::ICal</a>. It&#39;s on CPAN, so download a copy and follow along. [2]</p>
+
+<h2 id="Where-to-start-">Where to start?</h2>
+
+<p>This is the hardest part of testing, where do you start? People often get overwhelmed at the apparent enormity of the task of testing a whole module. The best place to start is at the beginning. <a>Date::ICal</a> is an object-oriented module, and that means you start by making an object. Test <code><code>new()</code></code>.</p>
+
+<pre><code><code>    <span class="comment">#!/usr/bin/perl -w</span>
+    
+    <span class="comment"># assume these two lines are in all subsequent examples</span>
+    <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">warnings</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">Test::Simple</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">Date::ICal</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$ical</span> <span class="operator">=</span> <span class="variable">Date::ICal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>         <span class="comment"># create an object</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="keyword">defined</span> <span class="variable">$ical</span> <span class="operator">);</span>                <span class="comment"># check that we got something</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">isa</span><span class="operator">(</span><span class="string">'Date::ICal'</span><span class="operator">)</span> <span class="operator">);</span>     <span class="comment"># and it's the right class</span>
+</code></code></pre>
+
+<p>Run that and you should get:</p>
+
+<pre><code><code>    1..2
+    ok 1
+    ok 2</code></code></pre>
+
+<p>Congratulations! You&#39;ve written your first useful test.</p>
+
+<h2 id="Names">Names</h2>
+
+<p>That output isn&#39;t terribly descriptive, is it? When you have two tests you can figure out which one is #2, but what if you have 102 tests?</p>
+
+<p>Each test can be given a little descriptive name as the second argument to <code><code>ok()</code></code>.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::Simple</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">;</span>
+    
+    <span class="variable">ok</span><span class="operator">(</span> <span class="keyword">defined</span> <span class="variable">$ical</span><span class="operator">,</span>              <span class="string">'new() returned something'</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">isa</span><span class="operator">(</span><span class="string">'Date::ICal'</span><span class="operator">),</span>   <span class="string">"  and it's the right class"</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Now you&#39;ll see:</p>
+
+<pre><code><code>    1..2
+    ok 1 - new() returned something
+    ok 2 -   and it&#39;s the right class</code></code></pre>
+
+<h2 id="Test-the-manual">Test the manual</h2>
+
+<p>The simplest way to build up a decent testing suite is to just test what the manual says it does. [3] Let&#39;s pull something out of the <a>&quot;SYNOPSIS&quot; in Date::ICal</a> and test that all its bits work.</p>
+
+<pre><code><code>    <span class="comment">#!/usr/bin/perl -w</span>
+    
+    <span class="keyword">use</span> <span class="variable">Test::Simple</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">8</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">Date::ICal</span><span class="operator">;</span>
+    
+    <span class="variable">$ical</span> <span class="operator">=</span> <span class="variable">Date::ICal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">year</span> <span class="operator">=&gt;</span> <span class="number">1964</span><span class="operator">,</span> <span class="string">month</span> <span class="operator">=&gt;</span> <span class="number">10</span><span class="operator">,</span> <span class="string">day</span> <span class="operator">=&gt;</span> <span class="number">16</span><span class="operator">,</span>
+                             <span class="string">hour</span> <span class="operator">=&gt;</span> <span class="number">16</span><span class="operator">,</span>   <span class="string">min</span>   <span class="operator">=&gt;</span> <span class="number">12</span><span class="operator">,</span> <span class="string">sec</span> <span class="operator">=&gt;</span> <span class="number">47</span><span class="operator">,</span>
+                             <span class="string">tz</span>   <span class="operator">=&gt;</span> <span class="string">'0530'</span> <span class="operator">);</span>
+    
+    <span class="variable">ok</span><span class="operator">(</span> <span class="keyword">defined</span> <span class="variable">$ical</span><span class="operator">,</span>            <span class="string">'new() returned something'</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">isa</span><span class="operator">(</span><span class="string">'Date::ICal'</span><span class="operator">),</span> <span class="string">"  and it's the right class"</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">sec</span>   <span class="operator">==</span> <span class="number">47</span><span class="operator">,</span>       <span class="string">'  sec()'</span>   <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">min</span>   <span class="operator">==</span> <span class="number">12</span><span class="operator">,</span>       <span class="string">'  min()'</span>   <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">hour</span>  <span class="operator">==</span> <span class="number">16</span><span class="operator">,</span>       <span class="string">'  hour()'</span>  <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">day</span>   <span class="operator">==</span> <span class="number">17</span><span class="operator">,</span>       <span class="string">'  day()'</span>   <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">month</span> <span class="operator">==</span> <span class="number">10</span><span class="operator">,</span>       <span class="string">'  month()'</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">year</span>  <span class="operator">==</span> <span class="number">1964</span><span class="operator">,</span>     <span class="string">'  year()'</span>  <span class="operator">);</span>
+</code></code></pre>
+
+<p>Run that and you get:</p>
+
+<pre><code><code>    1..8
+    ok 1 - new() returned something
+    ok 2 -   and it&#39;s the right class
+    ok 3 -   sec()
+    ok 4 -   min()
+    ok 5 -   hour()
+    not ok 6 -   day()
+    #     Failed test (- at line 16)
+    ok 7 -   month()
+    ok 8 -   year()
+    # Looks like you failed 1 tests of 8.</code></code></pre>
+
+<p>Whoops, a failure! [4] <a href="../../../lib/Test/Simple.html">Test::Simple</a> helpfully lets us know on what line the failure occurred, but not much else. We were supposed to get 17, but we didn&#39;t. What did we get?? Dunno. You could re-run the test in the debugger or throw in some print statements to find out.</p>
+
+<p>Instead, switch from <a href="../../../lib/Test/Simple.html">Test::Simple</a> to <a href="../../../lib/Test/More.html">Test::More</a>. <a href="../../../lib/Test/More.html">Test::More</a> does everything <a href="../../../lib/Test/Simple.html">Test::Simple</a> does, and more! In fact, <a href="../../../lib/Test/More.html">Test::More</a> does things <i>exactly</i> the way <a href="../../../lib/Test/Simple.html">Test::Simple</a> does. You can literally swap <a href="../../../lib/Test/Simple.html">Test::Simple</a> out and put <a href="../../../lib/Test/More.html">Test::More</a> in its place. That&#39;s just what we&#39;re going to do.</p>
+
+<p><a href="../../../lib/Test/More.html">Test::More</a> does more than <a href="../../../lib/Test/Simple.html">Test::Simple</a>. The most important difference at this point is it provides more informative ways to say &quot;ok&quot;. Although you can write almost any test with a generic <code><code>ok()</code></code>, it can&#39;t tell you what went wrong. The <code><code>is()</code></code> function lets us declare that something is supposed to be the same as something else:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">8</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">Date::ICal</span><span class="operator">;</span>
+    
+    <span class="variable">$ical</span> <span class="operator">=</span> <span class="variable">Date::ICal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">year</span> <span class="operator">=&gt;</span> <span class="number">1964</span><span class="operator">,</span> <span class="string">month</span> <span class="operator">=&gt;</span> <span class="number">10</span><span class="operator">,</span> <span class="string">day</span> <span class="operator">=&gt;</span> <span class="number">16</span><span class="operator">,</span>
+                             <span class="string">hour</span> <span class="operator">=&gt;</span> <span class="number">16</span><span class="operator">,</span>   <span class="string">min</span>   <span class="operator">=&gt;</span> <span class="number">12</span><span class="operator">,</span> <span class="string">sec</span> <span class="operator">=&gt;</span> <span class="number">47</span><span class="operator">,</span>
+                             <span class="string">tz</span>   <span class="operator">=&gt;</span> <span class="string">'0530'</span> <span class="operator">);</span>
+    
+    <span class="variable">ok</span><span class="operator">(</span> <span class="keyword">defined</span> <span class="variable">$ical</span><span class="operator">,</span>            <span class="string">'new() returned something'</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">isa</span><span class="operator">(</span><span class="string">'Date::ICal'</span><span class="operator">),</span> <span class="string">"  and it's the right class"</span> <span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">sec</span><span class="operator">,</span>     <span class="number">47</span><span class="operator">,</span>       <span class="string">'  sec()'</span>   <span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">min</span><span class="operator">,</span>     <span class="number">12</span><span class="operator">,</span>       <span class="string">'  min()'</span>   <span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">hour</span><span class="operator">,</span>    <span class="number">16</span><span class="operator">,</span>       <span class="string">'  hour()'</span>  <span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">day</span><span class="operator">,</span>     <span class="number">17</span><span class="operator">,</span>       <span class="string">'  day()'</span>   <span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">month</span><span class="operator">,</span>   <span class="number">10</span><span class="operator">,</span>       <span class="string">'  month()'</span> <span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">year</span><span class="operator">,</span>    <span class="number">1964</span><span class="operator">,</span>     <span class="string">'  year()'</span>  <span class="operator">);</span>
+</code></code></pre>
+
+<p>&quot;Is <code><code>$ical-&gt;sec</code></code> 47?&quot; &quot;Is <code><code>$ical-&gt;min</code></code> 12?&quot; With <code><code>is()</code></code> in place, you get more information:</p>
+
+<pre><code><code>    1..8
+    ok 1 - new() returned something
+    ok 2 -   and it&#39;s the right class
+    ok 3 -   sec()
+    ok 4 -   min()
+    ok 5 -   hour()
+    not ok 6 -   day()
+    #     Failed test (- at line 16)
+    #          got: &#39;16&#39;
+    #     expected: &#39;17&#39;
+    ok 7 -   month()
+    ok 8 -   year()
+    # Looks like you failed 1 tests of 8.</code></code></pre>
+
+<p>Aha. <code><code>$ical-&gt;day</code></code> returned 16, but we expected 17. A quick check shows that the code is working fine, we made a mistake when writing the tests. Change it to:</p>
+
+<pre><code><code>    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">day</span><span class="operator">,</span>     <span class="number">16</span><span class="operator">,</span>       <span class="string">'  day()'</span>   <span class="operator">);</span>
+</code></code></pre>
+
+<p>... and everything works.</p>
+
+<p>Any time you&#39;re doing a &quot;this equals that&quot; sort of test, use <code><code>is()</code></code>. It even works on arrays. The test is always in scalar context, so you can test how many elements are in an array this way. [5]</p>
+
+<pre><code><code>    <span class="variable">is</span><span class="operator">(</span> <span class="variable">@foo</span><span class="operator">,</span> <span class="number">5</span><span class="operator">,</span> <span class="string">'foo has 5 elements'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="Sometimes-the-tests-are-wrong">Sometimes the tests are wrong</h2>
+
+<p>This brings up a very important lesson. Code has bugs. Tests are code. Ergo, tests have bugs. A failing test could mean a bug in the code, but don&#39;t discount the possibility that the test is wrong.</p>
+
+<p>On the flip side, don&#39;t be tempted to prematurely declare a test incorrect just because you&#39;re having trouble finding the bug. Invalidating a test isn&#39;t something to be taken lightly, and don&#39;t use it as a cop out to avoid work.</p>
+
+<h2 id="Testing-lots-of-values">Testing lots of values</h2>
+
+<p>We&#39;re going to be wanting to test a lot of dates here, trying to trick the code with lots of different edge cases. Does it work before 1970? After 2038? Before 1904? Do years after 10,000 give it trouble? Does it get leap years right? We could keep repeating the code above, or we could set up a little try/expect loop.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">32</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Date::ICal</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">%ICal_Dates</span> <span class="operator">=</span> <span class="operator">(</span>
+            <span class="comment"># An ICal string     And the year, month, day</span>
+            <span class="comment">#                    hour, minute and second we expect.</span>
+            <span class="string">'19971024T120000'</span> <span class="operator">=&gt;</span>    <span class="comment"># from the docs.</span>
+                                <span class="operator">[</span> <span class="number">1997</span><span class="operator">,</span> <span class="number">10</span><span class="operator">,</span> <span class="number">24</span><span class="operator">,</span> <span class="number">12</span><span class="operator">,</span>  <span class="number">0</span><span class="operator">,</span>  <span class="number">0</span> <span class="operator">]</span><span class="operator">,</span>
+            <span class="string">'20390123T232832'</span> <span class="operator">=&gt;</span>    <span class="comment"># after the Unix epoch</span>
+                                <span class="operator">[</span> <span class="number">2039</span><span class="operator">,</span>  <span class="number">1</span><span class="operator">,</span> <span class="number">23</span><span class="operator">,</span> <span class="number">23</span><span class="operator">,</span> <span class="number">28</span><span class="operator">,</span> <span class="number">32</span> <span class="operator">]</span><span class="operator">,</span>
+            <span class="string">'19671225T000000'</span> <span class="operator">=&gt;</span>    <span class="comment"># before the Unix epoch</span>
+                                <span class="operator">[</span> <span class="number">1967</span><span class="operator">,</span> <span class="number">12</span><span class="operator">,</span> <span class="number">25</span><span class="operator">,</span>  <span class="number">0</span><span class="operator">,</span>  <span class="number">0</span><span class="operator">,</span>  <span class="number">0</span> <span class="operator">]</span><span class="operator">,</span>
+            <span class="string">'18990505T232323'</span> <span class="operator">=&gt;</span>    <span class="comment"># before the MacOS epoch</span>
+                                <span class="operator">[</span> <span class="number">1899</span><span class="operator">,</span>  <span class="number">5</span><span class="operator">,</span>  <span class="number">5</span><span class="operator">,</span> <span class="number">23</span><span class="operator">,</span> <span class="number">23</span><span class="operator">,</span> <span class="number">23</span> <span class="operator">]</span><span class="operator">,</span>
+    <span class="operator">);</span>
+    
+    
+    <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span><span class="operator">(</span><span class="variable">$ical_str</span><span class="operator">,</span> <span class="variable">$expect</span><span class="operator">)</span> <span class="operator">=</span> <span class="keyword">each</span> <span class="variable">%ICal_Dates</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$ical</span> <span class="operator">=</span> <span class="variable">Date::ICal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">ical</span> <span class="operator">=&gt;</span> <span class="variable">$ical_str</span> <span class="operator">);</span>
+    
+        <span class="variable">ok</span><span class="operator">(</span> <span class="keyword">defined</span> <span class="variable">$ical</span><span class="operator">,</span>            <span class="string">"new(ical =&gt; '</span><span class="variable">$ical_str</span><span class="string">')"</span> <span class="operator">);</span>
+        <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">isa</span><span class="operator">(</span><span class="string">'Date::ICal'</span><span class="operator">),</span> <span class="string">"  and it's the right class"</span> <span class="operator">);</span>
+    
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">year</span><span class="operator">,</span>    <span class="variable">$expect</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">,</span>     <span class="string">'  year()'</span>  <span class="operator">);</span>
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">month</span><span class="operator">,</span>   <span class="variable">$expect</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">,</span>     <span class="string">'  month()'</span> <span class="operator">);</span>
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">day</span><span class="operator">,</span>     <span class="variable">$expect</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">2</span><span class="operator">]</span><span class="operator">,</span>     <span class="string">'  day()'</span>   <span class="operator">);</span>
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">hour</span><span class="operator">,</span>    <span class="variable">$expect</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">3</span><span class="operator">]</span><span class="operator">,</span>     <span class="string">'  hour()'</span>  <span class="operator">);</span>
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">min</span><span class="operator">,</span>     <span class="variable">$expect</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">4</span><span class="operator">]</span><span class="operator">,</span>     <span class="string">'  min()'</span>   <span class="operator">);</span>
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">sec</span><span class="operator">,</span>     <span class="variable">$expect</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">5</span><span class="operator">]</span><span class="operator">,</span>     <span class="string">'  sec()'</span>   <span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>Now we can test bunches of dates by just adding them to <code><code>%ICal_Dates</code></code>. Now that it&#39;s less work to test with more dates, you&#39;ll be inclined to just throw more in as you think of them. Only problem is, every time we add to that we have to keep adjusting the <a href="#use-Test::More-tests-">&quot;use Test::More tests =&gt; ##&quot;</a> line. That can rapidly get annoying. There are ways to make this work better.</p>
+
+<p>First, we can calculate the plan dynamically using the <code><code>plan()</code></code> function.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::More</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Date::ICal</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">%ICal_Dates</span> <span class="operator">=</span> <span class="operator">(</span>
+        <span class="operator">...</span><span class="variable">same</span> <span class="variable">as</span> <span class="variable">before</span><span class="operator">...</span>
+    <span class="operator">);</span>
+    
+    <span class="comment"># For each key in the hash we're running 8 tests.</span>
+    <span class="variable">plan</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="keyword">keys</span><span class="operator">(</span><span class="variable">%ICal_Dates</span><span class="operator">)</span> <span class="operator">*</span> <span class="number">8</span><span class="operator">;</span>
+    
+    <span class="operator">...</span><span class="keyword">and</span> <span class="variable">then</span> <span class="variable">your</span> <span class="variable">tests</span><span class="operator">...</span>
+</code></code></pre>
+
+<p>To be even more flexible, use <code><code>done_testing</code></code>. This means we&#39;re just running some tests, don&#39;t know how many. [6]</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::More</span><span class="operator">;</span>   <span class="comment"># instead of tests =&gt; 32</span>
+    
+    <span class="operator">...</span> <span class="comment"># tests here</span>
+    
+    <span class="variable">done_testing</span><span class="operator">();</span>   <span class="comment"># reached the end safely</span>
+</code></code></pre>
+
+<p>If you don&#39;t specify a plan, <a href="../../../lib/Test/More.html">Test::More</a> expects to see <code><code>done_testing()</code></code> before your program exits. It will warn you if you forget it. You can give <code><code>done_testing()</code></code> an optional number of tests you expected to run, and if the number ran differs, <a href="../../../lib/Test/More.html">Test::More</a> will give you another kind of warning.</p>
+
+<h2 id="Informative-names">Informative names</h2>
+
+<p>Take a look at the line:</p>
+
+<pre><code><code>    <span class="variable">ok</span><span class="operator">(</span> <span class="keyword">defined</span> <span class="variable">$ical</span><span class="operator">,</span>            <span class="string">"new(ical =&gt; '</span><span class="variable">$ical_str</span><span class="string">')"</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>We&#39;ve added more detail about what we&#39;re testing and the ICal string itself we&#39;re trying out to the name. So you get results like:</p>
+
+<pre><code><code>    ok 25 - new(ical =&gt; &#39;19971024T120000&#39;)
+    ok 26 -   and it&#39;s the right class
+    ok 27 -   year()
+    ok 28 -   month()
+    ok 29 -   day()
+    ok 30 -   hour()
+    ok 31 -   min()
+    ok 32 -   sec()</code></code></pre>
+
+<p>If something in there fails, you&#39;ll know which one it was and that will make tracking down the problem easier. Try to put a bit of debugging information into the test names.</p>
+
+<p>Describe what the tests test, to make debugging a failed test easier for you or for the next person who runs your test.</p>
+
+<h2 id="Skipping-tests">Skipping tests</h2>
+
+<p>Poking around in the existing Date::ICal tests, I found this in <i>t/01sanity.t</i> [7]</p>
+
+<pre><code><code>    <span class="comment">#!/usr/bin/perl -w</span>
+    
+    <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">7</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Date::ICal</span><span class="operator">;</span>
+    
+    <span class="comment"># Make sure epoch time is being handled sanely.</span>
+    <span class="keyword">my</span> <span class="variable">$t1</span> <span class="operator">=</span> <span class="variable">Date::ICal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">epoch</span> <span class="operator">=&gt;</span> <span class="number">0</span> <span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t1</span><span class="operator">-&gt;</span><span class="variable">epoch</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span>          <span class="string">"Epoch time of 0"</span> <span class="operator">);</span>
+    
+    <span class="comment"># XXX This will only work on unix systems.</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t1</span><span class="operator">-&gt;</span><span class="variable">ical</span><span class="operator">,</span> <span class="string">'19700101Z'</span><span class="operator">,</span> <span class="string">"  epoch to ical"</span> <span class="operator">);</span>
+    
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t1</span><span class="operator">-&gt;</span><span class="variable">year</span><span class="operator">,</span>  <span class="number">1970</span><span class="operator">,</span>       <span class="string">"  year()"</span>  <span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t1</span><span class="operator">-&gt;</span><span class="variable">month</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span>          <span class="string">"  month()"</span> <span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t1</span><span class="operator">-&gt;</span><span class="variable">day</span><span class="operator">,</span>   <span class="number">1</span><span class="operator">,</span>          <span class="string">"  day()"</span>   <span class="operator">);</span>
+    
+    <span class="comment"># like the tests above, but starting with ical instead of epoch</span>
+    <span class="keyword">my</span> <span class="variable">$t2</span> <span class="operator">=</span> <span class="variable">Date::ICal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">ical</span> <span class="operator">=&gt;</span> <span class="string">'19700101Z'</span> <span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t2</span><span class="operator">-&gt;</span><span class="variable">ical</span><span class="operator">,</span> <span class="string">'19700101Z'</span><span class="operator">,</span> <span class="string">"Start of epoch in ICal notation"</span> <span class="operator">);</span>
+    
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t2</span><span class="operator">-&gt;</span><span class="variable">epoch</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span>          <span class="string">"  and back to ICal"</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>The beginning of the epoch is different on most non-Unix operating systems [8]. Even though Perl smooths out the differences for the most part, certain ports do it differently. MacPerl is one off the top of my head. [9] Rather than putting a comment in the test and hoping someone will read the test while debugging the failure, we can explicitly say it&#39;s never going to work and skip the test.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">7</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Date::ICal</span><span class="operator">;</span>
+    
+    <span class="comment"># Make sure epoch time is being handled sanely.</span>
+    <span class="keyword">my</span> <span class="variable">$t1</span> <span class="operator">=</span> <span class="variable">Date::ICal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">epoch</span> <span class="operator">=&gt;</span> <span class="number">0</span> <span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t1</span><span class="operator">-&gt;</span><span class="variable">epoch</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span>          <span class="string">"Epoch time of 0"</span> <span class="operator">);</span>
+    
+    <span class="variable">SKIP</span><span class="operator">:</span> <span class="operator">{</span>
+        <span class="variable">skip</span><span class="operator">(</span><span class="string">'epoch to ICal not working on Mac OS'</span><span class="operator">,</span> <span class="number">6</span><span class="operator">)</span>
+            <span class="keyword">if</span> <span class="variable">$^O</span> <span class="keyword">eq</span> <span class="string">'MacOS'</span><span class="operator">;</span>
+    
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t1</span><span class="operator">-&gt;</span><span class="variable">ical</span><span class="operator">,</span> <span class="string">'19700101Z'</span><span class="operator">,</span> <span class="string">"  epoch to ical"</span> <span class="operator">);</span>
+    
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t1</span><span class="operator">-&gt;</span><span class="variable">year</span><span class="operator">,</span>  <span class="number">1970</span><span class="operator">,</span>       <span class="string">"  year()"</span>  <span class="operator">);</span>
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t1</span><span class="operator">-&gt;</span><span class="variable">month</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span>          <span class="string">"  month()"</span> <span class="operator">);</span>
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t1</span><span class="operator">-&gt;</span><span class="variable">day</span><span class="operator">,</span>   <span class="number">1</span><span class="operator">,</span>          <span class="string">"  day()"</span>   <span class="operator">);</span>
+    
+        <span class="comment"># like the tests above, but starting with ical instead of epoch</span>
+        <span class="keyword">my</span> <span class="variable">$t2</span> <span class="operator">=</span> <span class="variable">Date::ICal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">ical</span> <span class="operator">=&gt;</span> <span class="string">'19700101Z'</span> <span class="operator">);</span>
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t2</span><span class="operator">-&gt;</span><span class="variable">ical</span><span class="operator">,</span> <span class="string">'19700101Z'</span><span class="operator">,</span> <span class="string">"Start of epoch in ICal notation"</span> <span class="operator">);</span>
+    
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$t2</span><span class="operator">-&gt;</span><span class="variable">epoch</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span>          <span class="string">"  and back to ICal"</span> <span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>A little bit of magic happens here. When running on anything but MacOS, all the tests run normally. But when on MacOS, <code><code>skip()</code></code> causes the entire contents of the SKIP block to be jumped over. It never runs. Instead, <code><code>skip()</code></code> prints special output that tells <a href="../../../lib/Test/Harness.html">Test::Harness</a> that the tests have been skipped.</p>
+
+<pre><code><code>    1..7
+    ok 1 - Epoch time of 0
+    ok 2 # skip epoch to ICal not working on MacOS
+    ok 3 # skip epoch to ICal not working on MacOS
+    ok 4 # skip epoch to ICal not working on MacOS
+    ok 5 # skip epoch to ICal not working on MacOS
+    ok 6 # skip epoch to ICal not working on MacOS
+    ok 7 # skip epoch to ICal not working on MacOS</code></code></pre>
+
+<p>This means your tests won&#39;t fail on MacOS. This means fewer emails from MacPerl users telling you about failing tests that you know will never work. You&#39;ve got to be careful with skip tests. These are for tests which don&#39;t work and <i>never will</i>. It is not for skipping genuine bugs (we&#39;ll get to that in a moment).</p>
+
+<p>The tests are wholly and completely skipped. [10] This will work.</p>
+
+<pre><code><code>    <span class="variable">SKIP</span><span class="operator">:</span> <span class="operator">{</span>
+        <span class="variable">skip</span><span class="operator">(</span><span class="string">"I don't wanna die!"</span><span class="operator">);</span>
+    
+        <span class="keyword">die</span><span class="operator">,</span> <span class="keyword">die</span><span class="operator">,</span> <span class="keyword">die</span><span class="operator">,</span> <span class="keyword">die</span><span class="operator">,</span> <span class="keyword">die</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="Todo-tests">Todo tests</h2>
+
+<p>While thumbing through the <a>Date::ICal</a> man page, I came across this:</p>
+
+<pre><code><code>   <span class="variable">ical</span>
+   
+       <span class="variable">$ical_string</span> <span class="operator">=</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">ical</span><span class="operator">;</span>
+   
+   <span class="variable">Retrieves</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">sets</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">date</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">using</span> <span class="variable">any</span>
+   <span class="variable">valid</span> <span class="variable">ICal</span> <span class="variable">date</span><span class="operator">/</span><span class="keyword">time</span> <span class="variable">string</span><span class="operator">.</span>
+</code></code></pre>
+
+<p>&quot;Retrieves or sets&quot;. Hmmm. I didn&#39;t see a test for using <code><code>ical()</code></code> to set the date in the Date::ICal test suite. So I wrote one:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Date::ICal</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$ical</span> <span class="operator">=</span> <span class="variable">Date::ICal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+    <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">ical</span><span class="operator">(</span><span class="string">'20201231Z'</span><span class="operator">);</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">ical</span><span class="operator">,</span> <span class="string">'20201231Z'</span><span class="operator">,</span>   <span class="string">'Setting via ical()'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Run that. I saw:</p>
+
+<pre><code><code>    1..1
+    not ok 1 - Setting via ical()
+    #     Failed test (- at line 6)
+    #          got: &#39;20010814T233649Z&#39;
+    #     expected: &#39;20201231Z&#39;
+    # Looks like you failed 1 tests of 1.</code></code></pre>
+
+<p>Whoops! Looks like it&#39;s unimplemented. Assume you don&#39;t have the time to fix this. [11] Normally, you&#39;d just comment out the test and put a note in a todo list somewhere. Instead, explicitly state &quot;this test will fail&quot; by wrapping it in a <code><code>TODO</code></code> block:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">;</span>
+    
+    <span class="variable">TODO</span><span class="operator">:</span> <span class="operator">{</span>
+        <span class="keyword">local</span> <span class="variable">$TODO</span> <span class="operator">=</span> <span class="string">'ical($ical) not yet implemented'</span><span class="operator">;</span>
+    
+        <span class="keyword">my</span> <span class="variable">$ical</span> <span class="operator">=</span> <span class="variable">Date::ICal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+        <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">ical</span><span class="operator">(</span><span class="string">'20201231Z'</span><span class="operator">);</span>
+    
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$ical</span><span class="operator">-&gt;</span><span class="variable">ical</span><span class="operator">,</span> <span class="string">'20201231Z'</span><span class="operator">,</span>   <span class="string">'Setting via ical()'</span> <span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>Now when you run, it&#39;s a little different:</p>
+
+<pre><code><code>    1..1
+    not ok 1 - Setting via ical() # TODO ical($ical) not yet implemented
+    #          got: &#39;20010822T201551Z&#39;
+    #     expected: &#39;20201231Z&#39;</code></code></pre>
+
+<p><a href="../../../lib/Test/More.html">Test::More</a> doesn&#39;t say &quot;Looks like you failed 1 tests of 1&quot;. That &#39;# TODO&#39; tells <a href="../../../lib/Test/Harness.html">Test::Harness</a> &quot;this is supposed to fail&quot; and it treats a failure as a successful test. You can write tests even before you&#39;ve fixed the underlying code.</p>
+
+<p>If a TODO test passes, <a href="../../../lib/Test/Harness.html">Test::Harness</a> will report it &quot;UNEXPECTEDLY SUCCEEDED&quot;. When that happens, remove the TODO block with <code><code>local $TODO</code></code> and turn it into a real test.</p>
+
+<h2 id="Testing-with-taint-mode.">Testing with taint mode.</h2>
+
+<p>Taint mode is a funny thing. It&#39;s the globalest of all global features. Once you turn it on, it affects <i>all</i> code in your program and <i>all</i> modules used (and all the modules they use). If a single piece of code isn&#39;t taint clean, the whole thing explodes. With that in mind, it&#39;s very important to ensure your module works under taint mode.</p>
+
+<p>It&#39;s very simple to have your tests run under taint mode. Just throw a <code><code>-T</code></code> into the <code><code><span class="comment">#!</span>
+</code></code> line. <a href="../../../lib/Test/Harness.html">Test::Harness</a> will read the switches in <code><code><span class="comment">#!</span>
+</code></code> and use them to run your tests.</p>
+
+<pre><code><code>    #!/usr/bin/perl -Tw
+
+    ...test normally here...</code></code></pre>
+
+<p>When you say <code><code>make test</code></code> it will run with taint mode on.</p>
+
+<h1 id="FOOTNOTES">FOOTNOTES</h1>
+
+<ol>
+
+<li><p>The first number doesn&#39;t really mean anything, but it has to be 1. It&#39;s the second number that&#39;s important.</p>
+
+</li>
+<li><p>For those following along at home, I&#39;m using version 1.31. It has some bugs, which is good -- we&#39;ll uncover them with our tests.</p>
+
+</li>
+<li><p>You can actually take this one step further and test the manual itself. Have a look at <a>Test::Inline</a> (formerly <a>Pod::Tests</a>).</p>
+
+</li>
+<li><p>Yes, there&#39;s a mistake in the test suite. What! Me, contrived?</p>
+
+</li>
+<li><p>We&#39;ll get to testing the contents of lists later.</p>
+
+</li>
+<li><p>But what happens if your test program dies halfway through?! Since we didn&#39;t say how many tests we&#39;re going to run, how can we know it failed? No problem, <a href="../../../lib/Test/More.html">Test::More</a> employs some magic to catch that death and turn the test into a failure, even if every test passed up to that point.</p>
+
+</li>
+<li><p>I cleaned it up a little.</p>
+
+</li>
+<li><p>Most Operating Systems record time as the number of seconds since a certain date. This date is the beginning of the epoch. Unix&#39;s starts at midnight January 1st, 1970 GMT.</p>
+
+</li>
+<li><p>MacOS&#39;s epoch is midnight January 1st, 1904. VMS&#39;s is midnight, November 17th, 1858, but vmsperl emulates the Unix epoch so it&#39;s not a problem.</p>
+
+</li>
+<li><p>As long as the code inside the SKIP block at least compiles. Please don&#39;t ask how. No, it&#39;s not a filter.</p>
+
+</li>
+<li><p>Do NOT be tempted to use TODO tests as a way to avoid fixing simple bugs!</p>
+
+</li>
+</ol>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Michael G Schwern &lt;schwern@pobox.com&gt; and the perl-qa dancers!</p>
+
+<h1 id="MAINTAINERS">MAINTAINERS</h1>
+
+<dl>
+
+<dt id="Chad-Granum-exodist-cpan.org">Chad Granum &lt;exodist@cpan.org&gt;</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright 2001 by Michael G Schwern &lt;schwern@pobox.com&gt;.</p>
+
+<p>This documentation is free; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<p>Irrespective of its distribution, all code examples in these files are hereby placed into the public domain. You are permitted and encouraged to use this code in your own programs for fun or for profit as you see fit. A simple comment in the code giving credit would be courteous but is not required.</p>
+
+
+</body>
+
+</html>
+
+

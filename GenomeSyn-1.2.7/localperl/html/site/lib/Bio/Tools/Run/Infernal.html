@@ -1,0 +1,405 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Chris-Fields">AUTHOR - Chris Fields</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#program">program</a></li>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#model_file">model_file</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#version">version</a></li>
+      <li><a href="#run">run</a></li>
+    </ul>
+  </li>
+  <li><a href="#Specific-program-interface-methods">Specific program interface methods</a>
+    <ul>
+      <li><a href="#cmsearch">cmsearch</a></li>
+      <li><a href="#cmalign">cmalign</a></li>
+      <li><a href="#cmemit">cmemit</a></li>
+      <li><a href="#cmbuild">cmbuild</a></li>
+      <li><a href="#cmscore">cmscore</a></li>
+      <li><a href="#cmcalibrate">cmcalibrate</a></li>
+      <li><a href="#cmstat">cmstat</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::ParameterBaseI-specific-methods">Bio::ParameterBaseI-specific methods</a>
+    <ul>
+      <li><a href="#set_parameters">set_parameters</a></li>
+      <li><a href="#reset_parameters">reset_parameters</a></li>
+      <li><a href="#validate_parameters">validate_parameters</a></li>
+      <li><a href="#parameters_changed">parameters_changed</a></li>
+      <li><a href="#available_parameters">available_parameters</a></li>
+      <li><a href="#get_parameters">get_parameters</a></li>
+    </ul>
+  </li>
+  <li><a href="#to_-methods">to_* methods</a>
+    <ul>
+      <li><a href="#to_exe_string">to_exe_string</a></li>
+      <li><a href="#writeSeqFile">_writeSeqFile</a></li>
+      <li><a href="#writeAlignFile">_writeAlignFile</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::Infernal - Wrapper for local execution of cmalign, cmbuild, cmsearch, cmscore</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># parameters which are switches are set with any value that evals TRUE,</span>
+  <span class="comment"># others are set to a specific value</span>
+  
+  <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Infernal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="comment"># run cmalign|cmbuild|cmsearch|cmscore|cmemit directly as a wrapper method</span>
+  <span class="comment"># this resets the program flag if previously set</span>
+  
+  <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">cmsearch</span><span class="operator">(</span><span class="variable">@seqs</span><span class="operator">);</span> <span class="comment"># searches Bio::PrimarySeqI's based on set cov. model</span>
+                             <span class="comment"># saves output to optional outfile_name, returns</span>
+                             <span class="comment"># Bio::SearchIO</span>
+  
+  <span class="comment"># only values which are allowed for a program are set, so one can use the same</span>
+  <span class="comment"># wrapper for the following...</span>
+  
+  <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">cmalign</span><span class="operator">(</span><span class="variable">@seqs</span><span class="operator">);</span> <span class="comment"># aligns Bio::PrimarySeqI's to a set cov. model,</span>
+                            <span class="comment"># --merge option allows two alignments generated</span>
+                            <span class="comment">#     from the same CM to be merged.</span>
+                            <span class="comment"># output to outfile_name, returns Bio::AlignIO</span>
+  <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">cmscore</span><span class="operator">();</span>      <span class="comment"># scores set cov. model against Bio::PrimarySeqI,</span>
+                            <span class="comment"># output to outfile_name/STDOUT.</span>
+  <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">cmbuild</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span> <span class="comment"># builds covariance model based on alignment</span>
+                           <span class="comment"># CM to outfile_name or model_file (one is required</span>
+                           <span class="comment"># here), output to STDOUT.</span>
+  <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">cmemit</span><span class="operator">();</span>      <span class="comment"># emits sequence from specified cov. model;</span>
+                           <span class="comment"># set one if no file specified. output to</span>
+                           <span class="comment"># outfile_name, returns Bio::SeqIO or (if -a is set)</span>
+                           <span class="comment"># Bio::AlignIO</span>
+  <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">cmcalibrate</span><span class="operator">(</span><span class="variable">$file</span><span class="operator">);</span> <span class="comment"># calibrates specified cov. model; output to</span>
+                                <span class="comment"># STDOUT</span>
+  <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">cmstat</span><span class="operator">(</span><span class="variable">$file</span><span class="operator">);</span> <span class="comment"># summary stats for cov. model; set one if no file</span>
+                           <span class="comment"># specified; output to STDOUT</span>
+  
+  <span class="comment"># run based on the setting of the program parameter</span>
+  
+  <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Infernal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-program</span> <span class="operator">=&gt;</span> <span class="string">'cmsearch'</span><span class="operator">,</span>
+                                                <span class="variable">@params</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$search</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+  
+  <span class="comment"># using cmsearch returns a Bio::SearchIO object</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$searchio</span><span class="operator">-&gt;</span><span class="variable">next_result</span><span class="operator">){</span>
+   <span class="keyword">while</span><span class="operator">(</span><span class="keyword">my</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">next_hit</span><span class="operator">){</span>
+    <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$hsp</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">next_hsp</span><span class="operator">){</span>
+            <span class="keyword">print</span> <span class="keyword">join</span><span class="operator">(</span><span class="string">"\t"</span><span class="operator">,</span> <span class="operator">(</span> <span class="variable">$r</span><span class="operator">-&gt;</span><span class="variable">query_name</span><span class="operator">,</span>
+                               <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">,</span>
+                               <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">hit</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">,</span>
+                               <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">hit</span><span class="operator">-&gt;</span><span class="variable">end</span><span class="operator">,</span>
+                               <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">meta</span><span class="operator">,</span>
+                               <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">score</span><span class="operator">,</span>
+                               <span class="operator">)),</span> <span class="string">"\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+   <span class="operator">}</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Wrapper module for Sean Eddy&#39;s Infernal suite of programs. The current implementation runs cmsearch, cmcalibrate, cmalign, cmemit, cmbuild, cmscore, and cmstat. cmsearch will return a Bio::SearchIO, cmemit a Bio::SeqIO/AlignIO, and cmalign a Bio::AlignIO. All others send output to STDOUT. Optionally, any program&#39;s output can be redirected to outfile_name.</p>
+
+<p>We HIGHLY suggest upgrading to Infernal 1.0. In that spirit, this wrapper now supports parameters for Infernal 1.0 only; for wrapping older versions of Infernal we suggest using the version of Bio::Tools::Run::Infernal that came with previous versions of BioPerl-run.</p>
+
+<p>NOTE: Due to conflicts in the way Infernal parameters are now formatted vs. subroutine naming in Perl (specifically the inclusion of hyphens) and due to the very large number of parameters available, setting and resetting parameters via set_parameters() and reset_parameters() is required. All valid parameters can be set, but only ones valid for the executable set via program()/program_name() are used for calling the executables, the others are silently ignored.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Chris-Fields">AUTHOR - Chris Fields</h1>
+
+<pre><code><code> Email: cjfields-at-uiuc-dot-edu</code></code></pre>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<pre><code><code> cjfields-at-uiuc-dot-edu</code></code></pre>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : my $wrapper = Bio::Tools::Run::Infernal-&gt;new(@params)
+ Function: creates a new Infernal factory
+ Returns:  Bio::Tools::Run::Infernal wrapper
+ Args    : list of parameters</code></code></pre>
+
+<h2 id="program">program</h2>
+
+<pre><code><code> Title   :  program
+ Usage   :  $obj-&gt;program()
+ Function:  Set the program called when run() is used.  Synonym of
+            program_name()
+ Returns :  String (program name)
+ Args    :  String (program name)
+ Status  :  Unstable (may delegate to program_name, which is the interface method)</code></code></pre>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : $factory&gt;program_name()
+ Function: holds the program name
+ Returns:  string
+ Args    : None</code></code></pre>
+
+<h2 id="model_file">model_file</h2>
+
+<pre><code><code> Title   :  model_file
+ Usage   :  $obj-&gt;model_file()
+ Function:  Set the model file used when run() is called.
+ Returns :  String (file location of covariance model)
+ Args    :  String (file location of covariance model)</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> Title   : program_dir
+ Usage   : $factory-&gt;program_dir(@params)
+ Function: returns the program directory, obtained from ENV variable.
+ Returns:  string
+ Args    :</code></code></pre>
+
+<h2 id="version">version</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">version</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$v</span> <span class="operator">=</span> <span class="variable">$prog</span><span class="operator">-&gt;</span><span class="variable">version</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Determine</span> <span class="variable">the</span> <span class="variable">version</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">program</span> <span class="operator">(</span><span class="variable">uses</span> <span class="variable">cmsearch</span><span class="operator">)</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">float</span> <span class="keyword">or</span> <span class="keyword">undef</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="run">run</h2>
+
+<pre><code><code> Title   :   run
+ Usage   :   $obj-&gt;run($seqFile)
+ Function:   Runs Infernal and returns Bio::SearchIO
+ Returns :   A Bio::SearchIO
+ Args    :   A Bio::PrimarySeqI or file name</code></code></pre>
+
+<h1 id="Specific-program-interface-methods">Specific program interface methods</h1>
+
+<h2 id="cmsearch">cmsearch</h2>
+
+<pre><code><code> Title   :   cmsearch
+ Usage   :   $obj-&gt;cmsearch($seqFile)
+ Function:   Runs Infernal cmsearch and returns Bio::SearchIO
+ Returns :   A Bio::SearchIO
+ Args    :   Bio::PrimarySeqI or file name</code></code></pre>
+
+<h2 id="cmalign">cmalign</h2>
+
+<pre><code><code> Title   :   cmalign
+ Usage   :   $obj-&gt;cmalign($seqFile)
+ Function:   Runs Infernal cmalign and returns Bio::AlignIO
+ Returns :   A Bio::AlignIO
+ Args    :   Bio::PrimarySeqI or file name</code></code></pre>
+
+<h2 id="cmemit">cmemit</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span>   <span class="variable">cmemit</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>   <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">cmemit</span><span class="operator">(</span><span class="variable">$modelfile</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span>   <span class="variable">Runs</span> <span class="variable">Infernal</span> <span class="variable">cmemit</span> <span class="keyword">and</span> <span class="variable">returns</span> <span class="variable">Bio::AlignIO</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>   <span class="variable">A</span> <span class="variable">Bio::AlignIO</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>   <span class="variable">None</span><span class="operator">;</span> <span class="variable">set</span> <span class="variable">model_file</span><span class="operator">()</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="variable">a</span> <span class="variable">specific</span> <span class="variable">model</span>
+</code></code></pre>
+
+<h2 id="cmbuild">cmbuild</h2>
+
+<pre><code><code> Title   :   cmbuild
+ Usage   :   $obj-&gt;cmbuild($alignment)
+ Function:   Runs Infernal cmbuild and saves covariance model
+ Returns :   1 on success (no object for covariance models)
+ Args    :   Bio::AlignIO with structural information (such as from Stockholm
+             format source) or alignment file name</code></code></pre>
+
+<h2 id="cmscore">cmscore</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span>   <span class="variable">cmscore</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>   <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">cmscore</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span>   <span class="variable">Runs</span> <span class="variable">Infernal</span> <span class="variable">cmscore</span> <span class="keyword">and</span> <span class="variable">saves</span> <span class="variable">output</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>   <span class="variable">None</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>   <span class="variable">None</span><span class="operator">;</span> <span class="variable">set</span> <span class="variable">model_file</span><span class="operator">()</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="variable">a</span> <span class="variable">specific</span> <span class="variable">model</span>
+</code></code></pre>
+
+<h2 id="cmcalibrate">cmcalibrate</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span>   <span class="variable">cmcalibrate</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>   <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">cmcalibrate</span><span class="operator">(</span><span class="string">'file'</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span>   <span class="variable">Runs</span> <span class="variable">Infernal</span> <span class="variable">calibrate</span> <span class="variable">on</span> <span class="variable">specified</span> <span class="variable">CM</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>   <span class="variable">None</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>   <span class="variable">None</span><span class="operator">;</span> <span class="variable">set</span> <span class="variable">model_file</span><span class="operator">()</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="variable">a</span> <span class="variable">specific</span> <span class="variable">model</span>
+</code></code></pre>
+
+<h2 id="cmstat">cmstat</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span>   <span class="variable">cmstat</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>   <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">cmstat</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span>   <span class="variable">Runs</span> <span class="variable">Infernal</span> <span class="variable">cmstat</span> <span class="keyword">and</span> <span class="variable">saves</span> <span class="variable">output</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>   <span class="variable">None</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>   <span class="variable">None</span><span class="operator">;</span> <span class="variable">set</span> <span class="variable">model_file</span><span class="operator">()</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="variable">a</span> <span class="variable">specific</span> <span class="variable">model</span>
+</code></code></pre>
+
+<h1 id="Bio::ParameterBaseI-specific-methods">Bio::ParameterBaseI-specific methods</h1>
+
+<p>These methods are part of the Bio::ParameterBaseI interface</p>
+
+<h2 id="set_parameters">set_parameters</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">set_parameters</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">set_parameters</span><span class="operator">(</span><span class="variable">%params</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">sets</span> <span class="variable">the</span> <span class="variable">parameters</span> <span class="variable">listed</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">hash</span> <span class="keyword">or</span> <span class="variable">array</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">None</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">hash</span> <span class="keyword">or</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">parameter</span><span class="operator">/</span><span class="keyword">values</span><span class="operator">.</span>  <span class="variable">These</span> <span class="variable">can</span> <span class="variable">optionally</span>
+           <span class="variable">be</span> <span class="variable">hash</span> <span class="keyword">or</span> <span class="variable">array</span> <span class="variable">references</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">This</span> <span class="variable">only</span> <span class="variable">sets</span> <span class="variable">parameters</span><span class="operator">;</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">methods</span> <span class="keyword">use</span> <span class="variable">the</span> <span class="variable">method</span> <span class="variable">name</span>
+</code></code></pre>
+
+<h2 id="reset_parameters">reset_parameters</h2>
+
+<pre><code><code> Title   : reset_parameters
+ Usage   : resets values
+ Function: resets parameters to either undef or value in passed hash
+ Returns : none
+ Args    : [optional] hash of parameter-value pairs</code></code></pre>
+
+<h2 id="validate_parameters">validate_parameters</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">validate_parameters</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">validate_parameters</span><span class="operator">(</span><span class="number">1</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">sets</span> <span class="variable">a</span> <span class="variable">flag</span> <span class="variable">indicating</span> <span class="variable">whether</span> <span class="variable">to</span> <span class="variable">validate</span> <span class="variable">parameters</span> <span class="variable">via</span>
+           <span class="variable">set_parameters</span><span class="operator">()</span> <span class="keyword">or</span> <span class="variable">reset_parameters</span><span class="operator">()</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bool</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">value</span> <span class="variable">evaluating</span> <span class="variable">to</span> <span class="variable">True</span><span class="operator">/</span><span class="variable">False</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">Optionally</span> <span class="variable">implemented</span> <span class="variable">method</span><span class="operator">;</span> <span class="variable">up</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">implementation</span> <span class="variable">on</span> <span class="variable">whether</span>
+           <span class="variable">to</span> <span class="variable">automatically</span> <span class="variable">validate</span> <span class="variable">parameters</span> <span class="keyword">or</span> <span class="variable">optionally</span> <span class="keyword">do</span> <span class="variable">so</span>
+</code></code></pre>
+
+<h2 id="parameters_changed">parameters_changed</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">parameters_changed</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">parameters_changed</span><span class="operator">)</span> <span class="operator">{...}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">boolean</span> <span class="variable">true</span> <span class="operator">(</span><span class="number">1</span><span class="operator">)</span> <span class="keyword">if</span> <span class="variable">parameters</span> <span class="variable">have</span> <span class="variable">changed</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Boolean</span> <span class="operator">(</span><span class="number">0</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">This</span> <span class="variable">module</span> <span class="variable">does</span> <span class="keyword">not</span> <span class="variable">run</span> <span class="keyword">state</span> <span class="variable">checks</span><span class="operator">,</span> <span class="variable">so</span> <span class="variable">this</span> <span class="variable">always</span> <span class="variable">returns</span> <span class="variable">True</span>
+</code></code></pre>
+
+<h2 id="available_parameters">available_parameters</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">available_parameters</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">()</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">available</span> <span class="variable">parameters</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">of</span> <span class="variable">parameters</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">executable</span> <span class="variable">being</span> <span class="variable">used</span><span class="operator">;</span> <span class="variable">defaults</span> <span class="variable">to</span> <span class="variable">returning</span> <span class="variable">all</span>
+           <span class="variable">available</span> <span class="variable">parameters</span>
+</code></code></pre>
+
+<h2 id="get_parameters">get_parameters</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_parameters</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">%params</span> <span class="operator">=</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">get_parameters</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">set</span> <span class="variable">key</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span><span class="operator">,</span> <span class="string">parameter</span> <span class="operator">=&gt;</span> <span class="variable">value</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">List</span> <span class="variable">of</span> <span class="variable">key</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span>
+           <span class="string">'full'</span> <span class="operator">-</span> <span class="variable">this</span> <span class="variable">option</span> <span class="variable">returns</span> <span class="variable">everything</span> <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">parameter</span>
+                    <span class="variable">as</span> <span class="variable">an</span> <span class="variable">array</span> <span class="keyword">ref</span> <span class="variable">value</span><span class="operator">;</span> <span class="variable">that</span> <span class="variable">is</span><span class="operator">,</span> <span class="keyword">not</span> <span class="variable">just</span> <span class="variable">the</span> <span class="variable">value</span> <span class="variable">but</span> <span class="variable">also</span>
+                    <span class="variable">the</span> <span class="variable">value</span><span class="operator">,</span> <span class="variable">type</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">prefix</span><span class="operator">.</span> <span class="variable">Default</span> <span class="variable">is</span> <span class="variable">value</span> <span class="variable">only</span><span class="operator">.</span>
+           <span class="string">'valid'</span><span class="operator">-</span> <span class="variable">same</span> <span class="variable">a</span> <span class="string">'full'</span><span class="operator">,</span> <span class="variable">but</span> <span class="variable">only</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">grouping</span> <span class="variable">valid</span> <span class="keyword">for</span> <span class="variable">the</span>
+                    <span class="variable">currently</span> <span class="variable">set</span> <span class="variable">executable</span>
+</code></code></pre>
+
+<h1 id="to_-methods">to_* methods</h1>
+
+<p>All to_* methods are implementation-specific</p>
+
+<h2 id="to_exe_string">to_exe_string</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">to_exe_string</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$string</span> <span class="operator">=</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">to_exe_string</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">command</span> <span class="variable">line</span> <span class="variable">string</span> <span class="variable">in</span> <span class="variable">this</span> <span class="variable">case</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">String</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> 
+</code></code></pre>
+
+<h2 id="writeSeqFile">_writeSeqFile</h2>
+
+<pre><code><code> Title   :   _writeSeqFile
+ Usage   :   obj-&gt;_writeSeqFile($seq)
+ Function:   Internal(not to be used directly)
+ Returns :
+ Args    :</code></code></pre>
+
+<h2 id="writeAlignFile">_writeAlignFile</h2>
+
+<pre><code><code> Title   :   _writeAlignFile
+ Usage   :   obj-&gt;_writeAlignFile($seq)
+ Function:   Internal(not to be used directly)
+ Returns :
+ Args    :</code></code></pre>
+
+
+</body>
+
+</html>
+
+

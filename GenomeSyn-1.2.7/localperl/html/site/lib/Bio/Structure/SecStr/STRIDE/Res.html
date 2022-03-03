@@ -1,0 +1,548 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#MailingLists">MailingLists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Ed-Green">AUTHOR - Ed Green</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#totSurfArea">totSurfArea</a></li>
+      <li><a href="#numResidues">numResidues</a></li>
+      <li><a href="#pdbID">pdbID</a></li>
+      <li><a href="#pdbAuthor">pdbAuthor</a></li>
+      <li><a href="#pdbCompound">pdbCompound</a></li>
+      <li><a href="#pdbDate">pdbDate</a></li>
+      <li><a href="#pdbHeader">pdbHeader</a></li>
+      <li><a href="#pdbSource">pdbSource</a></li>
+      <li><a href="#resAA">resAA</a></li>
+      <li><a href="#resPhi">resPhi</a></li>
+      <li><a href="#resPsi">resPsi</a></li>
+      <li><a href="#resSolvAcc">resSolvAcc</a></li>
+      <li><a href="#resSurfArea">resSurfArea</a></li>
+      <li><a href="#resSecStr">resSecStr</a></li>
+      <li><a href="#resSecStrSum">resSecStrSum</a></li>
+      <li><a href="#resSecStrName">resSecStrName</a></li>
+      <li><a href="#strideLocs">strideLocs</a></li>
+      <li><a href="#secBounds">secBounds</a></li>
+      <li><a href="#chains">chains</a></li>
+      <li><a href="#getSeq">getSeq</a></li>
+    </ul>
+  </li>
+  <li><a href="#INTERNAL-METHODS">INTERNAL METHODS</a>
+    <ul>
+      <li><a href="#pdbNum">_pdbNum</a></li>
+      <li><a href="#resAA1">_resAA</a></li>
+      <li><a href="#pdbInsCo">_pdbInsCo</a></li>
+      <li><a href="#toOrdChain">_toOrdChain</a></li>
+      <li><a href="#parse">_parse</a></li>
+      <li><a href="#parseTop">_parseTop</a></li>
+      <li><a href="#parseHead">_parseHead</a></li>
+      <li><a href="#parseSummary">_parseSummary</a></li>
+      <li><a href="#parseASG">_parseASG</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Structure::SecStr::STRIDE::Res - Module for parsing/accessing stride output</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$stride_obj</span> <span class="operator">=</span> <span class="variable">Bio::Structure::SecStr::STRIDE::Res</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">'-file'</span> <span class="operator">=&gt;</span> <span class="string">'filename.stride'</span> <span class="operator">);</span>
+ 
+ <span class="comment"># or</span>
+ 
+ <span class="keyword">my</span> <span class="variable">$stride_obj</span> <span class="operator">=</span> <span class="variable">Bio::Structure::SecStr::STRIDE::Res</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">'-fh'</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*STDOUT</span> <span class="operator">);</span>
+ 
+ <span class="comment"># Get secondary structure assignment for PDB residue 20 of chain A</span>
+ <span class="variable">$sec_str</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">resSecStr</span><span class="operator">(</span> <span class="string">'20:A'</span> <span class="operator">);</span>
+ 
+ <span class="comment"># same</span>
+ <span class="variable">$sec_str</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">resSecStr</span><span class="operator">(</span> <span class="number">20</span><span class="operator">,</span> <span class="string">'A'</span> <span class="operator">)</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>STRIDE::Res is a module for objectifying STRIDE output. STRIDE is a program (similar to DSSP) for assigning secondary structure to individual residues of a pdb structure file.</p>
+
+<pre><code><code>    ( Knowledge-Based Protein Secondary Structure Assignment,
+    PROTEINS: Structure, Function, and Genetics 23:566-579 (1995) )</code></code></pre>
+
+<p>STRIDE is available here: http://webclu.bio.wzw.tum.de/stride/</p>
+
+<p>Methods are then available for extracting all of the infomation present within the output or convenient subsets of it.</p>
+
+<p>Although they are very similar in function, DSSP and STRIDE differ somewhat in output format. Thes differences are reflected in the return value of some methods of these modules. For example, both the STRIDE and DSSP parsers have resSecStr() methods for returning the secondary structure of a given residue. However, the range of return values for DSSP is ( H, B, E, G, I, T, and S ) whereas the range of values for STRIDE is ( H, G, I, E, B, b, T, and C ). See individual methods for details.</p>
+
+<p>The methods are roughly divided into 3 sections:</p>
+
+<pre><code><code>  1.  Global features of this structure (PDB ID, total surface area,
+      etc.).  These methods do not require an argument. 
+  2.  Residue specific features ( amino acid, secondary structure,
+      solvent exposed surface area, etc. ).  These methods do require an
+      argument.  The argument is supposed to uniquely identify a
+      residue described within the structure.  It can be of any of the
+      following forms:
+      (&#39;#A:B&#39;) or ( #, &#39;A&#39;, &#39;B&#39; )
+        || |
+        || - Chain ID (blank for single chain)
+        |--- Insertion code for this residue.  Blank for most residues.
+        |--- Numeric portion of residue ID.
+
+      (#)
+       |
+       --- Numeric portion of residue ID.  If there is only one chain and
+           it has no ID AND there is no residue with an insertion code at this
+           number, then this can uniquely specify a residue.
+
+      (&#39;#:C&#39;) or ( #, &#39;C&#39; )
+        | |
+        | -Chain ID
+        ---Numeric portion of residue ID.
+
+     If a residue is incompletely specified then the first residue that
+     fits the arguments is returned.  For example, if 19 is the argument
+     and there are three chains, A, B, and C with a residue whose number
+     is 19, then 19:A will be returned (assuming its listed first).
+
+     Since neither DSSP nor STRIDE correctly handle alt-loc codes, they
+     are not supported by these modules.
+
+ 3.  Value-added methods.  Return values are not verbatem strings
+     parsed from DSSP or STRIDE output.  </code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="MailingLists">MailingLists</h2>
+
+<p>UsUser feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Ed-Green">AUTHOR - Ed Green</h1>
+
+<p>Email ed@compbio.berkeley.edu</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The Rest of the documentation details each method. Internal methods are preceded with a _.</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title         : new
+ Usage         : makes new object of this class
+ Function      : Constructor
+ Example       : $stride_obj = Bio::Structure::SecStr::STRIDE:Res-&gt;new( &#39;-file&#39; =&gt;  filename 
+                                                     # or 
+                                                     &#39;-fh&#39;   =&gt; FILEHANDLE )
+ Returns       : object (ref)
+ Args          : filename or filehandle( must be proper STRIDE output )</code></code></pre>
+
+<h2 id="totSurfArea">totSurfArea</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">totSurfArea</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">sum</span> <span class="variable">of</span> <span class="variable">surface</span> <span class="variable">areas</span> <span class="variable">of</span> <span class="variable">all</span> <span class="variable">residues</span> <span class="variable">of</span> <span class="variable">all</span>
+                 <span class="variable">chains</span> <span class="variable">considered</span><span class="operator">.</span>  <span class="variable">Result</span> <span class="variable">is</span> <span class="variable">memoized</span><span class="operator">.</span>
+ <span class="variable">Function</span>      <span class="operator">:</span>
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$tot_SA</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">totSurfArea</span><span class="operator">();</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="numResidues">numResidues</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">numResidues</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">total</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">residues</span> <span class="variable">in</span> <span class="variable">all</span> <span class="variable">chains</span> <span class="keyword">or</span>
+                 <span class="variable">just</span> <span class="variable">the</span> <span class="variable">specified</span> <span class="variable">chain</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$tot_res</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">numResidues</span><span class="operator">();</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span> <span class="keyword">int</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">none</span> <span class="keyword">or</span> <span class="variable">chain</span> <span class="variable">id</span>
+</code></code></pre>
+
+<h2 id="pdbID">pdbID</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">pdbID</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">pdb</span> <span class="variable">identifier</span> <span class="operator">(</span> <span class="number">1</span><span class="variable">FJM</span><span class="operator">,</span> <span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.</span> <span class="operator">)</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$pdb_id</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">pdbID</span><span class="operator">();</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">string</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="pdbAuthor">pdbAuthor</h2>
+
+<pre><code><code> Title         : pdbAuthor
+ Usage         : returns author of this PDB entry
+ Function      : 
+ Example       : $auth = $stride_obj-&gt;pdbAuthor()
+ Returns       : scalar string
+ Args          : none</code></code></pre>
+
+<h2 id="pdbCompound">pdbCompound</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">pdbCompound</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">string</span> <span class="variable">of</span> <span class="variable">what</span> <span class="variable">was</span> <span class="variable">found</span> <span class="variable">on</span> <span class="variable">the</span>  
+                 <span class="variable">CMP</span> <span class="variable">lines</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$cmp</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">pdbCompound</span><span class="operator">();</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="pdbDate">pdbDate</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">pdbDate</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">date</span> <span class="keyword">given</span> <span class="variable">in</span> <span class="variable">PDB</span> <span class="variable">file</span>
+ <span class="variable">Function</span>      <span class="operator">:</span>
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$pdb_date</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">pdbDate</span><span class="operator">();</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="pdbHeader">pdbHeader</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">pdbHeader</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">string</span> <span class="variable">of</span> <span class="variable">characters</span> <span class="variable">found</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">PDB</span> <span class="variable">header</span> <span class="variable">line</span>
+ <span class="variable">Function</span>      <span class="operator">:</span>
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$head</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">pdbHeader</span><span class="operator">();</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="pdbSource">pdbSource</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">pdbSource</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">string</span> <span class="variable">of</span> <span class="variable">what</span> <span class="variable">was</span> <span class="variable">found</span> <span class="variable">on</span> <span class="variable">SRC</span> <span class="variable">lines</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$src</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">pdbSource</span><span class="operator">();</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="resAA">resAA</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">resAA</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="number">1</span> <span class="variable">letter</span> <span class="variable">abbr</span><span class="operator">.</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">amino</span> <span class="variable">acid</span> <span class="variable">specified</span> <span class="variable">by</span>
+                 <span class="variable">the</span> <span class="variable">arguments</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Examples</span>      <span class="operator">:</span> <span class="variable">$aa</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">resAA</span><span class="operator">(</span> <span class="variable">RESIDUE_ID</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">character</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">RESIDUE_ID</span>
+</code></code></pre>
+
+<h2 id="resPhi">resPhi</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">resPhi</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">phi</span> <span class="variable">angle</span> <span class="variable">of</span> <span class="variable">specified</span> <span class="variable">residue</span>
+ <span class="variable">Function</span>      <span class="operator">:</span>
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$phi</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">resPhi</span><span class="operator">(</span> <span class="variable">RESIDUE_ID</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="variable">scaler</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">RESIDUE_ID</span>
+</code></code></pre>
+
+<h2 id="resPsi">resPsi</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">resPsi</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">psi</span> <span class="variable">angle</span> <span class="variable">of</span> <span class="variable">specified</span> <span class="variable">residue</span>
+ <span class="variable">Function</span>      <span class="operator">:</span>
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$psi</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">resPsi</span><span class="operator">(</span> <span class="variable">RESIDUE_ID</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">RESIDUE_ID</span>
+</code></code></pre>
+
+<h2 id="resSolvAcc">resSolvAcc</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">resSolvAcc</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">stride</span> <span class="variable">calculated</span> <span class="variable">surface</span> <span class="variable">area</span> <span class="variable">of</span> <span class="variable">specified</span> <span class="variable">residue</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$sa</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">resSolvAcc</span><span class="operator">(</span> <span class="variable">RESIDUE_ID</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">RESIDUE_ID</span>
+</code></code></pre>
+
+<h2 id="resSurfArea">resSurfArea</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">resSurfArea</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">stride</span> <span class="variable">calculated</span> <span class="variable">surface</span> <span class="variable">area</span> <span class="variable">of</span> <span class="variable">specified</span> <span class="variable">residue</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$sa</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">resSurfArea</span><span class="operator">(</span> <span class="variable">RESIDUE_ID</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">RESIDUE_ID</span>
+</code></code></pre>
+
+<h2 id="resSecStr">resSecStr</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">resSecStr</span> 
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">gives</span> <span class="variable">one</span> <span class="variable">letter</span> <span class="variable">abbr</span><span class="operator">.</span> <span class="variable">of</span> <span class="variable">stride</span> <span class="variable">determined</span> <span class="variable">secondary</span>
+                 <span class="variable">structure</span> <span class="variable">of</span> <span class="variable">specified</span> <span class="variable">residue</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$ss</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">resSecStr</span><span class="operator">(</span> <span class="variable">RESIDUE_ID</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="variable">one</span> <span class="variable">of</span><span class="operator">:</span> <span class="string">'H'</span> <span class="operator">=&gt;</span> <span class="variable">Alpha</span> <span class="variable">Helix</span>
+                         <span class="string">'G'</span> <span class="operator">=&gt;</span> <span class="number">3</span><span class="operator">-</span><span class="number">10</span> <span class="variable">helix</span>
+                         <span class="string">'I'</span> <span class="operator">=&gt;</span> <span class="variable">PI</span><span class="operator">-</span><span class="variable">helix</span>
+                         <span class="string">'E'</span> <span class="operator">=&gt;</span> <span class="variable">Extended</span> <span class="variable">conformation</span>
+                         <span class="string">'B'</span> <span class="keyword">or</span> <span class="string">'b'</span> <span class="operator">=&gt;</span> <span class="variable">Isolated</span> <span class="variable">bridge</span>
+                         <span class="string">'T'</span> <span class="operator">=&gt;</span> <span class="variable">Turn</span>
+                         <span class="string">'C'</span> <span class="operator">=&gt;</span> <span class="variable">Coil</span>
+                         <span class="string">' '</span> <span class="operator">=&gt;</span> <span class="variable">None</span>
+                <span class="comment"># NOTE:  This range is slightly DIFFERENT from the</span>
+                <span class="comment">#        DSSP method of the same name</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">RESIDUE_ID</span>
+</code></code></pre>
+
+<h2 id="resSecStrSum">resSecStrSum</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">resSecStrSum</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">gives</span> <span class="variable">one</span> <span class="variable">letter</span> <span class="variable">summary</span> <span class="variable">of</span> <span class="variable">secondary</span> <span class="variable">structure</span> <span class="variable">of</span>
+                 <span class="variable">specified</span> <span class="variable">residue</span><span class="operator">.</span>  <span class="variable">More</span> <span class="variable">general</span> <span class="variable">than</span> <span class="variable">secStruc</span><span class="operator">()</span> 
+ <span class="variable">Function</span>      <span class="operator">:</span>
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$ss_sum</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">resSecStrSum</span><span class="operator">(</span> <span class="variable">RESIDUE_ID</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="variable">one</span> <span class="variable">of</span><span class="operator">:</span> <span class="string">'H'</span> <span class="operator">(</span><span class="variable">helix</span><span class="operator">),</span> <span class="string">'B'</span> <span class="operator">(</span><span class="variable">beta</span><span class="operator">),</span> <span class="string">'T'</span> <span class="operator">(</span><span class="variable">turn</span><span class="operator">),</span> <span class="keyword">or</span> <span class="string">'C'</span> <span class="operator">(</span><span class="variable">coil</span><span class="operator">)</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">residue</span> <span class="variable">identifier</span><span class="operator">(</span><span class="regex">s) ( SEE INTRO NOTE )
+ </span>
+</code></code></pre>
+
+<h2 id="resSecStrName">resSecStrName</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">resSecStrName</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">gives</span> <span class="variable">full</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">secondary</span> <span class="variable">structural</span> <span class="variable">element</span>
+                 <span class="variable">classification</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">specified</span> <span class="variable">residue</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$ss_name</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">resSecStrName</span><span class="operator">(</span> <span class="variable">RESIDUE_ID</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">string</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">RESIDUE_ID</span>
+</code></code></pre>
+
+<h2 id="strideLocs">strideLocs</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">strideLocs</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">stride</span> <span class="variable">determined</span> <span class="variable">contiguous</span> <span class="variable">secondary</span>
+    <span class="variable">structural</span> <span class="variable">elements</span> <span class="variable">as</span> <span class="variable">specified</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">LOC</span> <span class="variable">lines</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$loc_pnt</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">strideLocs</span><span class="operator">();</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="variable">pointer</span> <span class="variable">to</span> <span class="variable">array</span> <span class="variable">of</span> <span class="number">5</span> <span class="variable">element</span> <span class="variable">arrays</span><span class="operator">.</span>
+    <span class="number">0</span> <span class="operator">=&gt;</span> <span class="variable">stride</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">structural</span> <span class="variable">element</span>
+    <span class="number">1</span> <span class="operator">=&gt;</span> <span class="variable">first</span> <span class="variable">residue</span> <span class="variable">pdb</span> <span class="variable">key</span> <span class="operator">(</span><span class="variable">including</span> <span class="variable">insertion</span> <span class="variable">code</span><span class="operator">,</span> <span class="keyword">if</span> <span class="variable">app</span><span class="operator">.)</span>
+    <span class="number">2</span> <span class="operator">=&gt;</span> <span class="variable">first</span> <span class="variable">residue</span> <span class="variable">chain</span> <span class="variable">id</span>
+    <span class="number">3</span> <span class="operator">=&gt;</span> <span class="keyword">last</span> <span class="variable">residue</span> <span class="variable">pdb</span> <span class="variable">key</span> <span class="operator">(</span><span class="variable">including</span> <span class="variable">insertion</span> <span class="variable">code</span><span class="operator">,</span> <span class="keyword">if</span> <span class="variable">app</span><span class="operator">.)</span>
+    <span class="number">4</span> <span class="operator">=&gt;</span> <span class="keyword">last</span> <span class="variable">residue</span> <span class="variable">chain</span> <span class="variable">id</span>
+    <span class="variable">NOTE</span> <span class="variable">the</span> <span class="variable">differences</span> <span class="variable">between</span> <span class="variable">this</span> <span class="variable">range</span> <span class="keyword">and</span> <span class="variable">the</span> <span class="variable">range</span> <span class="variable">of</span> <span class="variable">SecBounds</span><span class="operator">()</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="secBounds">secBounds</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">secBounds</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">gets</span> <span class="variable">residue</span> <span class="variable">ids</span> <span class="variable">of</span> <span class="variable">boundary</span> <span class="variable">residues</span> <span class="variable">in</span> <span class="keyword">each</span>
+                 <span class="variable">contiguous</span> <span class="variable">secondary</span> <span class="variable">structural</span> <span class="variable">element</span> <span class="variable">of</span> <span class="variable">specified</span>
+                 <span class="variable">chain</span> 
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$ss_bound_pnt</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">secBounds</span><span class="operator">(</span> <span class="string">'A'</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="variable">pointer</span> <span class="variable">to</span> <span class="variable">array</span> <span class="variable">of</span> <span class="number">3</span> <span class="variable">element</span> <span class="variable">arrays</span><span class="operator">.</span>  <span class="variable">First</span> <span class="variable">two</span> <span class="variable">elements</span>
+                 <span class="variable">are</span> <span class="variable">the</span> <span class="variable">PDB</span> <span class="variable">IDs</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">start</span> <span class="keyword">and</span> <span class="variable">end</span> <span class="variable">points</span><span class="operator">,</span> <span class="variable">respectively</span>
+                 <span class="keyword">and</span> <span class="variable">inclusively</span><span class="operator">.</span>  <span class="variable">The</span> <span class="keyword">last</span> <span class="variable">element</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">STRIDE</span> <span class="variable">secondary</span>
+                 <span class="variable">structural</span> <span class="variable">element</span> <span class="variable">code</span> <span class="operator">(</span><span class="variable">same</span> <span class="variable">range</span> <span class="variable">as</span> <span class="variable">resSecStr</span><span class="operator">).</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">chain</span> <span class="variable">identifier</span> <span class="operator">(</span> <span class="variable">one</span> <span class="variable">character</span> <span class="operator">).</span>  <span class="variable">If</span> <span class="variable">none</span><span class="operator">,</span> <span class="string">'-'</span> <span class="variable">is</span> <span class="variable">assumed</span>
+</code></code></pre>
+
+<h2 id="chains">chains</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">chains</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">gives</span> <span class="variable">array</span> <span class="variable">chain</span> <span class="variable">I</span><span class="operator">.</span><span class="variable">D</span><span class="operator">.</span><span class="regex">s (characters)
+ F</span><span class="variable">unction</span>      <span class="operator">:</span>
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">@chains</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">chains</span><span class="operator">();</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">characters</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="getSeq">getSeq</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">getSeq</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">a</span> <span class="variable">Bio::PrimarySeq</span> <span class="variable">object</span> <span class="variable">which</span> <span class="variable">represents</span> <span class="variable">an</span>
+                 <span class="variable">approximation</span> <span class="variable">at</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">specified</span> <span class="variable">chain</span><span class="operator">.</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> <span class="variable">For</span> <span class="variable">most</span> <span class="variable">chain</span> <span class="variable">of</span> <span class="variable">most</span> <span class="variable">entries</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">returned</span> <span class="variable">by</span>
+                 <span class="variable">this</span> <span class="variable">method</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">very</span> <span class="variable">good</span><span class="operator">.</span>  <span class="variable">However</span><span class="operator">,</span> <span class="variable">it</span> <span class="variable">it</span> <span class="variable">inherently</span> 
+                 <span class="variable">unsafe</span> <span class="variable">to</span> <span class="variable">rely</span> <span class="variable">on</span> <span class="variable">STRIDE</span> <span class="variable">to</span> <span class="variable">extract</span> <span class="variable">sequence</span> <span class="variable">information</span> <span class="variable">about</span>
+                 <span class="variable">a</span> <span class="variable">PDB</span> <span class="variable">entry</span><span class="operator">.</span>  <span class="variable">More</span> <span class="variable">reliable</span> <span class="variable">information</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">obtained</span> <span class="variable">from</span>
+                 <span class="variable">the</span> <span class="variable">PDB</span> <span class="variable">entry</span> <span class="variable">itself</span><span class="operator">.</span>  <span class="variable">If</span> <span class="variable">a</span> <span class="variable">second</span> <span class="variable">option</span> <span class="variable">is</span> <span class="keyword">given</span>
+                 <span class="operator">(</span><span class="keyword">and</span> <span class="variable">evaluates</span> <span class="variable">to</span> <span class="variable">true</span><span class="operator">),</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">generated</span> <span class="variable">will</span>
+                 <span class="variable">have</span> <span class="string">'X'</span> <span class="variable">in</span> <span class="variable">spaces</span> <span class="variable">where</span> <span class="variable">the</span> <span class="variable">pdb</span> <span class="variable">residue</span> <span class="variable">numbers</span> <span class="variable">are</span>
+                 <span class="variable">discontinuous</span><span class="operator">.</span>  <span class="variable">In</span> <span class="variable">some</span> <span class="variable">cases</span> <span class="variable">this</span> <span class="variable">results</span> <span class="variable">in</span> <span class="variable">a</span>
+                 <span class="variable">better</span> <span class="variable">sequence</span> <span class="variable">object</span> <span class="operator">(</span><span class="keyword">when</span> <span class="variable">the</span>  <span class="variable">discontinuity</span> <span class="variable">is</span>
+                 <span class="variable">due</span> <span class="variable">to</span> <span class="variable">regions</span> <span class="variable">which</span> <span class="variable">were</span> <span class="variable">present</span><span class="operator">,</span> <span class="variable">but</span> <span class="variable">could</span> <span class="keyword">not</span> <span class="variable">be</span>
+                 <span class="variable">resolved</span><span class="operator">).</span>  <span class="variable">In</span> <span class="variable">other</span> <span class="variable">cases</span><span class="operator">,</span> <span class="variable">it</span> <span class="variable">will</span> <span class="variable">result</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">WORSE</span>
+                 <span class="variable">sequence</span> <span class="variable">object</span> <span class="operator">(</span><span class="keyword">when</span> <span class="variable">the</span> <span class="variable">discontinuity</span> <span class="variable">is</span> <span class="variable">due</span> <span class="variable">to</span>
+                 <span class="variable">historical</span> <span class="variable">sequence</span> <span class="variable">numbering</span> <span class="keyword">and</span> <span class="variable">all</span> <span class="variable">sequence</span> <span class="variable">is</span>
+                 <span class="variable">actually</span> <span class="variable">resolved</span><span class="operator">).</span>
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$pso</span> <span class="operator">=</span> <span class="variable">$dssp_obj</span><span class="operator">-&gt;</span><span class="variable">getSeq</span><span class="operator">(</span> <span class="string">'A'</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="operator">(</span><span class="variable">pointer</span> <span class="variable">to</span><span class="operator">)</span> <span class="variable">a</span> <span class="variable">PrimarySeq</span> <span class="variable">object</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">Chain</span> <span class="variable">identifier</span><span class="operator">.</span>  <span class="variable">If</span> <span class="variable">none</span> <span class="keyword">given</span><span class="operator">,</span> <span class="string">'-'</span> <span class="variable">is</span> <span class="variable">assumed</span><span class="operator">.</span>  
+</code></code></pre>
+
+<h1 id="INTERNAL-METHODS">INTERNAL METHODS</h1>
+
+<h2 id="pdbNum">_pdbNum</h2>
+
+<pre><code><code> <span class="variable">Title</span>        <span class="operator">:</span> <span class="variable">_pdbNum</span>
+ <span class="variable">Usage</span>        <span class="operator">:</span> <span class="variable">fetches</span> <span class="variable">the</span> <span class="variable">numeric</span> <span class="variable">portion</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">identifier</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="keyword">given</span>
+                <span class="variable">residue</span> <span class="variable">as</span> <span class="variable">reported</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">pdb</span> <span class="variable">entry</span><span class="operator">.</span>  <span class="variable">Note</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">DOES</span> <span class="variable">NOT</span>
+                <span class="variable">uniquely</span> <span class="variable">specify</span> <span class="variable">a</span> <span class="variable">residue</span><span class="operator">.</span>  <span class="variable">There</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">an</span> <span class="variable">insertion</span> <span class="variable">code</span>
+                <span class="keyword">and</span><span class="regex">/or chain identifier differences.
+ Function     : 
+ Example      : </span><span class="variable">$pdbNum</span><span class="regex"> = </span><span class="variable">$self</span><span class="regex">-&gt;pdbNum( 3, 'A' );
+ Returns      : a scalar
+ Args         : valid ordinal num /</span> <span class="variable">chain</span> <span class="variable">combination</span>
+</code></code></pre>
+
+<h2 id="resAA1">_resAA</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">_resAA</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">returns</span> <span class="number">1</span> <span class="variable">letter</span> <span class="variable">abbr</span><span class="operator">.</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">amino</span> <span class="variable">acid</span> <span class="variable">specified</span> <span class="variable">by</span>
+                 <span class="variable">the</span> <span class="variable">arguments</span>
+ <span class="variable">Function</span>      <span class="operator">:</span> 
+ <span class="variable">Examples</span>      <span class="operator">:</span> <span class="variable">$aa</span> <span class="operator">=</span> <span class="variable">$stride_obj</span><span class="operator">-&gt;</span><span class="variable">_resAA</span><span class="operator">(</span> <span class="number">3</span><span class="operator">,</span> <span class="string">'-'</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">character</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="operator">(</span> <span class="keyword">ord</span><span class="operator">.</span> <span class="variable">num</span><span class="operator">,</span> <span class="variable">chain</span> <span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="pdbInsCo">_pdbInsCo</h2>
+
+<pre><code><code> <span class="variable">Title</span>        <span class="operator">:</span> <span class="variable">_pdbInsCo</span>
+ <span class="variable">Usage</span>        <span class="operator">:</span> <span class="variable">fetches</span> <span class="variable">the</span> <span class="variable">Insertion</span> <span class="variable">code</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">residue</span><span class="operator">.</span>
+ <span class="variable">Function</span>     <span class="operator">:</span> 
+ <span class="variable">Example</span>      <span class="operator">:</span> <span class="variable">$pdb_ins_co</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_pdb_ins_co</span><span class="operator">(</span> <span class="number">15</span><span class="operator">,</span> <span class="string">'B'</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>      <span class="operator">:</span> <span class="variable">a</span> <span class="keyword">scalar</span>
+ <span class="variable">Args</span>         <span class="operator">:</span> <span class="variable">ordinal</span> <span class="variable">number</span> <span class="keyword">and</span> <span class="variable">chain</span>
+</code></code></pre>
+
+<h2 id="toOrdChain">_toOrdChain</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">_toOrdChain</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">takes</span> <span class="variable">any</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">residue</span> <span class="variable">identifying</span> <span class="variable">parameters</span> <span class="keyword">and</span>
+    <span class="variable">wrestles</span> <span class="variable">them</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">two</span> <span class="variable">element</span> <span class="variable">array</span><span class="operator">:</span>  <span class="variable">the</span> <span class="variable">chain</span> <span class="keyword">and</span> <span class="variable">the</span> <span class="variable">ordinal</span>
+    <span class="variable">number</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">residue</span><span class="operator">.</span>  <span class="variable">This</span> <span class="variable">two</span> <span class="variable">element</span> <span class="variable">array</span> <span class="variable">can</span> <span class="variable">then</span> <span class="variable">be</span>
+    <span class="variable">efficiently</span> <span class="variable">used</span> <span class="variable">as</span> <span class="keyword">keys</span> <span class="variable">in</span> <span class="variable">many</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">above</span> <span class="variable">accessor</span> <span class="variable">methods</span>
+ <span class="operator">(</span><span class="string">'#A:B'</span><span class="operator">)</span> <span class="keyword">or</span> <span class="operator">(</span> <span class="comment">#, 'A', 'B' )</span>
+   <span class="operator">||</span> <span class="operator">|</span>
+   <span class="operator">||</span> <span class="operator">-</span> <span class="variable">Chain</span> <span class="variable">ID</span> <span class="operator">(</span><span class="variable">blank</span> <span class="keyword">for</span> <span class="variable">single</span> <span class="variable">chain</span><span class="operator">)</span>
+   <span class="operator">|---</span> <span class="variable">Insertion</span> <span class="variable">code</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">residue</span><span class="operator">.</span>  <span class="variable">Blank</span> <span class="keyword">for</span> <span class="variable">most</span> <span class="variable">residues</span><span class="operator">.</span>
+   <span class="operator">|---</span> <span class="variable">Numeric</span> <span class="variable">portion</span> <span class="variable">of</span> <span class="variable">residue</span> <span class="variable">ID</span><span class="operator">.</span>
+ 
+  <span class="operator">(</span><span class="comment">#)</span>
+   <span class="operator">|</span>
+   <span class="operator">---</span> <span class="variable">Numeric</span> <span class="variable">portion</span> <span class="variable">of</span> <span class="variable">residue</span> <span class="variable">ID</span><span class="operator">.</span>  <span class="variable">If</span> <span class="variable">there</span> <span class="variable">is</span> <span class="variable">only</span> <span class="variable">one</span> <span class="variable">chain</span> <span class="keyword">and</span>
+   <span class="variable">it</span> <span class="variable">has</span> <span class="keyword">no</span> <span class="variable">ID</span> <span class="variable">AND</span> <span class="variable">there</span> <span class="variable">is</span> <span class="keyword">no</span> <span class="variable">residue</span> <span class="variable">with</span> <span class="variable">an</span> <span class="variable">insertion</span> <span class="variable">code</span> <span class="variable">at</span> <span class="variable">this</span>
+   <span class="variable">number</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">this</span> <span class="variable">can</span> <span class="variable">uniquely</span> <span class="variable">specify</span> <span class="variable">a</span> <span class="variable">residue</span><span class="operator">.</span>
+ 
+  <span class="comment">#  ('#:C) or ( #, 'C' )</span>
+       <span class="operator">|</span> <span class="operator">|</span>
+       <span class="operator">|</span> <span class="operator">-</span><span class="variable">Chain</span> <span class="variable">ID</span>
+       <span class="operator">---</span><span class="variable">Numeric</span> <span class="variable">portion</span> <span class="variable">of</span> <span class="variable">residue</span> <span class="variable">ID</span><span class="operator">.</span>
+ 
+  <span class="variable">If</span> <span class="variable">a</span> <span class="variable">residue</span> <span class="variable">is</span> <span class="variable">incompletely</span> <span class="variable">specified</span> <span class="variable">then</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">residue</span> <span class="variable">that</span> 
+  <span class="variable">fits</span> <span class="variable">the</span> <span class="variable">arguments</span> <span class="variable">is</span> <span class="variable">returned</span><span class="operator">.</span>  <span class="variable">For</span> <span class="variable">example</span><span class="operator">,</span> <span class="keyword">if</span> <span class="number">19</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">argument</span> 
+  <span class="keyword">and</span> <span class="variable">there</span> <span class="variable">are</span> <span class="variable">three</span> <span class="variable">chains</span><span class="operator">,</span> <span class="variable">A</span><span class="operator">,</span> <span class="variable">B</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">C</span> <span class="variable">with</span> <span class="variable">a</span> <span class="variable">residue</span> <span class="variable">whose</span> <span class="variable">number</span> 
+  <span class="variable">is</span> <span class="number">19</span><span class="operator">,</span> <span class="variable">then</span> <span class="number">19</span><span class="operator">:</span><span class="variable">A</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="operator">(</span><span class="variable">assuming</span> <span class="variable">its</span> <span class="variable">listed</span> <span class="variable">first</span><span class="operator">).</span>
+ 
+ <span class="variable">Function</span>      <span class="operator">:</span>
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="keyword">my</span> <span class="operator">(</span> <span class="variable">$ord</span><span class="operator">,</span> <span class="variable">$chain</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_toOrdChain</span><span class="operator">(</span> <span class="variable">@args</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> <span class="variable">two</span> <span class="variable">element</span> <span class="variable">array</span>
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">valid</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">residue</span> <span class="variable">identifier</span><span class="operator">(</span><span class="regex">s) ( SEE NOTE ABOVE )
+ </span>
+</code></code></pre>
+
+<h2 id="parse">_parse</h2>
+
+<pre><code><code> <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">_parse</span>
+ <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">as</span> <span class="variable">name</span> <span class="variable">suggests</span><span class="operator">,</span> <span class="variable">parses</span> <span class="variable">stride</span> <span class="variable">output</span><span class="operator">,</span> <span class="variable">creating</span> <span class="variable">object</span>
+ <span class="variable">Function</span>      <span class="operator">:</span>
+ <span class="variable">Example</span>       <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_parse</span><span class="operator">(</span> <span class="variable">$io</span> <span class="operator">);</span>
+ <span class="variable">Returns</span>       <span class="operator">:</span> 
+ <span class="variable">Args</span>          <span class="operator">:</span> <span class="variable">valid</span> <span class="variable">Bio::Root::IO</span> <span class="variable">object</span>
+</code></code></pre>
+
+<h2 id="parseTop">_parseTop</h2>
+
+<pre><code><code> Title         : _parseTop
+ Usage         : makes sure this looks like stride output
+ Function      :
+ Example       : 
+ Returns       :
+ Args          :</code></code></pre>
+
+<h2 id="parseHead">_parseHead</h2>
+
+<pre><code><code> Title         : _parseHead
+ Usage         : parses
+ Function      : HDR, CMP, SRC, and AUT lines
+ Example       :
+ Returns       :
+ Args          :</code></code></pre>
+
+<h2 id="parseSummary">_parseSummary</h2>
+
+<pre><code><code> Title         : _parseSummary
+ Usage         : parses LOC lines
+ Function      :
+ Example       :
+ Returns       :
+ Args          :</code></code></pre>
+
+<h2 id="parseASG">_parseASG</h2>
+
+<pre><code><code> Title         : _parseASG
+ Usage         : parses ASG lines
+ Function      :
+ Example       :
+ Returns       :
+ Args          :</code></code></pre>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,462 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#Constructors">Constructors</a></li>
+      <li><a href="#Accessors">Accessors</a></li>
+      <li><a href="#Processing-the-message-as-a-whole">Processing the message as a whole</a></li>
+      <li><a href="#Processing-the-header">Processing the header</a></li>
+      <li><a href="#Processing-the-body">Processing the body</a></li>
+      <li><a href="#High-level-functionality">High-level functionality</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#LICENSE">LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Mail::Internet - manipulate email messages</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Mail::Internet</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$msg</span> <span class="operator">=</span> <span class="variable">Mail::Internet</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(\</span><span class="variable">*STDIN</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This package implements reading, creating, manipulating, and writing email messages. Sometimes, the implementation tries to be too smart, but in the general case it works as expected.</p>
+
+<p>If you start writing a <b>new application</b>, you should use the <a>Mail::Box</a> distribution, which has more features and handles messages much better according to the RFCs. See <a href="http://perl.overmeer.net/mailbox/">http://perl.overmeer.net/mailbox/</a>. You may also chose <a>MIME::Entity</a>, to get at least some multipart support in your application.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="Constructors">Constructors</h2>
+
+<dl>
+
+<dt id="obj-dup-">$obj-&gt;<b>dup</b>()</dt>
+<dd>
+
+<p>Duplicate the message as a whole. Both header and body will be deep-copied: a new <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Internet.html">Mail::Internet</a> object is returned.</p>
+
+</dd>
+<dt id="obj-extract-ARRAY-of-LINES-">$obj-&gt;<b>extract</b>(ARRAY-of-LINES)</dt>
+<dd>
+
+<p>Extract header and body from an ARRAY of message lines. Requires an object already created with <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Internet.html#Constructors">new()</a>, which contents will get overwritten.</p>
+
+</dd>
+<dt id="obj-new-ARG-OPTIONS-">$obj-&gt;<b>new</b>([ARG], [OPTIONS])</dt>
+<dd>
+
+</dd>
+<dt id="Mail::Internet-new-ARG-OPTIONS-">Mail::Internet-&gt;<b>new</b>([ARG], [OPTIONS])</dt>
+<dd>
+
+<p>ARG is optional and may be either a file descriptor (reference to a GLOB) or a reference to an array. If given the new object will be initialized with headers and body either from the array of read from the file descriptor.</p>
+
+<p>The <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Header.html#Constructors">Mail::Header::new()</a> OPTIONS <code><code>Modify</code></code>, <code><code>MailFrom</code></code> and <code><code>FoldLength</code></code> may also be given.</p>
+
+<pre><code><code> -Option--Default
+  Body    []
+  Header  undef</code></code></pre>
+
+<dl>
+
+<dt id="Body-ARRAY-of-LINES">Body =&gt; ARRAY-of-LINES</dt>
+<dd>
+
+<p>The value of this option should be a reference to an array which contains the lines for the body of the message. Each line should be terminated with <code><code>\n</code></code> (LF). If Body is given then <code><code>Mail::Internet</code></code> will not attempt to read the body from <code><code>ARG</code></code> (even if it is specified).</p>
+
+</dd>
+<dt id="Header-Mail::Header">Header =&gt; Mail::Header</dt>
+<dd>
+
+<p>The value of this option should be a <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Header.html">Mail::Header</a> object. If given then <code><code>Mail::Internet</code></code> will not attempt to read a mail header from <code><code>ARG</code></code>, if it was specified.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="obj-read-FILEHANDLE-">$obj-&gt;<b>read</b>(FILEHANDLE)</dt>
+<dd>
+
+<p>Read a message from the FILEHANDLE into an already existing message object. Better use <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Internet.html#Constructors">new()</a> with the FILEHANDLE as first argument.</p>
+
+</dd>
+</dl>
+
+<h2 id="Accessors">Accessors</h2>
+
+<dl>
+
+<dt id="obj-body-BODY-">$obj-&gt;<b>body</b>([BODY])</dt>
+<dd>
+
+<p>Returns the body of the message. This is a reference to an array. Each entry in the array represents a single line in the message.</p>
+
+<p>If <i>BODY</i> is given, it can be a reference to an array or an array, then the body will be replaced. If a reference is passed, it is used directly and not copied, so any subsequent changes to the array will change the contents of the body.</p>
+
+</dd>
+<dt id="obj-head-">$obj-&gt;<b>head</b>()</dt>
+<dd>
+
+<p>Returns the <code><code>Mail::Header</code></code> object which holds the headers for the current message</p>
+
+</dd>
+</dl>
+
+<h2 id="Processing-the-message-as-a-whole">Processing the message as a whole</h2>
+
+<dl>
+
+<dt id="obj-as_mbox_string-ALREADY_ESCAPED-">$obj-&gt;<b>as_mbox_string</b>([ALREADY_ESCAPED])</dt>
+<dd>
+
+<p>Returns the message as a string in mbox format. <code><code>ALREADY_ESCAPED</code></code>, if given and true, indicates that <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Internet.html#High-level-functionality">escape_from()</a> has already been called on this object.</p>
+
+</dd>
+<dt id="obj-as_string-">$obj-&gt;<b>as_string</b>()</dt>
+<dd>
+
+<p>Returns the message as a single string.</p>
+
+</dd>
+<dt id="obj-print-FILEHANDLE-">$obj-&gt;<b>print</b>([FILEHANDLE])</dt>
+<dd>
+
+<p>Print the header, body or whole message to file descriptor <i>FILEHANDLE</i>. <i>$fd</i> should be a reference to a GLOB. If <i>FILEHANDLE</i> is not given the output will be sent to STDOUT.</p>
+
+<p>example:</p>
+
+<pre><code><code>    <span class="variable">$mail</span><span class="operator">-&gt;</span><span class="variable">print</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">*STDOUT</span> <span class="operator">);</span>  <span class="comment"># Print message to STDOUT</span>
+</code></code></pre>
+
+</dd>
+<dt id="obj-print_body-FILEHANDLE-">$obj-&gt;<b>print_body</b>([FILEHANDLE])</dt>
+<dd>
+
+<p>Print only the body to the FILEHANDLE (default STDOUT).</p>
+
+</dd>
+<dt id="obj-print_header-FILEHANDLE-">$obj-&gt;<b>print_header</b>([FILEHANDLE])</dt>
+<dd>
+
+<p>Print only the header to the FILEHANDLE (default STDOUT).</p>
+
+</dd>
+</dl>
+
+<h2 id="Processing-the-header">Processing the header</h2>
+
+<p>Most of these methods are simply wrappers around methods provided by <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Header.html">Mail::Header</a>.</p>
+
+<dl>
+
+<dt id="obj-add-PAIRS-of-FIELD-">$obj-&gt;<b>add</b>(PAIRS-of-FIELD)</dt>
+<dd>
+
+<p>The PAIRS are field-name and field-content. For each PAIR, <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Header.html#Processing">Mail::Header::add()</a> is called. All fields are added after existing fields. The last addition is returned.</p>
+
+</dd>
+<dt id="obj-combine-TAG-WITH-">$obj-&gt;<b>combine</b>(TAG, [WITH])</dt>
+<dd>
+
+<p>See <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Header.html#Processing">Mail::Header::combine()</a>.</p>
+
+</dd>
+<dt id="obj-delete-TAG-TAGs-">$obj-&gt;<b>delete</b>(TAG, [TAGs])</dt>
+<dd>
+
+<p>Delete all fields with the name TAG. <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Header.html#Processing">Mail::Header::delete()</a> is doing the work.</p>
+
+</dd>
+<dt id="obj-fold-LENGTH-">$obj-&gt;<b>fold</b>([LENGTH])</dt>
+<dd>
+
+<p>See <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Header.html#Processing">Mail::Header::fold()</a>.</p>
+
+</dd>
+<dt id="obj-fold_length-TAG-LENGTH-">$obj-&gt;<b>fold_length</b>([TAG], [LENGTH])</dt>
+<dd>
+
+<p>See <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Header.html#Accessors">Mail::Header::fold_length()</a>.</p>
+
+</dd>
+<dt id="obj-get-TAG-TAGs-">$obj-&gt;<b>get</b>(TAG, [TAGs])</dt>
+<dd>
+
+<p>In LIST context, all fields with the name TAG are returned. In SCALAR context, only the first field which matches the earliest TAG is returned. <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Header.html#Processing">Mail::Header::get()</a> is called to collect the data.</p>
+
+</dd>
+<dt id="obj-header-ARRAY-of-LINES-">$obj-&gt;<b>header</b>([ARRAY-of-LINES])</dt>
+<dd>
+
+<p>See <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Header.html#Fake-constructors">Mail::Header::header()</a>.</p>
+
+</dd>
+<dt id="obj-replace-PAIRS-of-FIELD-">$obj-&gt;<b>replace</b>(PAIRS-of-FIELD)</dt>
+<dd>
+
+<p>The PAIRS are field-name and field-content. For each PAIR, <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Header.html#Processing">Mail::Header::replace()</a> is called with INDEX 0. If a FIELD is already in the header, it will be removed first. Do not specified the same field-name twice.</p>
+
+</dd>
+</dl>
+
+<h2 id="Processing-the-body">Processing the body</h2>
+
+<dl>
+
+<dt id="obj-remove_sig-NLINES-">$obj-&gt;<b>remove_sig</b>([NLINES])</dt>
+<dd>
+
+<p>Attempts to remove a users signature from the body of a message. It does this by looking for a line equal to <code><code>&#39;-- &#39;</code></code> within the last <code><code>NLINES</code></code> of the message. If found then that line and all lines after it will be removed. If <code><code>NLINES</code></code> is not given a default value of 10 will be used. This would be of most use in auto-reply scripts.</p>
+
+</dd>
+<dt id="obj-sign-OPTIONS-">$obj-&gt;<b>sign</b>(OPTIONS)</dt>
+<dd>
+
+<p>Add your signature to the body. <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Internet.html#Processing-the-body">remove_sig()</a> will strip existing signatures first.</p>
+
+<pre><code><code> -Option   --Default
+  File       undef
+  Signature  []</code></code></pre>
+
+<dl>
+
+<dt id="File-FILEHANDLE">File =&gt; FILEHANDLE</dt>
+<dd>
+
+<p>Take from the FILEHANDLE all lines starting from the first <code><code>--</code></code>.</p>
+
+</dd>
+<dt id="Signature-STRING-ARRAY-of-LINES">Signature =&gt; STRING|ARRAY-of-LINES</dt>
+<dd>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="obj-tidy_body-">$obj-&gt;<b>tidy_body</b>()</dt>
+<dd>
+
+<p>Removes all leading and trailing lines from the body that only contain white spaces.</p>
+
+</dd>
+</dl>
+
+<h2 id="High-level-functionality">High-level functionality</h2>
+
+<dl>
+
+<dt id="obj-escape_from-">$obj-&gt;<b>escape_from</b>()</dt>
+<dd>
+
+<p>It can cause problems with some applications if a message contains a line starting with <code><code>`From &#39;</code></code>, in particular when attempting to split a folder. This method inserts a leading <code><code>`</code></code>&#39;&gt; on anyline that matches the regular expression <code><code>/^</code></code>*From/&gt;</p>
+
+</dd>
+<dt id="obj-nntppost-OPTIONS-">$obj-&gt;<b>nntppost</b>([OPTIONS])</dt>
+<dd>
+
+<p>Post an article via NNTP. Requires Net::NNTP to be installed.</p>
+
+<pre><code><code> -Option--Default
+  Debug   &lt;false&gt;
+  Host    &lt;required&gt;
+  Port    119</code></code></pre>
+
+<dl>
+
+<dt id="Debug-BOOLEAN">Debug =&gt; BOOLEAN</dt>
+<dd>
+
+<p>Debug value to pass to Net::NNTP, see <a href="../../../lib/Net/NNTP.html">Net::NNTP</a></p>
+
+</dd>
+<dt id="Host-HOSTNAME-Net::NNTP-object">Host =&gt; HOSTNAME|Net::NNTP object</dt>
+<dd>
+
+<p>Name of NNTP server to connect to, or a Net::NNTP object to use.</p>
+
+</dd>
+<dt id="Port-INTEGER">Port =&gt; INTEGER</dt>
+<dd>
+
+<p>Port number to connect to on remote host</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="obj-reply-OPTIONS-">$obj-&gt;<b>reply</b>(OPTIONS)</dt>
+<dd>
+
+<p>Create a new object with header initialised for a reply to the current object. And the body will be a copy of the current message indented.</p>
+
+<p>The <code><code>.mailhdr</code></code> file in your home directory (if exists) will be read first, to provide defaults.</p>
+
+<pre><code><code> -Option  --Default
+  Exclude   []
+  Indent    &#39;&gt;&#39;
+  Keep      []
+  ReplyAll  false</code></code></pre>
+
+<dl>
+
+<dt id="Exclude-ARRAY-of-FIELDS">Exclude =&gt; ARRAY-of-FIELDS</dt>
+<dd>
+
+<p>Remove the listed FIELDS from the produced message.</p>
+
+</dd>
+<dt id="Indent-STRING">Indent =&gt; STRING</dt>
+<dd>
+
+<p>Use as indentation string. The string may contain <code><code>%%</code></code> to get a single <code><code>%</code></code>, <code><code>%f</code></code> to get the first from name, <code><code>%F</code></code> is the first character of <code><code>%f</code></code>, <code><code>%l</code></code> is the last name, <code><code>%L</code></code> its first character, <code><code>%n</code></code> the whole from string, and <code><code>%I</code></code> the first character of each of the names in the from string.</p>
+
+</dd>
+<dt id="Keep-ARRAY-of-FIELDS">Keep =&gt; ARRAY-of-FIELDS</dt>
+<dd>
+
+<p>Copy the listed FIELDS from the original message.</p>
+
+</dd>
+<dt id="ReplyAll-BOOLEAN">ReplyAll =&gt; BOOLEAN</dt>
+<dd>
+
+<p>Automatically include all To and Cc addresses of the original mail, excluding those mentioned in the Bcc list.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="obj-send-TYPE-ARGS...-">$obj-&gt;<b>send</b>([TYPE, [ARGS...]])</dt>
+<dd>
+
+<p>Send a Mail::Internet message using <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Mailer.html">Mail::Mailer</a>. TYPE and ARGS are passed on to <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Mailer.html#Constructors">Mail::Mailer::new()</a>.</p>
+
+</dd>
+<dt id="obj-smtpsend-OPTIONS-">$obj-&gt;<b>smtpsend</b>([OPTIONS])</dt>
+<dd>
+
+<p>Send a Mail::Internet message using direct SMTP. to the given ADDRESSES, each can be either a string or a reference to a list of email addresses. If none of <code><code>To</code></code>, &lt;Cc&gt; or <code><code>Bcc</code></code> are given then the addresses are extracted from the message being sent.</p>
+
+<p>The return value will be a list of email addresses that the message was sent to. If the message was not sent the list will be empty.</p>
+
+<p>Requires Net::SMTP and Net::Domain to be installed.</p>
+
+<pre><code><code> <span class="operator">-</span><span class="variable">Option</span>  <span class="operator">--</span><span class="variable">Default</span>
+  <span class="variable">Bcc</span>       <span class="keyword">undef</span>
+  <span class="variable">Cc</span>        <span class="keyword">undef</span>
+  <span class="variable">Debug</span>     <span class="operator">&lt;</span><span class="variable">false</span><span class="operator">&gt;</span>
+  <span class="variable">Hello</span>     <span class="variable">localhost</span><span class="operator">.</span><span class="variable">localdomain</span>
+  <span class="variable">Host</span>      <span class="variable">$ENV</span><span class="operator">{</span><span class="string">SMTPHOSTS</span><span class="operator">}</span>
+  <span class="variable">MailFrom</span>  <span class="variable">Mail::Util::mailaddress</span><span class="operator">()</span>
+  <span class="variable">Port</span>      <span class="number">25</span>
+  <span class="variable">To</span>        <span class="keyword">undef</span>
+</code></code></pre>
+
+<dl>
+
+<dt id="Bcc-ADDRESSES">Bcc =&gt; ADDRESSES</dt>
+<dd>
+
+</dd>
+<dt id="Cc-ADDRESSES">Cc =&gt; ADDRESSES</dt>
+<dd>
+
+</dd>
+<dt id="Debug-BOOLEAN1">Debug =&gt; BOOLEAN</dt>
+<dd>
+
+<p>Debug value to pass to Net::SMPT, see &lt;Net::SMTP&gt;</p>
+
+</dd>
+<dt id="Hello-STRING">Hello =&gt; STRING</dt>
+<dd>
+
+<p>Send a HELO (or EHLO) command to the server with the given name.</p>
+
+</dd>
+<dt id="Host-HOSTNAME">Host =&gt; HOSTNAME</dt>
+<dd>
+
+<p>Name of the SMTP server to connect to, or a Net::SMTP object to use</p>
+
+<p>If <code><code>Host</code></code> is not given then the SMTP host is found by attempting connections first to hosts specified in <code><code><span class="variable">$ENV</span><span class="operator">{</span><span class="string">SMTPHOSTS</span><span class="operator">}</span>
+</code></code>, a colon separated list, then <code><code>mailhost</code></code> and <code><code>localhost</code></code>.</p>
+
+</dd>
+<dt id="MailFrom-ADDRESS">MailFrom =&gt; ADDRESS</dt>
+<dd>
+
+<p>The e-mail address which is used as sender. By default, <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Util.html#FUNCTIONS">Mail::Util::mailaddress()</a> provides the address of the sender.</p>
+
+</dd>
+<dt id="Port-INTEGER1">Port =&gt; INTEGER</dt>
+<dd>
+
+<p>Port number to connect to on remote host</p>
+
+</dd>
+<dt id="To-ADDRESSES">To =&gt; ADDRESSES</dt>
+<dd>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="obj-unescape_from-">$obj-&gt;<b>unescape_from</b>(())</dt>
+<dd>
+
+<p>Remove the escaping added by <a href="../../../../.cpan/build/MailTools-2.12-RNS7Q_/blib/lib/Mail/Internet.html#High-level-functionality">escape_from()</a>.</p>
+
+</dd>
+</dl>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>This module is part of the MailTools distribution, <i>http://perl.overmeer.net/mailtools/</i>.</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>The MailTools bundle was developed by Graham Barr. Later, Mark Overmeer took over maintenance without commitment to further development.</p>
+
+<p>Mail::Cap by Gisle Aas &lt;aas@oslonett.no&gt;. Mail::Field::AddrList by Peter Orbaek &lt;poe@cit.dk&gt;. Mail::Mailer and Mail::Send by Tim Bunce &lt;Tim.Bunce@ig.co.uk&gt;. For other contributors see ChangeLog.</p>
+
+<h1 id="LICENSE">LICENSE</h1>
+
+<p>Copyrights 1995-2000 Graham Barr &lt;gbarr@pobox.com&gt; and 2001-2007 Mark Overmeer &lt;perl@overmeer.net&gt;.</p>
+
+<p>This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself. See <i>http://www.perl.com/perl/misc/Artistic.html</i></p>
+
+
+</body>
+
+</html>
+
+

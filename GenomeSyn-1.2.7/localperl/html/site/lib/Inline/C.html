@@ -1,0 +1,509 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#Usage">Usage</a></li>
+  <li><a href="#Function-Definitions">Function Definitions</a></li>
+  <li><a href="#C-Configuration-Options">C Configuration Options</a>
+    <ul>
+      <li><a href="#AUTO_INCLUDE">AUTO_INCLUDE</a></li>
+      <li><a href="#AUTOWRAP">AUTOWRAP</a></li>
+      <li><a href="#BOOT">BOOT</a></li>
+      <li><a href="#CC">CC</a></li>
+      <li><a href="#CCFLAGS">CCFLAGS</a></li>
+      <li><a href="#CCFLAGSEX">CCFLAGSEX</a></li>
+      <li><a href="#FILTERS">FILTERS</a></li>
+      <li><a href="#INC">INC</a></li>
+      <li><a href="#LD">LD</a></li>
+      <li><a href="#LDDLFLAGS">LDDLFLAGS</a></li>
+      <li><a href="#LIBS">LIBS</a></li>
+      <li><a href="#MAKE">MAKE</a></li>
+      <li><a href="#MYEXTLIB">MYEXTLIB</a></li>
+      <li><a href="#OPTIMIZE">OPTIMIZE</a></li>
+      <li><a href="#PREFIX">PREFIX</a></li>
+      <li><a href="#PRE_HEAD">PRE_HEAD</a></li>
+      <li><a href="#TYPEMAPS">TYPEMAPS</a></li>
+      <li><a href="#USING">USING</a></li>
+    </ul>
+  </li>
+  <li><a href="#C-Perl-Bindings">C-Perl Bindings</a></li>
+  <li><a href="#The-Inline-Stack-Macros">The Inline Stack Macros</a></li>
+  <li><a href="#Writing-C-Subroutines">Writing C Subroutines</a></li>
+  <li><a href="#Examples">Examples</a>
+    <ul>
+      <li><a href="#Example-1---Greetings">Example #1 - Greetings</a></li>
+      <li><a href="#Example-2---and-Salutations">Example #2 - and Salutations</a></li>
+      <li><a href="#Example-3---Fixing-the-problem">Example #3 - Fixing the problem</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#BUGS-AND-DEFICIENCIES">BUGS AND DEFICIENCIES</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Inline::C - Write Perl Subroutines in C</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><code><code>Inline::C</code></code> is a module that allows you to write Perl subroutines in C. Since version 0.30 the Inline module supports multiple programming languages and each language has its own support module. This document describes how to use Inline with the C programming language. It also goes a bit into Perl C internals.</p>
+
+<p>If you want to start working with programming examples right away, check out <a href="../../../../.cpan/build/Inline-0.53-96IrIa/blib/lib/Inline/C-Cookbook.html">Inline::C-Cookbook</a>. For more information on Inline in general, see <a href="../../../../.cpan/build/Inline-0.53-96IrIa/blib/lib/Inline.html">Inline</a>.</p>
+
+<h1 id="Usage">Usage</h1>
+
+<p>You never actually use <code><code>Inline::C</code></code> directly. It is just a support module for using <code><code>Inline.pm</code></code> with C. So the usage is always:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="operator">...;</span>
+</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>    <span class="keyword">bind</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="operator">...;</span>
+</code></code></pre>
+
+<h1 id="Function-Definitions">Function Definitions</h1>
+
+<p>The Inline grammar for C recognizes certain function definitions (or signatures) in your C code. If a signature is recognized by Inline, then it will be available in Perl-space. That is, Inline will generate the &quot;glue&quot; necessary to call that function as if it were a Perl subroutine. If the signature is not recognized, Inline will simply ignore it, with no complaints. It will not be available from Perl-space, although it <i>will</i> be available from C-space.</p>
+
+<p>Inline looks for ANSI/prototype style function definitions. They must be of the form:</p>
+
+<pre><code><code>    <span class="keyword">return</span><span class="operator">-</span><span class="variable">type</span> <span class="variable">function</span><span class="operator">-</span><span class="variable">name</span> <span class="operator">(</span> <span class="variable">type</span><span class="operator">-</span><span class="variable">name</span><span class="operator">-</span><span class="variable">pairs</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>The most common types are: <code><code>int</code></code>, <code><code>long</code></code>, <code><code>double</code></code>, <code><code>char*</code></code>, and <code><code>SV*</code></code>. But you can use any type for which Inline can find a typemap. Inline uses the <code><code>typemap</code></code> file distributed with Perl as the default. You can specify more typemaps with the TYPEMAPS configuration option.</p>
+
+<p>A return type of <code><code>void</code></code> may also be used. The following are examples of valid function definitions.</p>
+
+<pre><code><code>    <span class="keyword">int</span> <span class="variable">Foo</span><span class="operator">(</span><span class="variable">double</span> <span class="variable">num</span><span class="operator">,</span> <span class="variable">char</span><span class="operator">*</span> <span class="variable">str</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">void</span> <span class="variable">Foo</span><span class="operator">(</span><span class="variable">double</span> <span class="variable">num</span><span class="operator">,</span> <span class="variable">char</span><span class="operator">*</span> <span class="variable">str</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">void</span> <span class="variable">Foo</span><span class="operator">(</span><span class="variable">SV</span><span class="operator">*,</span> <span class="operator">...)</span> <span class="operator">{</span>
+    <span class="variable">long</span> <span class="variable">Foo</span><span class="operator">(</span><span class="keyword">int</span> <span class="variable">i</span><span class="operator">,</span> <span class="keyword">int</span> <span class="variable">j</span><span class="operator">,</span> <span class="operator">...)</span> <span class="operator">{</span>
+    <span class="variable">SV</span><span class="operator">*</span> <span class="variable">Foo</span><span class="operator">(</span><span class="variable">void</span><span class="operator">)</span> <span class="operator">{</span> <span class="comment"># 'void' arg invalid with the ParseRecDescent parser.</span>
+                    <span class="comment"># Works only with the ParseRegExp parser.</span>
+                    <span class="comment"># See the section on USING (below).</span>
+    <span class="variable">SV</span><span class="operator">*</span> <span class="variable">Foo</span><span class="operator">()</span> <span class="operator">{</span>  <span class="comment"># Alternative to specifying 'void' arg. Is valid with</span>
+                 <span class="comment"># both the ParseRecDescent and ParseRegExp parsers.</span>
+</code></code></pre>
+
+<p>The following definitions would not be recognized:</p>
+
+<pre><code><code>    <span class="variable">Foo</span><span class="operator">(</span><span class="keyword">int</span> <span class="variable">i</span><span class="operator">)</span> <span class="operator">{</span>               <span class="comment"># no return type</span>
+    <span class="keyword">int</span> <span class="variable">Foo</span><span class="operator">(</span><span class="variable">float</span> <span class="variable">f</span><span class="operator">)</span> <span class="operator">{</span>         <span class="comment"># no (default) typemap for float</span>
+    <span class="keyword">int</span> <span class="variable">Foo</span><span class="operator">(</span><span class="variable">num</span><span class="operator">,</span> <span class="variable">str</span><span class="operator">)</span> <span class="variable">double</span> <span class="variable">num</span><span class="operator">;</span> <span class="variable">char</span><span class="operator">*</span> <span class="variable">str</span><span class="operator">;</span> <span class="operator">{</span>
+</code></code></pre>
+
+<p>Notice that Inline only looks for function <i>definitions</i>, not function <i>prototypes</i>. Definitions are the syntax directly preceding a function body. Also Inline does not scan external files, like headers. Only the code passed to Inline is used to create bindings; although other libraries can linked in, and called from C-space.</p>
+
+<h1 id="C-Configuration-Options">C Configuration Options</h1>
+
+<p>For information on how to specify Inline configuration options, see <a href="../../../../.cpan/build/Inline-0.53-96IrIa/blib/lib/Inline.html">Inline</a>. This section describes each of the configuration options available for C. Most of the options correspond either to MakeMaker or XS options of the same name. See <a href="../../../lib/ExtUtils/MakeMaker.html">ExtUtils::MakeMaker</a> and <a href="../../../lib/pod/perlxs.html">perlxs</a>.</p>
+
+<h2 id="AUTO_INCLUDE">AUTO_INCLUDE</h2>
+
+<p>Specifies extra statements to automatically included. They will be added onto the defaults. A newline char will be automatically added.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">Config</span> <span class="operator">=&gt;</span> <span class="string">AUTO_INCLUDE</span> <span class="operator">=&gt;</span> <span class="string">'#include "yourheader.h"'</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="AUTOWRAP">AUTOWRAP</h2>
+
+<p>If you &#39;ENABLE =&gt; AUTOWRAP&#39;, Inline::C will parse function declarations (prototype statements) in your C code. For each declaration it can bind to, it will create a dummy wrapper that will call the real function which may be in an external library. This is a nice convenience for functions that would otherwise just require an empty wrapper function.</p>
+
+<p>This is similar to the base functionality you get from <code><code>h2xs</code></code>. It can be very useful for binding to external libraries.</p>
+
+<h2 id="BOOT">BOOT</h2>
+
+<p>Specifies C code to be executed in the XS BOOT section. Corresponds to the XS parameter.</p>
+
+<h2 id="CC">CC</h2>
+
+<p>Specify which compiler to use.</p>
+
+<h2 id="CCFLAGS">CCFLAGS</h2>
+
+<p>Specify compiler flags - same as ExtUtils::MakeMaker&#39;s CCFLAGS option. Whatever gets specified here replaces the default $Config{ccflags}. Often, you&#39;ll want to add an extra flag or two without clobbering the default flags in which case you could instead use CCFLAGSEX (see below) or, iff Config.pm has already been loaded:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">Config</span> <span class="operator">=&gt;</span> <span class="string">CCFLAGS</span> <span class="operator">=&gt;</span> <span class="variable">$Config</span><span class="operator">{</span><span class="string">ccflags</span><span class="operator">}</span> <span class="operator">.</span> <span class="string">" -DXTRA -DTOO"</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="CCFLAGSEX">CCFLAGSEX</h2>
+
+<p>Extend compiler flags. Sets CCFLAGS to $Config{ccflags} followed by a space, followed by the specified value:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">Config</span> <span class="operator">=&gt;</span> <span class="string">CCFLAGSEX</span> <span class="operator">=&gt;</span> <span class="string">"-DXTRA -DTOO"</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="FILTERS">FILTERS</h2>
+
+<p>Allows you to specify a list of source code filters. If more than one is requested, be sure to group them with an array ref. The filters can either be subroutine references or names of filters provided by the supplementary Inline::Filters module.</p>
+
+<p>Your source code will be filtered just before it is parsed by Inline. The MD5 fingerprint is generated before filtering. Source code filters can be used to do things like stripping out POD documentation, pre-expanding #include statements or whatever else you please. For example:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">DATA</span> <span class="operator">=&gt;</span>
+               <span class="string">FILTERS</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">Strip_POD</span> <span class="operator">=&gt;</span> <span class="operator">\&amp;</span><span class="string">MyFilter</span> <span class="operator">=&gt;</span> <span class="variable">Preprocess</span> <span class="operator">]</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Filters are invoked in the order specified. See <a>Inline::Filters</a> for more information.</p>
+
+<h2 id="INC">INC</h2>
+
+<p>Specifies an include path to use. Corresponds to the MakeMaker parameter. Expects a fully qualified path.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">Config</span> <span class="operator">=&gt;</span> <span class="string">INC</span> <span class="operator">=&gt;</span> <span class="string">'-I/inc/path'</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="LD">LD</h2>
+
+<p>Specify which linker to use.</p>
+
+<h2 id="LDDLFLAGS">LDDLFLAGS</h2>
+
+<p>Specify which linker flags to use.</p>
+
+<p>NOTE: These flags will completely override the existing flags, instead of just adding to them. So if you need to use those too, you must respecify them here.</p>
+
+<h2 id="LIBS">LIBS</h2>
+
+<p>Specifies external libraries that should be linked into your code. Corresponds to the MakeMaker parameter. Provide a fully qualified path with the -L switch if the library is in a location where it won&#39;t be found automatically.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">Config</span> <span class="operator">=&gt;</span> <span class="string">LIBS</span> <span class="operator">=&gt;</span> <span class="string">'-lyourlib'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">Config</span> <span class="operator">=&gt;</span> <span class="string">LIBS</span> <span class="operator">=&gt;</span> <span class="string">'-L/your/path -lyourlib'</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="MAKE">MAKE</h2>
+
+<p>Specify the name of the &#39;make&#39; utility to use.</p>
+
+<h2 id="MYEXTLIB">MYEXTLIB</h2>
+
+<p>Specifies a user compiled object that should be linked in. Corresponds to the MakeMaker parameter. Expects a fully qualified path.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">Config</span> <span class="operator">=&gt;</span> <span class="string">MYEXTLIB</span> <span class="operator">=&gt;</span> <span class="string">'/your/path/yourmodule.so'</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="OPTIMIZE">OPTIMIZE</h2>
+
+<p>This controls the MakeMaker OPTIMIZE setting. By setting this value to <code><code>&#39;-g&#39;</code></code>, you can turn on debugging support for your Inline extensions. This will allow you to be able to set breakpoints in your C code using a debugger like gdb.</p>
+
+<h2 id="PREFIX">PREFIX</h2>
+
+<p>Specifies a prefix that will be automatically stripped from C functions when they are bound to Perl. Useful for creating wrappers for shared library API-s, and binding to the original names in Perl. Also useful when names conflict with Perl internals. Corresponds to the XS parameter.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">Config</span> <span class="operator">=&gt;</span> <span class="string">PREFIX</span> <span class="operator">=&gt;</span> <span class="string">'ZLIB_'</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="PRE_HEAD">PRE_HEAD</h2>
+
+<p>Specifies code that will precede the inclusion of all files specified in AUTO_INCLUDE (ie EXTERN.h, perl.h, XSUB.h, INLINE.h and anything else that might have been added to AUTO_INCLUDE by the user). If the specified value identifies a file, the contents of that file will be inserted, otherwise the specified value is inserted.</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">Config</span> <span class="operator">=&gt;</span> <span class="string">PRE_HEAD</span> <span class="operator">=&gt;</span> <span class="variable">$code_or_filename</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="TYPEMAPS">TYPEMAPS</h2>
+
+<p>Specifies extra typemap files to use. These types will modify the behaviour of the C parsing. Corresponds to the MakeMaker parameter. Specify either a fully qualified path or a path relative to the cwd (ie relative to what the cwd is at the time the script is loaded).</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">Config</span> <span class="operator">=&gt;</span> <span class="string">TYPEMAPS</span> <span class="operator">=&gt;</span> <span class="string">'/your/path/typemap'</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="USING">USING</h2>
+
+<p>Specifies which parser to use. Default is &#39;ParseRecDescent&#39;, which uses the Parse::RecDescent module. The only other option is &#39;ParseRegExp&#39;, which uses the Inline::C::ParseRegExp module that ships with Inline.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="string">C</span> <span class="operator">=&gt;</span> <span class="string">Config</span> <span class="operator">=&gt;</span> <span class="string">USING</span> <span class="operator">=&gt;</span> <span class="string">'ParseRegExp'</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="C-Perl-Bindings">C-Perl Bindings</h1>
+
+<p>This section describes how the <code><code>Perl</code></code> variables get mapped to <code><code>C</code></code> variables and back again.</p>
+
+<p>First, you need to know how <code><code>Perl</code></code> passes arguments back and forth to subroutines. Basically it uses a stack (also known as the <b>Stack</b>). When a sub is called, all of the parenthesized arguments get expanded into a list of scalars and pushed onto the <b>Stack</b>. The subroutine then pops all of its parameters off of the <b>Stack</b>. When the sub is done, it pushes all of its return values back onto the <b>Stack</b>.</p>
+
+<p>The <b>Stack</b> is an array of scalars known internally as <code><code>SV</code></code>&#39;s. The <b>Stack</b> is actually an array of <b>pointers to SV</b> or <code><code>SV*</code></code>; therefore every element of the <b>Stack</b> is natively a <code><code>SV*</code></code>. For <i>FMTYEWTK</i> about this, read <code><code>perldoc perlguts</code></code>.</p>
+
+<p>So back to variable mapping. XS uses a thing known as &quot;typemaps&quot; to turn each <code><code>SV*</code></code> into a <code><code>C</code></code> type and back again. This is done through various XS macro calls, casts and the Perl API. See <code><code>perldoc perlapi</code></code>. XS allows you to define your own typemaps as well for fancier non-standard types such as <code><code>typedef</code></code>-ed structs.</p>
+
+<p>Inline uses the default Perl typemap file for its default types. This file is called <code><code>/usr/local/lib/perl5/5.6.1/ExtUtils/typemap</code></code>, or something similar, depending on your Perl installation. It has definitions for over 40 types, which are automatically used by Inline. (You should probably browse this file at least once, just to get an idea of the possibilities.)</p>
+
+<p>Inline parses your code for these types and generates the XS code to map them. The most commonly used types are:</p>
+
+<pre><code><code> - int
+ - long
+ - double
+ - char*
+ - void
+ - SV*</code></code></pre>
+
+<p>If you need to deal with a type that is not in the defaults, just use the generic <code><code>SV*</code></code> type in the function definition. Then inside your code, do the mapping yourself. Alternatively, you can create your own typemap files and specify them using the <code><code>TYPEMAPS</code></code> configuration option.</p>
+
+<p>A return type of <code><code>void</code></code> has a special meaning to Inline. It means that you plan to push the values back onto the <b>Stack</b> yourself. This is what you need to do to return a list of values. If you really don&#39;t want to return anything (the traditional meaning of <code><code>void</code></code>) then simply don&#39;t push anything back.</p>
+
+<p>If ellipsis or <code><code>...</code></code> is used at the end of an argument list, it means that any number of <code><code>SV*</code></code>s may follow. Again you will need to pop the values off of the <code><code>Stack</code></code> yourself.</p>
+
+<p>See <a href="#Examples">&quot;Examples&quot;</a> below.</p>
+
+<h1 id="The-Inline-Stack-Macros">The Inline Stack Macros</h1>
+
+<p>When you write Inline C, the following lines are automatically prepended to your code (by default):</p>
+
+<pre><code><code>    <span class="comment">#include "EXTERN.h"</span>
+    <span class="comment">#include "perl.h"</span>
+    <span class="comment">#include "XSUB.h"</span>
+    <span class="comment">#include "INLINE.h"</span>
+</code></code></pre>
+
+<p>The file <code><code>INLINE.h</code></code> defines a set of macros that are useful for handling the Perl Stack from your C functions.</p>
+
+<dl>
+
+<dt id="Inline_Stack_Vars">Inline_Stack_Vars</dt>
+<dd>
+
+<p>You&#39;ll need to use this one, if you want to use the others. It sets up a few local variables: <code><code>sp</code></code>, <code><code>items</code></code>, <code><code>ax</code></code> and <code><code>mark</code></code>, for use by the other macros. It&#39;s not important to know what they do, but I mention them to avoid possible name conflicts.</p>
+
+<p>NOTE: Since this macro declares variables, you&#39;ll need to put it with your other variable declarations at the top of your function. It must come before any executable statements and before any other <code><code>Inline_Stack</code></code> macros.</p>
+
+</dd>
+<dt id="Inline_Stack_Items">Inline_Stack_Items</dt>
+<dd>
+
+<p>Returns the number of arguments passed in on the Stack.</p>
+
+</dd>
+<dt id="Inline_Stack_Item-i-">Inline_Stack_Item(i)</dt>
+<dd>
+
+<p>Refers to a particular <code><code>SV*</code></code> in the Stack, where <code><code>i</code></code> is an index number starting from zero. Can be used to get or set the value.</p>
+
+</dd>
+<dt id="Inline_Stack_Reset">Inline_Stack_Reset</dt>
+<dd>
+
+<p>Use this before pushing anything back onto the Stack. It resets the internal Stack pointer to the beginning of the Stack.</p>
+
+</dd>
+<dt id="Inline_Stack_Push-sv-">Inline_Stack_Push(sv)</dt>
+<dd>
+
+<p>Push a return value back onto the Stack. The value must be of type <code><code>SV*</code></code>.</p>
+
+</dd>
+<dt id="Inline_Stack_Done">Inline_Stack_Done</dt>
+<dd>
+
+<p>After you have pushed all of your return values, you must call this macro.</p>
+
+</dd>
+<dt id="Inline_Stack_Return-n-">Inline_Stack_Return(n)</dt>
+<dd>
+
+<p>Return <code><code>n</code></code> items on the Stack.</p>
+
+</dd>
+<dt id="Inline_Stack_Void">Inline_Stack_Void</dt>
+<dd>
+
+<p>A special macro to indicate that you really don&#39;t want to return anything. Same as:</p>
+
+<pre><code><code>    <span class="variable">Inline_Stack_Return</span><span class="operator">(</span><span class="number">0</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Please note that this macro actually <b>returns</b> from your function.</p>
+
+</dd>
+</dl>
+
+<p>Each of these macros is available in 3 different styles to suit your coding tastes. The following macros are equivalent.</p>
+
+<pre><code><code>    Inline_Stack_Vars
+    inline_stack_vars
+    INLINE_STACK_VARS</code></code></pre>
+
+<p>All of this functionality is available through XS macro calls as well. So why duplicate the functionality? There are a few reasons why I decided to offer this set of macros. First, as a convenient way to access the Stack. Second, for consistent, self documenting, non-cryptic coding. Third, for future compatibility. It occured to me that if a lot of people started using XS macros for their C code, the interface might break under Perl6. By using this set, hopefully I will be able to insure future compatibility of argument handling.</p>
+
+<p>Of course, if you use the rest of the Perl API, your code will most likely break under Perl6. So this is not a 100% guarantee. But since argument handling is the most common interface you&#39;re likely to use, it seemed like a wise thing to do.</p>
+
+<h1 id="Writing-C-Subroutines">Writing C Subroutines</h1>
+
+<p>The definitions of your C functions will fall into one of the following four categories. For each category there are special considerations.</p>
+
+<ol>
+
+<li><p></p>
+
+<pre><code><code>    <span class="keyword">int</span> <span class="variable">Foo</span><span class="operator">(</span><span class="keyword">int</span> <span class="variable">arg1</span><span class="operator">,</span> <span class="variable">char</span><span class="operator">*</span> <span class="variable">arg2</span><span class="operator">,</span> <span class="variable">SV</span><span class="operator">*</span> <span class="variable">arg3</span><span class="operator">)</span> <span class="operator">{</span>
+</code></code></pre>
+
+<p>This is the simplest case. You have a non <code><code>void</code></code> return type and a fixed length argument list. You don&#39;t need to worry about much. All the conversions will happen automatically.</p>
+
+</li>
+<li><p></p>
+
+<pre><code><code>    <span class="variable">void</span> <span class="variable">Foo</span><span class="operator">(</span><span class="keyword">int</span> <span class="variable">arg1</span><span class="operator">,</span> <span class="variable">char</span><span class="operator">*</span> <span class="variable">arg2</span><span class="operator">,</span> <span class="variable">SV</span><span class="operator">*</span> <span class="variable">arg3</span><span class="operator">)</span> <span class="operator">{</span>
+</code></code></pre>
+
+<p>In this category you have a <code><code>void</code></code> return type. This means that either you want to return nothing, or that you want to return a list. In the latter case you&#39;ll need to push values onto the <b>Stack</b> yourself. There are a few Inline macros that make this easy. Code something like this:</p>
+
+<pre><code><code>    <span class="keyword">int</span> <span class="variable">i</span><span class="operator">,</span> <span class="variable">max</span><span class="operator">;</span> <span class="variable">SV</span><span class="operator">*</span> <span class="variable">my_sv</span><span class="operator">[</span><span class="number">10</span><span class="operator">]</span><span class="operator">;</span>
+    <span class="variable">Inline_Stack_Vars</span><span class="operator">;</span>
+    <span class="variable">Inline_Stack_Reset</span><span class="operator">;</span>
+    <span class="keyword">for</span> <span class="operator">(</span><span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span> <span class="variable">i</span> <span class="operator">&lt;</span> <span class="variable">max</span><span class="operator">;</span> <span class="variable">i</span><span class="operator">++)</span>
+      <span class="variable">Inline_Stack_Push</span><span class="operator">(</span><span class="variable">my_sv</span><span class="operator">[</span><span class="variable">i</span><span class="operator">]</span><span class="operator">);</span>
+    <span class="variable">Inline_Stack_Done</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>After resetting the Stack pointer, this code pushes a series of return values. At the end it uses <code><code>Inline_Stack_Done</code></code> to mark the end of the return stack.</p>
+
+<p>If you really want to return nothing, then don&#39;t use the <code><code>Inline_Stack_</code></code> macros. If you must use them, then set use <code><code>Inline_Stack_Void</code></code> at the end of your function.</p>
+
+</li>
+<li><p></p>
+
+<pre><code><code>    <span class="variable">char</span><span class="operator">*</span> <span class="variable">Foo</span><span class="operator">(</span><span class="variable">SV</span><span class="operator">*</span> <span class="variable">arg1</span><span class="operator">,</span> <span class="operator">...)</span> <span class="operator">{</span>
+</code></code></pre>
+
+<p>In this category you have an unfixed number of arguments. This means that you&#39;ll have to pop values off the <b>Stack</b> yourself. Do it like this:</p>
+
+<pre><code><code>    <span class="keyword">int</span> <span class="variable">i</span><span class="operator">;</span>
+    <span class="variable">Inline_Stack_Vars</span><span class="operator">;</span>
+    <span class="keyword">for</span> <span class="operator">(</span><span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span> <span class="variable">i</span> <span class="operator">&lt;</span> <span class="variable">Inline_Stack_Items</span><span class="operator">;</span> <span class="variable">i</span><span class="operator">++)</span>
+      <span class="variable">handle_sv</span><span class="operator">(</span><span class="variable">Inline_Stack_Item</span><span class="operator">(</span><span class="variable">i</span><span class="operator">));</span>
+</code></code></pre>
+
+<p>The return type of <code><code>Inline_Stack_Item(i)</code></code> is <code><code>SV*</code></code>.</p>
+
+</li>
+<li><p></p>
+
+<pre><code><code>    <span class="variable">void</span><span class="operator">*</span> <span class="variable">Foo</span><span class="operator">(</span><span class="variable">SV</span><span class="operator">*</span> <span class="variable">arg1</span><span class="operator">,</span> <span class="operator">...)</span> <span class="operator">{</span>
+</code></code></pre>
+
+<p>In this category you have both a <code><code>void</code></code> return type and an unfixed number of arguments. Just combine the techniques from Categories 3 and 4.</p>
+
+</li>
+</ol>
+
+<h1 id="Examples">Examples</h1>
+
+<p>Here are a few examples. Each one is a complete program that you can try running yourself. For many more examples see <a href="../../../../.cpan/build/Inline-0.53-96IrIa/blib/lib/Inline/C-Cookbook.html">Inline::C-Cookbook</a>.</p>
+
+<h2 id="Example-1---Greetings">Example #1 - Greetings</h2>
+
+<p>This example will take one string argument (a name) and print a greeting. The function is called with a string and with a number. In the second case the number is forced to a string.</p>
+
+<p>Notice that you do not need to <code><code><span class="comment">#include &lt;stdio.h</span>
+</code></code>&gt;. The <code><code>perl.h</code></code> header file which gets included by default, automatically loads the standard C header files for you.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="variable">C</span><span class="operator">;</span>
+    <span class="variable">greet</span><span class="operator">(</span><span class="string">'Ingy'</span><span class="operator">);</span>
+    <span class="variable">greet</span><span class="operator">(</span><span class="number">42</span><span class="operator">);</span>
+    <span class="comment">__END__
+    __C__
+    void greet(char* name) {
+      printf("Hello %s!\n", name);
+    }
+    </span>
+</code></code></pre>
+
+<h2 id="Example-2---and-Salutations">Example #2 - and Salutations</h2>
+
+<p>This is similar to the last example except that the name is passed in as a <code><code>SV*</code></code> (pointer to Scalar Value) rather than a string (<code><code>char*</code></code>). That means we need to convert the <code><code>SV</code></code> to a string ourselves. This is accomplished using the <code><code>SvPVX</code></code> function which is part of the <code><code>Perl</code></code> internal API. See <code><code>perldoc perlapi</code></code> for more info.</p>
+
+<p>One problem is that <code><code>SvPVX</code></code> doesn&#39;t automatically convert strings to numbers, so we get a little surprise when we try to greet <code><code>42</code></code>. The program segfaults, a common occurence when delving into the guts of Perl.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="variable">C</span><span class="operator">;</span>
+    <span class="variable">greet</span><span class="operator">(</span><span class="string">'Ingy'</span><span class="operator">);</span>
+    <span class="variable">greet</span><span class="operator">(</span><span class="number">42</span><span class="operator">);</span>
+    <span class="comment">__END__
+    __C__
+    void greet(SV* sv_name) {
+      printf("Hello %s!\n", SvPVX(sv_name));
+    }
+    </span>
+</code></code></pre>
+
+<h2 id="Example-3---Fixing-the-problem">Example #3 - Fixing the problem</h2>
+
+<p>We can fix the problem in Example #2 by using the <code><code>SvPV</code></code> function instead. This function will stringify the <code><code>SV</code></code> if it does not contain a string. <code><code>SvPV</code></code> returns the length of the string as it&#39;s second parameter. Since we don&#39;t care about the length, we can just put <code><code>PL_na</code></code> there, which is a special variable designed for that purpose.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="variable">C</span><span class="operator">;</span>
+    <span class="variable">greet</span><span class="operator">(</span><span class="string">'Ingy'</span><span class="operator">);</span>
+    <span class="variable">greet</span><span class="operator">(</span><span class="number">42</span><span class="operator">);</span>
+    <span class="comment">__END__
+    __C__
+    void greet(SV* sv_name) {
+      printf("Hello %s!\n", SvPV(sv_name, PL_na));
+    }
+    </span>
+</code></code></pre>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>For general information about Inline see <a href="../../../../.cpan/build/Inline-0.53-96IrIa/blib/lib/Inline.html">Inline</a>.</p>
+
+<p>For sample programs using Inline with C see <a href="../../../../.cpan/build/Inline-0.53-96IrIa/blib/lib/Inline/C-Cookbook.html">Inline::C-Cookbook</a>.</p>
+
+<p>For information on supported languages and platforms see <a href="../../../../.cpan/build/Inline-0.53-96IrIa/blib/lib/Inline-Support.html">Inline-Support</a>.</p>
+
+<p>For information on writing your own Inline Language Support Module, see <a href="../../../../.cpan/build/Inline-0.53-96IrIa/blib/lib/Inline-API.html">Inline-API</a>.</p>
+
+<p>Inline&#39;s mailing list is inline@perl.org</p>
+
+<p>To subscribe, send email to inline-subscribe@perl.org</p>
+
+<h1 id="BUGS-AND-DEFICIENCIES">BUGS AND DEFICIENCIES</h1>
+
+<ol>
+
+<li><p>If you use C function names that happen to be used internally by Perl, you will get a load error at run time. There is currently no functionality to prevent this or to warn you. For now, a list of Perl&#39;s internal symbols is packaged in the Inline module distribution under the filename <code><code>&#39;symbols.perl&#39;</code></code>. Avoid using these in your code.</p>
+
+</li>
+</ol>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Brian Ingerson &lt;INGY@cpan.org&gt;</p>
+
+<p>Sisyphus &lt;sisyphus@cpan.org&gt; fixed some bugs and is current co-maintainer.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2000-2002. Brian Ingerson.</p>
+
+<p>Copyright (c) 2008, 2010-2012. Sisyphus.</p>
+
+<p>This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<p>See http://www.perl.com/perl/misc/Artistic.html</p>
+
+
+</body>
+
+</html>
+
+

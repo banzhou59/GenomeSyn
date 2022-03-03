@@ -1,0 +1,127 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FUNCTIONS">FUNCTIONS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>IPC::Run::Win32Helper - helper routines for IPC::Run on Win32 platforms.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">IPC::Run::Win32Helper</span><span class="operator">;</span>   <span class="comment"># Exports all by default</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>IPC::Run needs to use sockets to redirect subprocess I/O so that the select() loop will work on Win32. This seems to only work on WinNT and Win2K at this time, not sure if it will ever work on Win95 or Win98. If you have experience in this area, please contact me at barries@slaysys.com, thanks!.</p>
+
+<h1 id="FUNCTIONS">FUNCTIONS</h1>
+
+<dl>
+
+<dt id="optimize-">optimize()</dt>
+<dd>
+
+<p>Most common incantations of <code><code>run()</code></code> (<i>not</i> <code><code>harness()</code></code>, <code><code>start()</code></code>, or <code><code>finish()</code></code>) now use temporary files to redirect input and output instead of pumper processes.</p>
+
+<p>Temporary files are used when sending to child processes if input is taken from a scalar with no filter subroutines. This is the only time we can assume that the parent is not interacting with the child&#39;s redirected input as it runs.</p>
+
+<p>Temporary files are used when receiving from children when output is to a scalar or subroutine with or without filters, but only if the child in question closes its inputs or takes input from unfiltered SCALARs or named files. Normally, a child inherits its STDIN from its parent; to close it, use &quot;0&lt;&amp;-&quot; or the <code><code>noinherit =&gt; 1</code></code> option. If data is sent to the child from CODE refs, filehandles or from scalars through filters than the child&#39;s outputs will not be optimized because <code><code>optimize()</code></code> assumes the parent is interacting with the child. It is ok if the output is filtered or handled by a subroutine, however.</p>
+
+<p>This assumes that all named files are real files (as opposed to named pipes) and won&#39;t change; and that a process is not communicating with the child indirectly (through means not visible to IPC::Run). These can be an invalid assumptions, but are the 99% case. Write me if you need an option to enable or disable optimizations; I suspect it will work like the <code><code>binary()</code></code> modifier.</p>
+
+<p>To detect cases that you might want to optimize by closing inputs, try setting the <code><code>IPCRUNDEBUG</code></code> environment variable to the special <code><code>notopt</code></code> value:</p>
+
+<pre><code><code>   C:&gt; set IPCRUNDEBUG=notopt
+   C:&gt; my_app_that_uses_IPC_Run.pl</code></code></pre>
+
+</dd>
+<dt id="optimizer-rationalizations">optimizer() rationalizations</dt>
+<dd>
+
+<p>Only for that limited case can we be sure that it&#39;s ok to batch all the input in to a temporary file. If STDIN is from a SCALAR or from a named file or filehandle (again, only in <code><code>run()</code></code>), then outputs to CODE refs are also assumed to be safe enough to batch through a temp file, otherwise only outputs to SCALAR refs are batched. This can cause a bit of grief if the parent process benefits from or relies on a bit of &quot;early returns&quot; coming in before the child program exits. As long as the output is redirected to a SCALAR ref, this will not be visible. When output is redirected to a subroutine or (deprecated) filters, the subroutine will not get any data until after the child process exits, and it is likely to get bigger chunks of data at once.</p>
+
+<p>The reason for the optimization is that, without it, &quot;pumper&quot; processes are used to overcome the inconsistancies of the Win32 API. We need to use anonymous pipes to connect to the child processes&#39; stdin, stdout, and stderr, yet select() does not work on these. select() only works on sockets on Win32. So for each redirected child handle, there is normally a &quot;pumper&quot; process that connects to the parent using a socket--so the parent can select() on that fd--and to the child on an anonymous pipe--so the child can read/write a pipe.</p>
+
+<p>Using a socket to connect directly to the child (as at least one MSDN article suggests) seems to cause the trailing output from most children to be lost. I think this is because child processes rarely close their stdout and stderr explicitly, and the winsock dll does not seem to flush output when a process that uses it exits without explicitly closing them.</p>
+
+<p>Because of these pumpers and the inherent slowness of Win32 CreateProcess(), child processes with redirects are quite slow to launch; so this routine looks for the very common case of reading/writing to/from scalar references in a run() routine and converts such reads and writes in to temporary file reads and writes.</p>
+
+<p>Such files are marked as FILE_ATTRIBUTE_TEMPORARY to increase speed and as FILE_FLAG_DELETE_ON_CLOSE so it will be cleaned up when the child process exits (for input files). The user&#39;s default permissions are used for both the temporary files and the directory that contains them, hope your Win32 permissions are secure enough for you. Files are created with the Win32API::File defaults of FILE_SHARE_READ|FILE_SHARE_WRITE.</p>
+
+<p>Setting the debug level to &quot;details&quot; or &quot;gory&quot; will give detailed information about the optimization process; setting it to &quot;basic&quot; or higher will tell whether or not a given call is optimized. Setting it to &quot;notopt&quot; will highligh those calls that aren&#39;t optimized.</p>
+
+</dd>
+<dt id="win32_parse_cmd_line">win32_parse_cmd_line</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">@words</span> <span class="operator">=</span> <span class="variable">win32_parse_cmd_line</span><span class="operator">(</span> <span class="string">q{foo bar 'baz baz' "bat bat"}</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>returns 4 words. This parses like the bourne shell (see the bit about shellwords() in <a href="../../../../lib/Text/ParseWords.html">Text::ParseWords</a>), assuming we&#39;re trying to be a little cross-platform here. The only difference is that &quot;\&quot; is *not* treated as an escape except when it precedes punctuation, since it&#39;s used all over the place in DOS path specs.</p>
+
+<p>TODO: globbing? probably not (it&#39;s unDOSish).</p>
+
+<p>TODO: shebang emulation? Probably, but perhaps that should be part of Run.pm so all spawned processes get the benefit.</p>
+
+<p>LIMITATIONS: shellwords dies silently on malformed input like</p>
+
+<pre><code><code>   a\&quot;</code></code></pre>
+
+</dd>
+<dt id="win32_spawn">win32_spawn</dt>
+<dd>
+
+<p>Spawns a child process, possibly with STDIN, STDOUT, and STDERR (file descriptors 0, 1, and 2, respectively) redirected.</p>
+
+<p><b>LIMITATIONS</b>.</p>
+
+<p>Cannot redirect higher file descriptors due to lack of support for this in the Win32 environment.</p>
+
+<p>This can be worked around by marking a handle as inheritable in the parent (or leaving it marked; this is the default in perl), obtaining it&#39;s Win32 handle with <code><code>Win32API::GetOSFHandle(FH)</code></code> or <code><code>Win32API::FdGetOsFHandle($fd)</code></code> and passing it to the child using the command line, the environment, or any other IPC mechanism (it&#39;s a plain old integer). The child can then use <code><code>OsFHandleOpen()</code></code> or <code><code>OsFHandleOpenFd()</code></code> and possibly <code><code>&lt;open FOO &quot;</code></code>&amp;BAR&quot;&gt;&gt; or <code><code>&lt;open FOO &quot;</code></code>&amp;$fd&gt;&gt; as need be. Ach, the pain!</p>
+
+<p>Remember to check the Win32 handle against INVALID_HANDLE_VALUE.</p>
+
+</dd>
+</dl>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Barries Slaymaker &lt;barries@slaysys.com&gt;. Funded by Perforce Software, Inc.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright 2001, Barrie Slaymaker, All Rights Reserved.</p>
+
+<p>You may use this under the terms of either the GPL 2.0 ir the Artistic License.</p>
+
+
+</body>
+
+</html>
+
+

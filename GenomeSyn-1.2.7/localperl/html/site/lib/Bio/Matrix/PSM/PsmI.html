@@ -1,0 +1,196 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#DESIGN-ISSUES">DESIGN ISSUES</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Stefan-Kirov">AUTHOR - Stefan Kirov</a></li>
+  <li><a href="#DISCLAIMER">DISCLAIMER</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#instances">instances</a></li>
+      <li><a href="#matrix">matrix</a></li>
+      <li><a href="#header">header</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Matrix::PSM::PsmI - abstract interface to handler of site matricies</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Matrix::PSM::IO</span><span class="operator">;</span>
+  
+  <span class="comment"># To get a Psm object from a file use the Psm parser:</span>
+  <span class="keyword">my</span> <span class="variable">$psmIO</span> <span class="operator">=</span>  <span class="variable">Bio::Matrix::PSM::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'meme'</span><span class="operator">,</span> <span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$file</span><span class="operator">);</span>
+  
+  <span class="comment"># Now go through all entities in the file with next_psm, which</span>
+  <span class="comment"># returns a Psm object see Bio::Matrix::PSM::IO for detailed</span>
+  <span class="comment"># documentation (matrix predictions or matrix sequence matches or</span>
+  <span class="comment"># both):</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$psm</span><span class="operator">=</span><span class="variable">$psmIO</span><span class="operator">-&gt;</span><span class="variable">next_psm</span><span class="operator">)</span> <span class="operator">{</span>
+   <span class="keyword">my</span> <span class="variable">%psm_header</span><span class="operator">=</span><span class="variable">$psm</span><span class="operator">-&gt;</span><span class="variable">header</span><span class="operator">;</span>
+   <span class="keyword">my</span> <span class="variable">$ic</span><span class="operator">=</span><span class="variable">$psm_header</span><span class="operator">{</span><span class="string">IC</span><span class="operator">}</span><span class="operator">;</span>
+   <span class="keyword">my</span> <span class="variable">$sites</span><span class="operator">=</span><span class="variable">$psm_header</span><span class="operator">{</span><span class="string">sites</span><span class="operator">}</span><span class="operator">;</span>
+   <span class="keyword">my</span> <span class="variable">$width</span><span class="operator">=</span><span class="variable">$psm_header</span><span class="operator">{</span><span class="string">width</span><span class="operator">}</span><span class="operator">;</span>
+   <span class="keyword">my</span> <span class="variable">$score</span><span class="operator">=</span><span class="variable">$psm_header</span><span class="operator">{</span><span class="string">e_val</span><span class="operator">}</span><span class="operator">;</span>
+   <span class="keyword">my</span> <span class="variable">$IUPAC</span><span class="operator">=</span><span class="variable">$psm</span><span class="operator">-&gt;</span><span class="variable">IUPAC</span><span class="operator">;</span>
+   <span class="keyword">my</span> <span class="variable">$instances</span><span class="operator">=</span><span class="variable">$psm</span><span class="operator">-&gt;</span><span class="variable">instances</span><span class="operator">;</span>
+   <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$instance</span> <span class="operator">(</span><span class="variable">@</span><span class="operator">{</span><span class="variable">$instances</span><span class="operator">}</span><span class="operator">)</span> <span class="operator">{</span>
+     <span class="keyword">my</span> <span class="variable">$id</span><span class="operator">=</span><span class="variable">$instance</span><span class="operator">-&gt;</span><span class="variable">primary_id</span><span class="operator">;</span>
+     <span class="comment">#Do something with the id</span>
+    <span class="operator">}</span>
+   <span class="operator">}</span>
+  
+  <span class="comment"># or create from memmory:</span>
+  <span class="keyword">my</span> <span class="variable">$psm</span><span class="operator">=</span> <span class="variable">Bio::Matrix::PSM::Psm</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-pA</span><span class="operator">=&gt;\</span><span class="variable">@pA</span><span class="operator">,</span><span class="string">-pC</span><span class="operator">=&gt;\</span><span class="variable">@pC</span><span class="operator">,</span><span class="string">-pG</span><span class="operator">=&gt;\</span><span class="variable">@pG</span><span class="operator">,</span><span class="string">-pT</span><span class="operator">=&gt;\</span><span class="variable">@pT</span><span class="operator">,</span>
+                                      <span class="string">-id</span><span class="operator">=&gt;</span><span class="variable">$id</span><span class="operator">,</span>
+                                      <span class="string">-instances</span><span class="operator">=&gt;</span><span class="variable">$instances</span><span class="operator">,</span> <span class="string">-e_val</span><span class="operator">=&gt;</span><span class="variable">$e_val</span><span class="operator">,</span>
+                                      <span class="string">-IC</span><span class="operator">=&gt;</span><span class="variable">$ic</span><span class="operator">,</span> <span class="string">-width</span><span class="operator">=&gt;</span><span class="variable">$width</span><span class="operator">,</span> <span class="string">-sites</span><span class="operator">=&gt;</span><span class="variable">$sites</span><span class="operator">)</span>
+  
+  <span class="comment"># where pA through pG are the respective frequencies of the matrix (see also</span>
+  <span class="comment"># Bio::Matrix::PSM::SiteMatrix), and everything else is self-explenatory, </span>
+  <span class="comment"># except for</span>
+  <span class="comment">#-instances (reference to an array of Bio::Matrix::PSM::InstanceSite objects)</span>
+  <span class="comment"># which is documented bellow.</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Supposed to handle a combination of site matrices and/or their corresponding sequence matches (instances). This object inherits from Bio::Matrix::PSM::SiteMatrix, so you can use the respective methods. It may hold also an array of Bio::Matrix::PSM::InstanceSite object, but you will have to retrieve these through Bio::Matrix::PSM::Psm-&gt;instances method (see below). To some extent this is an expanded SiteMatrix object, holding data from analysis that also deal with sequence matches of a particular matrix.</p>
+
+<h2 id="DESIGN-ISSUES">DESIGN ISSUES</h2>
+
+<p>This design is a bit of a compromise, so it might be a temporary solution I am mixing PSM with PSM sequence matches Though they are very closely related, I am not satisfied by the way this is implemented here. Heikki suggested different objects when one has something like meme But does this mean we have to write a different objects for mast, meme, transfac, theiresias, etc.? To me the best way is to return SiteMatrix object + arrray of InstanceSite objects and then mast will return undef for SiteMatrix and transfac will return undef for InstanceSite. Probably I cannot see some other design issues that might arise from such approach, but it seems more straightforward. Hilmar does not like this beacause it is an exception from the general BioPerl rules Should I leave this as an option? Also the header rightfully belongs the driver object, and could be retrieved as hashes. I do not think it can be done any other way, unless we want to create even one more object with very unclear content.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Matrix/PSM/SiteMatrix.html">Bio::Matrix::PSM::SiteMatrix</a>, <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Matrix/PSM/IO/meme.html">Bio::Matrix::PSM::IO::meme</a>, <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Matrix/PSM/IO/transfac.html">Bio::Matrix::PSM::IO::transfac</a>, <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Matrix/PSM/InstanceSite.html">Bio::Matrix::PSM::InstanceSite</a></p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Stefan-Kirov">AUTHOR - Stefan Kirov</h1>
+
+<p>Email skirov@utk.edu</p>
+
+<h1 id="DISCLAIMER">DISCLAIMER</h1>
+
+<p>This software is provided &quot;as is&quot; without warranty of any kind.</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : my $psm= Bio::Matrix::PSM::Psm-&gt;new( -pA=&gt;\@pA,-pC=&gt;\@pC,-pG=&gt;\@pG,
+                                               -pT=&gt;\@pT,-id=&gt;$id,
+                                               -instances=&gt;$instances, 
+                                               -e_val=&gt;$e_val,
+                                               -IC=&gt;$ic, -width=&gt;$width, 
+                                               -sites=&gt;$sites)
+ Function: Creates a new Bio::Matrix::PSM::Psm object
+ Throws  :
+ Example :
+ Returns :  Bio::Matrix::PSM::Psm object
+ Args    :  hash</code></code></pre>
+
+<h2 id="instances">instances</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">instances</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>   <span class="keyword">my</span> <span class="variable">@instances</span><span class="operator">=</span><span class="variable">@</span><span class="operator">{</span><span class="variable">$psm</span><span class="operator">-&gt;</span><span class="variable">instances</span><span class="operator">}</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span><span class="operator">/</span><span class="variable">sets</span> <span class="variable">the</span> <span class="variable">instances</span> <span class="operator">(</span><span class="variable">Bio::Matrix::PSM::InstanceSite</span> <span class="variable">objects</span><span class="operator">)</span>
+            <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">Psm</span> <span class="variable">object</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>  <span class="variable">array</span> <span class="variable">reference</span> <span class="operator">(</span><span class="variable">Bio::Matrix::PSM::InstanceSite</span> <span class="variable">objects</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>  <span class="variable">array</span> <span class="variable">reference</span> <span class="operator">(</span><span class="variable">Bio::Matrix::PSM::InstanceSite</span> <span class="variable">objects</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="matrix">matrix</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span>  <span class="variable">matrix</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>  <span class="keyword">my</span> <span class="variable">$matrix</span><span class="operator">=</span><span class="variable">$psm</span><span class="operator">-&gt;</span><span class="variable">matrix</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span>  <span class="variable">Gets</span><span class="operator">/</span><span class="variable">sets</span> <span class="variable">the</span> <span class="variable">SiteMatrix</span> <span class="variable">related</span> <span class="variable">information</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>  <span class="variable">Bio::Matrix::PSM::SiteMatrix</span> <span class="variable">objects</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>  <span class="variable">Bio::Matrix::PSM::SiteMatrix</span> <span class="variable">objects</span>
+</code></code></pre>
+
+<h2 id="header">header</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">header</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>  <span class="keyword">my</span> <span class="variable">%header</span><span class="operator">=</span><span class="variable">$psm</span><span class="operator">-&gt;</span><span class="variable">header</span><span class="operator">;</span>
+            <span class="keyword">my</span> <span class="variable">$ic</span><span class="operator">=</span><span class="variable">$psm</span><span class="operator">-&gt;</span><span class="variable">header</span><span class="operator">(</span><span class="string">'IC'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">the</span> <span class="variable">general</span> <span class="variable">information</span><span class="operator">,</span> <span class="variable">common</span> <span class="keyword">for</span> <span class="variable">most</span> <span class="variable">files</span><span class="operator">,</span> <span class="variable">dealing</span>
+           <span class="variable">with</span> <span class="variable">PSM</span> <span class="variable">such</span> <span class="variable">as</span> <span class="variable">information</span> <span class="variable">content</span> <span class="operator">(</span><span class="variable">IC</span><span class="operator">),</span> <span class="variable">score</span> <span class="operator">(</span><span class="variable">e</span><span class="operator">-</span><span class="variable">value</span><span class="operator">,</span>
+           <span class="variable">etc</span><span class="operator">.),</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">sites</span> <span class="operator">(</span><span class="variable">sites</span><span class="operator">)</span> <span class="keyword">and</span> <span class="variable">width</span><span class="operator">.</span> <span class="variable">This</span> <span class="variable">list</span> <span class="variable">may</span>
+           <span class="variable">expand</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">current</span> <span class="variable">list</span> <span class="variable">should</span> <span class="variable">be</span> <span class="variable">in</span>
+           <span class="variable">@Bio::Matrix::PSM::Psm::HEADER</span><span class="operator">.</span> <span class="variable">Returns</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="variable">an</span> <span class="variable">argument</span>
+           <span class="variable">is</span> <span class="variable">supplied</span> <span class="variable">that</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">in</span> <span class="variable">@Bio::Matrix::PSM::meme::HEADER</span><span class="operator">.</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>  <span class="variable">hash</span> <span class="keyword">or</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>  <span class="variable">string</span> <span class="operator">(</span><span class="variable">IC</span><span class="operator">,</span> <span class="variable">e_val</span><span class="operator">...)</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

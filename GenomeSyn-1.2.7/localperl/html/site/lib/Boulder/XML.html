@@ -1,0 +1,177 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#CONSTRUCTORS">CONSTRUCTORS</a></li>
+      <li><a href="#METHODS">METHODS</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Boulder::XML - XML format input/output for Boulder streams</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="keyword">use</span> <span class="variable">Boulder::XML</span><span class="operator">;</span>
+   
+   <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::XML</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">;</span>
+   
+   <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$stone</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$stream</span><span class="operator">&gt;)</span> <span class="operator">{</span>
+        <span class="keyword">print</span> <span class="variable">$stream</span> <span class="variable">$stone</span><span class="operator">;</span>
+   <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Boulder::XML generates BoulderIO streams from XML files and/or streams. It is also able to output Boulder Stones in XML format. Its semantics are similar to those of Boulder::Stream, except that there is never any pass-through behavior.</p>
+
+<p>Because XML was not designed for streaming, some care must be taken when reading an XML document into a series of Stones. Consider this XML document:</p>
+
+<pre><code><code> &lt;?xml version=&quot;1.0&quot; standalone=&quot;yes&quot;?&gt;
+
+ &lt;Paper&gt;
+   &lt;Author&gt;Lincoln Stein&lt;/Author&gt;
+   &lt;Author&gt;Jean Siao&lt;/Author&gt;
+   &lt;Date&gt;September 29, 1999&lt;/Date&gt;
+   &lt;Copyright copyrighted=&quot;yes&quot;&gt;1999 Lincoln Stein&lt;/Copright&gt;
+   &lt;Abstract&gt;
+       This is the abstract.  It is not anything very fancy,
+       but it will do.
+   &lt;/Abstract&gt;
+   &lt;Citation&gt;
+        &lt;Author&gt;Fitchberg J&lt;/Author&gt;
+        &lt;Journal&gt;Journal of Irreproducible Results&lt;/Journal&gt;
+        &lt;Volume&gt;23&lt;/Volume&gt;
+        &lt;Year&gt;1998&lt;/Volume&gt;
+   &lt;/Citation&gt;
+   &lt;Citation&gt;
+        &lt;Author&gt;Clemenson V&lt;/Author&gt;
+        &lt;Journal&gt;Ecumenica&lt;/Journal&gt;
+        &lt;Volume&gt;10&lt;/Volume&gt;
+        &lt;Year&gt;1968&lt;/Volume&gt;
+   &lt;/Citation&gt;
+   &lt;Citation&gt;
+        &lt;Author&gt;Ruggles M&lt;/Author&gt;
+        &lt;Journal&gt;Journal of Aesthetic Surgery&lt;/Journal&gt;
+        &lt;Volume&gt;10&lt;/Volume&gt;
+        &lt;Year&gt;1999&lt;/Volume&gt;
+   &lt;/Citation&gt;
+ &lt;/Paper&gt;</code></code></pre>
+
+<p>Ordinarily the document will be construed as a single Paper tag containing subtags Author, Date, Copyright, Abstract, and so on. However it might be desirable to fetch out just the citation tags as a series of Stones. In this case, you can declare Citation to be the top level tag by passing the <b>-tag</b> argument to new(). Now calling get() will return each of the three Citation sections in turn. If no tag is explicitly declared to be the top level tag, then Boulder::XML will take the first tag it sees in the document.</p>
+
+<p>It is possible to stream XML files. You can either separate them into separate documents and use the automatic ARGV processing features of the BoulderIO library, or separate the XML documents using a <b>delimiter</b> string similar to the delimiters used in MIME multipart documents. By default, BoulderIO uses a delimiter of &lt;!--Boulder::XML--&gt;.</p>
+
+<p><b>This is not a general XML parsing engine!</b> Instead, it is a way to represent BoulderIO tag/value streams in XML format. The module uses XML::Parser to parse the XML streams, and therefore any syntactic error in the stream can cause the XML parser to quit with an error. Another thing to be aware of is that there are certain XML constructions that will not translate into BoulderIO format, specifically free text that contains embedded tags. This is OK:</p>
+
+<pre><code><code>  &lt;Author&gt;Jean Siao&lt;/Author&gt;</code></code></pre>
+
+<p>but this is not:</p>
+
+<pre><code><code>  &lt;Author&gt;The &lt;Emphatic&gt;extremely illustrious&lt;/Emphatic&gt; Jean Siao&lt;/Author&gt;</code></code></pre>
+
+<p>In BoulderIO format, tags can contain other tags or text, but cannot contain a mixture of tags and text.</p>
+
+<h2 id="CONSTRUCTORS">CONSTRUCTORS</h2>
+
+<dl>
+
+<dt id="stream-Boulder::XML-new-IN-OUT-">$stream = Boulder::XML-&gt;new(*IN,*OUT);</dt>
+<dd>
+
+</dd>
+<dt id="stream-Boulder::XML-new--in-IN--out-OUT--tag-tag--delim-delim--strip-strip-">$stream = Boulder::XML-&gt;new(-in=&gt;*IN,-out=&gt;*OUT,-tag=&gt;$tag,-delim=&gt;$delim,-strip=&gt;$strip)</dt>
+<dd>
+
+<p>new() creates a new Boulder::XML stream that can be read from or written to. All arguments are optional.</p>
+
+<pre><code><code> -in    Filehandle to read from. 
+        If a file name is provided, will open the file.
+        Defaults to the magic &lt;&gt; filehandle.
+
+ -out   Filehandle to write to.  
+        If a file name is provided, will open the file for writing.
+        Defaults to STDOUT
+
+ -tag   The top-level XML tag to consider as the Stone record.  Defaults
+        to the first tag seen when reading from an XML file, or to 
+        E&lt;lt&gt;StoneE&lt;gt&gt; when writing to an output stream without
+        previously having read.
+
+ -delim Delimiter to use for delimiting multiple Stone objects in an
+        XML stream.
+
+ -strip If true, automatically strips leading and trailing whitespace 
+        from text contained within tags.</code></code></pre>
+
+</dd>
+<dt id="fh-Boulder::XML-newFh-IN-OUT-">$fh = Boulder::XML-&gt;newFh(*IN,*OUT);</dt>
+<dd>
+
+</dd>
+<dt id="fh-Boulder::XML-newFh--in-IN--out-OUT--tag-tag--delim-delim--strip-strip-">$fh = Boulder::XML-&gt;newFh(-in=&gt;*IN,-out=&gt;*OUT,-tag=&gt;$tag,-delim=&gt;$delim,-strip=&gt;$strip)</dt>
+<dd>
+
+<p>The newFh() constructor creates a tied filehandle that can read and write Boulder::XML streams. Invoking &lt;&gt; on the filehandle will perform a get(), returning a Stone object. Calling print() on the filehandle will perform a put(), writing a Stone object to output in XML format.</p>
+
+</dd>
+</dl>
+
+<h2 id="METHODS">METHODS</h2>
+
+<dl>
+
+<dt id="stone-stream-get-">$stone = $stream-&gt;get()</dt>
+<dd>
+
+</dd>
+<dt id="stream-put-stone-">$stream-&gt;put($stone)</dt>
+<dd>
+
+</dd>
+<dt id="done-stream-done">$done = $stream-&gt;done</dt>
+<dd>
+
+<p>All these methods have the same semantics as the similar methods in <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Stream.html">Boulder::Stream</a>, except that pass-through behavior doesn&#39;t apply.</p>
+
+</dd>
+</dl>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Lincoln D. Stein &lt;lstein@cshl.org&gt;, Cold Spring Harbor Laboratory, Cold Spring Harbor, NY. This module can be used and distributed on the same terms as Perl itself.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder.html">Boulder</a>, <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Stream.html">Boulder::Stream</a>, <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Stone.html">Stone</a></p>
+
+
+</body>
+
+</html>
+
+

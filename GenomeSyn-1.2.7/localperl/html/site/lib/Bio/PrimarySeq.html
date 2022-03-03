@@ -1,0 +1,521 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Ewan-Birney">AUTHOR - Ewan Birney</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#seq">seq</a></li>
+      <li><a href="#validate_seq">validate_seq</a></li>
+      <li><a href="#subseq">subseq</a></li>
+      <li><a href="#length">length</a></li>
+      <li><a href="#display_id">display_id</a></li>
+      <li><a href="#accession_number">accession_number</a></li>
+      <li><a href="#primary_id">primary_id</a></li>
+      <li><a href="#alphabet">alphabet</a></li>
+      <li><a href="#desc">desc</a></li>
+      <li><a href="#can_call_new">can_call_new</a></li>
+      <li><a href="#id">id</a></li>
+      <li><a href="#is_circular">is_circular</a></li>
+    </ul>
+  </li>
+  <li><a href="#Methods-for-Bio::IdentifiableI-compliance">Methods for Bio::IdentifiableI compliance</a>
+    <ul>
+      <li><a href="#object_id">object_id</a></li>
+      <li><a href="#version">version</a></li>
+      <li><a href="#authority">authority</a></li>
+      <li><a href="#namespace">namespace</a></li>
+    </ul>
+  </li>
+  <li><a href="#Methods-for-Bio::DescribableI-compliance">Methods for Bio::DescribableI compliance</a>
+    <ul>
+      <li><a href="#display_name">display_name</a></li>
+      <li><a href="#description">description</a></li>
+    </ul>
+  </li>
+  <li><a href="#Methods-Inherited-from-Bio::PrimarySeqI">Methods Inherited from Bio::PrimarySeqI</a>
+    <ul>
+      <li><a href="#revcom">revcom</a></li>
+      <li><a href="#trunc">trunc</a></li>
+    </ul>
+  </li>
+  <li><a href="#Internal-methods">Internal methods</a>
+    <ul>
+      <li><a href="#guess_alphabet">_guess_alphabet</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::PrimarySeq - Bioperl lightweight Sequence Object</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># Bio::SeqIO for file reading, Bio::DB::GenBank for</span>
+  <span class="comment"># database reading</span>
+  
+  <span class="keyword">use</span> <span class="variable">Bio::Seq</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::DB::GenBank</span><span class="operator">;</span>
+  
+  <span class="comment"># make from memory</span>
+  
+  <span class="variable">$seqobj</span> <span class="operator">=</span> <span class="variable">Bio::PrimarySeq</span><span class="operator">-&gt;</span><span class="variable">new</span> <span class="operator">(</span> <span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="string">'ATGGGGTGGGCGGTGGGTGGTTTG'</span><span class="operator">,</span>
+                                   <span class="string">-id</span>  <span class="operator">=&gt;</span> <span class="string">'GeneFragment-12'</span><span class="operator">,</span>
+                                   <span class="string">-accession_number</span> <span class="operator">=&gt;</span> <span class="string">'X78121'</span><span class="operator">,</span>
+                                   <span class="string">-alphabet</span> <span class="operator">=&gt;</span> <span class="string">'dna'</span><span class="operator">,</span>
+                                   <span class="string">-is_circular</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+  <span class="keyword">print</span> <span class="string">"Sequence "</span><span class="operator">,</span> <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">(),</span> <span class="string">" with accession "</span><span class="operator">,</span>
+    <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">accession_number</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+  
+  <span class="comment"># read from file</span>
+  
+  <span class="variable">$inputstream</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"myseq.fa"</span><span class="operator">,</span>
+                                 <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'Fasta'</span><span class="operator">);</span>
+  <span class="variable">$seqobj</span> <span class="operator">=</span> <span class="variable">$inputstream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">();</span>
+  <span class="keyword">print</span> <span class="string">"Sequence "</span><span class="operator">,</span> <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">(),</span> <span class="string">" and desc "</span><span class="operator">,</span> <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">desc</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+  
+  <span class="comment"># to get out parts of the sequence.</span>
+  
+  <span class="keyword">print</span> <span class="string">"Sequence "</span><span class="operator">,</span> <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">(),</span> <span class="string">" with accession "</span><span class="operator">,</span>
+    <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">accession_number</span><span class="operator">,</span> <span class="string">" and desc "</span><span class="operator">,</span> <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">desc</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+  
+  <span class="variable">$string</span>  <span class="operator">=</span> <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">();</span>
+  <span class="variable">$string2</span> <span class="operator">=</span> <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">subseq</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">40</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>PrimarySeq is a lightweight Sequence object, storing the sequence, its name, a computer-useful unique name, and other fundamental attributes. It does not contain sequence features or other information. To have a sequence with sequence features you should use the Seq object which uses this object.</p>
+
+<p>Although new users will use Bio::PrimarySeq a lot, in general you will be using it from the Bio::Seq object. For more information on Bio::Seq see <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Seq.html">Bio::Seq</a>. For interest you might like to know that Bio::Seq has-a Bio::PrimarySeq and forwards most of the function calls to do with sequence to it (the has-a relationship lets us get out of a otherwise nasty cyclical reference in Perl which would leak memory).</p>
+
+<p>Sequence objects are defined by the Bio::PrimarySeqI interface, and this object is a pure Perl implementation of the interface. If that&#39;s gibberish to you, don&#39;t worry. The take home message is that this object is the bioperl default sequence object, but other people can use their own objects as sequences if they so wish. If you are interested in wrapping your own objects as compliant Bioperl sequence objects, then you should read the Bio::PrimarySeqI documentation</p>
+
+<p>The documentation of this object is a merge of the Bio::PrimarySeq and Bio::PrimarySeqI documentation. This allows all the methods which you can call on sequence objects here.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Ewan-Birney">AUTHOR - Ewan Birney</h1>
+
+<p>Email birney@ebi.ac.uk</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seq</span>    <span class="operator">=</span> <span class="variable">Bio::PrimarySeq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="string">'ATGGGGGTGGTGGTACCCT'</span><span class="operator">,</span>
+                                           <span class="string">-id</span>  <span class="operator">=&gt;</span> <span class="string">'human_id'</span><span class="operator">,</span>
+                                           <span class="string">-accession_number</span> <span class="operator">=&gt;</span> <span class="string">'AL000012'</span><span class="operator">,</span>
+                                           <span class="operator">);</span>
+ 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">primary</span> <span class="variable">seq</span> <span class="variable">object</span> <span class="variable">from</span>
+           <span class="variable">basic</span> <span class="variable">constructors</span><span class="operator">,</span> <span class="variable">being</span> <span class="variable">a</span> <span class="variable">string</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">sequence</span>
+           <span class="keyword">and</span> <span class="variable">strings</span> <span class="keyword">for</span> <span class="variable">id</span> <span class="keyword">and</span> <span class="variable">accession_number</span><span class="operator">.</span>
+ 
+           <span class="variable">Note</span> <span class="variable">that</span> <span class="variable">you</span> <span class="variable">can</span> <span class="variable">provide</span> <span class="variable">an</span> <span class="variable">empty</span> <span class="variable">sequence</span> <span class="variable">string</span><span class="operator">.</span> <span class="variable">However</span><span class="operator">,</span> <span class="variable">in</span>
+           <span class="variable">this</span> <span class="variable">case</span> <span class="variable">you</span> <span class="variable">MUST</span> <span class="variable">specify</span> <span class="variable">the</span> <span class="variable">type</span> <span class="variable">of</span> <span class="variable">sequence</span> <span class="variable">you</span> <span class="variable">wish</span> <span class="variable">to</span>
+           <span class="variable">initialize</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">parameter</span> <span class="operator">-</span><span class="variable">alphabet</span><span class="operator">.</span> <span class="variable">See</span> <span class="variable">alphabet</span><span class="operator">()</span> <span class="keyword">for</span> <span class="variable">possible</span>
+           <span class="keyword">values</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::PrimarySeq</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-seq</span>         <span class="operator">=&gt;</span> <span class="variable">sequence</span> <span class="variable">string</span>
+           <span class="operator">-</span><span class="string">display_id</span>  <span class="operator">=&gt;</span> <span class="variable">display</span> <span class="variable">id</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="operator">(</span><span class="variable">locus</span> <span class="variable">name</span><span class="operator">)</span>
+           <span class="string">-accession_number</span> <span class="operator">=&gt;</span> <span class="variable">accession</span> <span class="variable">number</span>
+           <span class="operator">-</span><span class="string">primary_id</span>  <span class="operator">=&gt;</span> <span class="variable">primary</span> <span class="variable">id</span> <span class="operator">(</span><span class="variable">Genbank</span> <span class="variable">id</span><span class="operator">)</span>
+           <span class="string">-version</span>     <span class="operator">=&gt;</span> <span class="variable">version</span> <span class="variable">number</span>
+           <span class="operator">-</span><span class="string">namespace</span>   <span class="operator">=&gt;</span> <span class="variable">the</span> <span class="variable">namespace</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">accession</span>
+           <span class="operator">-</span><span class="string">authority</span>   <span class="operator">=&gt;</span> <span class="variable">the</span> <span class="variable">authority</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">namespace</span>
+           <span class="operator">-</span><span class="string">description</span> <span class="operator">=&gt;</span> <span class="variable">description</span> <span class="variable">text</span>
+           <span class="operator">-</span><span class="string">desc</span>        <span class="operator">=&gt;</span> <span class="variable">alias</span> <span class="keyword">for</span> <span class="variable">description</span>
+           <span class="operator">-</span><span class="string">alphabet</span>    <span class="operator">=&gt;</span> <span class="variable">sequence</span> <span class="variable">type</span> <span class="operator">(</span><span class="variable">alphabet</span><span class="operator">)</span> <span class="operator">(</span><span class="variable">dna</span><span class="operator">|</span><span class="variable">rna</span><span class="operator">|</span><span class="variable">protein</span><span class="operator">)</span>
+           <span class="string">-id</span>          <span class="operator">=&gt;</span> <span class="variable">alias</span> <span class="keyword">for</span> <span class="variable">display</span> <span class="variable">id</span>
+           <span class="operator">-</span><span class="string">is_circular</span> <span class="operator">=&gt;</span> <span class="variable">boolean</span> <span class="variable">field</span> <span class="keyword">for</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="variable">sequence</span> <span class="variable">is</span> <span class="variable">circular</span>
+           <span class="operator">-</span><span class="string">direct</span>      <span class="operator">=&gt;</span> <span class="variable">boolean</span> <span class="variable">field</span> <span class="keyword">for</span> <span class="variable">directly</span> <span class="variable">setting</span> <span class="variable">sequence</span> <span class="operator">(</span><span class="variable">requires</span> <span class="variable">alphabet</span> <span class="variable">also</span> <span class="variable">set</span><span class="operator">)</span>
+           <span class="string">-ref_to_seq</span>  <span class="operator">=&gt;</span> <span class="variable">boolean</span> <span class="variable">field</span> <span class="variable">indicating</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="operator">(</span><span class="regex">?!?</span><span class="operator">)</span>
+           <span class="string">-nowarnonempty</span> <span class="operator">=&gt;</span> <span class="variable">boolean</span> <span class="variable">field</span> <span class="keyword">for</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="variable">to</span> <span class="keyword">warn</span> <span class="keyword">when</span> <span class="variable">sequence</span> <span class="variable">is</span> <span class="variable">empty</span>
+</code></code></pre>
+
+<h2 id="seq">seq</h2>
+
+<pre><code><code> Title   : seq
+ Usage   : $string    = $obj-&gt;seq()
+ Function: Returns the sequence as a string of letters. The
+           case of the letters is left up to the implementer.
+           Suggested cases are upper case for proteins and lower case for
+           DNA sequence (IUPAC standard), but you should not rely on this.
+ Returns : A scalar
+ Args    : Optionally on set the new value (a string). An optional second
+           argument presets the alphabet (otherwise it will be guessed).</code></code></pre>
+
+<h2 id="validate_seq">validate_seq</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">validate_seq</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">if</span><span class="operator">(!</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">validate_seq</span><span class="operator">(</span><span class="variable">$seq_str</span><span class="operator">)</span> <span class="operator">)</span> <span class="operator">{</span>
+                <span class="keyword">print</span> <span class="string">"sequence </span><span class="variable">$seq_str</span><span class="string"> is not valid for an object of
+                alphabet "</span><span class="operator">,</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">alphabet</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+           <span class="operator">}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Validates</span> <span class="variable">a</span> <span class="keyword">given</span> <span class="variable">sequence</span> <span class="variable">string</span><span class="operator">.</span> <span class="variable">A</span> <span class="variable">validating</span> <span class="variable">sequence</span> <span class="variable">string</span>
+           <span class="variable">must</span> <span class="variable">be</span> <span class="variable">accepted</span> <span class="variable">by</span> <span class="variable">seq</span><span class="operator">().</span> <span class="variable">A</span> <span class="variable">string</span> <span class="variable">that</span> <span class="variable">does</span> <span class="keyword">not</span> <span class="variable">validate</span> <span class="variable">will</span>
+           <span class="variable">lead</span> <span class="variable">to</span> <span class="variable">an</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">passed</span> <span class="variable">to</span> <span class="variable">seq</span><span class="operator">().</span>
+ 
+           <span class="variable">The</span> <span class="variable">implementation</span> <span class="variable">provided</span> <span class="variable">here</span> <span class="variable">does</span> <span class="keyword">not</span> <span class="variable">take</span> <span class="variable">alphabet</span><span class="operator">()</span> <span class="variable">into</span>
+           <span class="variable">account</span><span class="operator">.</span> <span class="variable">Allowed</span> <span class="variable">are</span> <span class="variable">all</span> <span class="variable">letters</span> <span class="operator">(</span><span class="variable">A</span><span class="operator">-</span><span class="variable">Z</span><span class="operator">)</span> <span class="keyword">and</span> <span class="string">'-'</span><span class="operator">,</span><span class="string">'.'</span><span class="operator">,</span><span class="string">'*'</span><span class="operator">,</span><span class="string">'?'</span><span class="operator">,</span><span class="string">'='</span><span class="operator">,</span>
+           <span class="keyword">and</span> <span class="string">'~'</span><span class="operator">.</span>
+ 
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">1</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="variable">supplied</span> <span class="variable">sequence</span> <span class="variable">string</span> <span class="variable">is</span> <span class="variable">valid</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">object</span><span class="operator">,</span> <span class="keyword">and</span>
+           <span class="number">0</span> <span class="variable">otherwise</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">The</span> <span class="variable">sequence</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">validated</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="subseq">subseq</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">subseq</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$substring</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">subseq</span><span class="operator">(</span><span class="number">10</span><span class="operator">,</span><span class="number">40</span><span class="operator">);</span>
+           <span class="variable">$substring</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">subseq</span><span class="operator">(</span><span class="number">10</span><span class="operator">,</span><span class="number">40</span><span class="operator">,</span><span class="variable">NOGAP</span><span class="operator">)</span>
+           <span class="variable">$substring</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">subseq</span><span class="operator">(</span><span class="string">-START</span><span class="operator">=&gt;</span><span class="number">10</span><span class="operator">,</span><span class="string">-END</span><span class="operator">=&gt;</span><span class="number">40</span><span class="operator">,</span><span class="string">-REPLACE_WITH</span><span class="operator">=&gt;</span><span class="string">'tga'</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">subseq</span> <span class="variable">from</span> <span class="variable">start</span> <span class="variable">to</span> <span class="variable">end</span><span class="operator">,</span> <span class="variable">where</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">sequence</span>
+           <span class="variable">character</span> <span class="variable">has</span> <span class="variable">coordinate</span> <span class="number">1</span> <span class="variable">number</span> <span class="variable">is</span> <span class="variable">inclusive</span><span class="operator">,</span> <span class="variable">ie</span> <span class="number">1</span><span class="operator">-</span><span class="number">2</span> <span class="variable">are</span> <span class="variable">the</span> 
+           <span class="variable">first</span> <span class="variable">two</span> <span class="variable">characters</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">integer</span> <span class="keyword">for</span> <span class="variable">start</span> <span class="variable">position</span>
+           <span class="variable">integer</span> <span class="keyword">for</span> <span class="variable">end</span> <span class="variable">position</span>
+                 <span class="variable">OR</span>
+           <span class="variable">Bio::LocationI</span> <span class="variable">location</span> <span class="keyword">for</span> <span class="variable">subseq</span> <span class="operator">(</span><span class="variable">strand</span> <span class="variable">honored</span><span class="operator">)</span>
+           <span class="variable">Specify</span> <span class="operator">-</span><span class="string">NOGAP</span><span class="operator">=&gt;</span><span class="number">1</span> <span class="variable">to</span> <span class="keyword">return</span> <span class="variable">subseq</span> <span class="variable">with</span> <span class="variable">gap</span> <span class="variable">characters</span> <span class="variable">removed</span>
+           <span class="variable">Specify</span> <span class="operator">-</span><span class="string">REPLACE_WITH</span><span class="operator">=&gt;</span><span class="variable">$new_subseq</span> <span class="variable">to</span> <span class="variable">replace</span> <span class="variable">the</span> <span class="variable">subseq</span> <span class="variable">returned</span>
+           <span class="variable">with</span> <span class="variable">$new_subseq</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">object</span>
+</code></code></pre>
+
+<h2 id="length">length</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="keyword">length</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$len</span> <span class="operator">=</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="keyword">length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">in</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">symbols</span> <span class="operator">(</span><span class="variable">bases</span>
+           <span class="keyword">or</span> <span class="variable">amino</span> <span class="variable">acids</span><span class="operator">).</span>
+ 
+           <span class="variable">You</span> <span class="variable">can</span> <span class="variable">also</span> <span class="variable">set</span> <span class="variable">this</span> <span class="variable">attribute</span><span class="operator">,</span> <span class="variable">even</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">number</span> <span class="variable">that</span> <span class="variable">does</span>
+           <span class="keyword">not</span> <span class="variable">match</span> <span class="variable">the</span> <span class="keyword">length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">string</span><span class="operator">.</span> <span class="variable">This</span> <span class="variable">is</span> <span class="variable">useful</span>
+           <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">don</span><span class="string">''</span><span class="variable">t</span> <span class="variable">want</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">too</span><span class="operator">,</span> <span class="keyword">or</span> <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">want</span>
+           <span class="variable">to</span> <span class="variable">free</span> <span class="variable">up</span> <span class="variable">memory</span> <span class="variable">by</span> <span class="variable">unsetting</span> <span class="variable">the</span> <span class="variable">sequence</span><span class="operator">.</span> <span class="variable">In</span> <span class="variable">the</span> <span class="variable">latter</span>
+           <span class="variable">case</span> <span class="variable">you</span> <span class="variable">could</span> <span class="keyword">do</span> <span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.</span>
+ 
+               <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">);</span>
+               <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="keyword">undef</span><span class="operator">);</span>
+ 
+           <span class="variable">Note</span> <span class="variable">that</span> <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">value</span> <span class="variable">other</span> <span class="variable">than</span>
+           <span class="keyword">undef</span> <span class="variable">at</span> <span class="variable">any</span> <span class="keyword">time</span><span class="operator">,</span> <span class="variable">the</span> <span class="keyword">length</span> <span class="variable">attribute</span> <span class="variable">will</span> <span class="variable">be</span>
+           <span class="variable">invalidated</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">the</span> <span class="keyword">length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">string</span> <span class="variable">will</span> <span class="variable">be</span>
+           <span class="variable">reported</span> <span class="variable">again</span><span class="operator">.</span> <span class="variable">Also</span><span class="operator">,</span> <span class="variable">we</span> <span class="variable">won</span><span class="string">''</span><span class="variable">t</span> <span class="variable">let</span> <span class="variable">you</span> <span class="variable">lie</span> <span class="variable">about</span> <span class="variable">the</span> <span class="keyword">length</span><span class="operator">.</span>
+ 
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span> <span class="variable">representing</span> <span class="variable">the</span> <span class="keyword">length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Optionally</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">value</span> <span class="variable">on</span> <span class="variable">set</span>
+</code></code></pre>
+
+<h2 id="display_id">display_id</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">display_id</span> <span class="keyword">or</span> <span class="variable">display_name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$id_string</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">display_id</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">display</span> <span class="variable">id</span><span class="operator">,</span> <span class="variable">aka</span> <span class="variable">the</span> <span class="variable">common</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">Sequence</span> <span class="variable">object</span><span class="operator">.</span>
+ 
+           <span class="variable">The</span> <span class="variable">semantics</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">that</span> <span class="variable">it</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">most</span> <span class="variable">likely</span> <span class="variable">string</span> <span class="variable">to</span>
+           <span class="variable">be</span> <span class="variable">used</span> <span class="variable">as</span> <span class="variable">an</span> <span class="variable">identifier</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">likely</span> <span class="variable">to</span> <span class="variable">have</span>
+           <span class="string">"human"</span> <span class="variable">readability</span><span class="operator">.</span>  <span class="variable">The</span> <span class="variable">id</span> <span class="variable">is</span> <span class="variable">equivalent</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">ID</span> <span class="variable">field</span> <span class="variable">of</span>
+           <span class="variable">the</span> <span class="variable">GenBank</span><span class="operator">/</span><span class="variable">EMBL</span> <span class="variable">databanks</span> <span class="keyword">and</span> <span class="variable">the</span> <span class="variable">id</span> <span class="variable">field</span> <span class="variable">of</span> <span class="variable">the</span>
+           <span class="variable">Swissprot</span><span class="operator">/</span><span class="variable">sptrembl</span> <span class="variable">database</span><span class="operator">.</span> <span class="variable">In</span> <span class="variable">fasta</span> <span class="keyword">format</span><span class="operator">,</span> <span class="variable">the</span> <span class="operator">&gt;(\</span><span class="variable">S</span><span class="operator">+)</span> <span class="variable">is</span>
+           <span class="variable">presumed</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">the</span> <span class="variable">id</span><span class="operator">,</span> <span class="variable">though</span> <span class="variable">some</span> <span class="variable">people</span> <span class="variable">overload</span> <span class="variable">the</span> <span class="variable">id</span> <span class="variable">to</span>
+           <span class="variable">embed</span> <span class="variable">other</span> <span class="variable">information</span><span class="operator">.</span> <span class="variable">Bioperl</span> <span class="variable">does</span> <span class="keyword">not</span> <span class="keyword">use</span> <span class="variable">any</span> <span class="variable">embedded</span>
+           <span class="variable">information</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">ID</span> <span class="variable">field</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">people</span> <span class="variable">are</span> <span class="variable">encouraged</span> <span class="variable">to</span> <span class="keyword">use</span>
+           <span class="variable">other</span> <span class="variable">mechanisms</span> <span class="operator">(</span><span class="variable">accession</span> <span class="variable">field</span> <span class="keyword">for</span> <span class="variable">example</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">extending</span>
+           <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">object</span><span class="operator">)</span> <span class="variable">to</span> <span class="variable">solve</span> <span class="variable">this</span><span class="operator">.</span>
+ 
+           <span class="variable">With</span> <span class="variable">the</span> <span class="variable">new</span> <span class="variable">Bio::DescribeableI</span> <span class="variable">interface</span><span class="operator">,</span> <span class="variable">display_name</span> <span class="variable">aliases</span>
+           <span class="variable">to</span> <span class="variable">this</span> <span class="variable">method</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span>
+</code></code></pre>
+
+<h2 id="accession_number">accession_number</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">accession_number</span> <span class="keyword">or</span> <span class="variable">object_id</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$unique_key</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">accession_number</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="variable">unique</span> <span class="variable">biological</span> <span class="variable">id</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">sequence</span><span class="operator">,</span> <span class="variable">commonly</span>
+           <span class="variable">called</span> <span class="variable">the</span> <span class="variable">accession_number</span><span class="operator">.</span> <span class="variable">For</span> <span class="variable">sequences</span> <span class="variable">from</span> <span class="variable">established</span>
+           <span class="variable">databases</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">implementors</span> <span class="variable">should</span> <span class="variable">try</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="variable">the</span> <span class="variable">correct</span>
+           <span class="variable">accession</span> <span class="variable">number</span><span class="operator">.</span> <span class="variable">Notice</span> <span class="variable">that</span> <span class="variable">primary_id</span><span class="operator">()</span> <span class="variable">provides</span> <span class="variable">the</span>
+           <span class="variable">unique</span> <span class="variable">id</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">implemetation</span><span class="operator">,</span> <span class="variable">allowing</span> <span class="variable">multiple</span> <span class="variable">objects</span>
+           <span class="variable">to</span> <span class="variable">have</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">accession</span> <span class="variable">number</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">particular</span> <span class="variable">implementation</span><span class="operator">.</span>
+ 
+           <span class="variable">For</span> <span class="variable">sequences</span> <span class="variable">with</span> <span class="keyword">no</span> <span class="variable">accession</span> <span class="variable">number</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">should</span>
+           <span class="keyword">return</span> <span class="string">"unknown"</span><span class="operator">.</span>
+ 
+           <span class="operator">[</span><span class="variable">Note</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">name</span> <span class="variable">is</span> <span class="variable">likely</span> <span class="variable">to</span> <span class="variable">change</span> <span class="variable">in</span> <span class="number">1.3</span><span class="operator">]</span>
+ 
+           <span class="variable">With</span> <span class="variable">the</span> <span class="variable">new</span> <span class="variable">Bio::IdentifiableI</span> <span class="variable">interface</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">aliased</span>
+           <span class="variable">to</span> <span class="variable">object_id</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">A</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span> <span class="keyword">for</span> <span class="variable">setting</span>
+</code></code></pre>
+
+<h2 id="primary_id">primary_id</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">primary_id</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$unique_key</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">primary_id</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="variable">unique</span> <span class="variable">id</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">object</span> <span class="variable">in</span> <span class="variable">this</span>
+           <span class="variable">implementation</span><span class="operator">.</span> <span class="variable">This</span> <span class="variable">allows</span> <span class="variable">implementations</span> <span class="variable">to</span> <span class="variable">manage</span> <span class="variable">their</span>
+           <span class="variable">own</span> <span class="variable">object</span> <span class="variable">ids</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">way</span> <span class="variable">the</span> <span class="variable">implementaiton</span> <span class="variable">can</span> <span class="variable">control</span>
+           <span class="variable">clients</span> <span class="variable">can</span> <span class="variable">expect</span> <span class="variable">one</span> <span class="variable">id</span> <span class="variable">to</span> <span class="keyword">map</span> <span class="variable">to</span> <span class="variable">one</span> <span class="variable">object</span><span class="operator">.</span>
+ 
+           <span class="variable">For</span> <span class="variable">sequences</span> <span class="variable">with</span> <span class="keyword">no</span> <span class="variable">natural</span> <span class="variable">primary</span> <span class="variable">id</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">method</span>
+           <span class="variable">should</span> <span class="keyword">return</span> <span class="variable">a</span> <span class="variable">stringified</span> <span class="variable">memory</span> <span class="variable">location</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">A</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">,</span> <span class="keyword">for</span> <span class="variable">setting</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="alphabet">alphabet</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">alphabet</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">if</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">alphabet</span> <span class="keyword">eq</span> <span class="string">'dna'</span> <span class="operator">)</span> <span class="operator">{</span> <span class="regex">/Do Something/</span> <span class="operator">}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">alphabet</span> <span class="variable">of</span> <span class="variable">sequence</span><span class="operator">,</span> <span class="variable">one</span> <span class="variable">of</span>
+           <span class="string">'dna'</span><span class="operator">,</span> <span class="string">'rna'</span> <span class="keyword">or</span> <span class="string">'protein'</span><span class="operator">.</span> <span class="variable">This</span> <span class="variable">is</span> <span class="variable">case</span> <span class="variable">sensitive</span><span class="operator">.</span>
+ 
+           <span class="variable">This</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">called</span> <span class="operator">&lt;</span><span class="variable">type</span><span class="operator">&gt;</span> <span class="variable">because</span> <span class="variable">this</span> <span class="variable">would</span> <span class="variable">cause</span>
+           <span class="variable">upgrade</span> <span class="variable">problems</span> <span class="variable">from</span> <span class="variable">the</span> <span class="number">0</span><span class="operator">.</span><span class="number">5</span> <span class="keyword">and</span> <span class="variable">earlier</span> <span class="variable">Seq</span> <span class="variable">objects</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">either</span> <span class="string">'dna'</span><span class="operator">,</span><span class="string">'rna'</span><span class="operator">,</span><span class="string">'protein'</span><span class="operator">.</span> <span class="variable">NB</span> <span class="operator">-</span> <span class="variable">the</span> <span class="variable">object</span> <span class="variable">must</span>
+           <span class="variable">make</span> <span class="variable">a</span> <span class="variable">call</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">type</span> <span class="operator">-</span> <span class="keyword">if</span> <span class="variable">there</span> <span class="variable">is</span> <span class="keyword">no</span> <span class="variable">alphabet</span> <span class="variable">specified</span> <span class="variable">it</span>
+           <span class="variable">has</span> <span class="variable">to</span> <span class="variable">guess</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">optional</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">set</span> <span class="operator">:</span> <span class="string">'dna'</span> <span class="operator">|</span> <span class="string">'rna'</span> <span class="operator">|</span> <span class="string">'protein'</span>
+</code></code></pre>
+
+<h2 id="desc">desc</h2>
+
+<pre><code><code> Title   : desc or description
+ Usage   : $obj-&gt;desc($newval)
+ Function: Get/set description of the sequence.
+
+           &#39;description&#39; is an alias for this for compliance with the
+           Bio::DescribeableI interface.
+
+ Example :
+ Returns : value of desc (a string)
+ Args    : newvalue (a string or undef, optional)</code></code></pre>
+
+<h2 id="can_call_new">can_call_new</h2>
+
+<pre><code><code> Title   : can_call_new
+ Usage   :
+ Function:
+ Example :
+ Returns : true
+ Args    :</code></code></pre>
+
+<h2 id="id">id</h2>
+
+<pre><code><code> Title   : id
+ Usage   : $id = $seq-&gt;id()
+ Function: This is mapped on display_id
+ Example :
+ Returns :
+ Args    :</code></code></pre>
+
+<h2 id="is_circular">is_circular</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">is_circular</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">if</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">is_circular</span><span class="operator">)</span> <span class="operator">{</span> <span class="regex">/Do Something/</span> <span class="operator">}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">true</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="variable">molecule</span> <span class="variable">is</span> <span class="variable">circular</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Boolean</span> <span class="variable">value</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h1 id="Methods-for-Bio::IdentifiableI-compliance">Methods for Bio::IdentifiableI compliance</h1>
+
+<h2 id="object_id">object_id</h2>
+
+<pre><code><code> Title   : object_id
+ Usage   : $string    = $obj-&gt;object_id()
+ Function: A string which represents the stable primary identifier
+           in this namespace of this object. For DNA sequences this
+           is its accession_number, similarly for protein sequences.
+
+           This is aliased to accession_number().
+ Returns : A scalar</code></code></pre>
+
+<h2 id="version">version</h2>
+
+<pre><code><code> Title   : version
+ Usage   : $version    = $obj-&gt;version()
+ Function: A number which differentiates between versions of
+           the same object. Higher numbers are considered to be
+           later and more relevant, but a single object described
+           the same identifier should represent the same concept.
+
+ Returns : A number</code></code></pre>
+
+<h2 id="authority">authority</h2>
+
+<pre><code><code> Title   : authority
+ Usage   : $authority    = $obj-&gt;authority()
+ Function: A string which represents the organisation which
+           granted the namespace, written as the DNS name for
+           organisation (eg, wormbase.org).
+
+ Returns : A scalar</code></code></pre>
+
+<h2 id="namespace">namespace</h2>
+
+<pre><code><code> Title   : namespace
+ Usage   : $string    = $obj-&gt;namespace()
+ Function: A string representing the name space this identifier
+           is valid in, often the database name or the name
+           describing the collection.
+
+ Returns : A scalar</code></code></pre>
+
+<h1 id="Methods-for-Bio::DescribableI-compliance">Methods for Bio::DescribableI compliance</h1>
+
+<p>This comprises of display_name and description.</p>
+
+<h2 id="display_name">display_name</h2>
+
+<pre><code><code> Title   : display_name
+ Usage   : $string    = $obj-&gt;display_name()
+ Function: A string which is what should be displayed to the user.
+           The string should have no spaces (ideally, though a cautious
+           user of this interface would not assumme this) and should be
+           less than thirty characters (though again, double checking
+           this is a good idea).
+
+           This is aliased to display_id().
+ Returns : A scalar</code></code></pre>
+
+<h2 id="description">description</h2>
+
+<pre><code><code> Title   : description
+ Usage   : $string    = $obj-&gt;description()
+ Function: A text string suitable for displaying to the user a
+           description. This string is likely to have spaces, but
+           should not have any newlines or formatting - just plain
+           text. The string should not be greater than 255 characters
+           and clients can feel justified at truncating strings at 255
+           characters for the purposes of display.
+
+           This is aliased to desc().
+ Returns : A scalar</code></code></pre>
+
+<h1 id="Methods-Inherited-from-Bio::PrimarySeqI">Methods Inherited from Bio::PrimarySeqI</h1>
+
+<p>These methods are available on Bio::PrimarySeq, although they are actually implemented on Bio::PrimarySeqI</p>
+
+<h2 id="revcom">revcom</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">revcom</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$rev</span> <span class="operator">=</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">revcom</span><span class="operator">()</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Produces</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::SeqI</span> <span class="variable">implementing</span> <span class="variable">object</span> <span class="variable">which</span>
+           <span class="variable">is</span> <span class="variable">the</span> <span class="variable">reversed</span> <span class="variable">complement</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span><span class="operator">.</span> <span class="variable">For</span> <span class="variable">protein</span>
+           <span class="variable">sequences</span> <span class="variable">this</span> <span class="variable">throws</span> <span class="variable">an</span> <span class="variable">exception</span> <span class="variable">of</span>
+           <span class="string">"Sequence is a protein. Cannot revcom"</span><span class="operator">.</span>
+ 
+           <span class="variable">The</span> <span class="variable">id</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">id</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">orginal</span> <span class="variable">sequence</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">the</span>
+           <span class="variable">accession</span> <span class="variable">number</span> <span class="variable">is</span> <span class="variable">also</span> <span class="variable">indentical</span><span class="operator">.</span> <span class="variable">If</span> <span class="variable">someone</span> <span class="variable">wants</span> <span class="variable">to</span>
+           <span class="variable">track</span> <span class="variable">that</span> <span class="variable">this</span> <span class="variable">sequence</span> <span class="variable">has</span> <span class="variable">be</span> <span class="variable">reversed</span><span class="operator">,</span> <span class="variable">it</span> <span class="variable">needs</span> <span class="variable">to</span>
+           <span class="variable">define</span> <span class="variable">its</span> <span class="variable">own</span> <span class="variable">extensions</span><span class="operator">.</span>
+ 
+           <span class="variable">To</span> <span class="keyword">do</span> <span class="variable">an</span> <span class="variable">inplace</span> <span class="variable">edit</span> <span class="variable">of</span> <span class="variable">an</span> <span class="variable">object</span> <span class="variable">you</span> <span class="variable">can</span> <span class="variable">go</span><span class="operator">:</span>
+ 
+           <span class="variable">$seqobj</span> <span class="operator">=</span> <span class="variable">$seqobj</span><span class="operator">-&gt;</span><span class="variable">revcom</span><span class="operator">();</span>
+ 
+           <span class="variable">This</span> <span class="variable">of</span> <span class="variable">course</span><span class="operator">,</span> <span class="variable">causes</span> <span class="variable">Perl</span> <span class="variable">to</span> <span class="variable">handle</span> <span class="variable">the</span> <span class="variable">garbage</span>
+           <span class="variable">collection</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">old</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">but</span> <span class="variable">it</span> <span class="variable">is</span> <span class="variable">roughly</span> <span class="variable">speaking</span> <span class="variable">as</span>
+           <span class="variable">efficient</span> <span class="variable">as</span> <span class="variable">an</span> <span class="variable">inplace</span> <span class="variable">edit</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">new</span> <span class="operator">(</span><span class="variable">fresh</span><span class="operator">)</span> <span class="variable">Bio::SeqI</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="trunc">trunc</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">trunc</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$subseq</span> <span class="operator">=</span> <span class="variable">$myseq</span><span class="operator">-&gt;</span><span class="variable">trunc</span><span class="operator">(</span><span class="number">10</span><span class="operator">,</span><span class="number">100</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Provides</span> <span class="variable">a</span> <span class="variable">truncation</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">sequence</span><span class="operator">,</span>
+ 
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">fresh</span> <span class="variable">Bio::SeqI</span> <span class="variable">implementing</span> <span class="variable">object</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h1 id="Internal-methods">Internal methods</h1>
+
+<p>These are internal methods to PrimarySeq</p>
+
+<h2 id="guess_alphabet">_guess_alphabet</h2>
+
+<pre><code><code> Title   : _guess_alphabet
+ Usage   :
+ Function: Automatically guess and set the type of sequence: dna, rna or protein
+ Example :
+ Returns : one of strings &#39;dna&#39;, &#39;rna&#39; or &#39;protein&#39;.
+ Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

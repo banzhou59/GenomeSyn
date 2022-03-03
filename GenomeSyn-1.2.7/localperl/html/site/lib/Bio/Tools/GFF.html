@@ -1,0 +1,394 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#GFF3-AND-SEQUENCE-DATA">GFF3 AND SEQUENCE DATA</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Matthew-Pocock">AUTHOR - Matthew Pocock</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#parse_header">_parse_header</a></li>
+      <li><a href="#next_segment">next_segment</a></li>
+      <li><a href="#next_feature">next_feature</a></li>
+      <li><a href="#from_gff_string">from_gff_string</a></li>
+      <li><a href="#from_gff1_string">_from_gff1_string</a></li>
+      <li><a href="#from_gff2_string">_from_gff2_string</a></li>
+      <li><a href="#write_feature">write_feature</a></li>
+      <li><a href="#gff_string">gff_string</a></li>
+      <li><a href="#gff1_string">_gff1_string</a></li>
+      <li><a href="#gff2_string">_gff2_string</a></li>
+      <li><a href="#gff25_string">_gff25_string</a></li>
+      <li><a href="#gff3_string">_gff3_string</a></li>
+      <li><a href="#gff_version">gff_version</a></li>
+      <li><a href="#newFh">newFh</a></li>
+      <li><a href="#fh">fh</a></li>
+      <li><a href="#get_seqs">get_seqs</a></li>
+      <li><a href="#features_attached_to_seqs">features_attached_to_seqs</a></li>
+      <li><a href="#ignore_sequence">ignore_sequence</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::GFF - A Bio::SeqAnalysisParserI compliant GFF format parser</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Bio::Tools::GFF</span><span class="operator">;</span>
+    
+    <span class="comment"># specify input via -fh or -file</span>
+    <span class="keyword">my</span> <span class="variable">$gffio</span> <span class="operator">=</span> <span class="variable">Bio::Tools::GFF</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-fh</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*STDIN</span><span class="operator">,</span> <span class="string">-gff_version</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$feature</span><span class="operator">;</span>
+    <span class="comment"># loop over the input stream</span>
+    <span class="keyword">while</span><span class="operator">(</span><span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$gffio</span><span class="operator">-&gt;</span><span class="variable">next_feature</span><span class="operator">())</span> <span class="operator">{</span>
+        <span class="comment"># do something with feature</span>
+    <span class="operator">}</span>
+    <span class="variable">$gffio</span><span class="operator">-&gt;</span><span class="variable">close</span><span class="operator">();</span>
+    
+    <span class="comment"># you can also obtain a GFF parser as a SeqAnalasisParserI in</span>
+    <span class="comment"># HT analysis pipelines (see Bio::SeqAnalysisParserI and</span>
+    <span class="comment"># Bio::Factory::SeqAnalysisParserFactory)</span>
+    <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Factory::SeqAnalysisParserFactory</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+    <span class="keyword">my</span> <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">get_parser</span><span class="operator">(</span><span class="string">-input</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*STDIN</span><span class="operator">,</span> <span class="string">-method</span> <span class="operator">=&gt;</span> <span class="string">"gff"</span><span class="operator">);</span>
+    <span class="keyword">while</span><span class="operator">(</span><span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">next_feature</span><span class="operator">())</span> <span class="operator">{</span>
+        <span class="comment"># do something with feature</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This class provides a simple GFF parser and writer. In the sense of a SeqAnalysisParser, it parses an input file or stream into SeqFeatureI objects, but is not in any way specific to a particular analysis program and the output that program produces.</p>
+
+<p>That is, if you can get your analysis program spit out GFF, here is your result parser.</p>
+
+<h1 id="GFF3-AND-SEQUENCE-DATA">GFF3 AND SEQUENCE DATA</h1>
+
+<p>GFF3 supports sequence data; see</p>
+
+<p>http://www.sequenceontology.org/gff3.shtml</p>
+
+<p>There are a number of ways to deal with this -</p>
+
+<p>If you call</p>
+
+<pre><code><code>  $gffio-&gt;ignore_sequence(1)</code></code></pre>
+
+<p>prior to parsing the sequence data is ignored; this is useful if you just want the features. It avoids the memory overhead in building and caching sequences</p>
+
+<p>Alternatively, you can call either</p>
+
+<pre><code><code>  $gffio-&gt;get_seqs()</code></code></pre>
+
+<p>Or</p>
+
+<pre><code><code>  $gffio-&gt;seq_id_by_h()</code></code></pre>
+
+<p>At the <b>end</b> of parsing to get either a list or hashref of Bio::Seq objects (see the documentation for each of these methods)</p>
+
+<p>Note that these objects will not have the features attached - you have to do this yourself, OR call</p>
+
+<pre><code><code>  $gffio-&gt;features_attached_to_seqs(1)</code></code></pre>
+
+<p>PRIOR to parsing; this will ensure that the Seqs have the features attached; ie you will then be able to call</p>
+
+<pre><code><code>  <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">get_SeqFeatures</span><span class="operator">();</span>
+</code></code></pre>
+
+<p>And use Bio::SeqIO methods</p>
+
+<p>Note that auto-attaching the features to seqs will incur a higher memory overhead as the features must be cached until the sequence data is found</p>
+
+<h1 id="TODO">TODO</h1>
+
+<p>Make a Bio::SeqIO class specifically for GFF3 with sequence data</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Matthew-Pocock">AUTHOR - Matthew Pocock</h1>
+
+<p>Email mrp-at-sanger.ac.uk</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Jason Stajich, jason-at-biperl-dot-org Chris Mungall, cjm-at-fruitfly-dot-org Steffen Grossmann [SG], grossman at molgen.mpg.de Malcolm Cook, mec-at-stowers-institute.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">Bio::Tools::GFF</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-gff_version</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">,</span>
+                                            <span class="string">-file</span>        <span class="operator">=&gt;</span> <span class="string">"filename.gff"</span><span class="operator">);</span>
+           <span class="keyword">or</span>
+           <span class="keyword">my</span> <span class="variable">$writer</span> <span class="operator">=</span> <span class="variable">Bio::Tools::GFF</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-gff_version</span> <span class="operator">=&gt;</span> <span class="number">3</span><span class="operator">,</span>
+                                            <span class="string">-file</span>        <span class="operator">=&gt;</span> <span class="string">"&gt;filename.gff3"</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Creates</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">instance</span><span class="operator">.</span> <span class="variable">Recognized</span> <span class="variable">named</span> <span class="variable">parameters</span> <span class="variable">are</span> <span class="operator">-</span><span class="variable">file</span><span class="operator">,</span> <span class="operator">-</span><span class="variable">fh</span><span class="operator">,</span>
+           <span class="keyword">and</span> <span class="operator">-</span><span class="variable">gff_version</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">named</span> <span class="variable">parameters</span>
+           <span class="operator">-</span><span class="string">gff_version</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">]</span>
+</code></code></pre>
+
+<h2 id="parse_header">_parse_header</h2>
+
+<pre><code><code> Title   : _parse_header
+ Usage   : $gffio-&gt;_parse_header()
+ Function: used to turn parse GFF header lines.  currently
+           produces Bio::LocatableSeq objects from ##sequence-region
+           lines
+ Returns : 1 on success
+ Args    : none</code></code></pre>
+
+<h2 id="next_segment">next_segment</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_segment</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$gffio</span><span class="operator">-&gt;</span><span class="variable">next_segment</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">Bio::LocatableSeq</span> <span class="variable">object</span> <span class="variable">corresponding</span> <span class="variable">to</span> <span class="variable">a</span> 
+           <span class="variable">GFF</span> <span class="string">"##sequence-region"</span> <span class="variable">header</span> <span class="variable">line</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::LocatableSeq</span> <span class="variable">object</span><span class="operator">,</span> <span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span>
+           <span class="variable">there</span> <span class="variable">are</span> <span class="keyword">no</span> <span class="variable">more</span> <span class="variable">sequences</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="next_feature">next_feature</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_feature</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seqfeature</span> <span class="operator">=</span> <span class="variable">$gffio</span><span class="operator">-&gt;</span><span class="variable">next_feature</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">feature</span> <span class="variable">available</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">input</span> <span class="variable">file</span> <span class="keyword">or</span> <span class="variable">stream</span><span class="operator">,</span> <span class="keyword">or</span>
+           <span class="keyword">undef</span> <span class="keyword">if</span> <span class="variable">there</span> <span class="variable">are</span> <span class="keyword">no</span> <span class="variable">more</span> <span class="variable">features</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">implementing</span> <span class="variable">object</span><span class="operator">,</span> <span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="variable">there</span> <span class="variable">are</span> <span class="keyword">no</span>
+           <span class="variable">more</span> <span class="variable">features</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>    
+</code></code></pre>
+
+<h2 id="from_gff_string">from_gff_string</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">from_gff_string</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$gff</span><span class="operator">-&gt;</span><span class="variable">from_gff_string</span><span class="operator">(</span><span class="variable">$feature</span><span class="operator">,</span> <span class="variable">$gff_string</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Sets</span> <span class="variable">properties</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">SeqFeatureI</span> <span class="variable">object</span> <span class="variable">from</span> <span class="variable">a</span> <span class="variable">GFF</span><span class="operator">-</span><span class="variable">formatted</span>
+           <span class="variable">string</span><span class="operator">.</span> <span class="variable">Interpretation</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">string</span> <span class="variable">depends</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">version</span>
+           <span class="variable">that</span> <span class="variable">has</span> <span class="variable">been</span> <span class="variable">specified</span> <span class="variable">at</span> <span class="variable">initialization</span><span class="operator">.</span>
+ 
+           <span class="variable">This</span> <span class="variable">method</span> <span class="variable">is</span> <span class="variable">used</span> <span class="variable">by</span> <span class="variable">next_feature</span><span class="operator">().</span> <span class="variable">It</span> <span class="variable">actually</span> <span class="variable">dispatches</span> <span class="variable">to</span>
+           <span class="variable">one</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">version</span><span class="operator">-</span><span class="variable">specific</span> <span class="operator">(</span><span class="variable">private</span><span class="operator">)</span> <span class="variable">methods</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">void</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">implementing</span> <span class="variable">object</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">initialized</span>
+           <span class="variable">The</span> <span class="variable">GFF</span><span class="operator">-</span><span class="variable">formatted</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">initialize</span> <span class="variable">it</span> <span class="variable">from</span>
+</code></code></pre>
+
+<h2 id="from_gff1_string">_from_gff1_string</h2>
+
+<pre><code><code> Title   : _from_gff1_string
+ Usage   :
+ Function:
+ Example :
+ Returns : void
+ Args    : A Bio::SeqFeatureI implementing object to be initialized
+           The GFF-formatted string to initialize it from</code></code></pre>
+
+<h2 id="from_gff2_string">_from_gff2_string</h2>
+
+<pre><code><code> Title   : _from_gff2_string
+ Usage   :
+ Function:
+ Example :
+ Returns : void
+ Args    : A Bio::SeqFeatureI implementing object to be initialized
+           The GFF2-formatted string to initialize it from</code></code></pre>
+
+<h2 id="write_feature">write_feature</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">write_feature</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$gffio</span><span class="operator">-&gt;</span><span class="variable">write_feature</span><span class="operator">(</span><span class="variable">$feature</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Writes</span> <span class="variable">the</span> <span class="variable">specified</span> <span class="variable">SeqFeatureI</span> <span class="variable">object</span> <span class="variable">in</span> <span class="variable">GFF</span> <span class="keyword">format</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">stream</span>
+           <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">this</span> <span class="variable">instance</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">An</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">implementing</span> <span class="variable">objects</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">serialized</span>
+</code></code></pre>
+
+<h2 id="gff_string">gff_string</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">gff_string</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$gffstr</span> <span class="operator">=</span> <span class="variable">$gffio</span><span class="operator">-&gt;</span><span class="variable">gff_string</span><span class="operator">(</span><span class="variable">$feature</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Obtain</span> <span class="variable">the</span> <span class="variable">GFF</span><span class="operator">-</span><span class="variable">formatted</span> <span class="variable">representation</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">SeqFeatureI</span> <span class="variable">object</span><span class="operator">.</span>
+           <span class="variable">The</span> <span class="variable">formatting</span> <span class="variable">depends</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">version</span> <span class="variable">specified</span> <span class="variable">at</span> <span class="variable">initialization</span><span class="operator">.</span>
+ 
+           <span class="variable">This</span> <span class="variable">method</span> <span class="variable">is</span> <span class="variable">used</span> <span class="variable">by</span> <span class="variable">write_feature</span><span class="operator">().</span> <span class="variable">It</span> <span class="variable">actually</span> <span class="variable">dispatches</span> <span class="variable">to</span>
+           <span class="variable">one</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">version</span><span class="operator">-</span><span class="variable">specific</span> <span class="operator">(</span><span class="variable">private</span><span class="operator">)</span> <span class="variable">methods</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">GFF</span><span class="operator">-</span><span class="variable">formatted</span> <span class="variable">string</span> <span class="variable">representation</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">SeqFeature</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">implementing</span> <span class="variable">object</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">GFF</span><span class="operator">-</span><span class="variable">stringified</span>
+</code></code></pre>
+
+<h2 id="gff1_string">_gff1_string</h2>
+
+<pre><code><code> Title   : _gff1_string
+ Usage   : $gffstr = $gffio-&gt;_gff1_string
+ Function: 
+ Example :
+ Returns : A GFF1-formatted string representation of the SeqFeature
+ Args    : A Bio::SeqFeatureI implementing object to be GFF-stringified</code></code></pre>
+
+<h2 id="gff2_string">_gff2_string</h2>
+
+<pre><code><code> Title   : _gff2_string
+ Usage   : $gffstr = $gffio-&gt;_gff2_string
+ Function: 
+ Example :
+ Returns : A GFF2-formatted string representation of the SeqFeature
+ Args    : A Bio::SeqFeatureI implementing object to be GFF2-stringified</code></code></pre>
+
+<h2 id="gff25_string">_gff25_string</h2>
+
+<pre><code><code> Title   : _gff25_string
+ Usage   : $gffstr = $gffio-&gt;_gff2_string
+ Function: To get a format of GFF that is peculiar to Gbrowse/Bio::DB::GFF
+ Example :
+ Returns : A GFF2.5-formatted string representation of the SeqFeature
+ Args    : A Bio::SeqFeatureI implementing object to be GFF2.5-stringified</code></code></pre>
+
+<h2 id="gff3_string">_gff3_string</h2>
+
+<pre><code><code>  Title   : _gff3_string
+  Usage   : $gffstr = $gffio-&gt;_gff3_string
+  Function: 
+  Example :
+  Returns : A GFF3-formatted string representation of the SeqFeature
+  Args    : A Bio::SeqFeatureI implementing object to be GFF3-stringified</code></code></pre>
+
+<h2 id="gff_version">gff_version</h2>
+
+<pre><code><code>  Title   : _gff_version
+  Usage   : $gffversion = $gffio-&gt;gff_version
+  Function: 
+  Example :
+  Returns : The GFF version this parser will accept and emit.
+  Args    : none</code></code></pre>
+
+<h2 id="newFh">newFh</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">newFh</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::Tools::GFF</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$filename</span><span class="operator">,</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'Format'</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">does</span> <span class="variable">a</span> <span class="variable">new</span><span class="operator">()</span> <span class="variable">followed</span> <span class="variable">by</span> <span class="variable">an</span> <span class="variable">fh</span><span class="operator">()</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::Tools::GFF</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$filename</span><span class="operator">,</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'Format'</span><span class="operator">)</span>
+           <span class="variable">$feature</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;;</span>            <span class="comment"># read a feature object</span>
+           <span class="keyword">print</span> <span class="variable">$fh</span> <span class="variable">$feature</span><span class="operator">;</span>          <span class="comment"># write a feature object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">filehandle</span> <span class="keyword">tied</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">Bio::Tools::GFF</span> <span class="variable">class</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="fh">fh</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">fh</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">fh</span>
+ <span class="variable">Function</span><span class="operator">:</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">fh</span><span class="operator">;</span>      <span class="comment"># make a tied filehandle</span>
+           <span class="variable">$feature</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;;</span>    <span class="comment"># read a feature object</span>
+           <span class="keyword">print</span> <span class="variable">$fh</span> <span class="variable">$feature</span><span class="operator">;</span>  <span class="comment"># write a feature object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">filehandle</span> <span class="keyword">tied</span> <span class="variable">to</span> <span class="variable">Bio::Tools::GFF</span> <span class="variable">class</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="get_seqs">get_seqs</h2>
+
+<pre><code><code> Title   : get_seqs
+ Usage   :
+ Function: Returns all Bio::Seq objects populated by GFF3 file
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="features_attached_to_seqs">features_attached_to_seqs</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">features_attached_to_seqs</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">features_attached_to_seqs</span><span class="operator">(</span><span class="number">1</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">For</span> <span class="keyword">use</span> <span class="variable">with</span> <span class="variable">GFF3</span> <span class="variable">containg</span> <span class="variable">sequence</span> <span class="variable">only</span>
+ 
+    <span class="variable">Setting</span> <span class="variable">this</span> <span class="variable">B</span><span class="operator">&lt;</span><span class="variable">before</span><span class="operator">&gt;</span> <span class="variable">parsing</span> <span class="variable">ensures</span> <span class="variable">that</span> <span class="variable">all</span> <span class="variable">Bio::Seq</span> <span class="variable">object</span>
+    <span class="variable">created</span> <span class="variable">will</span> <span class="variable">have</span> <span class="variable">the</span> <span class="variable">appropriate</span> <span class="variable">features</span> <span class="variable">added</span> <span class="variable">to</span> <span class="variable">them</span>
+ 
+    <span class="variable">defaults</span> <span class="variable">to</span> <span class="variable">false</span> <span class="operator">(</span><span class="variable">off</span><span class="operator">)</span>
+ 
+    <span class="variable">Note</span> <span class="variable">that</span> <span class="variable">this</span> <span class="variable">mode</span> <span class="variable">will</span> <span class="variable">incur</span> <span class="variable">higher</span> <span class="variable">memory</span> <span class="variable">usage</span> <span class="variable">because</span> <span class="variable">features</span>
+    <span class="variable">will</span> <span class="variable">have</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">cached</span> <span class="keyword">until</span> <span class="variable">the</span> <span class="variable">relevant</span> <span class="variable">feature</span> <span class="variable">comes</span> <span class="variable">along</span>
+ 
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">features_attached_to_seqs</span> <span class="operator">(</span><span class="variable">a</span> <span class="variable">boolean</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">on</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">a</span> <span class="variable">boolean</span><span class="operator">,</span> <span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="ignore_sequence">ignore_sequence</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">ignore_sequence</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">ignore_sequence</span><span class="operator">(</span><span class="number">1</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">For</span> <span class="keyword">use</span> <span class="variable">with</span> <span class="variable">GFF3</span> <span class="variable">containg</span> <span class="variable">sequence</span> <span class="variable">only</span>
+ 
+    <span class="variable">Setting</span> <span class="variable">this</span> <span class="variable">B</span><span class="operator">&lt;</span><span class="variable">before</span><span class="operator">&gt;</span> <span class="variable">parsing</span> <span class="variable">means</span> <span class="variable">that</span> <span class="variable">all</span> <span class="variable">sequence</span> <span class="variable">data</span> <span class="variable">will</span> <span class="variable">be</span>
+    <span class="variable">ignored</span>
+ 
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">ignore_sequence</span> <span class="operator">(</span><span class="variable">a</span> <span class="variable">boolean</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">on</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">a</span> <span class="variable">boolean</span><span class="operator">,</span> <span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,328 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#INSTANCE-VARIABLES">INSTANCE VARIABLES</a>
+    <ul>
+      <li><a href="#Value-Records">Value Records</a></li>
+    </ul>
+  </li>
+  <li><a href="#CORRESPONDANCE-TO-LAYOUT-TYPES">CORRESPONDANCE TO LAYOUT TYPES</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#read_sub">read_sub</a></li>
+      <li><a href="#t-extension">$t-&gt;extension</a></li>
+      <li><a href="#t-out_sub">$t-&gt;out_sub</a></li>
+      <li><a href="#t-read_value-format-base-lookup-fh-">$t-&gt;read_value($format, $base, $lookup, $fh)</a></li>
+      <li><a href="#t-read_delta-offset-base-lookup-fh-">$t-&gt;read_delta($offset, $base, $lookup, $fh)</a></li>
+      <li><a href="#t-read_anchor-offset-base-lookup-fh-">$t-&gt;read_anchor($offset, $base, $lookup, $fh)</a></li>
+      <li><a href="#t-fmt_value">$t-&gt;fmt_value</a></li>
+      <li><a href="#t-out_value">$t-&gt;out_value</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#LICENSING">LICENSING</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Font::TTF::GPOS - Support for Opentype GPOS tables in conjunction with TTOpen</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>The GPOS table is one of the most complicated tables in the TTF spec and the corresponding data structure abstraction is also not trivial. While much of the structure of a GPOS is shared with a GSUB table via the <a href="../../../../../../../public/home/fxing/.cpan/build/Font-TTF-1.05-aFootk/blib/lib/Font/TTF/Ttopen.html">Font::TTF::Ttopen</a></p>
+
+<h1 id="INSTANCE-VARIABLES">INSTANCE VARIABLES</h1>
+
+<p>Here we describe the additions and lookup specific information for GPOS tables. Unfortunately there is no one abstraction which seems to work comfortable for all GPOS tables, so we will also examine how the variables are used for different lookup types.</p>
+
+<p>The following are the values allowed in the ACTION_TYPE and MATCH_TYPE variables:</p>
+
+<dl>
+
+<dt id="ACTION_TYPE">ACTION_TYPE</dt>
+<dd>
+
+<p>This can take any of the following values</p>
+
+<dl>
+
+<dt id="a">a</dt>
+<dd>
+
+<p>The ACTION is an array of anchor tables</p>
+
+</dd>
+<dt id="o">o</dt>
+<dd>
+
+<p>Offset. There is no RULE array. The ADJUST variable contains a value record (see later in this description)</p>
+
+</dd>
+<dt id="v">v</dt>
+<dd>
+
+<p>The ACTION is a value record.</p>
+
+</dd>
+<dt id="p">p</dt>
+<dd>
+
+<p>Pair adjustment. The ACTION contains an array of two value records for the matched two glyphs.</p>
+
+</dd>
+<dt id="e">e</dt>
+<dd>
+
+<p>Exit and Entry records. The ACTION contains an array of two anchors corresponding to the exit and entry anchors for the glyph.</p>
+
+</dd>
+<dt id="l">l</dt>
+<dd>
+
+<p>Indicates a lookup based contextual rule as per the GSUB table.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="MATCH_TYPE">MATCH_TYPE</dt>
+<dd>
+
+<p>This can take any of the following values</p>
+
+<dl>
+
+<dt id="g">g</dt>
+<dd>
+
+<p>A glyph array</p>
+
+</dd>
+<dt id="c">c</dt>
+<dd>
+
+<p>An array of class values</p>
+
+</dd>
+<dt id="o1">o</dt>
+<dd>
+
+<p>An array of coverage tables</p>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<p>The following variables are added for Attachment Positioning Subtables:</p>
+
+<dl>
+
+<dt id="MATCH">MATCH</dt>
+<dd>
+
+<p>This contains an array of glyphs to match against for all RULES. It is much like having the same MATCH string in all RULES. In the cases it is used so far, it only ever contains one element.</p>
+
+</dd>
+<dt id="MARKS">MARKS</dt>
+<dd>
+
+<p>This contains a Mark array consisting of each element being a subarray of two elements:</p>
+
+<dl>
+
+<dt id="CLASS">CLASS</dt>
+<dd>
+
+<p>The class that this mark uses on its base</p>
+
+</dd>
+<dt id="ANCHOR">ANCHOR</dt>
+<dd>
+
+<p>The anchor with which to attach this mark glyph</p>
+
+</dd>
+</dl>
+
+<p>The base table for mark to base, ligature or mark attachment positioning is structured with the ACTION containing an array of anchors corresponding to each attachment class. For ligatures, there is more than one RULE in the RULE array corresponding to each glyph in the coverage table.</p>
+
+</dd>
+</dl>
+
+<p>Other variables which are provided for informational purposes are:</p>
+
+<dl>
+
+<dt id="VFMT">VFMT</dt>
+<dd>
+
+<p>Value format for the adjustment of the glyph matched by the coverage table.</p>
+
+</dd>
+<dt id="VFMT2">VFMT2</dt>
+<dd>
+
+<p>Value format used in pair adjustment for the second glyph in the pair</p>
+
+</dd>
+</dl>
+
+<h2 id="Value-Records">Value Records</h2>
+
+<p>There is a subtype used in GPOS tables called a value record. It is used to adjust the position of a glyph from its default position. The value record is variable length with a bitfield at the beginning to indicate which of the following entries are included. The bitfield is not stored since it is recalculated at write time.</p>
+
+<dl>
+
+<dt id="XPlacement">XPlacement</dt>
+<dd>
+
+<p>Horizontal adjustment for placement (not affecting other unattached glyphs)</p>
+
+</dd>
+<dt id="YPlacement">YPlacement</dt>
+<dd>
+
+<p>Vertical adjustment for placement (not affecting other unattached glyphs)</p>
+
+</dd>
+<dt id="XAdvance">XAdvance</dt>
+<dd>
+
+<p>Adjust the advance width glyph (used only in horizontal writing systems)</p>
+
+</dd>
+<dt id="YAdvance">YAdvance</dt>
+<dd>
+
+<p>Adjust the vertical advance (used only in vertical writing systems)</p>
+
+</dd>
+<dt id="XPlaDevice">XPlaDevice</dt>
+<dd>
+
+<p>Device table for device specific adjustment of horizontal placement</p>
+
+</dd>
+<dt id="YPlaDevice">YPlaDevice</dt>
+<dd>
+
+<p>Device table for device specific adjustment of vertical placement</p>
+
+</dd>
+<dt id="XAdvDevice">XAdvDevice</dt>
+<dd>
+
+<p>Device table for device specific adjustment of horizontal advance</p>
+
+</dd>
+<dt id="YAdDevice">YAdDevice</dt>
+<dd>
+
+<p>Device table for device specific adjustment of vertical advance</p>
+
+</dd>
+<dt id="XIdPlacement">XIdPlacement</dt>
+<dd>
+
+<p>Horizontal placement metric id (for Multiple Master fonts - but that is all I know!)</p>
+
+</dd>
+<dt id="YIdPlacement">YIdPlacement</dt>
+<dd>
+
+<p>Vertical placement metric id</p>
+
+</dd>
+<dt id="XIdAdvance">XIdAdvance</dt>
+<dd>
+
+<p>Horizontal advance metric id</p>
+
+</dd>
+<dt id="YIdAdvance">YIdAdvance</dt>
+<dd>
+
+<p>Vertical advance metric id</p>
+
+</dd>
+</dl>
+
+<h1 id="CORRESPONDANCE-TO-LAYOUT-TYPES">CORRESPONDANCE TO LAYOUT TYPES</h1>
+
+<p>Here is what is stored in the ACTION_TYPE and MATCH_TYPE for each of the known GPOS subtable types:</p>
+
+<pre><code><code>                1.1 1.2 2.1 2.2 3   4   5   6   7.1 7.2 7.3 8.1 8.2 8.3
+  ACTION_TYPE    o   v   p   p  e   a   a   a    l   l   l   l   l   l
+  MATCH_TYPE             g   c                   g   c   o   g   c   o</code></code></pre>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="read_sub">read_sub</h2>
+
+<p>Reads the subtable into the data structures</p>
+
+<h2 id="t-extension">$t-&gt;extension</h2>
+
+<p>Returns the table type number for the extension table</p>
+
+<h2 id="t-out_sub">$t-&gt;out_sub</h2>
+
+<p>Outputs the subtable to the given filehandle</p>
+
+<h2 id="t-read_value-format-base-lookup-fh-">$t-&gt;read_value($format, $base, $lookup, $fh)</h2>
+
+<p>Reads a value record from the current location in the file, according to the format given.</p>
+
+<h2 id="t-read_delta-offset-base-lookup-fh-">$t-&gt;read_delta($offset, $base, $lookup, $fh)</h2>
+
+<p>Reads a delta (device table) at the given offset if it hasn not already been read. Store the offset and item in the lookup cache ($lookup-&gt;{&#39; CACHE&#39;})</p>
+
+<h2 id="t-read_anchor-offset-base-lookup-fh-">$t-&gt;read_anchor($offset, $base, $lookup, $fh)</h2>
+
+<p>Reads an Anchor table at the given offset if it has not already been read.</p>
+
+<h2 id="t-fmt_value">$t-&gt;fmt_value</h2>
+
+<p>Returns the value format for a given value record</p>
+
+<h2 id="t-out_value">$t-&gt;out_value</h2>
+
+<p>Returns the output string for the outputting of the value for a given format. Also updates the offset cache for any device tables referenced.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Martin Hosken <a href="http://scripts.sil.org/FontUtils">http://scripts.sil.org/FontUtils</a>.</p>
+
+<h1 id="LICENSING">LICENSING</h1>
+
+<p>Copyright (c) 1998-2014, SIL International (http://www.sil.org)</p>
+
+<p>This module is released under the terms of the Artistic License 2.0. For details, see the full text of the license in the file LICENSE.</p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,276 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#NOTES-ON-PROGRAM-PARAMETERS">NOTES ON PROGRAM PARAMETERS</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Chris-Fields">AUTHOR - Chris Fields</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#version">version</a></li>
+      <li><a href="#run">run</a></li>
+      <li><a href="#search">search</a></li>
+      <li><a href="#get_AlignIO">get_AlignIO</a></li>
+      <li><a href="#tempfile">tempfile</a></li>
+      <li><a href="#prune">prune</a></li>
+      <li><a href="#run1">_run</a></li>
+      <li><a href="#setparams">_setparams</a></li>
+      <li><a href="#writeSeqFile">_writeSeqFile</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::RNAMotif - Wrapper for local execution of rnamotif, rm2ct, rmfmt, rmprune</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment">#run rnamotif|rmfmt|rm2ct</span>
+  
+  <span class="keyword">my</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span>
+              <span class="string">descr</span> <span class="operator">=&gt;</span> <span class="string">'pyrR.descr'</span><span class="operator">,</span>
+              <span class="string">fmt</span>   <span class="operator">=&gt;</span> <span class="string">'gb'</span><span class="operator">,</span>
+              <span class="string">setvar</span> <span class="operator">=&gt;</span> <span class="string">'ctx_maxlen=20'</span><span class="operator">,</span>
+              <span class="string">context</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+              <span class="string">sh</span>    <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+             <span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::RNAMotif</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-program</span> <span class="operator">=&gt;</span><span class="string">'rnamotif'</span><span class="operator">,</span>
+                                               <span class="string">-prune</span>  <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                                <span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="comment"># Pass the factory a Bio::Seq object or a file name</span>
+  <span class="comment"># Returns a Bio::SearchIO object</span>
+  
+  <span class="comment">#my $searchio = $factory-&gt;run("B_sub.gb");</span>
+  <span class="keyword">my</span> <span class="variable">$searchio</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$searchio</span><span class="operator">-&gt;</span><span class="variable">next_result</span><span class="operator">){</span>
+   <span class="keyword">while</span><span class="operator">(</span><span class="keyword">my</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">next_hit</span><span class="operator">){</span>
+    <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$hsp</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">next_hsp</span><span class="operator">){</span>
+            <span class="keyword">print</span> <span class="keyword">join</span><span class="operator">(</span><span class="string">"\t"</span><span class="operator">,</span> <span class="operator">(</span> <span class="variable">$r</span><span class="operator">-&gt;</span><span class="variable">query_name</span><span class="operator">,</span>
+                               <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">,</span>
+                               <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">hit</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">,</span>
+                               <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">hit</span><span class="operator">-&gt;</span><span class="variable">end</span><span class="operator">,</span>
+                               <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">meta</span><span class="operator">,</span>
+                               <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">score</span><span class="operator">,</span>
+                               <span class="operator">)),</span> <span class="string">"\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+   <span class="operator">}</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># Pass a finished report through rmfmt (-a format only)</span>
+  <span class="comment"># Returns Bio::AlignIO object</span>
+  
+  <span class="keyword">my</span> <span class="variable">$aio</span> <span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="string">"rna.msf"</span><span class="operator">,</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'msf'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span>  <span class="variable">Bio::Tools::Run::RNAMotif</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'program'</span><span class="operator">=&gt;</span><span class="string">'rmfmt'</span><span class="operator">,</span>
+                                                <span class="string">'a'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$alnin</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">'trna.rnamotif'</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$alnin</span><span class="operator">-&gt;</span><span class="variable">next_aln</span><span class="operator">;</span>
+  
+  <span class="variable">$aio</span><span class="operator">-&gt;</span><span class="variable">write_aln</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Wrapper module for Tom Macke and David Cases&#39;s RNAMotif suite of programs. This allows running of rnamotif, rmprune, rm2ct, and rmfmt. Binaries are available at http://www.scripps.edu/mb/case/casegr-sh-3.5.html.</p>
+
+<p>This wrapper allows for one to save output to an optional named file or tempfile using the &#39;-outfile_name&#39; or &#39;-tempfile&#39; parameters; this is primarily for saving output from the rm2ct program, which currently does not have a parser available. If both a named output file and tempfile flag are set, the output file name is used. The default setting is piping output into a filehandle for parsing (or output to STDERR, for rm2ct which requires &#39;-verbose&#39; set to 1).</p>
+
+<p>WARNING: At this time, there is very little checking of parameter settings, so one could have an error if setting the worng parameter for a program. Future versions will likely add some error checking.</p>
+
+<h1 id="NOTES-ON-PROGRAM-PARAMETERS">NOTES ON PROGRAM PARAMETERS</h1>
+
+<p>All program parameters are currently supported. Of note, the &#39;D&#39; parameter, used for setting the value of a variable to a value, is changed to &#39;set_var&#39; to avoid name collisions with &#39;d&#39; (used for dumping internal data structures).</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Chris-Fields">AUTHOR - Chris Fields</h1>
+
+<pre><code><code> Email: cjfields-at-uiuc-dot-edu</code></code></pre>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<pre><code><code> cjfields-at-uiuc-dot-edu</code></code></pre>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : my $wrapper = Bio::Tools::Run::RNAMotif-&gt;new(@params)
+ Function: creates a new RNAMotif factory
+ Returns:  Bio::Tools::Run::RNAMotif
+ Args    : list of parameters
+           -tempfile        =&gt; set tempfile flag (default 0)
+           -outfile_name    =&gt; set file to send output to (default none)
+           -prune           =&gt; set rmprune postprocess flag (default 0)</code></code></pre>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : $factory&gt;program_name()
+ Function: holds the program name
+ Returns:  string
+ Args    : None</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> Title   : program_dir
+ Usage   : $factory-&gt;program_dir(@params)
+ Function: returns the program directory, obtained from ENV variable.
+ Returns:  string
+ Args    :</code></code></pre>
+
+<h2 id="version">version</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">version</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$v</span> <span class="operator">=</span> <span class="variable">$prog</span><span class="operator">-&gt;</span><span class="variable">version</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Determine</span> <span class="variable">the</span> <span class="variable">version</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">program</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">float</span> <span class="keyword">or</span> <span class="keyword">undef</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="run">run</h2>
+
+<pre><code><code> Title   :  run
+ Usage   :  $obj-&gt;run($seqFile)
+ Function:  Runs RNAMotif programs, returns Bio::SearchIO/Bio::AlignIO
+ Returns :  Depends on program:
+            &#39;rnamotif&#39; - returns Bio::SearchIO
+            &#39;rmfmt -a&#39; - returns Bio::AlignIO
+            all others - sends output to outfile, tempfile, STDERR
+
+            Use search() (for Bio::SearchIO stream) or get_AlignIO() (for
+            Bio::AlignIO stream) for a uniform Bioperl object interface.
+
+ Args    :  A Bio::PrimarySeqI or file name
+ Note    :  This runs any RNAMotif program set via program()</code></code></pre>
+
+<h2 id="search">search</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span>  <span class="variable">search</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>  <span class="variable">$searchio</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">search</span><span class="operator">(</span><span class="variable">$seqFile</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span>  <span class="variable">Runs</span> <span class="string">'rnamotif'</span> <span class="variable">on</span> <span class="variable">seqs</span><span class="operator">,</span> <span class="variable">returns</span> <span class="variable">Bio::SearchIO</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>  <span class="variable">A</span> <span class="variable">Bio::SearchIO</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>  <span class="variable">A</span> <span class="variable">Bio::PrimarySeqI</span> <span class="keyword">or</span> <span class="variable">file</span> <span class="variable">name</span>
+ <span class="variable">Note</span>    <span class="operator">:</span>  <span class="variable">Runs</span> <span class="string">'rnamotif'</span> <span class="variable">only</span><span class="operator">,</span> <span class="variable">regardless</span> <span class="variable">of</span> <span class="variable">program</span> <span class="variable">setting</span><span class="operator">;</span> <span class="variable">all</span> <span class="variable">other</span>
+            <span class="variable">parameters</span> <span class="variable">loaded</span>
+</code></code></pre>
+
+<h2 id="get_AlignIO">get_AlignIO</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span>  <span class="variable">get_AlignIO</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>  <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_AlignIO</span><span class="operator">(</span><span class="variable">$seqFile</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span>  <span class="variable">Runs</span> <span class="string">'rmfmt -a'</span> <span class="variable">on</span> <span class="variable">file</span><span class="operator">,</span> <span class="variable">returns</span> <span class="variable">Bio::AlignIO</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>  <span class="variable">A</span> <span class="variable">Bio::AlignIO</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>  <span class="variable">File</span> <span class="variable">name</span>
+ <span class="variable">Note</span>    <span class="operator">:</span>  <span class="variable">Runs</span> <span class="string">'rmfmt -a'</span> <span class="variable">only</span><span class="operator">,</span> <span class="variable">regardless</span> <span class="variable">of</span> <span class="variable">program</span> <span class="variable">setting</span><span class="operator">;</span> <span class="variable">only</span> <span class="variable">file</span>
+            <span class="variable">name</span> <span class="keyword">and</span> <span class="variable">outfile</span> <span class="operator">(</span><span class="keyword">if</span> <span class="variable">any</span><span class="operator">)</span> <span class="variable">are</span> <span class="variable">set</span>
+</code></code></pre>
+
+<h2 id="tempfile">tempfile</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">tempfile</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">tempfile</span><span class="operator">(</span><span class="number">1</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span> <span class="variable">tempfile</span> <span class="variable">flag</span><span class="operator">.</span>  <span class="variable">When</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">writes</span> <span class="variable">output</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">tempfile</span><span class="operator">;</span> <span class="variable">this</span>
+           <span class="variable">is</span> <span class="variable">overridden</span> <span class="variable">by</span> <span class="variable">outfile_name</span><span class="operator">()</span> <span class="keyword">if</span> <span class="variable">set</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Boolean</span> <span class="variable">setting</span> <span class="operator">(</span><span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="keyword">not</span> <span class="variable">set</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">OPTIONAL</span><span class="operator">]</span> <span class="variable">Boolean</span>
+</code></code></pre>
+
+<h2 id="prune">prune</h2>
+
+<pre><code><code> Title   : prune
+ Usage   : $obj-&gt;prune(1)
+ Function: Set rmprune flag.  When set, follows any searches with a call to
+           rmprune (this deletes some redundant sequence hits)
+ Returns : Boolean setting (or undef if not set)
+ Args    : [OPTIONAL] Boolean</code></code></pre>
+
+<h2 id="run1">_run</h2>
+
+<pre><code><code> Title   :   _run
+ Usage   :   $obj-&gt;_run()
+ Function:   Internal(not to be used directly)
+ Returns :   
+ Args    :</code></code></pre>
+
+<h2 id="setparams">_setparams</h2>
+
+<pre><code><code> Title   :  _setparams
+ Usage   :  Internal function, not to be called directly
+ Function:  creates a string of params to be used in the command string
+ Example :
+ Returns :  string of params
+ Args    :  </code></code></pre>
+
+<h2 id="writeSeqFile">_writeSeqFile</h2>
+
+<pre><code><code> Title   : _writeSeqFile
+ Usage   : obj-&gt;_writeSeqFile($seq)
+ Function: Internal(not to be used directly)
+ Returns : writes passed Seq objects to tempfile, to be used as input
+           for program
+ Args    : </code></code></pre>
+
+
+</body>
+
+</html>
+
+

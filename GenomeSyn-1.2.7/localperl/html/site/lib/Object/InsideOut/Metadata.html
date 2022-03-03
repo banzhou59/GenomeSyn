@@ -1,0 +1,612 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#METADATA-OBJECT">METADATA OBJECT</a></li>
+  <li><a href="#CLASS-HIERARCHY">CLASS HIERARCHY</a></li>
+  <li><a href="#CONSTRUCTOR-PARAMETERS">CONSTRUCTOR PARAMETERS</a></li>
+  <li><a href="#METHODS-METADATA">METHODS METADATA</a>
+    <ul>
+      <li><a href="#METADATA-ATTRIBUTES">METADATA ATTRIBUTES</a></li>
+      <li><a href="#ADDING-METADATA">ADDING METADATA</a></li>
+    </ul>
+  </li>
+  <li><a href="#TO-DO">TO DO</a></li>
+  <li><a href="#REQUIREMENTS">REQUIREMENTS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Object::InsideOut::Metadata - Introspection for Object::InsideOut classes</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>This document describes Object::InsideOut::Metadata version 3.98</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">package</span> <span class="variable">My::Class</span><span class="operator">;</span> <span class="operator">{</span>
+     <span class="keyword">use</span> <span class="variable">Object::InsideOut</span><span class="operator">;</span>
+     <span class="keyword">use</span> <span class="variable">Object::InsideOut::Metadata</span><span class="operator">;</span>
+ 
+     <span class="keyword">my</span> <span class="variable">@data</span> <span class="operator">:</span><span class="variable">Field</span> <span class="operator">:</span><span class="variable">Arg</span><span class="operator">(</span><span class="string">'data'</span><span class="operator">)</span> <span class="operator">:</span><span class="variable">Get</span><span class="operator">(</span><span class="string">'data'</span><span class="operator">)</span> <span class="operator">:</span><span class="variable">Set</span><span class="operator">(</span><span class="string">'put_data'</span><span class="operator">);</span>
+     <span class="keyword">my</span> <span class="variable">@misc</span> <span class="operator">:</span><span class="variable">Field</span><span class="operator">;</span>
+ 
+     <span class="keyword">my</span> <span class="variable">%init_args</span> <span class="operator">:</span><span class="variable">InitArgs</span> <span class="operator">=</span> <span class="operator">(</span>
+         <span class="string">'INFO'</span> <span class="operator">=&gt;</span> <span class="string">''</span><span class="operator">,</span>
+     <span class="operator">);</span>
+ 
+     <span class="keyword">sub</span><span class="variable"> _init :Init
+     </span><span class="operator">{</span>
+         <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$self</span><span class="operator">,</span> <span class="variable">$args</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+         <span class="keyword">if</span> <span class="operator">(</span><span class="keyword">exists</span><span class="operator">(</span><span class="variable">$args</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'INFO'</span><span class="operator">}</span><span class="operator">))</span> <span class="operator">{</span>
+             <span class="variable">$misc</span><span class="operator">[</span><span class="variable">$$self</span><span class="operator">]</span> <span class="operator">=</span> <span class="string">'INFO: '</span> <span class="operator">.</span> <span class="variable">$args</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'INFO'</span><span class="operator">}</span><span class="operator">;</span>
+         <span class="operator">}</span>
+     <span class="operator">}</span>
+ 
+     <span class="keyword">sub</span><span class="variable"> misc :lvalue :Method
+     </span><span class="operator">{</span>
+         <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+         <span class="variable">$misc</span><span class="operator">[</span><span class="variable">$$self</span><span class="operator">]</span><span class="operator">;</span>
+     <span class="operator">}</span>
+     <span class="variable">add_meta</span><span class="operator">(</span><span class="keyword">__PACKAGE__</span><span class="operator">,</span> <span class="string">'misc'</span><span class="operator">,</span> <span class="operator">{</span> <span class="string">'lvalue'</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">}</span><span class="operator">);</span>
+ <span class="operator">}</span>
+ 
+ <span class="keyword">package</span> <span class="variable">main</span><span class="operator">;</span>
+ 
+ <span class="comment"># Obtain a metadata object for a class</span>
+ <span class="keyword">my</span> <span class="variable">$meta</span> <span class="operator">=</span> <span class="variable">My::Class</span><span class="operator">-&gt;</span><span class="variable">meta</span><span class="operator">();</span>
+ 
+ <span class="comment"># ... or obtain a metadata object for an object</span>
+ <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">My::Class</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="keyword">my</span> <span class="variable">$meta</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">meta</span><span class="operator">();</span>
+ 
+ <span class="comment"># Obtain the class hierarchy from the metadata object</span>
+ <span class="keyword">my</span> <span class="variable">@classes</span> <span class="operator">=</span> <span class="variable">$meta</span><span class="operator">-&gt;</span><span class="variable">get_classes</span><span class="operator">();</span>
+ 
+ <span class="comment"># Obtain infomation on the parameters for a class's construction</span>
+ <span class="keyword">my</span> <span class="variable">%args</span> <span class="operator">=</span> <span class="variable">$meta</span><span class="operator">-&gt;</span><span class="variable">get_args</span><span class="operator">();</span>
+ 
+ <span class="comment"># Obtain information on a class's methods</span>
+ <span class="keyword">my</span> <span class="variable">%methods</span> <span class="operator">=</span> <span class="variable">$meta</span><span class="operator">-&gt;</span><span class="variable">get_methods</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Object::InsideOut provides an introspection API that allows you to obtain metadata on a class&#39;s hierarchy, constructor parameters, and methods. This is done through the use of metadata objects that are generated by this class.</p>
+
+<p>In addition, developers can specify metadata data for methods they write for their classes.</p>
+
+<h1 id="METADATA-OBJECT">METADATA OBJECT</h1>
+
+<p>To obtain metadata on an Object::InsideOut class or object, you must first generate a metadata object for that class or object. Using that metadata object, one can then obtain information on the class hierarchy, constructor parameters, and methods.</p>
+
+<dl>
+
+<dt id="my-meta-My::Class-meta-">my $meta = My::Class-&gt;meta();</dt>
+<dd>
+
+</dd>
+<dt id="my-meta-obj-meta-">my $meta = $obj-&gt;meta();</dt>
+<dd>
+
+<p>The <code><code>-&gt;meta()</code></code> method, which is exported by Object::InsideOut to each class, returns an <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut/Metadata.html">Object::InsideOut::Metadata</a> object which can then be <i>queried</i> for information about the invoking class or invoking object&#39;s class.</p>
+
+</dd>
+</dl>
+
+<h1 id="CLASS-HIERARCHY">CLASS HIERARCHY</h1>
+
+<p>Any Object::InsideOut class potentially has four categories of classes associated with it:</p>
+
+<dl>
+
+<dt id="Object::InsideOut">1. Object::InsideOut</dt>
+<dd>
+
+<p>While the basis for all Object::InsideOut classes it is not an object class per se because you can create objects from it (i.e., you can&#39;t do <code><code>Object::InsideOut-</code></code>new()&gt;). While <code><code>My::Class-</code></code>isa(&#39;Object::InsideOut&#39;)&gt; will return <i>true</i>, because Object::InsideOut is not an object class, it is not considered to be part of a class&#39;s hierarchy.</p>
+
+</dd>
+<dt id="The-class-itself">2. The class itself</dt>
+<dd>
+
+<p>A class&#39;s hierarchy always includes itself.</p>
+
+</dd>
+<dt id="Parent-classes">3. Parent classes</dt>
+<dd>
+
+<p>These are all the Object::InsideOut classes up the inheritance tree that a class is derived from.</p>
+
+</dd>
+<dt id="Foreign-classes">4. Foreign classes</dt>
+<dd>
+
+<p>These are non-Object::InsideOut classes that a class inherits from. (See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#FOREIGN-CLASS-INHERITANCE">&quot;FOREIGN CLASS INHERITANCE&quot; in Object::InsideOut</a>.) Because of implementation details, foreign classes do not appear in a class&#39;s <code><code>@ISA</code></code> array. However, Object::InsideOut implements a version of <code><code>-&gt;isa()</code></code> that handles foreign classes.</p>
+
+</dd>
+</dl>
+
+<p>A class&#39;s hierarchy consists of any classes in the latter three categories.</p>
+
+<dl>
+
+<dt id="meta-get_classes-">$meta-&gt;get_classes();</dt>
+<dd>
+
+<p>When called in an array context, returns a list that constitutes the class hierarchy for the class or object used to generate the metadata object. When called in a scalar context, returns an array ref.</p>
+
+</dd>
+<dt id="My::Class-isa-">My::Class-&gt;isa();</dt>
+<dd>
+
+</dd>
+<dt id="obj-isa-">$obj-&gt;isa();</dt>
+<dd>
+
+<p>When called in an array context, calling <code><code>-&gt;isa()</code></code> without any arguments on an Object::InsideOut class or object returns a list of the classes in the class hierarchy for that class or object, and is equivalent to:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">@classes</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">meta</span><span class="operator">()-&gt;</span><span class="variable">get_classes</span><span class="operator">();</span>
+</code></code></pre>
+
+<p>When called in a scalar context, it returns an array ref containing the classes.</p>
+
+</dd>
+</dl>
+
+<h1 id="CONSTRUCTOR-PARAMETERS">CONSTRUCTOR PARAMETERS</h1>
+
+<p>Constructor parameters are the arguments given to a class&#39;s <code><code>-&gt;new()</code></code> call.</p>
+
+<dl>
+
+<dt id="meta-get_args-">$meta-&gt;get_args();</dt>
+<dd>
+
+<p>Returns a hash (hash ref in scalar context) containing information on the parameters that can be used to construct an object from the class associated with the metadata object. Here&#39;s an example of such a hash:</p>
+
+<pre><code><code> <span class="operator">{</span>
+     <span class="string">'My::Class'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'data'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+             <span class="string">'field'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+             <span class="string">'type'</span> <span class="operator">=&gt;</span> <span class="string">'numeric'</span><span class="operator">,</span>
+         <span class="operator">}</span><span class="operator">,</span>
+         <span class="string">'misc'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+             <span class="string">'mandatory'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+         <span class="operator">}</span><span class="operator">,</span>
+     <span class="operator">}</span><span class="operator">,</span>
+     <span class="string">'My::Parent'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'info'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+             <span class="string">'default'</span> <span class="operator">=&gt;</span> <span class="string">'&lt;none&gt;'</span><span class="operator">,</span>
+         <span class="operator">}</span><span class="operator">,</span>
+     <span class="operator">}</span><span class="operator">,</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>The keys for this hash are the Object::IsideOut classes in the class hierarchy. These <i>class keys</i> are paired with hash refs, the keys of which are the names of the parameters for that class (e.g., &#39;data&#39; and &#39;misc&#39; for My::Class, and &#39;info&#39; for My::Parent). The hashes paired to the parameters contain information about the parameter:</p>
+
+<dl>
+
+<dt id="field">field</dt>
+<dd>
+
+<p>The parameter corresponds directly to a class field, and is automatically processed during object creation. See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#Field-Specific-Parameters">&quot;Field-Specific Parameters&quot; in Object::InsideOut</a>.</p>
+
+</dd>
+<dt id="mandatory">mandatory</dt>
+<dd>
+
+<p>The parameter is required for object creation. See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#Mandatory-Parameters">&quot;Mandatory Parameters&quot; in Object::InsideOut</a>.</p>
+
+</dd>
+<dt id="default">default</dt>
+<dd>
+
+<p>The default value assigned to the parameter if it is not found in the arguments to <code><code>-&gt;new()</code></code>. See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#Default-Values">&quot;Default Values&quot; in Object::InsideOut</a>.</p>
+
+</dd>
+<dt id="preproc">preproc</dt>
+<dd>
+
+<p>The code ref for the subroutine that is used to <i>preprocess</i> a parameter&#39;s value. See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#Parameter-Preprocessing">&quot;Parameter Preprocessing&quot; in Object::InsideOut</a></p>
+
+</dd>
+<dt id="type">type</dt>
+<dd>
+
+<p>The form of type checking performed on the parameter. See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#TYPE-CHECKING">&quot;TYPE CHECKING&quot; in Object::InsideOut</a> for more details.</p>
+
+<dl>
+
+<dt id="numeric">&#39;numeric&#39;</dt>
+<dd>
+
+<p>Parameter takes a numeric value as recognized by <a href="../../../../lib/Scalar/Util.html#looks_like_number-EXPR">Scalar::Util::looks_like_number()</a>.</p>
+
+</dd>
+<dt id="list">&#39;list&#39;</dt>
+<dd>
+
+</dd>
+<dt id="list-_subtype_-">&#39;list(_subtype_)&#39;</dt>
+<dd>
+
+<p>Parameter takes a single value (which is then placed in an array ref) or an array ref.</p>
+
+<p>When specified, the contents of the resulting array ref must be of the specified subtype:</p>
+
+<dl>
+
+<dt id="numeric1">&#39;numeric&#39;</dt>
+<dd>
+
+<p>Same as for the basic type above.</p>
+
+</dd>
+<dt id="A-class-name">A class name</dt>
+<dd>
+
+<p>Same as for the basic type below.</p>
+
+</dd>
+<dt id="A-reference-type">A reference type</dt>
+<dd>
+
+<p>Any reference type as returned by <a href="../../../../lib/pod/perlfunc.html#ref-EXPR">ref()</a>).</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="ARRAY-_subtype_-">&#39;ARRAY(_subtype_)&#39;</dt>
+<dd>
+
+<p>Parameter takes an array ref with contents of the specified subtype as per the above.</p>
+
+</dd>
+<dt id="A-class-name1">A class name</dt>
+<dd>
+
+<p>Parameter takes an object of a specified class, or one of its sub-classes as recognized by <code><code>-&gt;isa()</code></code>.</p>
+
+</dd>
+<dt id="Other-reference-type">Other reference type</dt>
+<dd>
+
+<p>Parameter takes a reference of the specified type as returned by <a href="../../../../lib/pod/perlfunc.html#ref-EXPR">ref()</a>.</p>
+
+</dd>
+<dt id="A-code-ref">A code ref</dt>
+<dd>
+
+<p>Parameter takes a value that is type-checked by the code ref paired to the &#39;type&#39; key.</p>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<h1 id="METHODS-METADATA">METHODS METADATA</h1>
+
+<p>The methods returned by a metadata object are those that are currently available at the time of the <code><code>-&gt;get_methods()</code></code> call.</p>
+
+<p>The presence of <code><code>:Automethod</code></code> subroutines in an Object::InsideOut class, or <code><code>AUTOLOAD</code></code> in a foreign class means that the methods supported by the class may not be determinable. The presence of <code><code>AUTOLOAD</code></code> in the list of methods for a class should alert the programmer to the fact that more methods may be supported than are listed.</p>
+
+<p>Methods that are excluded are private and hidden methods (see <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#PERMISSIONS">&quot;PERMISSIONS&quot; in Object::InsideOut</a>), methods that begin with an underscore (which, by convention, means they are private), and subroutines named <code><code>CLONE</code></code>, <code><code>CLONE_SKIP</code></code>, and <code><code>DESTROY</code></code> (which are not methods). While technically a method, <code><code>import</code></code> is also excluded as it is generally not invoked directly (i.e., it&#39;s usually called as part of <code><code>use</code></code>).</p>
+
+<dl>
+
+<dt id="meta-get_methods-">$meta-&gt;get_methods();</dt>
+<dd>
+
+<p>Returns a hash (hash ref in scalar context) containing information on the methods for the class associated with the metadata object. The keys in the hash are the method names. Paired to the names are hash refs containing metadata about the methods. Here&#39;s an example:</p>
+
+<pre><code><code> <span class="operator">{</span>
+     <span class="comment"># Methods exported by Object::InsideOut</span>
+     <span class="string">'new'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+        <span class="string">'class'</span> <span class="operator">=&gt;</span> <span class="string">'My::Class'</span><span class="operator">,</span>
+        <span class="string">'kind'</span>  <span class="operator">=&gt;</span> <span class="string">'constructor'</span>
+     <span class="operator">}</span><span class="operator">,</span>
+     <span class="string">'clone'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'class'</span> <span class="operator">=&gt;</span> <span class="string">'My::Class'</span><span class="operator">,</span>
+         <span class="string">'kind'</span>  <span class="operator">=&gt;</span> <span class="string">'object'</span>
+     <span class="operator">}</span><span class="operator">,</span>
+     <span class="string">'meta'</span>  <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'class'</span> <span class="operator">=&gt;</span> <span class="string">'My::Class'</span>
+     <span class="operator">}</span><span class="operator">,</span>
+     <span class="string">'set'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'class'</span> <span class="operator">=&gt;</span> <span class="string">'My::Class'</span><span class="operator">,</span>
+         <span class="string">'kind'</span>  <span class="operator">=&gt;</span> <span class="string">'object'</span><span class="operator">,</span>
+         <span class="string">'restricted'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+     <span class="operator">}</span><span class="operator">,</span>
+     <span class="comment"># Methods provided by Object::InsideOut</span>
+     <span class="string">'dump'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'class'</span> <span class="operator">=&gt;</span> <span class="string">'Object::InsideOut'</span><span class="operator">,</span>
+         <span class="string">'kind'</span>  <span class="operator">=&gt;</span> <span class="string">'object'</span>
+     <span class="operator">}</span><span class="operator">,</span>
+     <span class="string">'pump'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'class'</span> <span class="operator">=&gt;</span> <span class="string">'Object::InsideOut'</span><span class="operator">,</span>
+         <span class="string">'kind'</span>  <span class="operator">=&gt;</span> <span class="string">'class'</span>
+     <span class="operator">}</span><span class="operator">,</span>
+     <span class="string">'inherit'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'class'</span> <span class="operator">=&gt;</span> <span class="string">'Object::InsideOut'</span><span class="operator">,</span>
+         <span class="string">'kind'</span>  <span class="operator">=&gt;</span> <span class="string">'object'</span><span class="operator">,</span>
+         <span class="string">'restricted'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+     <span class="operator">}</span><span class="operator">,</span>
+     <span class="string">'heritage'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'class'</span> <span class="operator">=&gt;</span> <span class="string">'Object::InsideOut'</span><span class="operator">,</span>
+         <span class="string">'kind'</span>  <span class="operator">=&gt;</span> <span class="string">'object'</span><span class="operator">,</span>
+         <span class="string">'restricted'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+     <span class="operator">}</span><span class="operator">,</span>
+     <span class="string">'disinherit'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'class'</span> <span class="operator">=&gt;</span> <span class="string">'Object::InsideOut'</span><span class="operator">,</span>
+         <span class="string">'kind'</span>  <span class="operator">=&gt;</span> <span class="string">'object'</span><span class="operator">,</span>
+         <span class="string">'restricted'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+     <span class="operator">}</span><span class="operator">,</span>
+     <span class="comment"># Methods generated by Object::InsideOut for My::Class</span>
+     <span class="string">'set_data'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'class'</span>  <span class="operator">=&gt;</span> <span class="string">'My::Class'</span><span class="operator">,</span>
+         <span class="string">'kind'</span>   <span class="operator">=&gt;</span> <span class="string">'set'</span><span class="operator">,</span>
+         <span class="string">'type'</span>   <span class="operator">=&gt;</span> <span class="string">'ARRAY'</span><span class="operator">,</span>
+         <span class="string">'return'</span> <span class="operator">=&gt;</span> <span class="string">'new'</span>
+     <span class="operator">}</span><span class="operator">,</span>
+     <span class="string">'get_data'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'class'</span> <span class="operator">=&gt;</span> <span class="string">'My::Class'</span><span class="operator">,</span>
+         <span class="string">'kind'</span>  <span class="operator">=&gt;</span> <span class="string">'get'</span>
+     <span class="operator">}</span>
+     <span class="comment"># Class method provided by My::Class</span>
+     <span class="string">'my_method'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+         <span class="string">'class'</span> <span class="operator">=&gt;</span> <span class="string">'My::Class'</span><span class="operator">,</span>
+         <span class="string">'kind'</span>  <span class="operator">=&gt;</span> <span class="string">'class'</span>
+     <span class="operator">}</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>Here are the method metadata that are provided:</p>
+
+<dl>
+
+<dt id="class">class</dt>
+<dd>
+
+<p>The class in whose symbol table the method resides. The method may reside in the classes code, it may be exported by another class, or it may be generated by Object::InsideOut.</p>
+
+<p>Methods that are overridden in child classes are represented as being associated with the most junior class for which they appear.</p>
+
+</dd>
+<dt id="kind">kind</dt>
+<dd>
+
+<p>Designation of the <i>characteristic</i> of the method:</p>
+
+<dl>
+
+<dt id="constructor">constructor</dt>
+<dd>
+
+<p>The <code><code>-&gt;new()</code></code> method, of course.</p>
+
+</dd>
+<dt id="get-set-or-accessor">get, set or accessor</dt>
+<dd>
+
+<p>A <i>get</i>, <i>set</i>, or <i>combined</i> accessor generated by Object::InsideOut. See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#AcCESSOR-GENERATION">&quot;AcCESSOR GENERATION&quot; in Object::InsideOut</a>.</p>
+
+</dd>
+<dt id="cumulative-or-cumulative-bottom-up-">cumulative, or cumulative (bottom up)</dt>
+<dd>
+
+</dd>
+<dt id="chained-or-chained-bottom-up-">chained, or chained (bottom up)</dt>
+<dd>
+
+<p>A cumulative or chained method. See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#CUMULATIVE-METHODS">&quot;CUMULATIVE METHODS&quot; in Object::InsideOut</a>, and <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#CHAINED-METHODS">&quot;CHAINED METHODS&quot; in Object::InsideOut</a>. The class associated with these methods is the most junior class in which they appears.</p>
+
+</dd>
+<dt id="class1">class</dt>
+<dd>
+
+<p>A method that is callable only on a class (e.g., <code><code>My::Class-&gt;my_method()</code></code>).</p>
+
+</dd>
+<dt id="object">object</dt>
+<dd>
+
+<p>A method that is callable only on a object (e.g. <code><code>$obj-&gt;get_data()</code></code>).</p>
+
+</dd>
+<dt id="foreign">foreign</dt>
+<dd>
+
+<p>A subroutine found in a foreign class&#39;s symbol table. Programmers must check the class&#39;s documentation to determine which are actually methods, and what kinds of methods they are.</p>
+
+</dd>
+<dt id="overload">overload</dt>
+<dd>
+
+<p>A subroutine used for <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#OBJECT-COERCION">object coercion</a>. These may be called as methods, but this is not normally how they are used.</p>
+
+</dd>
+<dt id="automethod">automethod</dt>
+<dd>
+
+<p>Associated with an AUTOLOAD method for an Object::InsideOut class that implements an <code><code>:Automethod</code></code> subroutine. See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#AUTOMETHODS">&quot;AUTOMETHODS&quot; in Object::InsideOut</a>.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="type1">type</dt>
+<dd>
+
+<p>The type checking that is done on arguments to <i>set/combined</i> accessors generated by Object::InsideOut. See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#TYPE-CHECKING">&quot;TYPE CHECKING&quot; in Object::InsideOut</a></p>
+
+</dd>
+<dt id="return">return</dt>
+<dd>
+
+<p>The value returned by a <i>set/combined</i> accessor generated by Object::InsideOut. See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#Set-Accessor-Return-Value">&quot;<i>Set</i> Accessor Return Value&quot; in Object::InsideOut</a></p>
+
+</dd>
+<dt id="lvalue">lvalue</dt>
+<dd>
+
+<p>The method is an <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#lvalue-Accessors">:lvalue accessor</a>.</p>
+
+</dd>
+<dt id="restricted">restricted</dt>
+<dd>
+
+<p>The method is <i>restricted</i> (i.e., callable only from within the class hierarchy; not callable from application code). See <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#PERMISSIONS">&quot;PERMISSIONS&quot; in Object::InsideOut</a>.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="My::Class-can-">My::Class-&gt;can();</dt>
+<dd>
+
+</dd>
+<dt id="obj-can-">$obj-&gt;can();</dt>
+<dd>
+
+<p>When called in an array context, calling <code><code>-&gt;can()</code></code> without any arguments on an Object::InsideOut class or object returns a list of the method names for that class or object, and is equivalent to:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">%meths</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">meta</span><span class="operator">()-&gt;</span><span class="variable">get_methods</span><span class="operator">();</span>
+ <span class="keyword">my</span> <span class="variable">@methods</span> <span class="operator">=</span> <span class="keyword">keys</span><span class="operator">(</span><span class="variable">%meths</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>When called in a scalar context, it returns an array ref containing the method names.</p>
+
+</dd>
+</dl>
+
+<h2 id="METADATA-ATTRIBUTES">METADATA ATTRIBUTES</h2>
+
+<p>Class authors may add the <code><code>:Method</code></code> attribute to subroutines in their classes to specifically designate them as OO-callable methods. If a method is only a <i>class</i> method or only an <i>object</i> method, this may be added as a parameter to the attribute:</p>
+
+<pre><code><code> <span class="keyword">sub</span><span class="variable"> my_method :Method</span><span class="operator">(</span>class<span class="operator">)</span>
+ <span class="operator">{</span>
+     <span class="operator">...</span>
+</code></code></pre>
+
+<p>The <i>class</i> or <i>object</i> parameter will appear in the metadata for the method when listed using <code><code>-&gt;get_methods()</code></code>.</p>
+
+<p><b>CAUTION:</b> Be sure not to use <code><code>:method</code></code> (all lowercase) except as appropriate (see <a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html#ARGUMENT-VALIDATION">&quot;ARGUMENT VALIDATION&quot; in Object::InsideOut</a>) as this is a Perl reserved attribute.</p>
+
+<p>The <code><code>:Sub</code></code> attribute can be used to designate subroutines that are not OO-callable methods. These subroutines will not show up as part of the methods listed by <code><code>-&gt;get_methods()</code></code>, etc..</p>
+
+<p>Subroutine names beginning with an underscore are, by convention, considered private, and will not show up as part of the methods listed by <code><code>-&gt;get_methods()</code></code>, etc..</p>
+
+<h2 id="ADDING-METADATA">ADDING METADATA</h2>
+
+<p>Class authors may add additional metadata to their methods using the <code><code>add_meta()</code></code> subroutine which is exported by this package. For example, if the class implements it own <code><code>:lvalue</code></code> method, it should add that metadata so that it is picked up the <code><code>-&gt;get_methods()</code></code>:</p>
+
+<pre><code><code> <span class="keyword">package</span> <span class="variable">My::Class</span><span class="operator">;</span> <span class="operator">{</span>
+     <span class="keyword">use</span> <span class="variable">Object::InsideOut</span><span class="operator">;</span>
+     <span class="keyword">use</span> <span class="variable">Object::InsideOut::Metadata</span><span class="operator">;</span>
+ 
+     <span class="keyword">sub</span><span class="variable"> my_method :lvalue :Method</span><span class="operator">(</span>object<span class="operator">)</span>
+     <span class="operator">{</span>
+         <span class="operator">....</span>
+     <span class="operator">}</span>
+     <span class="variable">add_meta</span><span class="operator">(</span><span class="keyword">__PACKAGE__</span><span class="operator">,</span> <span class="string">'my_method'</span><span class="operator">,</span> <span class="string">'lvalue'</span><span class="operator">,</span> <span class="number">1</span><span class="operator">);</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>The arguments to <code><code>add_meta()</code></code> are:</p>
+
+<dl>
+
+<dt id="Class-name">Class name</dt>
+<dd>
+
+<p>This can usually be designated using the special literal C__PACKAGE__&gt;.</p>
+
+</dd>
+<dt id="Method-name">Method name</dt>
+<dd>
+
+</dd>
+<dt id="Metadata-name">Metadata name</dt>
+<dd>
+
+<p>This can be any of the metadata names under <a href="#METHODS-METADATA">&quot;METHODS METADATA&quot;</a>, or can be whatever additional name the programmer chooses to implement.</p>
+
+</dd>
+<dt id="Metadata-value">Metadata value</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>When adding multiple metadata for a method, they may be enclosed in a single hash ref:</p>
+
+<pre><code><code> <span class="variable">add_meta</span><span class="operator">(</span><span class="keyword">__PACKAGE__</span><span class="operator">,</span> <span class="string">'my_method'</span><span class="operator">,</span> <span class="operator">{</span> <span class="string">'lvalue'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                      <span class="string">'return'</span> <span class="operator">=&gt;</span> <span class="string">'old'</span> <span class="operator">}</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>If adding metadata for multiple methods, another level of hash may be used:</p>
+
+<pre><code><code> <span class="variable">add_meta</span><span class="operator">(</span><span class="keyword">__PACKAGE__</span><span class="operator">,</span> <span class="operator">{</span> <span class="string">'my_method'</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'lvalue'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                          <span class="string">'return'</span> <span class="operator">=&gt;</span> <span class="string">'old'</span> <span class="operator">}</span><span class="operator">,</span>
+                         <span class="string">'get_info'</span>  <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'my_meta'</span> <span class="operator">=&gt;</span> <span class="string">'true'</span> <span class="operator">}</span> <span class="operator">}</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="TO-DO">TO DO</h1>
+
+<p>Provide filtering capabilities on the method information returned by <code><code>-&gt;get_methods()</code></code>.</p>
+
+<h1 id="REQUIREMENTS">REQUIREMENTS</h1>
+
+<p>Perl 5.8.0 or later</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../../../public/home/fxing/.cpan/build/Object-InsideOut-3.98-wuUVde/blib/lib/Object/InsideOut.html">Object::InsideOut</a></p>
+
+<p>Perl 6 introspection: <a href="http://dev.perl.org/perl6/doc/design/apo/A12.html#Introspection">http://dev.perl.org/perl6/doc/design/apo/A12.html#Introspection</a>, and <a href="http://dev.perl.org/perl6/rfc/335.html">http://dev.perl.org/perl6/rfc/335.html</a></p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Jerry D. Hedden, <span style="white-space: nowrap;">&lt;jdhedden AT cpan DOT org&gt;</span></p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright 2006 - 2012 Jerry D. Hedden. All rights reserved.</p>
+
+<p>This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

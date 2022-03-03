@@ -1,0 +1,415 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Hilmar-Lapp">AUTHOR - Hilmar Lapp</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#next_seq">next_seq</a></li>
+      <li><a href="#comment_char">comment_char</a></li>
+      <li><a href="#header">header</a></li>
+      <li><a href="#delimiter">delimiter</a></li>
+      <li><a href="#attribute_map">attribute_map</a></li>
+      <li><a href="#annotation_map">annotation_map</a></li>
+      <li><a href="#keep_annotation">keep_annotation</a></li>
+      <li><a href="#annotation_columns">annotation_columns</a></li>
+      <li><a href="#trim_values">trim_values</a></li>
+    </ul>
+  </li>
+  <li><a href="#Internal-methods">Internal methods</a>
+    <ul>
+      <li><a href="#attribute_map1">_attribute_map</a></li>
+      <li><a href="#annotation_map1">_annotation_map</a></li>
+      <li><a href="#header_skipped">_header_skipped</a></li>
+      <li><a href="#next_record">_next_record</a></li>
+      <li><a href="#parse_header">_parse_header</a></li>
+      <li><a href="#get_row_values">_get_row_values</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqIO::table - sequence input/output stream from a delimited table</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment">#It is probably best not to use this object directly, but</span>
+  <span class="comment">#rather go through the SeqIO handler system. Go:</span>
+  
+  <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'table'</span><span class="operator">);</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="comment"># do something with $seq</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This class transforms records in a table-formatted text file into Bio::Seq objects.</p>
+
+<p>A table-formatted text file of sequence records for the purposes of this module is defined as a text file with each row corresponding to a sequence, and the attributes of the sequence being in different columns. Columns are delimited by a common delimiter, for instance tab or comma.</p>
+
+<p>The module permits specifying which columns hold which type of annotation. The semantics of certain attributes, if present, are pre-defined, e.g., accession number and sequence. Additional attributes may be added to the annotation bundle.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution.</p>
+
+<p>Bug reports can be submitted via email or the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Hilmar-Lapp">AUTHOR - Hilmar Lapp</h1>
+
+<p>Email hlapp at gmx.net</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'table'</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">seqstream</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqIO</span> <span class="variable">stream</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">table</span> <span class="keyword">format</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Named</span> <span class="variable">parameters</span><span class="operator">:</span>
+ 
+             <span class="operator">-</span><span class="variable">file</span>    <span class="variable">name</span> <span class="variable">of</span> <span class="variable">file</span> <span class="variable">to</span> <span class="keyword">read</span>
+             <span class="operator">-</span><span class="variable">fh</span>      <span class="variable">filehandle</span> <span class="variable">to</span> <span class="variable">attach</span> <span class="variable">to</span>
+             <span class="operator">-</span><span class="variable">comment</span> <span class="variable">leading</span> <span class="variable">character</span><span class="operator">(</span><span class="regex">s) introducing a comment line
+             -header  the number of header lines to skip; the first
+                      non-comment header line will be used to obtain
+                      column names; column names will be used as the
+                      default tags for attaching annotation.
+             -delim   the delimiter for columns as a regular expression;
+                      consecutive occurrences of the delimiter will
+                      not be collapsed.
+             -display_id the one-based index of the column containing
+                      the display ID of the sequence
+             -accession_number the one-based index of the column
+                      containing the accession number of the sequence
+             -seq     the one-based index of the column containing
+                      the sequence string of the sequence
+             -species the one-based index of the column containing the
+                      species for the sequence record; if not a
+                      number, will be used as the static species
+                      common to all records
+             -annotation if provided and a scalar (but see below), a
+                      flag whether or not all additional columns are
+                      to be preserved as annotation, the tags used
+                      will either be 'colX' if there is no column
+                      header and where X is the one-based column
+                      index, and otherwise the column headers will be
+                      used as tags;
+ 
+                      if a reference to an array, or a square
+                      bracket-enclosed string of comma-delimited
+                      values, only those columns (one-based index)</span>
+                      <span class="variable">will</span> <span class="variable">be</span> <span class="variable">preserved</span> <span class="variable">as</span> <span class="variable">annotation</span><span class="operator">,</span> <span class="variable">tags</span> <span class="variable">as</span> <span class="variable">before</span><span class="operator">;</span>
+ 
+                      <span class="keyword">if</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">hash</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">curly</span>
+                      <span class="variable">braces</span><span class="operator">-</span><span class="variable">enclosed</span> <span class="variable">string</span> <span class="variable">of</span> <span class="variable">comma</span><span class="operator">-</span><span class="variable">delimited</span> <span class="variable">key</span>
+                      <span class="keyword">and</span> <span class="variable">value</span> <span class="variable">pairs</span> <span class="variable">in</span> <span class="variable">alternating</span> <span class="variable">order</span><span class="operator">,</span> <span class="variable">the</span> <span class="keyword">keys</span>
+                      <span class="variable">are</span> <span class="variable">one</span><span class="operator">-</span><span class="variable">based</span> <span class="variable">column</span> <span class="variable">indexes</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">preserved</span><span class="operator">,</span>
+                      <span class="keyword">and</span> <span class="variable">the</span> <span class="keyword">values</span> <span class="variable">are</span> <span class="variable">the</span> <span class="variable">tags</span> <span class="variable">under</span> <span class="variable">which</span> <span class="variable">the</span>
+                      <span class="variable">annotation</span> <span class="variable">is</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">attached</span><span class="operator">;</span> <span class="keyword">if</span> <span class="keyword">not</span> <span class="variable">provided</span> <span class="keyword">or</span>
+                      <span class="variable">supplied</span> <span class="variable">as</span> <span class="keyword">undef</span><span class="operator">,</span> <span class="keyword">no</span> <span class="variable">additional</span> <span class="variable">annotation</span> <span class="variable">will</span>
+                      <span class="variable">be</span> <span class="variable">preserved</span><span class="operator">.</span>
+             <span class="operator">-</span><span class="variable">colnames</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">column</span> <span class="variable">labels</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">a</span>
+                      <span class="variable">string</span> <span class="variable">of</span> <span class="variable">comma</span><span class="operator">-</span><span class="variable">delimited</span> <span class="variable">labels</span><span class="operator">,</span> <span class="variable">denoting</span> <span class="variable">the</span>
+                      <span class="variable">columns</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">converted</span> <span class="variable">into</span> <span class="variable">annotation</span><span class="operator">;</span> <span class="variable">this</span> <span class="variable">is</span>
+                      <span class="variable">an</span> <span class="variable">alternative</span> <span class="variable">to</span> <span class="operator">-</span><span class="variable">annotation</span> <span class="keyword">and</span> <span class="variable">will</span> <span class="variable">be</span>
+                      <span class="variable">ignored</span> <span class="keyword">if</span> <span class="operator">-</span><span class="variable">annotation</span> <span class="variable">is</span> <span class="variable">also</span> <span class="variable">supplied</span> <span class="variable">with</span> <span class="variable">a</span>
+                      <span class="variable">valid</span> <span class="variable">value</span><span class="operator">.</span>
+             <span class="operator">-</span><span class="variable">trim</span>    <span class="variable">flag</span> <span class="variable">determining</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="variable">all</span> <span class="keyword">values</span> <span class="variable">should</span>
+                      <span class="variable">be</span> <span class="variable">trimmed</span> <span class="variable">of</span> <span class="variable">leading</span> <span class="keyword">and</span> <span class="variable">trailing</span> <span class="variable">white</span> <span class="variable">space</span>
+                      <span class="keyword">and</span> <span class="variable">double</span> <span class="variable">quotes</span>
+ 
+           <span class="variable">Additional</span> <span class="variable">arguments</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.</span> <span class="variable">set</span> <span class="variable">factories</span> <span class="keyword">and</span>
+           <span class="variable">builders</span> <span class="variable">involved</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">object</span> <span class="variable">creation</span> <span class="operator">(</span><span class="variable">see</span> <span class="variable">the</span>
+           <span class="variable">POD</span> <span class="variable">of</span> <span class="variable">Bio::SeqIO</span><span class="operator">).</span>
+</code></code></pre>
+
+<h2 id="next_seq">next_seq</h2>
+
+<pre><code><code> Title   : next_seq
+ Usage   : $seq = $stream-&gt;next_seq()
+ Function: returns the next sequence in the stream
+ Returns : Bio::Seq::RichSeq object
+ Args    :</code></code></pre>
+
+<h2 id="comment_char">comment_char</h2>
+
+<pre><code><code> Title   : comment_char
+ Usage   : $obj-&gt;comment_char($newval)
+ Function: Get/set the leading character(s) designating a line as
+           a comment-line.
+ Example :
+ Returns : value of comment_char (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="header">header</h2>
+
+<pre><code><code> Title   : header
+ Usage   : $obj-&gt;header($newval)
+ Function: Get/set the number of header lines to skip before the
+           rows containing actual sequence records.
+
+           If set to zero or undef, means that there is no header and
+           therefore also no column headers.
+
+ Example :
+ Returns : value of header (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="delimiter">delimiter</h2>
+
+<pre><code><code> Title   : delimiter
+ Usage   : $obj-&gt;delimiter($newval)
+ Function: Get/set the column delimiter. This will in fact be
+           treated as a regular expression. Consecutive occurrences
+           will not be collapsed to a single one.
+
+ Example :
+ Returns : value of delimiter (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="attribute_map">attribute_map</h2>
+
+<pre><code><code> Title   : attribute_map
+ Usage   : $obj-&gt;attribute_map($newval)
+ Function: Get/set the map of sequence object initialization
+           attributes (keys) to one-based column index.
+
+           Attributes will usually need to be prefixed by a dash, just
+           as if they were passed to the new() method of the sequence
+           class.
+
+ Example :
+ Returns : value of attribute_map (a reference to a hash)
+ Args    : on set, new value (a reference to a hash or undef, optional)</code></code></pre>
+
+<h2 id="annotation_map">annotation_map</h2>
+
+<pre><code><code> Title   : annotation_map
+ Usage   : $obj-&gt;annotation_map($newval)
+ Function: Get/set the mapping between one-based column indexes
+           (keys) and annotation tags (values).
+
+           Note that the map returned by this method may change after
+           the first next_seq() call if the file contains a column
+           header and no annotation keys have been predefined in the
+           map, because upon reading the column header line the tag
+           names will be set automatically.
+
+           Note also that the map may reference columns that are used
+           as well in the sequence attribute map.
+
+ Example :
+ Returns : value of annotation_map (a reference to a hash)
+ Args    : on set, new value (a reference to a hash or undef, optional)</code></code></pre>
+
+<h2 id="keep_annotation">keep_annotation</h2>
+
+<pre><code><code> Title   : keep_annotation
+ Usage   : $obj-&gt;keep_annotation($newval)
+ Function: Get/set flag whether or not to keep values from
+           additional columns as annotation.
+
+           Additional columns are all those columns in the input file
+           that aren&#39;t referenced in the attribute map.
+
+ Example :
+ Returns : value of keep_annotation (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="annotation_columns">annotation_columns</h2>
+
+<pre><code><code> Title   : annotation_columns
+ Usage   : $obj-&gt;annotation_columns($newval)
+ Function: Get/set the names (labels) of the columns to be used for
+           annotation.
+
+           This is an alternative to using annotation_map. In order to
+           have any effect, it must be set before the first call of
+           next_seq(), and obviously there must be a header line (or
+           row) too giving the column labels.
+
+ Example :
+ Returns : value of annotation_columns (a reference to an array)
+ Args    : on set, new value (a reference to an array of undef, optional)</code></code></pre>
+
+<h2 id="trim_values">trim_values</h2>
+
+<pre><code><code> Title   : trim_values
+ Usage   : $obj-&gt;trim_values($newval)
+ Function: Get/set whether or not to trim leading and trailing
+           whitespace off all column values.
+ Example :
+ Returns : value of trim_values (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h1 id="Internal-methods">Internal methods</h1>
+
+<p>All methods with a leading underscore are not meant to be part of the &#39;official&#39; API. They are for use by this module only, consider them private unless you are a developer trying to modify this module.</p>
+
+<h2 id="attribute_map1">_attribute_map</h2>
+
+<pre><code><code> Title   : _attribute_map
+ Usage   : $obj-&gt;_attribute_map($newval)
+ Function: Get only. Same as attribute_map, but zero-based indexes.
+
+           Note that any changes made to the returned map will change
+           the map used by this instance. You should know what you are
+           doing if you modify the returned value (or if you call this
+           method in the first place).
+
+ Example :
+ Returns : value of _attribute_map (a reference to a hash)
+ Args    : none</code></code></pre>
+
+<h2 id="annotation_map1">_annotation_map</h2>
+
+<pre><code><code> Title   : _annotation_map
+ Usage   : $obj-&gt;_annotation_map($newval)
+ Function: Get only. Same as annotation_map, but with zero-based indexes.
+
+           Note that any changes made to the returned map will change
+           the map used by this instance. You should know what you are
+           doing if you modify the returned value (or if you call this
+           method in the first place).
+
+ Example :
+ Returns : value of _annotation_map (a reference to a hash)
+ Args    : none</code></code></pre>
+
+<h2 id="header_skipped">_header_skipped</h2>
+
+<pre><code><code> Title   : _header_skipped
+ Usage   : $obj-&gt;_header_skipped($newval)
+ Function: Get/set the flag whether the header was already
+           read (and skipped) or not.
+ Example :
+ Returns : value of _header_skipped (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="next_record">_next_record</h2>
+
+<pre><code><code> Title   : _next_record
+ Usage   :
+ Function: Navigates the underlying file to the next record.
+
+           For row-based records in delimited text files, this will
+           skip all empty lines and lines with a leading comment
+           character.
+
+           This method is here is to serve as a hook for other formats
+           that conceptually also represent tables but aren&#39;t
+           formatted as row-based text files.
+
+ Example :
+ Returns : TRUE if the navigation was successful and FALSE
+           otherwise. Unsuccessful navigation will usually be treated
+           as an end-of-file condition.
+ Args    :</code></code></pre>
+
+<h2 id="parse_header">_parse_header</h2>
+
+<pre><code><code> Title   : _parse_header
+ Usage   :
+ Function: Parse the table header and navigate past it.
+
+           This method is called if the number of header rows has been
+           specified equal to or greater than one, and positioned at
+           the first header line (row). By default the first header
+           line (row) is used for setting column names, but additional
+           lines (rows) may be skipped too. Empty lines and comment
+           lines do not count as header lines (rows).
+
+           This method will call _next_record() to navigate to the
+           next header line (row), if there is more than one header
+           line (row). Upon return, the file is presumed to be
+           positioned at the first record after the header.
+
+           This method is here is to serve as a hook for other formats
+           that conceptually also represent tables but aren&#39;t
+           formatted as row-based text files.
+
+           Note however that the only methods used to access file
+           content or navigate the position are _get_row_values() and
+           _next_record(), so it should usually suffice to override
+           those.
+
+ Example :
+ Returns : TRUE if navigation past the header was successful and FALSE
+           otherwise. Unsuccessful navigation will usually be treated
+           as an end-of-file condition.
+ Args    :</code></code></pre>
+
+<h2 id="get_row_values">_get_row_values</h2>
+
+<pre><code><code> Title   : _get_row_values
+ Usage   :
+ Function: Get the values for the current line (or row) as an array in
+           the order of columns.
+
+           This method is here is to serve as a hook for other formats
+           that conceptually also represent tables but aren&#39;t
+           formatted as row-based text files.
+
+ Example :
+ Returns : An array of column values for the current row.
+ Args    :</code></code></pre>
+
+
+</body>
+
+</html>
+
+

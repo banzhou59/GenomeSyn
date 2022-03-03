@@ -1,0 +1,258 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Implementation">Implementation</a></li>
+    </ul>
+  </li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#ACKNOWLEDGEMENT">ACKNOWLEDGEMENT</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#next_assembly">next_assembly</a></li>
+      <li><a href="#next_contig">next_contig</a></li>
+      <li><a href="#init_contig-">_init_contig()</a></li>
+      <li><a href="#store_contig-">_store_contig()</a></li>
+      <li><a href="#parse_cns_file-">_parse_cns_file()</a></li>
+      <li><a href="#cons-">_cons()</a></li>
+      <li><a href="#next_cons-">_next_cons()</a></li>
+      <li><a href="#store_read-">_store_read()</a></li>
+      <li><a href="#store_singlet-">_store_singlet()</a></li>
+      <li><a href="#write_assembly-">write_assembly()</a></li>
+      <li><a href="#basename-">_basename()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Assembly::IO::maq - Driver to read assembly files in maq format *BETA*</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment"># convert the native maq map format to plain text</span>
+    <span class="operator">$ </span><span class="variable">maq</span> <span class="variable">mapview</span> <span class="variable">all</span><span class="operator">.</span><span class="keyword">map</span> <span class="operator">&gt;</span> <span class="variable">all</span><span class="operator">.</span><span class="variable">maq</span>
+    
+    <span class="comment"># Building an input stream</span>
+    <span class="keyword">use</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">;</span>
+    
+    <span class="comment"># Assembly loading methods</span>
+    <span class="keyword">my</span> <span class="variable">$asmio</span> <span class="operator">=</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'all.maq'</span><span class="operator">,</span>
+                                        <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'maq'</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$scaffold</span> <span class="operator">=</span> <span class="variable">$asmio</span><span class="operator">-&gt;</span><span class="variable">next_assembly</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This package loads and writes map information in/from <code><code>maq</code></code> map files converted by the <code><code>maq mapview</code></code> utility. This module is a driver module for Bio::Assembly::IO input/output.</p>
+
+<p>Parsing is based on Heng Li&#39;s description of <code><code>maq mapview</code></code> output, found at the <code><code>maq</code></code> manpage: <a href="http://maq.sourceforge.net/maq-manpage.shtml">http://maq.sourceforge.net/maq-manpage.shtml</a>.</p>
+
+<p>The basic <code><code>maq</code></code> workflow is: map reads to a reference sequence (with <code><code>maq map</code></code>), then create a consensus from the map (with <code><code>maq assemble</code></code>). To read a complete assembly with this module, the following files need to be available:</p>
+
+<pre><code><code> [basename].maq : created by maq mapview [basename].map &gt; [basename].maq
+ [basename].cns.fastq : created as follows
+    $ maq assemble [basename].cns [refseq].bfa [basename].map
+    $ maq cns2fq [basename].cns &gt; [basename].cns.fastq</code></code></pre>
+
+<p><code><code>maq</code></code> produces only one &quot;contig&quot;; all reads map to the reference sequence, which covers everything. This module breaks the reads into contigs by dividing the <code><code>maq</code></code> consensus into pieces for which there are contiguous non-zero quality values.</p>
+
+<p>The module <code><code>Bio::Tools::Run::Maq</code></code> will help in this process (eventually).</p>
+
+<p>This module has no write capability.</p>
+
+<h2 id="Implementation">Implementation</h2>
+
+<p>Assemblies are loaded into Bio::Assembly::Scaffold objects composed of Bio::Assembly::Contig and Bio::Assembly::Singlet objects. Contigs are not explicitly specified in <code><code>map</code></code> files; the division of the map into contigs is calculated in this module.</p>
+
+<p>Additional assembly information is stored as features. Contig objects have SeqFeature information associated with the primary_tag:</p>
+
+<pre><code><code>    _main_contig_feature:$contig_id -&gt; misc contig information</code></code></pre>
+
+<p>Read objects have sub_seqFeature information associated with the primary_tag:</p>
+
+<pre><code><code>    _main_read_feature:$read_id     -&gt; misc read information</code></code></pre>
+
+<p>Singlets are contigs of a single sequence, as calculated within this module. They are cataloged separately, as specified in <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Assembly/Scaffold.html">Bio::Assembly::Scaffold</a>.</p>
+
+<h1 id="TODO">TODO</h1>
+
+<ul>
+
+<li><p>Add pod descriptions of maq descriptive data (currently SeqFeatures added to each contig component)</p>
+
+</li>
+<li><p>Add features describing the aggregate status of reads and contigs based on the maq &quot;paired flag&quot;</p>
+
+</li>
+</ul>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing lists Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the BioPerl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via email or the web:</p>
+
+<pre><code><code>  bioperl-bugs@bio.perl.org
+  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<p>Email maj -at- fortinbras -dot- us</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Further improvements by Florent Angly (florent dot angly at gmail dot com)</p>
+
+<h1 id="ACKNOWLEDGEMENT">ACKNOWLEDGEMENT</h1>
+
+<p>Code and some POD text ripped liberally from Florent Angly&#39;s <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Assembly/IO/tigr.html">Bio::Assembly::IO::tigr</a>.</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a &quot;_&quot;.</p>
+
+<h2 id="next_assembly">next_assembly</h2>
+
+<pre><code><code> Title   : next_assembly
+ Usage   : $scaffold = $stream-&gt;next_assembly()
+ Function: return the assembly defined by the map and cns files
+ Returns : Bio::Assembly::Scaffold object
+ Args    : none</code></code></pre>
+
+<h2 id="next_contig">next_contig</h2>
+
+<pre><code><code> Title   : next_contig
+ Usage   : $scaffold = $stream-&gt;next_contig()
+ Function: Returns the next contig or singlet in the ACE stream.
+ Returns : a Bio::Assembly::Contig or Bio::Assembly::Single object
+ Args    : none</code></code></pre>
+
+<h2 id="init_contig-">_init_contig()</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_init_contig</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$contigobj</span><span class="operator">;</span> <span class="variable">$contigobj</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_init_contig</span><span class="operator">(</span>
+              <span class="operator">\</span><span class="variable">%contiginfo</span><span class="operator">,</span> <span class="variable">$scaffoldobj</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">store</span> <span class="variable">information</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">contig</span> <span class="variable">belonging</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">scaffold</span> <span class="variable">in</span> <span class="variable">the</span>
+              <span class="variable">appropriate</span> <span class="variable">object</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Assembly::Contig</span> <span class="variable">object</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">hash</span><span class="operator">,</span> <span class="variable">Bio::Assembly::Scaffold</span>
+</code></code></pre>
+
+<h2 id="store_contig-">_store_contig()</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_store_contig</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$contigobj</span><span class="operator">;</span> <span class="variable">$contigobj</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_store_contig</span><span class="operator">(</span>
+              <span class="operator">\</span><span class="variable">%contiginfo</span><span class="operator">,</span> <span class="variable">$contigobj</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">store</span> <span class="variable">information</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">contig</span> <span class="variable">belonging</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">scaffold</span>
+              <span class="variable">in</span> <span class="variable">the</span> <span class="variable">appropriate</span> <span class="variable">object</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Assembly::Contig</span> <span class="variable">object</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">hash</span><span class="operator">,</span> <span class="variable">Bio::Assembly::Contig</span>
+</code></code></pre>
+
+<h2 id="parse_cns_file-">_parse_cns_file()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_parse_cns_file</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_parse_cns_file</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">parse</span> <span class="variable">the</span> <span class="operator">.</span><span class="variable">cns</span><span class="operator">.</span><span class="variable">fastq</span> <span class="operator">(</span><span class="variable">consensus</span><span class="operator">)</span> <span class="variable">file</span>
+           <span class="variable">associated</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">present</span> <span class="keyword">map</span><span class="operator">;</span>
+           <span class="variable">set</span> <span class="variable">the</span> <span class="variable">objects</span> <span class="variable">cns</span> <span class="variable">attribute</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">true</span> <span class="variable">on</span> <span class="variable">success</span><span class="operator">;</span> <span class="variable">nil</span> <span class="keyword">if</span> <span class="variable">file</span> <span class="variable">dne</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="cons-">_cons()</h2>
+
+<pre><code><code> Title   : _cons
+ Usage   : @cons = $self-&gt;_cons
+ Function: get the array of consensus fastq Bio::Seq::Quality objects
+ Returns : array of Bio::Seq::Quality objects
+ Args    : none</code></code></pre>
+
+<h2 id="next_cons-">_next_cons()</h2>
+
+<h2 id="store_read-">_store_read()</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_store_read</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$readobj</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_store_read</span><span class="operator">(\</span><span class="variable">%readinfo</span><span class="operator">,</span> <span class="variable">$contigobj</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">store</span> <span class="variable">information</span> <span class="variable">of</span> <span class="variable">a</span> <span class="keyword">read</span> <span class="variable">belonging</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">contig</span> 
+              <span class="variable">in</span> <span class="variable">the</span> <span class="variable">appropriate</span> <span class="variable">object</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::LocatableSeq</span> <span class="variable">object</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">hash</span><span class="operator">,</span> <span class="variable">Bio::Assembly::Contig</span>
+</code></code></pre>
+
+<h2 id="store_singlet-">_store_singlet()</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_store_singlet</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$singletobj</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_store_read</span><span class="operator">(\</span><span class="variable">%readinfo</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%contiginfo</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">store</span> <span class="variable">information</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">singlet</span> <span class="variable">belonging</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">scaffold</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">singlet</span> <span class="variable">object</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Assembly::Singlet</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">hash</span><span class="operator">,</span> <span class="variable">hash</span>
+</code></code></pre>
+
+<h2 id="write_assembly-">write_assembly()</h2>
+
+<pre><code><code>    Title   : write_assembly
+    Usage   : 
+    Function: not currently available for maq assemblies
+    Returns : throw
+    Args    : </code></code></pre>
+
+<h2 id="basename-">_basename()</h2>
+
+<pre><code><code> Title   : _basename
+ Usage   : $self-&gt;_basename
+ Function: return the basename of the associate IO file
+ Returns : scalar string
+ Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

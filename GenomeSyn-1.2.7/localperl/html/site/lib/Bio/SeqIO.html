@@ -1,0 +1,499 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#CONSTRUCTORS">CONSTRUCTORS</a>
+    <ul>
+      <li><a href="#Bio::SeqIO-new-">Bio::SeqIO-&gt;new()</a></li>
+      <li><a href="#Bio::SeqIO-newFh-">Bio::SeqIO-&gt;newFh()</a></li>
+    </ul>
+  </li>
+  <li><a href="#OBJECT-METHODS">OBJECT METHODS</a>
+    <ul>
+      <li><a href="#sequence-seqIO-next_seq-">$sequence = $seqIO-&gt;next_seq()</a></li>
+      <li><a href="#seqIO-write_seq-sequence-another_sequence-...-">$seqIO-&gt;write_seq($sequence [,$another_sequence,...])</a></li>
+      <li><a href="#TIEHANDLE-READLINE-PRINT-">TIEHANDLE(), READLINE(), PRINT()</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Ewan-Birney-Lincoln-Stein">AUTHOR - Ewan Birney, Lincoln Stein</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#newFh">newFh</a></li>
+      <li><a href="#fh1">fh</a></li>
+      <li><a href="#next_seq">next_seq</a></li>
+      <li><a href="#write_seq">write_seq</a></li>
+      <li><a href="#alphabet1">alphabet</a></li>
+      <li><a href="#load_format_module">_load_format_module</a></li>
+      <li><a href="#concatenate_lines">_concatenate_lines</a></li>
+      <li><a href="#filehandle">_filehandle</a></li>
+      <li><a href="#guess_format">_guess_format</a></li>
+      <li><a href="#sequence_factory">sequence_factory</a></li>
+      <li><a href="#object_factory">object_factory</a></li>
+      <li><a href="#sequence_builder">sequence_builder</a></li>
+      <li><a href="#location_factory">location_factory</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqIO - Handler for SeqIO Formats</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+    
+    <span class="variable">$in</span>  <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"inputfilename"</span> <span class="operator">,</span>
+                           <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'Fasta'</span><span class="operator">);</span>
+    <span class="variable">$out</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"&gt;outputfilename"</span> <span class="operator">,</span>
+                           <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'EMBL'</span><span class="operator">);</span>
+    
+    <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+            <span class="variable">$out</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+    <span class="operator">}</span>
+    
+      <span class="comment"># Now, to actually get at the sequence object, use the standard Bio::Seq</span>
+      <span class="comment"># methods (look at Bio::Seq if you don't know what they are)</span>
+    
+    <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+    
+    <span class="variable">$in</span>  <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"inputfilename"</span> <span class="operator">,</span>
+                           <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'genbank'</span><span class="operator">);</span>
+    
+    <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+       <span class="keyword">print</span> <span class="string">"Sequence "</span><span class="operator">,</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">,</span> <span class="string">" first 10 bases "</span><span class="operator">,</span>
+             <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">subseq</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">10</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    
+      <span class="comment"># The SeqIO system does have a filehandle binding. Most people find this</span>
+      <span class="comment"># a little confusing, but it does mean you can write the world's</span>
+      <span class="comment"># smallest reformatter</span>
+    
+    <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+    
+    <span class="variable">$in</span>  <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"inputfilename"</span> <span class="operator">,</span>
+                             <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'Fasta'</span><span class="operator">);</span>
+    <span class="variable">$out</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'EMBL'</span><span class="operator">);</span>
+    
+    <span class="comment"># World's shortest Fasta&lt;-&gt;EMBL format converter:</span>
+    <span class="keyword">print</span> <span class="variable">$out</span> <span class="variable">$_</span> <span class="keyword">while</span> <span class="operator">&lt;</span><span class="variable">$in</span><span class="operator">&gt;;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::SeqIO is a handler module for the formats in the SeqIO set (eg, Bio::SeqIO::fasta). It is the officially sanctioned way of getting at the format objects, which most people should use.</p>
+
+<p>The Bio::SeqIO system can be thought of like biological file handles. They are attached to filehandles with smart formatting rules (eg, genbank format, or EMBL format, or binary trace file format) and can either read or write sequence objects (Bio::Seq objects, or more correctly, Bio::SeqI implementing objects, of which Bio::Seq is one such object). If you want to know what to do with a Bio::Seq object, read <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Seq.html">Bio::Seq</a>.</p>
+
+<p>The idea is that you request a stream object for a particular format. All the stream objects have a notion of an internal file that is read from or written to. A particular SeqIO object instance is configured for either input or output. A specific example of a stream object is the Bio::SeqIO::fasta object.</p>
+
+<p>Each stream object has functions</p>
+
+<pre><code><code>   <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">();</span>
+</code></code></pre>
+
+<p>and</p>
+
+<pre><code><code>   <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>As an added bonus, you can recover a filehandle that is tied to the SeqIO object, allowing you to use the standard &lt;&gt; and print operations to read and write sequence objects:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+    
+    <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'Fasta'</span><span class="operator">,</span>
+                                <span class="string">-fh</span>     <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*ARGV</span><span class="operator">);</span>
+    <span class="comment"># read from standard input or the input filenames</span>
+    
+    <span class="keyword">while</span> <span class="operator">(</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$stream</span><span class="operator">&gt;</span> <span class="operator">)</span> <span class="operator">{</span>
+          <span class="comment"># do something with $seq</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>and</p>
+
+<pre><code><code>    <span class="keyword">print</span> <span class="variable">$stream</span> <span class="variable">$seq</span><span class="operator">;</span> <span class="comment"># when stream is in output mode</span>
+</code></code></pre>
+
+<p>This makes the simplest ever reformatter</p>
+
+<pre><code><code>    <span class="comment">#!/usr/bin/perl</span>
+    <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$format1</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$format2</span> <span class="operator">=</span> <span class="keyword">shift</span> <span class="operator">||</span> <span class="keyword">die</span>
+       <span class="string">"Usage: reformat format1 format2 &lt; input &gt; output"</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$in</span>  <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="variable">$format1</span><span class="operator">,</span> <span class="string">-fh</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*ARGV</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$out</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="variable">$format2</span> <span class="operator">);</span>
+    <span class="comment"># Note: you might want to quote -format to keep older</span>
+    <span class="comment"># perl's from complaining.</span>
+    
+    <span class="keyword">print</span> <span class="variable">$out</span> <span class="variable">$_</span> <span class="keyword">while</span> <span class="operator">&lt;</span><span class="variable">$in</span><span class="operator">&gt;;</span>
+</code></code></pre>
+
+<h1 id="CONSTRUCTORS">CONSTRUCTORS</h1>
+
+<h2 id="Bio::SeqIO-new-">Bio::SeqIO-&gt;new()</h2>
+
+<pre><code><code>   <span class="variable">$seqIO</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'filename'</span><span class="operator">,</span>   <span class="string">-format</span><span class="operator">=&gt;</span><span class="variable">$format</span><span class="operator">);</span>
+   <span class="variable">$seqIO</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-fh</span>   <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*FILEHANDLE</span><span class="operator">,</span> <span class="string">-format</span><span class="operator">=&gt;</span><span class="variable">$format</span><span class="operator">);</span>
+   <span class="variable">$seqIO</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="variable">$format</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The new() class method constructs a new Bio::SeqIO object. The returned object can be used to retrieve or print Seq objects. new() accepts the following parameters:</p>
+
+<dl>
+
+<dt id="file">-file</dt>
+<dd>
+
+<p>A file path to be opened for reading or writing. The usual Perl conventions apply:</p>
+
+<pre><code><code>   &#39;file&#39;       # open file for reading
+   &#39;&gt;file&#39;      # open file for writing
+   &#39;&gt;&gt;file&#39;     # open file for appending
+   &#39;+&lt;file&#39;     # open file read/write
+   &#39;command |&#39;  # open a pipe from the command
+   &#39;| command&#39;  # open a pipe to the command</code></code></pre>
+
+</dd>
+<dt id="fh">-fh</dt>
+<dd>
+
+<p>You may provide new() with a previously-opened filehandle. For example, to read from STDIN:</p>
+
+<pre><code><code>   <span class="variable">$seqIO</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-fh</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*STDIN</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Note that you must pass filehandles as references to globs.</p>
+
+<p>If neither a filehandle nor a filename is specified, then the module will read from the @ARGV array or STDIN, using the familiar &lt;&gt; semantics.</p>
+
+<p>A string filehandle is handy if you want to modify the output in the memory, before printing it out. The following program reads in EMBL formatted entries from a file and prints them out in fasta format with some HTML tags:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">IO::String</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$in</span>  <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"emblfile"</span><span class="operator">,</span>
+                            <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'EMBL'</span><span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="comment"># the output handle is reset for every file</span>
+      <span class="keyword">my</span> <span class="variable">$stringio</span> <span class="operator">=</span> <span class="variable">IO::String</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">$string</span><span class="operator">);</span>
+      <span class="keyword">my</span> <span class="variable">$out</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-fh</span> <span class="operator">=&gt;</span> <span class="variable">$stringio</span><span class="operator">,</span>
+                                <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'fasta'</span><span class="operator">);</span>
+      <span class="comment"># output goes into $string</span>
+      <span class="variable">$out</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+      <span class="comment"># modify $string</span>
+      <span class="variable">$string</span> <span class="operator">=~</span> <span class="regex">s|(&gt;)(\w+)|$1&lt;font color="Red"&gt;$2&lt;/font&gt;|g</span><span class="operator">;</span>
+      <span class="comment"># print into STDOUT</span>
+      <span class="keyword">print</span> <span class="variable">$string</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+</dd>
+<dt id="format">-format</dt>
+<dd>
+
+<p>Specify the format of the file. Supported formats include fasta, genbank, embl, swiss (SwissProt), Entrez Gene and tracefile formats such as abi (ABI) and scf. There are many more, for a complete listing see the SeqIO HOWTO (<a href="http://bioperl.open-bio.org/wiki/HOWTO:SeqIO">http://bioperl.open-bio.org/wiki/HOWTO:SeqIO</a>).</p>
+
+<p>If no format is specified and a filename is given then the module will attempt to deduce the format from the filename suffix. If there is no suffix that Bioperl understands then it will attempt to guess the format based on file content. If this is unsuccessful then SeqIO will throw a fatal error.</p>
+
+<p>The format name is case-insensitive: &#39;FASTA&#39;, &#39;Fasta&#39; and &#39;fasta&#39; are all valid.</p>
+
+<p>Currently, the tracefile formats (except for SCF) require installation of the external Staden &quot;io_lib&quot; package, as well as the Bio::SeqIO::staden::read package available from the bioperl-ext repository.</p>
+
+</dd>
+<dt id="alphabet">-alphabet</dt>
+<dd>
+
+<p>Sets the alphabet (&#39;dna&#39;, &#39;rna&#39;, or &#39;protein&#39;). When the alphabet is set then Bioperl will not attempt to guess what the alphabet is. This may be important because Bioperl does not always guess correctly.</p>
+
+</dd>
+<dt id="flush">-flush</dt>
+<dd>
+
+<p>By default, all files (or filehandles) opened for writing sequences will be flushed after each write_seq() (making the file immediately usable). If you do not need this facility and would like to marginally improve the efficiency of writing multiple sequences to the same file (or filehandle), pass the -flush option &#39;0&#39; or any other value that evaluates as defined but false:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$gb</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">"&lt;gball.gbk"</span><span class="operator">,</span>
+                           <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">"gb"</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$fa</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">"&gt;gball.fa"</span><span class="operator">,</span>
+                           <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">"fasta"</span><span class="operator">,</span>
+                           <span class="string">-flush</span>  <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">);</span> <span class="comment"># go as fast as we can!</span>
+  <span class="keyword">while</span><span class="operator">(</span><span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$gb</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span> <span class="variable">$fa</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">)</span> <span class="operator">}</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h2 id="Bio::SeqIO-newFh-">Bio::SeqIO-&gt;newFh()</h2>
+
+<pre><code><code>   <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-fh</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*FILEHANDLE</span><span class="operator">,</span> <span class="string">-format</span><span class="operator">=&gt;</span><span class="variable">$format</span><span class="operator">);</span>
+   <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="variable">$format</span><span class="operator">);</span>
+   <span class="comment"># etc.</span>
+</code></code></pre>
+
+<p>This constructor behaves like new(), but returns a tied filehandle rather than a Bio::SeqIO object. You can read sequences from this object using the familiar &lt;&gt; operator, and write to it using print(). The usual array and $_ semantics work. For example, you can read all sequence objects into an array like this:</p>
+
+<pre><code><code>  <span class="variable">@sequences</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;;</span>
+</code></code></pre>
+
+<p>Other operations, such as read(), sysread(), write(), close(), and printf() are not supported.</p>
+
+<h1 id="OBJECT-METHODS">OBJECT METHODS</h1>
+
+<p>See below for more detailed summaries. The main methods are:</p>
+
+<h2 id="sequence-seqIO-next_seq-">$sequence = $seqIO-&gt;next_seq()</h2>
+
+<p>Fetch the next sequence from the stream, or nothing if no more.</p>
+
+<h2 id="seqIO-write_seq-sequence-another_sequence-...-">$seqIO-&gt;write_seq($sequence [,$another_sequence,...])</h2>
+
+<p>Write the specified sequence(s) to the stream.</p>
+
+<h2 id="TIEHANDLE-READLINE-PRINT-">TIEHANDLE(), READLINE(), PRINT()</h2>
+
+<p>These provide the tie interface. See <a href="../../../lib/pod/perltie.html">perltie</a> for more details.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists.</p>
+
+<p>Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<pre><code><code> bioperl-l@bioperl.org</code></code></pre>
+
+<p>rather than to the module maintainer directly. Many experienced and responsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Ewan-Birney-Lincoln-Stein">AUTHOR - Ewan Birney, Lincoln Stein</h1>
+
+<p>Email birney@ebi.ac.uk lstein@cshl.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : $stream = Bio::SeqIO-&gt;new(-file =&gt; $filename,
+                                     -format =&gt; &#39;Format&#39;)
+ Function: Returns a new sequence stream
+ Returns : A Bio::SeqIO stream initialised with the appropriate format
+ Args    : Named parameters:
+             -file =&gt; $filename
+             -fh =&gt; filehandle to attach to
+             -format =&gt; format
+
+           Additional arguments may be used to set factories and
+           builders involved in the sequence object creation. None of
+           these must be provided, they all have reasonable defaults.
+             -seqfactory   the Bio::Factory::SequenceFactoryI object
+             -locfactory   the Bio::Factory::LocationFactoryI object
+             -objbuilder   the Bio::Factory::ObjectBuilderI object</code></code></pre>
+
+<p>See <a>Bio::SeqIO::Handler</a></p>
+
+<h2 id="newFh">newFh</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">newFh</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$filename</span><span class="operator">,</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'Format'</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">does</span> <span class="variable">a</span> <span class="variable">new</span><span class="operator">()</span> <span class="variable">followed</span> <span class="variable">by</span> <span class="variable">an</span> <span class="variable">fh</span><span class="operator">()</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$filename</span><span class="operator">,</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'Format'</span><span class="operator">)</span>
+           <span class="variable">$sequence</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;;</span>   <span class="comment"># read a sequence object</span>
+           <span class="keyword">print</span> <span class="variable">$fh</span> <span class="variable">$sequence</span><span class="operator">;</span> <span class="comment"># write a sequence object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">filehandle</span> <span class="keyword">tied</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">Bio::SeqIO::Fh</span> <span class="variable">class</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<p>See <a>Bio::SeqIO::Fh</a></p>
+
+<h2 id="fh1">fh</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">fh</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">fh</span>
+ <span class="variable">Function</span><span class="operator">:</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">fh</span><span class="operator">;</span>      <span class="comment"># make a tied filehandle</span>
+           <span class="variable">$sequence</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;;</span>   <span class="comment"># read a sequence object</span>
+           <span class="keyword">print</span> <span class="variable">$fh</span> <span class="variable">$sequence</span><span class="operator">;</span> <span class="comment"># write a sequence object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">filehandle</span> <span class="keyword">tied</span> <span class="variable">to</span> <span class="variable">Bio::SeqIO</span> <span class="variable">class</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="next_seq">next_seq</h2>
+
+<pre><code><code> Title   : next_seq
+ Usage   : $seq = stream-&gt;next_seq
+ Function: Reads the next sequence object from the stream and returns it.
+
+           Certain driver modules may encounter entries in the stream
+           that are either misformatted or that use syntax not yet
+           understood by the driver. If such an incident is
+           recoverable, e.g., by dismissing a feature of a feature
+           table or some other non-mandatory part of an entry, the
+           driver will issue a warning. In the case of a
+           non-recoverable situation an exception will be thrown.  Do
+           not assume that you can resume parsing the same stream
+           after catching the exception. Note that you can always turn
+           recoverable errors into exceptions by calling
+           $stream-&gt;verbose(2).
+
+ Returns : a Bio::Seq sequence object, or nothing if no more sequences
+           are available
+
+ Args    : none</code></code></pre>
+
+<p>See <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Root/RootI.html">Bio::Root::RootI</a>, <a>Bio::Factory::SeqStreamI</a>, <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Seq.html">Bio::Seq</a></p>
+
+<h2 id="write_seq">write_seq</h2>
+
+<pre><code><code> Title   : write_seq
+ Usage   : $stream-&gt;write_seq($seq)
+ Function: writes the $seq object into the stream
+ Returns : 1 for success and 0 for error
+ Args    : Bio::Seq object</code></code></pre>
+
+<h2 id="alphabet1">alphabet</h2>
+
+<pre><code><code> Title   : alphabet
+ Usage   : $self-&gt;alphabet($newval)
+ Function: Set/get the molecule type for the Seq objects to be created.
+ Example : $seqio-&gt;alphabet(&#39;protein&#39;)
+ Returns : value of alphabet: &#39;dna&#39;, &#39;rna&#39;, or &#39;protein&#39;
+ Args    : newvalue (optional)
+ Throws  : Exception if the argument is not one of &#39;dna&#39;, &#39;rna&#39;, or &#39;protein&#39;</code></code></pre>
+
+<h2 id="load_format_module">_load_format_module</h2>
+
+<pre><code><code> Title   : _load_format_module
+ Usage   : *INTERNAL SeqIO stuff*
+ Function: Loads up (like use) a module at run time on demand
+ Example :
+ Returns :
+ Args    :</code></code></pre>
+
+<h2 id="concatenate_lines">_concatenate_lines</h2>
+
+<pre><code><code> Title   : _concatenate_lines
+ Usage   : $s = _concatenate_lines($line, $continuation_line)
+ Function: Private. Concatenates two strings assuming that the second stems
+           from a continuation line of the first. Adds a space between both
+           unless the first ends with a dash.
+
+           Takes care of either arg being empty.
+ Example :
+ Returns : A string.
+ Args    :</code></code></pre>
+
+<h2 id="filehandle">_filehandle</h2>
+
+<pre><code><code> Title   : _filehandle
+ Usage   : $obj-&gt;_filehandle($newval)
+ Function: This method is deprecated. Call _fh() instead.
+ Example :
+ Returns : value of _filehandle
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="guess_format">_guess_format</h2>
+
+<pre><code><code> Title   : _guess_format
+ Usage   : $obj-&gt;_guess_format($filename)
+ Function: guess format based on file suffix
+ Example :
+ Returns : guessed format of filename (lower case)
+ Args    :
+ Notes   : formats that _filehandle() will guess include fasta,
+           genbank, scf, pir, embl, raw, gcg, ace, bsml, swissprot,
+           fastq and phd/phred</code></code></pre>
+
+<h2 id="sequence_factory">sequence_factory</h2>
+
+<pre><code><code> Title   : sequence_factory
+ Usage   : $seqio-&gt;sequence_factory($seqfactory)
+ Function: Get/Set the Bio::Factory::SequenceFactoryI
+ Returns : Bio::Factory::SequenceFactoryI
+ Args    : [optional] Bio::Factory::SequenceFactoryI</code></code></pre>
+
+<h2 id="object_factory">object_factory</h2>
+
+<pre><code><code> Title   : object_factory
+ Usage   : $obj-&gt;object_factory($newval)
+ Function: This is an alias to sequence_factory with a more generic name.
+ Example :
+ Returns : value of object_factory (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="sequence_builder">sequence_builder</h2>
+
+<pre><code><code> Title   : sequence_builder
+ Usage   : $seqio-&gt;sequence_builder($seqfactory)
+ Function: Get/Set the Bio::Factory::ObjectBuilderI used to build sequence
+           objects.
+
+           If you do not set the sequence object builder yourself, it
+           will in fact be an instance of L&lt;Bio::Seq::SeqBuilder&gt;, and
+           you may use all methods documented there to configure it.
+
+ Returns : a Bio::Factory::ObjectBuilderI compliant object
+ Args    : [optional] a Bio::Factory::ObjectBuilderI compliant object</code></code></pre>
+
+<h2 id="location_factory">location_factory</h2>
+
+<pre><code><code> Title   : location_factory
+ Usage   : $seqio-&gt;location_factory($locfactory)
+ Function: Get/Set the Bio::Factory::LocationFactoryI object to be used for
+           location string parsing
+ Returns : a Bio::Factory::LocationFactoryI implementing object
+ Args    : [optional] on set, a Bio::Factory::LocationFactoryI implementing
+           object.</code></code></pre>
+
+
+</body>
+
+</html>
+
+

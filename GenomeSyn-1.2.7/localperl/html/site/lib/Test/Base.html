@@ -1,0 +1,696 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#EXPORTED-FUNCTIONS">EXPORTED FUNCTIONS</a></li>
+  <li><a href="#TEST-SPECIFICATION">TEST SPECIFICATION</a></li>
+  <li><a href="#FILTERS">FILTERS</a>
+    <ul>
+      <li><a href="#Scalar-vs-List">Scalar vs List</a></li>
+      <li><a href="#The-Stock-Filters">The Stock Filters</a></li>
+      <li><a href="#Rolling-Your-Own-Filters">Rolling Your Own Filters</a></li>
+    </ul>
+  </li>
+  <li><a href="#OO">OO</a></li>
+  <li><a href="#THE-CLASS">THE  CLASS</a></li>
+  <li><a href="#SUBCLASSING">SUBCLASSING</a></li>
+  <li><a href="#DISTRIBUTION-SUPPORT">DISTRIBUTION SUPPORT</a></li>
+  <li><a href="#OTHER-COOL-FEATURES">OTHER COOL FEATURES</a></li>
+  <li><a href="#HISTORY">HISTORY</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Test::Base - A Data Driven Testing Framework</p>
+
+
+
+
+<a href="https://travis-ci.org/ingydotnet/test-base-pm"><img src="https://travis-ci.org/ingydotnet/test-base-pm.png" alt="test-base-pm"></a>
+<a href="https://coveralls.io/r/ingydotnet/test-base-pm?branch=master"><img src="https://coveralls.io/repos/ingydotnet/test-base-pm/badge.png" alt="test-base-pm"></a>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>A new test module:</p>
+
+<pre><code><code>    <span class="comment"># lib/MyProject/Test.pm</span>
+    <span class="keyword">package</span> <span class="variable">MyProject::Test</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Test::Base</span> <span class="operator">-</span><span class="variable">Base</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">MyProject</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">MyProject::Test::Filter</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Test::Base::Filter</span> <span class="operator">-</span><span class="variable">base</span><span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> my_filter </span><span class="operator">{</span>
+        <span class="keyword">return</span> <span class="variable">MyProject</span><span class="operator">-&gt;</span><span class="variable">do_something</span><span class="operator">(</span><span class="keyword">shift</span><span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>A sample test:</p>
+
+<pre><code><code>    <span class="comment"># t/sample.t</span>
+    <span class="keyword">use</span> <span class="variable">MyProject::Test</span><span class="operator">;</span>
+    
+    <span class="variable">plan</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">*</span> <span class="variable">blocks</span><span class="operator">;</span>
+    
+    <span class="variable">run_is</span> <span class="string">input</span> <span class="operator">=&gt;</span> <span class="string">'expected'</span><span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> local_filter </span><span class="operator">{</span>
+        <span class="regex">s/my/your/</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="comment">__END__
+    
+    === Test one (the name of the test)
+    --- input my_filter local_filter
+    my
+    input
+    lines
+    --- expected
+    expected
+    output
+    
+    === Test two
+    This is an optional description
+    of this particular test.
+    --- input my_filter
+    other
+    input
+    lines
+    --- expected
+    other expected
+    output
+    </span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Testing is usually the ugly part of Perl module authoring. Perl gives you a standard way to run tests with Test::Harness, and basic testing primitives with Test::More. After that you are pretty much on your own to develop a testing framework and philosophy. Test::More encourages you to make your own framework by subclassing Test::Builder, but that is not trivial.</p>
+
+<p>Test::Base gives you a way to write your own test framework base class that <i>is</i> trivial. In fact it is as simple as two lines:</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">MyTestFramework</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Test::Base</span> <span class="operator">-</span><span class="variable">Base</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>A module called <code><code>MyTestFramework.pm</code></code> containing those two lines, will give all the power of Test::More and all the power of Test::Base to every test file that uses it. As you build up the capabilities of <code><code>MyTestFramework</code></code>, your tests will have all of that power as well.</p>
+
+<p><code><code>MyTestFramework</code></code> becomes a place for you to put all of your reusable testing bits. As you write tests, you will see patterns and duplication, and you can &quot;upstream&quot; them into <code><code>MyTestFramework</code></code>. Of course, you don&#39;t have to subclass Test::Base at all. You can use it directly in many applications, including everywhere you would use Test::More.</p>
+
+<p>Test::Base concentrates on offering reusable data driven patterns, so that you can write tests with a minimum of code. At the heart of all testing you have inputs, processes and expected outputs. Test::Base provides some clean ways for you to express your input and expected output data, so you can spend your</p>
+
+<pre><code><code>      time focusing on that rather than your code scaffolding.</code></code></pre>
+
+<h1 id="EXPORTED-FUNCTIONS">EXPORTED FUNCTIONS</h1>
+
+<p>Test::Base extends Test::More and exports all of its functions. So you can basically write your tests the same as Test::More. Test::Base also exports many functions of its own:</p>
+
+<dl>
+
+<dt id="is-actual-expected-test-name-"><code><code>is(actual, expected, [test-name])</code></code></dt>
+<dd>
+
+<p>This is the equivalent of Test::More&#39;s <code><code>is</code></code> function with one interesting twist. If your actual and expected results differ and the output is multi- line, this function will show you a unified diff format of output. Consider the benefit when looking for the one character that is different in hundreds of lines of output!</p>
+
+<p>Diff output requires the optional <code><code>Text::Diff</code></code> CPAN module. If you don&#39;t have this module, the <code><code>is()</code></code> function will simply give you normal Test::More output. To disable diffing altogether, set the <code><code>TEST_SHOW_NO_DIFFS</code></code> environment variable (or <code><code><span class="variable">$ENV</span><span class="operator">{</span><span class="string">TEST_SHOW_NO_DIFFS</span><span class="operator">}</span>
+</code></code>) to a true value. You can also call the <code><code>no_diff</code></code> function as a shortcut.</p>
+
+</dd>
+<dt id="blocks-data-section-name-"><code><code>blocks( [data-section-name] )</code></code></dt>
+<dd>
+
+<p>The most important function is <code><code>blocks</code></code>. In list context it returns a list of <code><code>Test::Base::Block</code></code> objects that are generated from the test specification in the <code><code>DATA</code></code> section of your test file. In scalar context it returns the number of objects. This is useful to calculate your Test::More plan.</p>
+
+<p>Each Test::Base::Block object has methods that correspond to the names of that object&#39;s data sections. There is also a <code><code>name</code></code> and a <code><code>description</code></code> method for accessing those parts of the block if they were specified.</p>
+
+<p>The <code><code>blocks</code></code> function can take an optional single argument, that indicates to only return the blocks that contain a particular named data section. Otherwise <code><code>blocks</code></code> returns all blocks.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@all_of_my_blocks</span> <span class="operator">=</span> <span class="variable">blocks</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">@just_the_foo_blocks</span> <span class="operator">=</span> <span class="variable">blocks</span><span class="operator">(</span><span class="string">'foo'</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="next_block-"><code><code>next_block()</code></code></dt>
+<dd>
+
+<p>You can use the next_block function to iterate over all the blocks.</p>
+
+<pre><code><code>    <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$block</span> <span class="operator">=</span> <span class="variable">next_block</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="operator">...</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>It returns undef after all blocks have been iterated over. It can then be called again to reiterate.</p>
+
+</dd>
+<dt id="first_block-"><code><code>first_block()</code></code></dt>
+<dd>
+
+<p>Returns the first block or undef if there are none. It resets the iterator to the <code><code>next_block</code></code> function.</p>
+
+</dd>
+<dt id="run-subroutine-"><code><code>run(&amp;subroutine)</code></code></dt>
+<dd>
+
+<p>There are many ways to write your tests. You can reference each block individually or you can loop over all the blocks and perform a common operation. The <code><code>run</code></code> function does the looping for you, so all you need to do is pass it a code block to execute for each block.</p>
+
+<p>The <code><code>run</code></code> function takes a subroutine as an argument, and calls the sub one time for each block in the specification. It passes the current block object to the subroutine.</p>
+
+<pre><code><code>    <span class="variable">run</span> <span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$block</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="variable">is</span><span class="operator">(</span><span class="variable">process</span><span class="operator">(</span><span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">foo</span><span class="operator">),</span> <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">bar</span><span class="operator">,</span> <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">);</span>
+    <span class="operator">};</span>
+</code></code></pre>
+
+</dd>
+<dt id="run_is-data_name1-data_name2-"><code><code>run_is([data_name1, data_name2])</code></code></dt>
+<dd>
+
+<p>Many times you simply want to see if two data sections are equivalent in every block, probably after having been run through one or more filters. With the <code><code>run_is</code></code> function, you can just pass the names of any two data sections that exist in every block, and it will loop over every block comparing the two sections.</p>
+
+<pre><code><code>    <span class="variable">run_is</span> <span class="string">'foo'</span><span class="operator">,</span> <span class="string">'bar'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>If no data sections are given <code><code>run_is</code></code> will try to detect them automatically.</p>
+
+<p>NOTE: Test::Base will silently ignore any blocks that don&#39;t contain both sections.</p>
+
+</dd>
+<dt id="is_deep-data1-data2-test_name-"><code><code>is_deep($data1, $data2, $test_name)</code></code></dt>
+<dd>
+
+<p>Like Test::More&#39;s <code><code>is_deeply</code></code> but uses the more correct Test::Deep module.</p>
+
+</dd>
+<dt id="run_is_deeply-data_name1-data_name2-"><code><code>run_is_deeply([data_name1, data_name2])</code></code></dt>
+<dd>
+
+<p>Like <code><code>run_is_deeply</code></code> but uses <code><code>is_deep</code></code> which uses the more correct Test::Deep.</p>
+
+</dd>
+<dt id="run_is_deeply-data_name1-data_name2-1"><code><code>run_is_deeply([data_name1, data_name2])</code></code></dt>
+<dd>
+
+<p>Like <code><code>run_is</code></code> but uses <code><code>is_deeply</code></code> for complex data structure comparison.</p>
+
+</dd>
+<dt id="run_is_deeply-data_name1-data_name2-2"><code><code>run_is_deeply([data_name1, data_name2])</code></code></dt>
+<dd>
+
+<p>Like <code><code>run_is_deeply</code></code> but uses <code><code>is_deep</code></code> which uses the more correct Test::Deep.</p>
+
+</dd>
+<dt id="run_like-data_name-regexp-data_name-"><code><code><span class="variable">run_like</span><span class="operator">(</span><span class="operator">[</span><span class="variable">data_name</span><span class="operator">,</span> <span class="variable">regexp</span> <span class="operator">|</span> <span class="variable">data_name</span><span class="operator">]</span><span class="operator">);</span>
+</code></code></dt>
+<dd>
+
+<p>The <code><code>run_like</code></code> function is similar to <code><code>run_is</code></code> except the second argument is a regular expression. The regexp can either be a <code><code><span class="string">qr{}</span>
+</code></code> object or a data section that has been filtered into a regular expression.</p>
+
+<pre><code><code>    <span class="variable">run_like</span> <span class="string">'foo'</span><span class="operator">,</span> <span class="string">qr{&lt;html.*}</span><span class="operator">;</span>
+    <span class="variable">run_like</span> <span class="string">'foo'</span><span class="operator">,</span> <span class="string">'match'</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="run_unlike-data_name-regexp-data_name-"><code><code><span class="variable">run_unlike</span><span class="operator">(</span><span class="operator">[</span><span class="variable">data_name</span><span class="operator">,</span> <span class="variable">regexp</span> <span class="operator">|</span> <span class="variable">data_name</span><span class="operator">]</span><span class="operator">);</span>
+</code></code></dt>
+<dd>
+
+<p>The <code><code>run_unlike</code></code> function is similar to <code><code>run_like</code></code>, except the opposite.</p>
+
+<pre><code><code>    <span class="variable">run_unlike</span> <span class="string">'foo'</span><span class="operator">,</span> <span class="string">qr{&lt;html.*}</span><span class="operator">;</span>
+    <span class="variable">run_unlike</span> <span class="string">'foo'</span><span class="operator">,</span> <span class="string">'no_match'</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="run_compare-data_name1-data_name2-"><code><code>run_compare(data_name1, data_name2)</code></code></dt>
+<dd>
+
+<p>The <code><code>run_compare</code></code> function is like the <code><code>run_is</code></code>, <code><code>run_is_deeply</code></code> and the <code><code>run_like</code></code> functions all rolled into one. It loops over each relevant block and determines what type of comparison to do.</p>
+
+<p>NOTE: If you do not specify either a plan, or run any tests, the <code><code>run_compare</code></code> function will automatically be run.</p>
+
+</dd>
+<dt id="delimiters-block_delimiter-data_delimiter-"><code><code>delimiters($block_delimiter, $data_delimiter)</code></code></dt>
+<dd>
+
+<p>Override the default delimiters of <code><code>===</code></code> and <code><code>---</code></code>.</p>
+
+</dd>
+<dt id="spec_file-file_name-"><code><code>spec_file($file_name)</code></code></dt>
+<dd>
+
+<p>By default, Test::Base reads its input from the DATA section. This function tells it to get the spec from a file instead.</p>
+
+</dd>
+<dt id="spec_string-test_data-"><code><code>spec_string($test_data)</code></code></dt>
+<dd>
+
+<p>By default, Test::Base reads its input from the DATA section. This function tells it to get the spec from a string that has been prepared somehow.</p>
+
+</dd>
+<dt id="filters-filters_list-or-filters_hashref-"><code><code>filters( @filters_list or $filters_hashref )</code></code></dt>
+<dd>
+
+<p>Specify a list of additional filters to be applied to all blocks. See <code><code>FILTERS</code></code> below.</p>
+
+<p>You can also specify a hash ref that maps data section names to an array ref of filters for that data type.</p>
+
+<pre><code><code>    <span class="variable">filters</span> <span class="operator">{</span>
+        <span class="string">xxx</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">qw(chomp lines)</span><span class="operator">]</span><span class="operator">,</span>
+        <span class="string">yyy</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'yaml'</span><span class="operator">]</span><span class="operator">,</span>
+        <span class="string">zzz</span> <span class="operator">=&gt;</span> <span class="string">'eval'</span><span class="operator">,</span>
+    <span class="operator">};</span>
+</code></code></pre>
+
+<p>If a filters list has only one element, the array ref is optional.</p>
+
+</dd>
+<dt id="filters_delay-1-0-"><code><code><span class="variable">filters_delay</span><span class="operator">(</span> <span class="operator">[</span><span class="number">1</span> <span class="operator">|</span> <span class="number">0</span><span class="operator">]</span> <span class="operator">);</span>
+</code></code></dt>
+<dd>
+
+<p>By default Test::Base::Block objects are have all their filters run ahead of time. There are testing situations in which it is advantageous to delay the filtering. Calling this function with no arguments or a true value, causes the filtering to be delayed.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::Base</span><span class="operator">;</span>
+    <span class="variable">filters_delay</span><span class="operator">;</span>
+    <span class="variable">plan</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">*</span> <span class="variable">blocks</span><span class="operator">;</span>
+    <span class="keyword">for</span> <span class="keyword">my</span> <span class="variable">$block</span> <span class="operator">(</span><span class="variable">blocks</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="operator">...</span>
+        <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">run_filters</span><span class="operator">;</span>
+        <span class="variable">ok</span><span class="operator">(</span><span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">is_filtered</span><span class="operator">);</span>
+        <span class="operator">...</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>In the code above, the filters are called manually, using the <code><code>run_filters</code></code> method of Test::Base::Block. In functions like <code><code>run_is</code></code>, where the tests are run automatically, filtering is delayed until right before the test.</p>
+
+</dd>
+<dt id="filter_arguments-"><code><code>filter_arguments()</code></code></dt>
+<dd>
+
+<p>Return the arguments after the equals sign on a filter.</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> my_filter </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$args</span> <span class="operator">=</span> <span class="variable">filter_arguments</span><span class="operator">;</span>
+        <span class="comment"># is($args, 'whazzup');</span>
+        <span class="operator">...</span>
+    <span class="operator">}</span>
+    
+    <span class="comment">__DATA__
+    === A test
+    --- data my_filter=whazzup
+    </span>
+</code></code></pre>
+
+</dd>
+<dt id="tie_output-"><code><code>tie_output()</code></code></dt>
+<dd>
+
+<p>You can capture STDOUT and STDERR for operations with this function:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$out</span> <span class="operator">=</span> <span class="string">''</span><span class="operator">;</span>
+    <span class="variable">tie_output</span><span class="operator">(</span><span class="variable">*STDOUT</span><span class="operator">,</span> <span class="variable">$out</span><span class="operator">);</span>
+    <span class="keyword">print</span> <span class="string">"Hey!\n"</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"Che!\n"</span><span class="operator">;</span>
+    <span class="keyword">untie</span> <span class="variable">*STDOUT</span><span class="operator">;</span>
+    <span class="variable">is</span><span class="operator">(</span><span class="variable">$out</span><span class="operator">,</span> <span class="string">"Hey!\nChe!\n"</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="no_diff-"><code><code>no_diff()</code></code></dt>
+<dd>
+
+<p>Turn off diff support for is() in a test file.</p>
+
+</dd>
+<dt id="default_object-"><code><code>default_object()</code></code></dt>
+<dd>
+
+<p>Returns the default Test::Base object. This is useful if you feel the need to do an OO operation in otherwise functional test code. See <a>OO</a> below.</p>
+
+</dd>
+<dt id="WWW-XXX-YYY-ZZZ-"><code><code>WWW() XXX() YYY() ZZZ()</code></code></dt>
+<dd>
+
+<p>These debugging functions are exported from the Spiffy.pm module. See <a href="../../../lib/perl5/Spiffy.html">Spiffy</a> for more info.</p>
+
+</dd>
+<dt id="croak-carp-cluck-confess-"><code><code>croak() carp() cluck() confess()</code></code></dt>
+<dd>
+
+<p>You can use the functions from the Carp module without needing to import them. Test::Base does it for you by default.</p>
+
+</dd>
+</dl>
+
+<h1 id="TEST-SPECIFICATION">TEST SPECIFICATION</h1>
+
+<p>Test::Base allows you to specify your test data in an external file, the DATA section of your program or from a scalar variable containing all the text input.</p>
+
+<p>A <i>test specification</i> is a series of text lines. Each test (or block) is separated by a line containing the block delimiter and an optional test <code><code>name</code></code>. Each block is further subdivided into named sections with a line containing the data delimiter and the data section name. A <code><code>description</code></code> of the test can go on lines after the block delimiter but before the first data section.</p>
+
+<p>Here is the basic layout of a specification:</p>
+
+<pre><code><code>    === &lt;block name 1&gt;
+    &lt;optional block description lines&gt;
+    --- &lt;data section name 1&gt; &lt;filter-1&gt; &lt;filter-2&gt; &lt;filter-n&gt;
+    &lt;test data lines&gt;
+    --- &lt;data section name 2&gt; &lt;filter-1&gt; &lt;filter-2&gt; &lt;filter-n&gt;
+    &lt;test data lines&gt;
+    --- &lt;data section name n&gt; &lt;filter-1&gt; &lt;filter-2&gt; &lt;filter-n&gt;
+    &lt;test data lines&gt;
+
+    === &lt;block name 2&gt;
+    &lt;optional block description lines&gt;
+    --- &lt;data section name 1&gt; &lt;filter-1&gt; &lt;filter-2&gt; &lt;filter-n&gt;
+    &lt;test data lines&gt;
+    --- &lt;data section name 2&gt; &lt;filter-1&gt; &lt;filter-2&gt; &lt;filter-n&gt;
+    &lt;test data lines&gt;
+    --- &lt;data section name n&gt; &lt;filter-1&gt; &lt;filter-2&gt; &lt;filter-n&gt;
+    &lt;test data lines&gt;</code></code></pre>
+
+<p>Here is a code example:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::Base</span><span class="operator">;</span>
+    
+    <span class="variable">delimiters</span> <span class="string">qw(### :::)</span><span class="operator">;</span>
+    
+    <span class="comment"># test code here</span>
+    
+    <span class="comment">__END__
+    
+    ### Test One
+    We want to see if foo and bar
+    are really the same...
+    ::: foo
+    a foo line
+    another foo line
+    
+    ::: bar
+    a bar line
+    another bar line
+    
+    ### Test Two
+    
+    ::: foo
+    some foo line
+    some other foo line
+    
+    ::: bar
+    some bar line
+    some other bar line
+    
+    ::: baz
+    some baz line
+    some other baz line
+    </span>
+</code></code></pre>
+
+<p>This example specifies two blocks. They both have foo and bar data sections. The second block has a baz component. The block delimiter is <code><code><span class="comment">###</span>
+</code></code> and the data delimiter is <code><code>:::</code></code>.</p>
+
+<p>The default block delimiter is <code><code>===</code></code> and the default data delimiter is <code><code>--- </code></code>.</p>
+
+<p>There are some special data section names used for control purposes:</p>
+
+<pre><code><code>    --- SKIP
+    --- ONLY
+    --- LAST</code></code></pre>
+
+<p>A block with a SKIP section causes that test to be ignored. This is useful to disable a test temporarily.</p>
+
+<p>A block with an ONLY section causes only that block to be used. This is useful when you are concentrating on getting a single test to pass. If there is more than one block with ONLY, the first one will be chosen.</p>
+
+<p>Because ONLY is very useful for debugging and sometimes you forgot to remove the ONLY flag before committing to the VCS or uploading to CPAN, Test::Base by default gives you a diag message saying <i>I found ONLY ... maybe you&#39;re debugging?</i>. If you don&#39;t like it, use <code><code>no_diag_on_only</code></code>.</p>
+
+<p>A block with a LAST section makes that block the last one in the specification. All following blocks will be ignored.</p>
+
+<h1 id="FILTERS">FILTERS</h1>
+
+<p>The real power in writing tests with Test::Base comes from its filtering capabilities. Test::Base comes with an ever growing set of useful generic filters than you can sequence and apply to various test blocks. That means you can specify the block serialization in the most readable format you can find, and let the filters translate it into what you really need for a test. It is easy to write your own filters as well.</p>
+
+<p>Test::Base allows you to specify a list of filters to each data section of each block. The default filters are <code><code>norm</code></code> and <code><code>trim</code></code>. These filters will be applied (in order) to the data after it has been parsed from the specification and before it is set into its Test::Base::Block object.</p>
+
+<p>You can add to the default filter list with the <code><code>filters</code></code> function. You can specify additional filters to a specific block by listing them after the section name on a data section delimiter line.</p>
+
+<p>Example:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::Base</span><span class="operator">;</span>
+    
+    <span class="variable">filters</span> <span class="string">qw(foo bar)</span><span class="operator">;</span>
+    <span class="variable">filters</span> <span class="operator">{</span> <span class="string">perl</span> <span class="operator">=&gt;</span> <span class="string">'strict'</span> <span class="operator">};</span>
+    
+    <span class="keyword">sub</span><span class="variable"> upper </span><span class="operator">{</span> <span class="keyword">uc</span><span class="operator">(</span><span class="keyword">shift</span><span class="operator">)</span> <span class="operator">}</span>
+    
+    <span class="comment">__END__
+    
+    === Test one
+    --- foo trim chomp upper
+    ...
+    
+    --- bar -norm
+    ...
+    
+    --- perl eval dumper
+    my @foo = map {
+        - $_;
+    } 1..10;
+    \ @foo;
+    </span>
+</code></code></pre>
+
+<p>Putting a <code><code>-</code></code> before a filter on a delimiter line, disables that filter.</p>
+
+<h2 id="Scalar-vs-List">Scalar vs List</h2>
+
+<p>Each filter can take either a scalar or a list as input, and will return either a scalar or a list. Since filters are chained together, it is important to learn which filters expect which kind of input and return which kind of output.</p>
+
+<p>For example, consider the following filter list:</p>
+
+<pre><code><code>    norm trim lines chomp array dumper eval</code></code></pre>
+
+<p>The data always starts out as a single scalar string. <code><code>norm</code></code> takes a scalar and returns a scalar. <code><code>trim</code></code> takes a list and returns a list, but a scalar is a valid list. <code><code>lines</code></code> takes a scalar and returns a list. <code><code>chomp</code></code> takes a list and returns a list. <code><code>array</code></code> takes a list and returns a scalar (an anonymous array reference containing the list elements). <code><code>dumper</code></code> takes a list and returns a scalar. <code><code>eval</code></code> takes a scalar and creates a list.</p>
+
+<p>A list of exactly one element works fine as input to a filter requiring a scalar, but any other list will cause an exception. A scalar in list context is considered a list of one element.</p>
+
+<p>Data accessor methods for blocks will return a list of values when used in list context, and the first element of the list in scalar context. This is usually &quot;the right thing&quot;, but be aware.</p>
+
+<h2 id="The-Stock-Filters">The Stock Filters</h2>
+
+<p>Test::Base comes with large set of stock filters. They are in the <code><code>Test::Base::Filter</code></code> module. See <a href="../../../../../../public/home/fxing/.cpan/build/Test-Base-0.88-X_r8pu/blib/lib/Test/Base/Filter.html">Test::Base::Filter</a> for a listing and description of these filters.</p>
+
+<h2 id="Rolling-Your-Own-Filters">Rolling Your Own Filters</h2>
+
+<p>Creating filter extensions is very simple. You can either write a <i>function</i> in the <code><code>main</code></code> namespace, or a <i>method</i> in the <code><code>Test::Base::Filter</code></code> namespace or a subclass of it. In either case the text and any extra arguments are passed in and you return whatever you want the new value to be.</p>
+
+<p>Here is a self explanatory example:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::Base</span><span class="operator">;</span>
+    
+    <span class="variable">filters</span> <span class="string">'foo'</span><span class="operator">,</span> <span class="string">'bar=xyz'</span><span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> foo </span><span class="operator">{</span>
+        <span class="variable">transform</span><span class="operator">(</span><span class="keyword">shift</span><span class="operator">);</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">sub</span><span class="variable"> Test::Base::Filter::bar </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>       <span class="comment"># The Test::Base::Filter object</span>
+        <span class="keyword">my</span> <span class="variable">$data</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$args</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">current_arguments</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$current_block_object</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">block</span><span class="operator">;</span>
+        <span class="comment"># transform $data in a barish manner</span>
+        <span class="keyword">return</span> <span class="variable">$data</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>If you use the method interface for a filter, you can access the block internals by calling the <code><code>block</code></code> method on the filter object.</p>
+
+<p>Normally you&#39;ll probably just use the functional interface, although all the builtin filters are methods.</p>
+
+<p>Note that filters defined in the <code><code>main</code></code> namespace can look like:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> filter9 </span><span class="operator">{</span>
+        <span class="regex">s/foo/bar/</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>since Test::Base automatically munges the input string into $_ variable and checks the return value of the function to see if it looks like a number. If you must define a filter that returns just a single number, do it in a different namespace as a method. These filters don&#39;t allow the simplistic $_ munging.</p>
+
+<h1 id="OO">OO</h1>
+
+<p>Test::Base has a nice functional interface for simple usage. Under the hood everything is object oriented. A default Test::Base object is created and all the functions are really just method calls on it.</p>
+
+<p>This means if you need to get fancy, you can use all the object oriented stuff too. Just create new Test::Base objects and use the functions as methods.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::Base</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$blocks1</span> <span class="operator">=</span> <span class="variable">Test::Base</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$blocks2</span> <span class="operator">=</span> <span class="variable">Test::Base</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+    
+    <span class="variable">$blocks1</span><span class="operator">-&gt;</span><span class="variable">delimiters</span><span class="operator">(</span><span class="string">qw(!!! @@@)</span><span class="operator">)-&gt;</span><span class="variable">spec_file</span><span class="operator">(</span><span class="string">'test1.txt'</span><span class="operator">);</span>
+    <span class="variable">$blocks2</span><span class="operator">-&gt;</span><span class="variable">delimiters</span><span class="operator">(</span><span class="string">qw(### $$$)</span><span class="operator">)-&gt;</span><span class="variable">spec_string</span><span class="operator">(</span><span class="variable">$test_data</span><span class="operator">);</span>
+    
+    <span class="variable">plan</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="variable">$blocks1</span><span class="operator">-&gt;</span><span class="variable">blocks</span> <span class="operator">+</span> <span class="variable">$blocks2</span><span class="operator">-&gt;</span><span class="variable">blocks</span><span class="operator">;</span>
+    
+    <span class="comment"># ... etc</span>
+</code></code></pre>
+
+<h1 id="THE-CLASS">THE <code><code>TEST::BASE::BLOCK</code></code> CLASS</h1>
+
+<p>In Test::Base, blocks are exposed as Test::Base::Block objects. This section lists the methods that can be called on a Test::Base::Block object. Of course, each data section name is also available as a method.</p>
+
+<dl>
+
+<dt id="name-"><code><code>name()</code></code></dt>
+<dd>
+
+<p>This is the optional short description of a block, that is specified on the block separator line.</p>
+
+</dd>
+<dt id="description-"><code><code>description()</code></code></dt>
+<dd>
+
+<p>This is an optional long description of the block. It is the text taken from between the block separator and the first data section.</p>
+
+</dd>
+<dt id="seq_num-"><code><code>seq_num()</code></code></dt>
+<dd>
+
+<p>Returns a sequence number for this block. Sequence numbers begin with 1.</p>
+
+</dd>
+<dt id="blocks_object-"><code><code>blocks_object()</code></code></dt>
+<dd>
+
+<p>Returns the Test::Base object that owns this block.</p>
+
+</dd>
+<dt id="run_filters-"><code><code>run_filters()</code></code></dt>
+<dd>
+
+<p>Run the filters on the data sections of the blocks. You don&#39;t need to use this method unless you also used the <code><code>filters_delay</code></code> function.</p>
+
+</dd>
+<dt id="is_filtered-"><code><code>is_filtered()</code></code></dt>
+<dd>
+
+<p>Returns true if filters have already been run for this block.</p>
+
+</dd>
+<dt id="original_values-"><code><code>original_values()</code></code></dt>
+<dd>
+
+<p>Returns a hash of the original, unfiltered values of each data section.</p>
+
+</dd>
+</dl>
+
+<h1 id="SUBCLASSING">SUBCLASSING</h1>
+
+<p>One of the nicest things about Test::Base is that it is easy to subclass. This is very important, because in your personal project, you will likely want to extend Test::Base with your own filters and other reusable pieces of your test framework.</p>
+
+<p>Here is an example of a subclass:</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">MyTestStuff</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Test::Base</span> <span class="operator">-</span><span class="variable">Base</span><span class="operator">;</span>
+    
+    <span class="keyword">our</span> <span class="variable">@EXPORT</span> <span class="operator">=</span> <span class="string">qw(some_func)</span><span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> some_func </span><span class="operator">{</span>
+        <span class="operator">(</span><span class="keyword">my</span> <span class="operator">(</span><span class="variable">$self</span><span class="operator">),</span> <span class="variable">@_</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">find_my_self</span><span class="operator">(</span><span class="variable">@_</span><span class="operator">);</span>
+        <span class="operator">...</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">package</span> <span class="variable">MyTestStuff::Block</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">base</span> <span class="string">'Test::Base::Block'</span><span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> desc </span><span class="operator">{</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">description</span><span class="operator">(</span><span class="variable">@_</span><span class="operator">);</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">package</span> <span class="variable">MyTestStuff::Filter</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">base</span> <span class="string">'Test::Base::Filter'</span><span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> upper </span><span class="operator">{</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">assert_scalar</span><span class="operator">(</span><span class="variable">@_</span><span class="operator">);</span>
+        <span class="keyword">uc</span><span class="operator">(</span><span class="keyword">shift</span><span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>Note that you don&#39;t have to re-Export all the functions from Test::Base. That happens automatically, due to the powers of Spiffy.</p>
+
+<p>The first line in <code><code>some_func</code></code> allows it to be called as either a function or a method in the test code.</p>
+
+<h1 id="DISTRIBUTION-SUPPORT">DISTRIBUTION SUPPORT</h1>
+
+<p>You might be thinking that you do not want to use Test::Base in you modules, because it adds an installation dependency. Fear not. <a>Module::Install::TestBase</a> takes care of that.</p>
+
+<p>Just write a Makefile.PL that looks something like this:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">inc::Module::Install</span><span class="operator">;</span>
+    
+    <span class="variable">name</span>            <span class="string">'Foo'</span><span class="operator">;</span>
+    <span class="variable">all_from</span>        <span class="string">'lib/Foo.pm'</span><span class="operator">;</span>
+    
+    <span class="variable">use_test_base</span><span class="operator">;</span>
+    
+    <span class="variable">WriteAll</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The line with <code><code>use_test_base</code></code> will automatically bundle all the code the user needs to run Test::Base based tests.</p>
+
+<h1 id="OTHER-COOL-FEATURES">OTHER COOL FEATURES</h1>
+
+<p>Test::Base automatically adds:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">warnings</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>to all of your test scripts and Test::Base subclasses. A Spiffy feature indeed.</p>
+
+<h1 id="HISTORY">HISTORY</h1>
+
+<p>This module started its life with the horrible and ridicule inducing name <code><code>Test::Chunks</code></code>. It was renamed to <code><code>Test::Base</code></code> with the hope that it would be seen for the very useful module that it has become. If you are switching from <code><code>Test::Chunks</code></code> to <code><code>Test::Base</code></code>, simply substitute the concept and usage of <code><code>chunks</code></code> to <code><code>blocks</code></code>.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Ingy d&ouml;t Net &lt;ingy@cpan.org&gt;</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright 2005-2014. Ingy d&ouml;t Net.</p>
+
+<p>This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<p>See <a href="http://www.perl.com/perl/misc/Artistic.html">http://www.perl.com/perl/misc/Artistic.html</a></p>
+
+
+</body>
+
+</html>
+
+

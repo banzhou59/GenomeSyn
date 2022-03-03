@@ -1,0 +1,261 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#mcl_executable">mcl_executable</a></li>
+      <li><a href="#matrix_executable">matrix_executable</a></li>
+      <li><a href="#run">run</a></li>
+      <li><a href="#run_mcl">_run_mcl</a></li>
+      <li><a href="#run_matrix">_run_matrix</a></li>
+      <li><a href="#setup_input">_setup_input</a></li>
+      <li><a href="#get_from_hsp">_get_from_hsp</a></li>
+      <li><a href="#get_from_searchio">_get_from_searchio</a></li>
+      <li><a href="#parse_blastfile">_parse_blastfile</a></li>
+      <li><a href="#parse_mcl">_parse_mcl</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::TribeMCL</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::TribeMCL</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::SearchIO</span><span class="operator">;</span>
+  
+  <span class="comment"># 3 methods to input the blast results</span>
+  
+  <span class="comment"># straight forward raw blast output (NCBI or WU-BLAST)</span>
+  <span class="keyword">my</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'inputtype'</span><span class="operator">=&gt;</span><span class="string">'blastfile'</span><span class="operator">);</span>
+  
+  <span class="comment"># OR</span>
+  
+  <span class="comment"># markov program format </span>
+  <span class="comment"># protein_id1 protein_id2 evalue_magnitude evalue_factor</span>
+  <span class="comment"># for example: </span>
+  <span class="comment"># proteins ENSP00000257547  and ENSP00000261659</span>
+  <span class="comment"># with a blast score evalue of 1e-50</span>
+  <span class="comment"># and proteins O42187 and ENSP00000257547</span>
+  <span class="comment"># with a blast score evalue of 1e-119</span>
+  <span class="comment"># entry would be </span>
+  
+  <span class="keyword">my</span> <span class="variable">@array</span>  <span class="operator">=</span> <span class="operator">[[</span><span class="string">qw(ENSP00000257547 ENSP00000261659 1 50)</span><span class="operator">]</span><span class="operator">,</span>
+                <span class="operator">[</span><span class="string">qw(O42187 ENSP00000257547 1 119)</span><span class="operator">]]</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'pairs'</span><span class="operator">=&gt;\</span><span class="variable">@array</span><span class="operator">,</span><span class="string">I</span><span class="operator">=&gt;</span><span class="string">'2.0'</span><span class="operator">);</span>
+  
+  <span class="comment"># OR</span>
+  
+  <span class="comment"># pass in a searchio object </span>
+  <span class="comment"># slowest of the 3 methods as it does more rigourous parsing</span>
+  <span class="comment"># than required for us here</span>
+  
+  <span class="keyword">my</span> <span class="variable">$sio</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'blast'</span><span class="operator">,</span>
+                               <span class="string">-file</span><span class="operator">=&gt;</span><span class="string">'blast.out'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@params</span><span class="operator">=(</span><span class="string">'inputtype'</span><span class="operator">=&gt;</span><span class="string">'searchio'</span><span class="operator">,</span><span class="string">I</span><span class="operator">=&gt;</span><span class="string">'2.0'</span><span class="operator">);</span>
+  
+  
+  <span class="comment"># you can specify the path to the executable manually in the following way</span>
+  <span class="keyword">my</span> <span class="variable">@params</span><span class="operator">=(</span><span class="string">'inputtype'</span><span class="operator">=&gt;</span><span class="string">'blastfile'</span><span class="operator">,</span><span class="string">I</span><span class="operator">=&gt;</span><span class="string">'2.0'</span><span class="operator">,</span>
+              <span class="string">'mcl'</span><span class="operator">=&gt;</span><span class="string">'/home/shawn/software/mcl-02-150/src/shmcl/mcl'</span><span class="operator">,</span>
+              <span class="string">'matrix'</span><span class="operator">=&gt;</span><span class="string">'/home/shawn/software/mcl-02-150/src/contrib/tribe/tribe-matrix'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$fact</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::TribeMCL</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="comment"># OR</span>
+  
+  <span class="variable">$fact</span><span class="operator">-&gt;</span><span class="variable">matrix_executable</span><span class="operator">(</span><span class="string">'/home/shawn/software/mcl-02-150/src/contrib/tribe/tribe-matrix'</span><span class="operator">);</span>
+  <span class="variable">$fact</span><span class="operator">-&gt;</span><span class="variable">mcl_executable</span><span class="operator">(</span><span class="string">'/home/shawn/software/mcl-02-150/src/shmcl/mcl'</span><span class="operator">);</span>
+  
+  <span class="comment"># to run</span>
+  
+  <span class="keyword">my</span> <span class="variable">$fact</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::TribeMCL</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="comment"># Run the program</span>
+  <span class="comment"># returns an array reference to clusters where members are the ids</span>
+  <span class="comment"># for example :2 clusters with 3 members per cluster:</span>
+  <span class="comment">#  $fam = [ [mem1 mem2 mem3],[mem1 mem2 mem3]]</span>
+  
+  <span class="comment"># pass in either the blastfile path/searchio obj/the array ref to scores</span>
+  <span class="keyword">my</span> <span class="variable">$fam</span> <span class="operator">=</span> <span class="variable">$fact</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$sio</span><span class="operator">);</span> 
+  
+  <span class="comment"># print out your clusters</span>
+  
+  <span class="keyword">for</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$i</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span> <span class="variable">$i</span> <span class="operator">&lt;</span><span class="keyword">scalar</span><span class="operator">(</span><span class="variable">@</span><span class="operator">{</span><span class="variable">$fam</span><span class="operator">}</span><span class="operator">);</span> <span class="variable">$i</span><span class="operator">++){</span>
+    <span class="keyword">print</span> <span class="string">"Cluster </span><span class="variable">$i</span><span class="string"> \t "</span><span class="operator">.</span><span class="keyword">scalar</span><span class="operator">(</span><span class="variable">@</span><span class="operator">{</span><span class="variable">$fam</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="variable">$i</span><span class="operator">]}</span><span class="operator">).</span><span class="string">" members\n"</span><span class="operator">;</span>
+    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$member</span> <span class="operator">(</span><span class="variable">@</span><span class="operator">{</span><span class="variable">$fam</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="variable">$i</span><span class="operator">]}</span><span class="operator">){</span>
+      <span class="keyword">print</span> <span class="string">"\t</span><span class="variable">$member</span><span class="string">\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>TribeMCL is a method for clustering proteins into related groups, which are termed &#39;protein families&#39;. This clustering is achieved by analysing similarity patterns between proteins in a given dataset, and using these patterns to assign proteins into related groups. In many cases, proteins in the same protein family will have similar functional properties.</p>
+
+<p>TribeMCL uses a novel clustering method (Markov Clustering or MCL) which solves problems which normally hinder protein sequence clustering.</p>
+
+<p>Reference:</p>
+
+<pre><code><code>  <span class="variable">Enright</span> <span class="variable">A</span><span class="operator">.</span><span class="variable">J</span><span class="operator">.,</span> <span class="variable">Van</span> <span class="variable">Dongen</span> <span class="variable">S</span><span class="operator">.,</span> <span class="variable">Ouzounis</span> <span class="variable">C</span><span class="operator">.</span><span class="variable">A</span><span class="operator">;</span> <span class="variable">Nucleic</span> <span class="variable">Acids</span>
+  <span class="variable">Res</span><span class="operator">.</span> <span class="number">30</span><span class="operator">(</span><span class="number">7</span><span class="operator">):</span><span class="number">1575</span><span class="operator">-</span><span class="number">1584</span> <span class="operator">(</span><span class="number">2002</span><span class="operator">)</span>
+</code></code></pre>
+
+<p>You will need tribe-matrix (the program used to generate the matrix for input into mcl) and mcl (the clustering software) available at:</p>
+
+<pre><code><code>  http://www.ebi.ac.uk/research/cgg/tribe/ or
+  http://micans.org/mcl/.</code></code></pre>
+
+<p>Future Work in this module: Port the tribe-matrix program into perl so that we can enable have a SearchIO kinda module for reading and writing mcl data format</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</h1>
+
+<p>Email shawnh@fugu-sg.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a &quot;_&quot;.</p>
+
+<h2 id="mcl_executable">mcl_executable</h2>
+
+<pre><code><code> Title   : mcl_executable
+ Usage   : $self-&gt;mcl_executable()
+ Function: get set for path to mcl executable
+ Returns : String or undef if not installed
+ Args    : [optional] string of path to executable
+           [optional] boolean to warn on missing executable status</code></code></pre>
+
+<h2 id="matrix_executable">matrix_executable</h2>
+
+<pre><code><code> Title   : matrix_executable
+ Usage   : $self-&gt;matrix_executable()
+ Function: get set for path to tribe-matrix executable
+ Returns : String or undef if not installed
+ Args    : [optional] string of path to executable
+           [optional] boolean to warn on missing executable status</code></code></pre>
+
+<h2 id="run">run</h2>
+
+<pre><code><code> Title   : run
+ Usage   : $self-&gt;run()
+ Function: runs the clustering
+ Returns : Array Ref of clustered Ids 
+ Args    : </code></code></pre>
+
+<h2 id="run_mcl">_run_mcl</h2>
+
+<pre><code><code> Title   : _run_mcl
+ Usage   : $self-&gt;_run_mcl()
+ Function: internal function for running the mcl program
+ Returns : Array Ref of clustered Ids
+ Args    : Index_file name, matrix input file name</code></code></pre>
+
+<h2 id="run_matrix">_run_matrix</h2>
+
+<pre><code><code> Title   : _run_matrix
+ Usage   : $self-&gt;_run_matrix()
+ Function: internal function for running the tribe-matrix program
+ Returns : index filepath and matrix file path
+ Args    : filepath of parsed ids and scores</code></code></pre>
+
+<h2 id="setup_input">_setup_input</h2>
+
+<pre><code><code> Title   : _setup_input
+ Usage   : $self-&gt;_setup_input()
+ Function: internal function for running setting up the inputs
+            needed for running mcl
+ Returns : filepath of parsed ids and scores
+ Args    : </code></code></pre>
+
+<h2 id="get_from_hsp">_get_from_hsp</h2>
+
+<pre><code><code> Title   : _get_from_hsp
+ Usage   : $self-&gt;_get_from_hsp()
+ Function: internal function for getting blast scores from hsp 
+ Returns : array ref to ids and score [protein1 protein2 magnitude factor]
+ Args    : L&lt;Bio::Search::HSP::GenericHSP&gt;</code></code></pre>
+
+<h2 id="get_from_searchio">_get_from_searchio</h2>
+
+<pre><code><code> Title   : _get_from_searchio
+ Usage   : $self-&gt;_get_from_searchio()
+ Function: internal function for parsing blast scores from searchio object
+ Returns : array ref to ids and score [protein1 protein2 magnitude factor]
+ Args    :  L&lt;Bio::Tools::SearchIO&gt;</code></code></pre>
+
+<h2 id="parse_blastfile">_parse_blastfile</h2>
+
+<pre><code><code> Title   : _parse_blastfile
+ Usage   : $self-&gt;_parse_blastfile()
+ Function: internal function for quickly parsing blast evalue 
+           scores from raw blast output file
+ Returns : array ref to ids and score [protein1 protein2 magnitude factor]
+ Args    :  file path</code></code></pre>
+
+<h2 id="parse_mcl">_parse_mcl</h2>
+
+<pre><code><code> Title   : _parse_mcl
+ Usage   : $self-&gt;_parse_mcl()
+ Function: internal function for quickly parsing mcl output and 
+           generating the array of clusters
+ Returns : Array Ref of clustered Ids
+ Args    :  index file path, mcl output file path</code></code></pre>
+
+
+</body>
+
+</html>
+
+

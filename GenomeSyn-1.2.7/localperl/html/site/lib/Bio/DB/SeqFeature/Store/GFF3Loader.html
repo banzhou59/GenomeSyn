@@ -1,0 +1,413 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#ignore_seqregion">ignore_seqregion</a></li>
+      <li><a href="#noalias_target">noalias_target</a></li>
+      <li><a href="#load">load</a></li>
+      <li><a href="#accessors">accessors</a></li>
+      <li><a href="#Internal-Methods">Internal Methods</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::SeqFeature::Store::GFF3Loader -- GFF3 file loader for Bio::DB::SeqFeature::Store</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::DB::SeqFeature::Store</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::DB::SeqFeature::Store::GFF3Loader</span><span class="operator">;</span>
+  
+  <span class="comment"># Open the sequence database</span>
+  <span class="keyword">my</span> <span class="variable">$db</span>      <span class="operator">=</span> <span class="variable">Bio::DB::SeqFeature::Store</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-adaptor</span> <span class="operator">=&gt;</span> <span class="string">'DBI::mysql'</span><span class="operator">,</span>
+                                                 <span class="string">-dsn</span>     <span class="operator">=&gt;</span> <span class="string">'dbi:mysql:test'</span><span class="operator">,</span>
+                                                 <span class="string">-write</span>   <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$loader</span> <span class="operator">=</span> <span class="variable">Bio::DB::SeqFeature::Store::GFF3Loader</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-store</span>    <span class="operator">=&gt;</span> <span class="variable">$db</span><span class="operator">,</span>
+                                                           <span class="string">-verbose</span>  <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                                           <span class="string">-fast</span>     <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+  
+  <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">load</span><span class="operator">(</span><span class="string">'./my_genome.gff3'</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>The Bio::DB::SeqFeature::Store::GFF3Loader object parsers GFF3-format sequence annotation files and loads Bio::DB::SeqFeature::Store databases. For certain combinations of SeqFeature classes and SeqFeature::Store databases it features a &quot;fast load&quot; mode which will greatly accelerate the loading of GFF3 databases by a factor of 5-10.</p>
+
+<p>The GFF3 file format has been extended very slightly to accommodate Bio::DB::SeqFeature::Store. First, the loader recognizes is a new directive:</p>
+
+<pre><code><code>  <span class="comment"># #index-subfeatures [0|1]</span>
+</code></code></pre>
+
+<p>Note that you can place a space between the two #&#39;s in order to prevent GFF3 validators from complaining.</p>
+
+<p>If this is true, then subfeatures are indexed (the default) so that they can be retrieved with a query. See <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Store.html">Bio::DB::SeqFeature::Store</a> for an explanation of this. If false, then subfeatures can only be accessed through their parent feature.</p>
+
+<p>Second, the loader recognizes a new attribute tag called index, which if present, controls indexing of the current feature. Example:</p>
+
+<pre><code><code> <span class="variable">ctg123</span> <span class="operator">.</span> <span class="variable">TF_binding_site</span> <span class="number">1000</span> <span class="number">1012</span> <span class="operator">.</span> <span class="operator">+</span> <span class="operator">.</span> <span class="variable">ID</span><span class="operator">=</span><span class="variable">tfbs00001</span><span class="operator">;</span><span class="keyword">index</span><span class="operator">=</span><span class="number">1</span>
+</code></code></pre>
+
+<p>You can use this to turn indexing on and off, overriding the default for a particular feature.</p>
+
+<p>Note that the loader keeps a record -- in memory -- of each feature that it has processed. If you find the loader running out of memory on particularly large GFF3 files, please split the input file into smaller pieces and do the load in steps.</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : $loader = Bio::DB::SeqFeature::Store::GFF3Loader-&gt;new(@options)
+ Function: create a new parser
+ Returns : a Bio::DB::SeqFeature::Store::GFF3Loader gff3 parser and loader
+ Args    : several - see below
+ Status  : public</code></code></pre>
+
+<p>This method creates a new GFF3 loader and establishes its connection with a Bio::DB::SeqFeature::Store database. Arguments are -name=&gt;$value pairs as described in this table:</p>
+
+<pre><code><code> Name               Value
+ ----               -----
+
+ -store             A writable Bio::DB::SeqFeature::Store database handle.
+
+ -seqfeature_class  The name of the type of Bio::SeqFeatureI object to create
+                      and store in the database (Bio::DB::SeqFeature by default)
+
+ -sf_class          A shorter alias for -seqfeature_class
+
+ -verbose           Send progress information to standard error.
+
+ -fast              If true, activate fast loading (see below)
+
+ -chunk_size        Set the storage chunk size for nucleotide/protein sequences
+                       (default 2000 bytes)
+
+ -tmp               Indicate a temporary directory to use when loading non-normalized
+                       features.
+
+ -ignore_seqregion  Ignore ##sequence-region directives. The default is to create a
+                       feature corresponding to the directive.
+
+ -noalias_target    Don&#39;t create an Alias attribute for a target_id named in a 
+                    Target attribute. The default is to create an Alias
+                    attribute containing the target_id found in a Target 
+                    attribute.</code></code></pre>
+
+<p>When you call new(), a connection to a Bio::DB::SeqFeature::Store database should already have been established and the database initialized (if appropriate).</p>
+
+<p>Some combinations of Bio::SeqFeatures and Bio::DB::SeqFeature::Store databases support a fast loading mode. Currently the only reliable implementation of fast loading is the combination of DBI::mysql with Bio::DB::SeqFeature. The other important restriction on fast loading is the requirement that a feature that contains subfeatures must occur in the GFF3 file before any of its subfeatures. Otherwise the subfeatures that occurred before the parent feature will not be attached to the parent correctly. This restriction does not apply to normal (slow) loading.</p>
+
+<p>If you use an unnormalized feature class, such as Bio::SeqFeature::Generic, then the loader needs to create a temporary database in which to cache features until all their parts and subparts have been seen. This temporary databases uses the &quot;berkeleydb&quot; adaptor. The -tmp option specifies the directory in which that database will be created. If not present, it defaults to the system default tmp directory specified by File::Spec-&gt;tmpdir().</p>
+
+<p>The -chunk_size option allows you to tune the representation of DNA/Protein sequence in the Store database. By default, sequences are split into 2000 base/residue chunks and then reassembled as needed. This avoids the problem of pulling a whole chromosome into memory in order to fetch a short subsequence from somewhere in the middle. Depending on your usage patterns, you may wish to tune this parameter using a chunk size that is larger or smaller than the default.</p>
+
+<h2 id="ignore_seqregion">ignore_seqregion</h2>
+
+<pre><code><code>  $ignore_it = $loader-&gt;ignore_seqregion([$new_flag])</code></code></pre>
+
+<p>Get or set the ignore_seqregion flag, which if true, will cause GFF3 ##sequence-region directives to be ignored. The default behavior is to create a feature corresponding to the region.</p>
+
+<h2 id="noalias_target">noalias_target</h2>
+
+<pre><code><code>  $noalias_target = $loader-&gt;noalias_target([$new_flag])</code></code></pre>
+
+<p>Get or set the noalias_target flag, which if true, will disable the creation of an Alias attribute for a target_id named in a Target attribute. The default is to create an Alias attribute containing the target_id found in a Target attribute.</p>
+
+<h2 id="load">load</h2>
+
+<pre><code><code> Title   : load
+ Usage   : $count = $loader-&gt;load(@ARGV)
+ Function: load the indicated files or filehandles
+ Returns : number of feature lines loaded
+ Args    : list of files or filehandles
+ Status  : public</code></code></pre>
+
+<p>Once the loader is created, invoke its load() method with a list of GFF3 or FASTA file paths or previously-opened filehandles in order to load them into the database. Compressed files ending with .gz, .Z and .bz2 are automatically recognized and uncompressed on the fly. Paths beginning with http: or ftp: are treated as URLs and opened using the LWP GET program (which must be on your path).</p>
+
+<p>FASTA files are recognized by their initial &quot;&gt;&quot; character. Do not feed the loader a file that is neither GFF3 nor FASTA; I don&#39;t know what will happen, but it will probably not be what you expect.</p>
+
+<h2 id="accessors">accessors</h2>
+
+<p>The following read-only accessors return values passed or created during new():</p>
+
+<pre><code><code> store()          the long-term Bio::DB::SeqFeature::Store object
+
+ tmp_store()      the temporary Bio::DB::SeqFeature::Store object used
+                    during loading
+
+ sfclass()        the Bio::SeqFeatureI class
+
+ fast()           whether fast loading is active
+
+ seq_chunk_size() the sequence chunk size
+
+ verbose()        verbose progress messages</code></code></pre>
+
+<h2 id="Internal-Methods">Internal Methods</h2>
+
+<p>The following methods are used internally and may be overidden by subclasses.</p>
+
+<dl>
+
+<dt id="default_seqfeature_class">default_seqfeature_class</dt>
+<dd>
+
+<pre><code><code>  $class = $loader-&gt;default_seqfeature_class</code></code></pre>
+
+<p>Return the default SeqFeatureI class (Bio::DB::SeqFeature).</p>
+
+</dd>
+<dt id="subfeatures_normalized">subfeatures_normalized</dt>
+<dd>
+
+<pre><code><code>  $flag = $loader-&gt;subfeatures_normalized([$new_flag])</code></code></pre>
+
+<p>Get or set a flag that indicates that the subfeatures are normalized. This is deduced from the SeqFeature class information.</p>
+
+</dd>
+<dt id="subfeatures_in_table">subfeatures_in_table</dt>
+<dd>
+
+<pre><code><code>  $flag = $loader-&gt;subfeatures_in_table([$new_flag])</code></code></pre>
+
+<p>Get or set a flag that indicates that feature/subfeature relationships are stored in a table. This is deduced from the SeqFeature class and Store information.</p>
+
+</dd>
+<dt id="load_fh">load_fh</dt>
+<dd>
+
+<pre><code><code>  $count = $loader-&gt;load_fh($filehandle)</code></code></pre>
+
+<p>Load the GFF3 data at the other end of the filehandle and return true if successful. Internally, load_fh() invokes:</p>
+
+<pre><code><code>  <span class="variable">start_load</span><span class="operator">();</span>
+  <span class="variable">do_load</span><span class="operator">(</span><span class="variable">$filehandle</span><span class="operator">);</span>
+  <span class="variable">finish_load</span><span class="operator">();</span>
+</code></code></pre>
+
+</dd>
+<dt id="start_load-finish_load">start_load, finish_load</dt>
+<dd>
+
+<p>These methods are called at the start and end of a filehandle load.</p>
+
+</dd>
+<dt id="do_load">do_load</dt>
+<dd>
+
+<pre><code><code>  $count = $loader-&gt;do_load($fh)</code></code></pre>
+
+<p>This is called by load_fh() to load the GFF3 file&#39;s filehandle and return the number of lines loaded.</p>
+
+</dd>
+<dt id="load_line">load_line</dt>
+<dd>
+
+<pre><code><code>    <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">load_line</span><span class="operator">(</span><span class="variable">$data</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Load a line of a GFF3 file. You must bracket this with calls to start_load() and finish_load()!</p>
+
+<pre><code><code>    <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">start_load</span><span class="operator">();</span>
+    <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">load_line</span><span class="operator">(</span><span class="variable">$_</span><span class="operator">)</span> <span class="keyword">while</span> <span class="operator">&lt;</span><span class="variable">FH</span><span class="operator">&gt;;</span>
+    <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">finish_load</span><span class="operator">();</span>
+</code></code></pre>
+
+</dd>
+<dt id="handle_meta">handle_meta</dt>
+<dd>
+
+<pre><code><code>  $loader-&gt;handle_meta($meta_directive)</code></code></pre>
+
+<p>This method is called to handle meta-directives such as ##sequence-region. The method will receive the directive with the initial ## stripped off.</p>
+
+</dd>
+<dt id="handle_feature">handle_feature</dt>
+<dd>
+
+<pre><code><code>  $loader-&gt;handle_feature($gff3_line)</code></code></pre>
+
+<p>This method is called to process a single GFF3 line. It manipulates information stored a data structure called $self-&gt;{load_data}.</p>
+
+</dd>
+<dt id="allow_whitespace">allow_whitespace</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">$allow_it</span> <span class="operator">=</span> <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">allow_whitespace</span><span class="operator">(</span><span class="operator">[</span><span class="variable">$newvalue</span><span class="operator">]</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Get or set the allow_whitespace flag. If true, then GFF3 files are allowed to be delimited with whitespace in addition to tabs.</p>
+
+</dd>
+<dt id="store_current_feature">store_current_feature</dt>
+<dd>
+
+<pre><code><code>  $loader-&gt;store_current_feature()</code></code></pre>
+
+<p>This method is called to store the currently active feature in the database. It uses a data structure stored in $self-&gt;{load_data}.</p>
+
+</dd>
+<dt id="build_object_tree">build_object_tree</dt>
+<dd>
+
+<pre><code><code> $loader-&gt;build_object_tree()</code></code></pre>
+
+<p>This method gathers together features and subfeatures and builds the graph that connects them.</p>
+
+</dd>
+<dt id="build_object_tree_in_tables">build_object_tree_in_tables</dt>
+<dd>
+
+<pre><code><code> $loader-&gt;build_object_tree_in_tables()</code></code></pre>
+
+<p>This method gathers together features and subfeatures and builds the graph that connects them, assuming that parent/child relationships will be stored in a database table.</p>
+
+</dd>
+<dt id="build_object_tree_in_features">build_object_tree_in_features</dt>
+<dd>
+
+<pre><code><code> $loader-&gt;build_object_tree_in_features()</code></code></pre>
+
+<p>This method gathers together features and subfeatures and builds the graph that connects them, assuming that parent/child relationships are stored in the seqfeature objects themselves.</p>
+
+</dd>
+<dt id="attach_children">attach_children</dt>
+<dd>
+
+<pre><code><code> $loader-&gt;attach_children($store,$load_data,$load_id,$feature)</code></code></pre>
+
+<p>This recursively adds children to features and their subfeatures. It is called when subfeatures are directly contained within other features, rather than stored in a relational table.</p>
+
+</dd>
+<dt id="fetch">fetch</dt>
+<dd>
+
+<pre><code><code> my $feature = $loader-&gt;fetch($load_id)</code></code></pre>
+
+<p>Given a load ID (from the ID= attribute) this method returns the feature from the temporary database or the permanent one, depending on where it is stored.</p>
+
+</dd>
+<dt id="add_segment">add_segment</dt>
+<dd>
+
+<pre><code><code> $loader-&gt;add_segment($parent,$child)</code></code></pre>
+
+<p>This method is used to add a split location to the parent.</p>
+
+</dd>
+<dt id="parse_attributes">parse_attributes</dt>
+<dd>
+
+<pre><code><code> ($reserved,$unreserved) = $loader-&gt;parse_attributes($attribute_line)</code></code></pre>
+
+<p>This method parses the information contained in the $attribute_line into two hashrefs, one containing the values of reserved attribute tags (e.g. ID) and the other containing the values of unreserved ones.</p>
+
+</dd>
+<dt id="start_or_finish_sequence">start_or_finish_sequence</dt>
+<dd>
+
+<pre><code><code>  $loader-&gt;start_or_finish_sequence(&#39;Chr9&#39;)</code></code></pre>
+
+<p>This method is called at the beginning and end of a fasta section.</p>
+
+</dd>
+<dt id="load_sequence">load_sequence</dt>
+<dd>
+
+<pre><code><code>  $loader-&gt;load_sequence(&#39;gatttcccaaa&#39;)</code></code></pre>
+
+<p>This method is called to load some amount of sequence after start_or_finish_sequence() is first called.</p>
+
+</dd>
+<dt id="open_fh">open_fh</dt>
+<dd>
+
+<pre><code><code> my $io_file = $loader-&gt;open_fh($filehandle_or_path)</code></code></pre>
+
+<p>This method opens up the indicated file or pipe, using some intelligence to recognized compressed files and URLs and doing the right thing.</p>
+
+</dd>
+<dt id="time">time</dt>
+<dd>
+
+<pre><code><code> my $time = $loader-&gt;time</code></code></pre>
+
+<p>This method returns the current time in seconds, using Time::HiRes if available.</p>
+
+</dd>
+<dt id="unescape">unescape</dt>
+<dd>
+
+<pre><code><code> my $unescaped = GFF3Loader::unescape($escaped)</code></code></pre>
+
+<p>This is an internal utility. It is the same as CGI::Util::unescape, but doesn&#39;t change pluses into spaces and ignores unicode escapes.</p>
+
+</dd>
+<dt id="local_ids">local_ids</dt>
+<dd>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$ids</span>    <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">local_ids</span><span class="operator">;</span>
+ <span class="keyword">my</span> <span class="variable">$id_cnt</span> <span class="operator">=</span> <span class="variable">@$ids</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>After performing a load, this returns an array ref containing all the load file IDs that were contained within the file just loaded.</p>
+
+</dd>
+<dt id="loaded_ids">loaded_ids</dt>
+<dd>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$ids</span>    <span class="operator">=</span> <span class="variable">$loader</span><span class="operator">-&gt;</span><span class="variable">loaded_ids</span><span class="operator">;</span>
+ <span class="keyword">my</span> <span class="variable">$id_cnt</span> <span class="operator">=</span> <span class="variable">@$ids</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>After performing a load, this returns an array ref containing all the feature primary ids that were created during the load.</p>
+
+</dd>
+</dl>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>This is an early version, so there are certainly some bugs. Please use the BioPerl bug tracking system to report bugs.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Store.html">Bio::DB::SeqFeature::Store</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Segment.html">Bio::DB::SeqFeature::Segment</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/NormalizedFeature.html">Bio::DB::SeqFeature::NormalizedFeature</a>, <a>Bio::DB::SeqFeature::GFF2Loader</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Store/DBI/mysql.html">Bio::DB::SeqFeature::Store::DBI::mysql</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Store/berkeleydb.html">Bio::DB::SeqFeature::Store::berkeleydb</a></p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Lincoln Stein &lt;lstein@cshl.org&gt;.</p>
+
+<p>Copyright (c) 2006 Cold Spring Harbor Laboratory.</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

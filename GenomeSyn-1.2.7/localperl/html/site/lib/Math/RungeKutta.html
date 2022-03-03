@@ -1,0 +1,365 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#SUBROUTINES">SUBROUTINES</a></li>
+  <li><a href="#CALLER-SUPPLIED-SUBROUTINES">CALLER-SUPPLIED SUBROUTINES</a></li>
+  <li><a href="#EXPORT_OK-SUBROUTINES">EXPORT_OK SUBROUTINES</a></li>
+  <li><a href="#EXAMPLES">EXAMPLES</a></li>
+  <li><a href="#TRAPS-FOR-THE-UNWARY">TRAPS FOR THE UNWARY</a></li>
+  <li><a href="#JAVASCRIPT">JAVASCRIPT</a></li>
+  <li><a href="#LUA">LUA</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#REFERENCES">REFERENCES</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Math::RungeKutta.pm - Integrating Systems of Differential Equations</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Math::RungeKutta</span><span class="operator">;</span>
+ 
+ <span class="comment"># When working on data in an array ...</span>
+ <span class="keyword">sub</span><span class="variable"> dydt </span><span class="operator">{</span> <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">@y</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>   <span class="comment"># the derivative function</span>
+   <span class="keyword">my</span> <span class="variable">@dydt</span><span class="operator">;</span> <span class="operator">...</span> <span class="operator">;</span> <span class="keyword">return</span> <span class="variable">@dydt</span><span class="operator">;</span>
+ <span class="operator">}</span>
+ <span class="variable">@y</span> <span class="operator">=</span> <span class="variable">@initial_y</span><span class="operator">;</span> <span class="variable">$t</span><span class="operator">=</span><span class="number">0</span><span class="operator">;</span> <span class="variable">$dt</span><span class="operator">=</span><span class="number">0</span><span class="operator">.</span><span class="number">4</span><span class="operator">;</span>  <span class="comment"># the initial conditions</span>
+ <span class="comment"># For automatic timestep adjustment ...</span>
+ <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$t</span> <span class="operator">&lt;</span> <span class="variable">$tfinal</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">,</span> <span class="variable">@y</span><span class="operator">)</span> <span class="operator">=</span> <span class="operator">&amp;</span><span class="variable">rk4_auto</span><span class="operator">(\</span><span class="variable">@y</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">dydt</span><span class="operator">,</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">,</span> <span class="number">0</span><span class="operator">.</span><span class="number">00001</span><span class="operator">);</span>
+    <span class="operator">&amp;</span><span class="variable">display</span><span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">@y</span><span class="operator">);</span>
+ <span class="operator">}</span>
+ <span class="comment"># Or, for fixed timesteps ...</span>
+ <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$t</span> <span class="operator">&lt;</span> <span class="variable">$tfinal</span><span class="operator">)</span> <span class="operator">{</span>
+   <span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">@y</span><span class="operator">)</span> <span class="operator">=</span> <span class="operator">&amp;</span><span class="variable">rk4</span><span class="operator">(\</span><span class="variable">@y</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">dydt</span><span class="operator">,</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">);</span> <span class="comment"># Merson's 4th-order method</span>
+   <span class="operator">&amp;</span><span class="variable">display</span><span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">@y</span><span class="operator">);</span>
+ <span class="operator">}</span>
+ <span class="comment"># alternatively, though not so accurate ...</span>
+ <span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">@y</span><span class="operator">)</span> <span class="operator">=</span> <span class="operator">&amp;</span><span class="variable">rk2</span><span class="operator">(\</span><span class="variable">@y</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">dydt</span><span class="operator">,</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">);</span>   <span class="comment"># Heun's 2nd-order method</span>
+ 
+ <span class="comment"># Or, working on data in a hash...</span>
+ <span class="keyword">sub</span><span class="variable"> dydt </span><span class="operator">{</span> <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">%y</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>   <span class="comment"># the derivative function</span>
+   <span class="keyword">my</span> <span class="variable">%dydt</span><span class="operator">;</span> <span class="operator">...</span> <span class="operator">;</span> <span class="keyword">return</span> <span class="variable">%dydt</span><span class="operator">;</span>
+ <span class="operator">}</span>
+ <span class="variable">%y</span> <span class="operator">=</span> <span class="variable">%initial_y</span><span class="operator">;</span> <span class="variable">$t</span><span class="operator">=</span><span class="number">0</span><span class="operator">;</span> <span class="variable">$dt</span><span class="operator">=</span><span class="number">0</span><span class="operator">.</span><span class="number">4</span><span class="operator">;</span>  <span class="comment"># the initial conditions</span>
+ <span class="comment"># For automatic timestep adjustment on hashes ...</span>
+ <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$t</span> <span class="operator">&lt;</span> <span class="variable">$tfinal</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">,</span> <span class="variable">%y</span><span class="operator">)</span> <span class="operator">=</span> <span class="operator">&amp;</span><span class="variable">rk4_auto</span><span class="operator">(\</span><span class="variable">%y</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%dydt</span><span class="operator">,</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">,</span> <span class="number">0</span><span class="operator">.</span><span class="number">00001</span><span class="operator">);</span>
+    <span class="operator">&amp;</span><span class="variable">display</span><span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">%y</span><span class="operator">);</span>
+ <span class="operator">}</span>
+ <span class="comment"># Or, for fixed timesteps on hashes ...</span>
+ <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$t</span> <span class="operator">&lt;</span> <span class="variable">$tfinal</span><span class="operator">)</span> <span class="operator">{</span>
+   <span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">%y</span><span class="operator">)</span> <span class="operator">=</span> <span class="operator">&amp;</span><span class="variable">rk4</span><span class="operator">(\</span><span class="variable">%y</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%dydt</span><span class="operator">,</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">);</span> <span class="comment"># Merson's 4th-order method</span>
+   <span class="operator">&amp;</span><span class="variable">display</span><span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">%y</span><span class="operator">);</span>
+ <span class="operator">}</span>
+ <span class="comment"># alternatively, though not so accurate ...</span>
+ <span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">%y</span><span class="operator">)</span> <span class="operator">=</span> <span class="operator">&amp;</span><span class="variable">rk2</span><span class="operator">(\</span><span class="variable">%y</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%dydt</span><span class="operator">,</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">);</span>   <span class="comment"># Heun's 2nd-order method</span>
+ 
+ <span class="comment"># or, also available but not exported by default ...</span>
+ <span class="variable">import</span> <span class="string">qw(:ALL)</span><span class="operator">;</span>
+ <span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">@y</span><span class="operator">)</span> <span class="operator">=</span> <span class="operator">&amp;</span><span class="variable">rk4_classical</span><span class="operator">(\</span><span class="variable">@y</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">dydt</span><span class="operator">,</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">);</span> <span class="comment"># Runge-Kutta 4th-order</span>
+ <span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">@y</span><span class="operator">)</span> <span class="operator">=</span> <span class="operator">&amp;</span><span class="variable">rk4_ralston</span><span class="operator">(\</span><span class="variable">@y</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">dydt</span><span class="operator">,</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">);</span>   <span class="comment"># Ralston's 4th-order</span>
+ <span class="comment"># or similarly for data in hashes.</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>RungeKutta.pm offers algorithms for the numerical integration of simultaneous differential equations of the form</p>
+
+<pre><code><code> dY/dt = F(t,Y)</code></code></pre>
+
+<p>where Y is an array of variables whose initial values Y(0) are known, and F is a function known from the dynamics of the problem.</p>
+
+<p>The Runge-Kutta methods all involve evaluating the derivative function F(t,Y) more than once, at various points within the timestep, and combining the results to reach an accurate answer for the Y(t+dt). This module only uses explicit Runge-Kutta methods; the implicit methods involve, at each timestep, solving a set of simultaneous equations involving both Y(t) and F(t,Y), and this is generally intractable.</p>
+
+<p>Three main algorithms are offered. <i>rk2</i> is Heun&#39;s 2nd-order Runge-Kutta algorithm, which is relatively imprecise, but does have a large range of stability which might be useful in some problems. <i>rk4</i> is Merson&#39;s 4th-order Runge-Kutta algorithm, which should be the normal choice in situations where the step-size must be specified. <i>rk4_auto</i> uses the step-doubling method to adjust the step-size of <i>rk4</i> automatically to achieve a specified precision; this saves much fiddling around trying to choose a good step-size, and can also save CPU time by automatically increasing the step-size when the solution is changing only slowly.</p>
+
+<p><i>Perl</i> is not the right language for high-end numerical integration like global weather simulation, colliding galaxies and so on (if you need something like this you could check out <i>xmds</i>). But as Gear says, &quot;Many equations that are solved on digital computers can be classified as trivial by the fact that even with an inefficient method of solution, little computer time is used. Economics then dictates that the best method is the one that minimises the human time of preparation of the program.&quot;</p>
+
+<p>This module has been designed to be robust and easy to use, and should be helpful in solving systems of differential equations which arise within a <i>Perl</i> context, such as economic, financial, demographic or ecological modelling, mechanical or process dynamics, etc.</p>
+
+<p>Version 1.07</p>
+
+<h1 id="SUBROUTINES">SUBROUTINES</h1>
+
+<dl>
+
+<dt id="rk2-y-dydt-t-dt-"><i>rk2</i>( \@y, \&amp;dydt, $t, $dt )</dt>
+<dd>
+
+</dd>
+<dt id="rk2-y-dydt-t-dt-1"><i>rk2</i>( \%y, \&amp;dydt, $t, $dt )</dt>
+<dd>
+
+<p>where the arguments are: <i>\@y</i> a reference to the array of initial values of variables, <i>\%y</i> a reference to the hash of initial values of variables, <i>\&amp;dydt</i> a reference to the function calculating the derivatives, <i>$t</i> the initial time, <i>$dt</i> the timestep.</p>
+
+<p>The algorithm used is that derived by Ralston, which uses Lotkin&#39;s bound on the derivatives, and minimises the solution error (gamma=3/4). It is also known as the Heun method, though unfortunately several other methods are also known under this name. Two function evaluations are needed per timestep, and the remaining error is in the 3rd and higher order terms.</p>
+
+<p><i>rk2</i> returns ($t, @y) where $t and @y are now the new values at the completion of the timestep, or it returns ($t, %y) if called with the data in a hashref.</p>
+
+</dd>
+<dt id="rk4-y-dydt-t-dt-"><i>rk4</i>( \@y, \&amp;dydt, $t, $dt )</dt>
+<dd>
+
+</dd>
+<dt id="rk4-y-dydt-t-dt-1"><i>rk4</i>( \%y, \&amp;dydt, $t, $dt )</dt>
+<dd>
+
+<p>The arguments are the same as in <i>rk2</i>.</p>
+
+<p>The algorithm used is that developed by Merson, which performs five function evaluations per timestep. For the same timestep, <i>rk4</i> is much more accurate than <i>rk4_classical</i>, so the extra function evaluation is well worthwhile.</p>
+
+<p><i>rk4</i> returns ($t, @y) where $t and @y are now the new values at the completion of the timestep.</p>
+
+</dd>
+<dt id="rk4_auto-y-dydt-t-dt-epsilon-"><i>rk4_auto</i>( \@y, \&amp;dydt, $t, $dt, $epsilon )</dt>
+<dd>
+
+</dd>
+<dt id="rk4_auto-y-dydt-t-dt-errors-"><i>rk4_auto</i>( \@y, \&amp;dydt, $t, $dt, \@errors )</dt>
+<dd>
+
+</dd>
+<dt id="rk4_auto-y-dydt-t-dt-epsilon-1"><i>rk4_auto</i>( \%y, \&amp;dydt, $t, $dt, $epsilon )</dt>
+<dd>
+
+</dd>
+<dt id="rk4_auto-y-dydt-t-dt-errors-1"><i>rk4_auto</i>( \%y, \&amp;dydt, $t, $dt, \%errors )</dt>
+<dd>
+
+<p>In the I&gt;epsilon&gt; form the arguments are: <i>\@y</i> a reference to the array of initial values of variables or <i>\%y</i> a reference to the hash of initial values of variables, <i>\&amp;dydt</i> a reference to the function calculating the derivatives, <i>$t</i> the initial time, <i>$dt</i> the initial timestep, <i>$epsilon</i> the errors per step will be about $epsilon*$ymax</p>
+
+<p>In the <i>errors</i> form the last argument is: <i>\@errors</i> a reference to an array of maximum permissible errors, or <i>\%errors</i> a reference to a hash, accordingly.</p>
+
+<p>The first <i>$epsilon</i> calling form is useful when all the elements of <i>@y</i> are in the same units and have the same typical size (e.g. y[10] is population aged 10-11 years, y[25] is population aged 25-26 years). The default value of the 4th argument is <i>$epsilon = 0.00001</i>.</p>
+
+<p>The second <i>errors</i> form is useful otherwise (e.g. $y[1] is gross national product, $y[2] is interest rate, or $y{&#39;gross national product&#39;} and $y{&#39;interest rate&#39;} accordingly. In this calling form, the permissible errors are specified in absolute size for each variable; they won&#39;t get scaled at all.</p>
+
+<p><i>rk4_auto</i> adjusts the timestep automatically to give the required precision. It does this by trying one full-timestep, then two half-timesteps, and comparing the results. (Merson&#39;s method, as used by <i>rk4</i>, was devised to be able to give an estimate of the remaining local error; for the record, it is <i>0.2*($ynp1[i]-$eta4[i])</i> in each term. <i>rk4_auto</i> does not exploit this feature because it only works for linear <i>dydt</i> functions of the form <i>Ay + bt</i>.)</p>
+
+<p><i>rk4_auto</i> needs 14 function evaluations per double-timestep, and it has to re-do 13 of those every time it adjusts the timestep.</p>
+
+<p><i>rk4_auto</i> returns ($t, $dt, @y) where $t, $dt and @y are now the new values at the completion of the timestep, or ($t, $dt, %y) accordingly.</p>
+
+</dd>
+<dt id="rk4_auto_midpoint-"><i>rk4_auto_midpoint</i>()</dt>
+<dd>
+
+<p><i>rk4_auto</i> performs a double timestep within $dt, and returns the final values; the values as they were at the midpoint do not normally get returned. However, if you want to draw a nice smooth graph, or to update a nice smoothly-moving display, those values as they were at the midpoint would be useful to you. Therefore, <i>rk4_auto_midpoint</i> provides a way of retrieving them.</p>
+
+<p>Note that you must call <i>rk4_auto</i> first, which returns the values at time $t+$dt, then <i>rk4_auto_midpoint</i> subsequently, which returns the values at $t+$dt/2, in other words you get the two sets of values out of their chronological order. Sorry about this. For example,</p>
+
+<pre><code><code> <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$t</span><span class="operator">&lt;</span><span class="variable">$tfinal</span><span class="operator">)</span> <span class="operator">{</span>
+   <span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">,</span> <span class="variable">@y</span><span class="operator">)</span> <span class="operator">=</span> <span class="operator">&amp;</span><span class="variable">rk4_auto</span><span class="operator">(\</span><span class="variable">@y</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">dydt</span><span class="operator">,</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$dt</span><span class="operator">,</span> <span class="variable">$epsilon</span><span class="operator">);</span>
+   <span class="operator">(</span><span class="variable">$t_midpoint</span><span class="operator">,</span> <span class="variable">@y_midpoint</span><span class="operator">)</span> <span class="operator">=</span> <span class="operator">&amp;</span><span class="variable">rk4_auto_midpoint</span><span class="operator">();</span>
+   <span class="operator">&amp;</span><span class="variable">update_display</span><span class="operator">(</span><span class="variable">$t_midpoint</span><span class="operator">,</span> <span class="variable">@y_midpoint</span><span class="operator">);</span>
+   <span class="operator">&amp;</span><span class="variable">update_display</span><span class="operator">(</span><span class="variable">$t</span><span class="operator">,</span> <span class="variable">@y</span><span class="operator">);</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p><i>rk4_auto_midpoint</i> returns ($t, @y) where $t and @y were the values at the midpoint of the previous call to <i>rk4_auto</i>; or ($t, %y) accordingly.</p>
+
+</dd>
+</dl>
+
+<h1 id="CALLER-SUPPLIED-SUBROUTINES">CALLER-SUPPLIED SUBROUTINES</h1>
+
+<dl>
+
+<dt id="dydt-t-y-"><i>dydt</i>( $t, @y );</dt>
+<dd>
+
+</dd>
+<dt id="dydt-t-y-1"><i>dydt</i>( $t, %y );</dt>
+<dd>
+
+<p>You will pass this subroutine by reference as the second argument to <i>rk2</i>, <i>rk4</i> and <i>rk4_auto</i>. The name doesn&#39;t matter of course. It must expect the following arguments: <i>$t</i> the time (in case the equations are time-dependent), <i>@y</i> the array of values of variables or <i>%y</i> the hash of values of variables.</p>
+
+<p>It must return an array (or hash, accordingly) of the derivatives of the variables with respect to time.</p>
+
+</dd>
+</dl>
+
+<h1 id="EXPORT_OK-SUBROUTINES">EXPORT_OK SUBROUTINES</h1>
+
+<p>The following routines are not exported by default, but are exported under the <i>ALL</i> tag, so if you need them you should:</p>
+
+<pre><code><code> <span class="variable">import</span> <span class="variable">Math::RungeKutta</span> <span class="string">qw(:ALL)</span><span class="operator">;</span>
+</code></code></pre>
+
+<dl>
+
+<dt id="rk4_classical-y-dydt-t-dt-"><i>rk4_classical</i>( \@y, \&amp;dydt, $t, $dt )</dt>
+<dd>
+
+</dd>
+<dt id="rk4_classical-y-dydt-t-dt-1"><i>rk4_classical</i>( \%y, \&amp;dydt, $t, $dt )</dt>
+<dd>
+
+<p>The arguments and the return values are the same as in <i>rk2</i> and <i>rk4</i>.</p>
+
+<p>The algorithm used is the classic, elegant, 4th-order Runge-Kutta method, using four function evaluations per timestep: k0 = dt * F(y(n)) k1 = dt * F(y(n) + 0.5*k0) k2 = dt * F(y(n) + 0.5*k1) k3 = dt * F(y(n) + k2) y(n+1) = y(n) + (k0 + 2*k1 + 2*k2 + k3) / 6</p>
+
+</dd>
+<dt id="rk4_ralston-y-dydt-t-dt-"><i>rk4_ralston</i>( \@y, \&amp;dydt, $t, $dt )</dt>
+<dd>
+
+</dd>
+<dt id="rk4_ralston-y-dydt-t-dt-1"><i>rk4_ralston</i>( \%y, \&amp;dydt, $t, $dt )</dt>
+<dd>
+
+<p>The arguments and the return values are the same as in <i>rk2</i> and <i>rk4</i>.</p>
+
+<p>The algorithm used is that developed by Ralston, which optimises <i>rk4_classical</i> to minimise the error bound on each timestep. This module does not use it as the default 4th-order method <i>rk4</i>, because Merson&#39;s algorithm generates greater accuracy, which allows the timestep to be increased, which more than compensates for the extra function evaluation.</p>
+
+</dd>
+</dl>
+
+<h1 id="EXAMPLES">EXAMPLES</h1>
+
+<p>There are a couple of example scripts in the <i>examples/</i> subdirectory of the build directory. You can use their code to help you get your first application going.</p>
+
+<dl>
+
+<dt id="sine-cosine"><i>sine-cosine</i></dt>
+<dd>
+
+<p>This script uses <i>Term::Clui</i> (arrow keys and Return, or q to quit) to offer a selection of algorithms, timesteps and error criteria for the integration of a simple sine/cosine wave around one complete cycle. This was the script used as a testbed during development.</p>
+
+</dd>
+<dt id="three-body"><i>three-body</i></dt>
+<dd>
+
+<p>This script uses the vt100 or xterm &#39;moveto&#39; and &#39;reverse&#39; sequences to display a little simulation of three-body gravity. It uses <i>rk4_auto</i> because a shorter timestep is needed when two bodies are close to each other. It also uses <i>rk4_auto_midpoint</i> to smooth the display. By changing the initial conditions you can experience how sensitively the outcome depends on them.</p>
+
+</dd>
+</dl>
+
+<h1 id="TRAPS-FOR-THE-UNWARY">TRAPS FOR THE UNWARY</h1>
+
+<p>Alas, things can go wrong in numerical integration.</p>
+
+<p>One of the most fundamental is <b>instability</b>. If you choose a timestep <i>$dt</i> much larger than time-constants implied in your derivative function <i>&amp;dydt</i>, then the numerical solution will oscillate wildy, and bear no relation to the real behaviour of the equations. If this happens, choose a shorter <i>$dt</i>.</p>
+
+<p>Some of the most difficult problems involve so-called <b>stiff</b> derivative functions. These arise when <i>&amp;dydt</i> introduces a wide range of time-constants, from very short to long. In order to avoid instability, you will have to set <i>$dt</i> to correspond to the shortest time-constant; but this makes it impossibly slow to follow the evolution of the system over longer times. You should try to separate out the long-term part of the problem, by expressing the short-term process as the finding of some equilibrium, and then assume that that equilibrium is present and solve the long-term problem on its own.</p>
+
+<p>Similarly, numerical integration doesn&#39;t enjoy problems where time-constants change suddenly, such as balls bouncing off hard surfaces, etc. You can often tackle these by intervening directly in the <i>@y</i> array between each timestep. For example, if <i>$y[17]</i> is the height of the ball above the floor, and <i>$y[20]</i> is the vertical component of the velocity, do something like</p>
+
+<pre><code><code> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$y</span><span class="operator">[</span><span class="number">17</span><span class="operator">]</span><span class="operator">&lt;</span><span class="number">0</span><span class="operator">.</span><span class="number">0</span><span class="operator">)</span> <span class="operator">{</span> <span class="variable">$y</span><span class="operator">[</span><span class="number">17</span><span class="operator">]</span><span class="operator">*=-</span><span class="number">0</span><span class="operator">.</span><span class="number">9</span><span class="operator">;</span> <span class="variable">$y</span><span class="operator">[</span><span class="number">20</span><span class="operator">]</span><span class="operator">*=-</span><span class="number">0</span><span class="operator">.</span><span class="number">9</span><span class="operator">;</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>and thus, again, let the numerical integration solve just the smooth part of the problem.</p>
+
+<h1 id="JAVASCRIPT">JAVASCRIPT</h1>
+
+<p>In the <code><code>js/</code></code> subdirectory of the install directory there is <i>RungeKutta.js</i>, which is an exact translation of this Perl code into JavaScript. The function names and arguments are unchanged. Brief Synopsis:</p>
+
+<pre><code><code> &lt;SCRIPT type=&quot;text/javascript&quot; src=&quot;RungeKutta.js&quot;&gt; &lt;/SCRIPT&gt;
+ &lt;SCRIPT type=&quot;text/javascript&quot;&gt;
+ var dydt = function (t, y) {  // the derivative function
+    var dydt_array = new Array(y.length); ... ; return dydt_array;
+ }
+ var y = new Array();
+
+ // For automatic timestep adjustment ...
+ y = initial_y(); var t=0; var dt=0.4;  // the initial conditions
+ // Arrays of return vaules:
+ var tmp_end = new Array(3);  var tmp_mid = new Array(2);
+ while (t &lt; tfinal) {
+    tmp_end = rk4_auto(y, dydt, t, dt, 0.00001);
+    tmp_mid = rk4_auto_midpoint();
+    t=tmp_mid[0]; y=tmp_mid[1];
+    display(t, y);   // e.g. could use wz_jsgraphics.js or SVG
+    t=tmp_end[0]; dt=tmp_end[1]; y=tmp_end[2];
+    display(t, y);
+ }
+
+ // Or, for fixed timesteps ...
+ y = post_ww2_y(); var t=1945; var dt=1;  // start in 1945
+ var tmp = new Array(2);  // Array of return values
+ while (t &lt;= 2100) {
+    tmp = rk4(y, dydt, t, dt);  // Merson&#39;s 4th-order method
+    t=tmp[0]; y=tmp[1];
+    display(t, y);
+ }
+ &lt;/SCRIPT&gt;</code></code></pre>
+
+<p><i>RungeKutta.js</i> uses several global variables which all begin with the letters <code><code>_rk_</code></code> so you should avoid introducing variables beginning with these characters.</p>
+
+<h1 id="LUA">LUA</h1>
+
+<p>In the <code><code>lua/</code></code> subdirectory of the install directory there is <i>RungeKutta.lua</i>, which is an exact translation of this Perl code into Lua. The function names and arguments are unchanged. Brief Synopsis:</p>
+
+<pre><code><code> <span class="keyword">local</span> <span class="variable">RK</span> <span class="operator">=</span> <span class="keyword">require</span> <span class="string">'RungeKutta'</span>
+ <span class="variable">function</span> <span class="variable">dydt</span><span class="operator">(</span><span class="variable">t</span><span class="operator">,</span> <span class="regex">y) -- the derivative function
+   -- y is the table of the values, dydt the table of the derivatives
+   local dydt = {}; ... ; return dydt
+ end
+ y = initial_y(); t=0; dt=0.4;  -- the initial conditions
+ -- For automatic timestep adjustment ...
+ while t &lt; tfinal do
+    t, dt, y = RK.rk4_auto(y, dydt, t, dt, 0.00001)</span>
+    <span class="variable">display</span><span class="operator">(</span><span class="variable">t</span><span class="operator">,</span> <span class="regex">y)
+ end
+ 
+ -- Or, for fixed timesteps ...
+ while t &lt; tfinal do
+   t, y = RK.rk4(y, dydt, t, dt)  -- Merson's 4th-order method
+   display(t, y)</span>
+ <span class="variable">end</span>
+ <span class="operator">--</span> <span class="variable">alternatively</span><span class="operator">,</span> <span class="variable">though</span> <span class="keyword">not</span> <span class="variable">so</span> <span class="variable">accurate</span> <span class="operator">...</span>
+ <span class="variable">t</span><span class="operator">,</span> <span class="regex">y = RK.rk2(y, dydt, t, dt)   -- Heun's 2nd-order method
+ 
+ -- or, also available ...
+ t, y = RK.rk4_classical(y, dydt, t, dt) -- Runge-Kutta 4th-order
+ t, y =</span> <span class="variable">RK</span><span class="operator">.</span><span class="variable">rk4_ralston</span><span class="operator">(</span><span class="regex">y, dydt, t,</span> <span class="variable">dt</span><span class="operator">)</span>   <span class="operator">--</span> <span class="variable">Ralston's</span> <span class="number">4</span><span class="variable">th</span><span class="operator">-</span><span class="variable">order</span>
+</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Peter J Billam, http://www.pjb.com.au/comp/contact.html</p>
+
+<h1 id="REFERENCES">REFERENCES</h1>
+
+<p><i>On the Accuracy of Runge-Kutta&#39;s Method</i>, M. Lotkin, MTAC, vol 5, pp 128-132, 1951</p>
+
+<p><i>An Operational Method for the study of Integration Processes</i>, R. H. Merson, Proceedings of a Symposium on Data Processing, Weapons Research Establishment, Salisbury, South Australia, 1957</p>
+
+<p><i>Numerical Solution of Ordinary and Partial Differential Equations</i>, L. Fox, Pergamon, 1962</p>
+
+<p><i>A First Course in Numerical Analysis</i>, A. Ralston, McGraw-Hill, 1965</p>
+
+<p><i>Numerical Initial Value Problems in Ordinary Differential Equations</i>, C. William Gear, Prentice-Hall, 1971</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>See also the scripts examples/sine-cosine and examples/three-body, http://www.pjb.com.au/, http://www.pjb.com.au/comp/, Math::WalshTransform, Math::Evol, Term::Clui, Crypt::Tea_JS, http://www.xmds.org/</p>
+
+
+</body>
+
+</html>
+
+

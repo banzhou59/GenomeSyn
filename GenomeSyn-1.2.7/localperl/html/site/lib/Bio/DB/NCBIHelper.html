@@ -1,0 +1,322 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#get_params">get_params</a></li>
+      <li><a href="#default_format">default_format</a></li>
+      <li><a href="#get_request">get_request</a></li>
+      <li><a href="#get_Stream_by_batch">get_Stream_by_batch</a></li>
+      <li><a href="#get_Stream_by_query">get_Stream_by_query</a></li>
+      <li><a href="#postprocess_data">postprocess_data</a></li>
+      <li><a href="#request_format">request_format</a></li>
+      <li><a href="#redirect_refseq">redirect_refseq</a></li>
+      <li><a href="#complexity">complexity</a></li>
+      <li><a href="#strand">strand</a></li>
+      <li><a href="#seq_start">seq_start</a></li>
+      <li><a href="#seq_stop">seq_stop</a></li>
+      <li><a href="#Bio::DB::WebDBSeqI-methods">Bio::DB::WebDBSeqI methods</a></li>
+      <li><a href="#get_Stream_by_acc">get_Stream_by_acc</a></li>
+      <li><a href="#check_id">_check_id</a></li>
+      <li><a href="#delay_policy">delay_policy</a></li>
+      <li><a href="#cookie">cookie</a></li>
+      <li><a href="#parse_response">_parse_response</a></li>
+      <li><a href="#no_redirect">no_redirect</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::NCBIHelper - A collection of routines useful for queries to NCBI databases.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="comment"># Do not use this module directly.</span>
+ 
+ <span class="comment"># get a Bio::DB::NCBIHelper object somehow</span>
+ <span class="keyword">my</span> <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Stream_by_acc</span><span class="operator">(</span><span class="operator">[</span><span class="string">'MUSIGHBA1'</span><span class="operator">]</span><span class="operator">);</span>
+ <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">(</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span> <span class="operator">)</span> <span class="operator">{</span>
+     <span class="comment"># process seq</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Provides a single place to setup some common methods for querying NCBI web databases. This module just centralizes the methods for constructing a URL for querying NCBI GenBank and NCBI GenPept and the common HTML stripping done in <a>postprocess_data</a>().</p>
+
+<p>The base NCBI query URL used is: http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web.</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</h1>
+
+<p>Email jason@bioperl.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="get_params">get_params</h2>
+
+<pre><code><code> Title   : get_params
+ Usage   : my %params = $self-&gt;get_params($mode)
+ Function: Returns key,value pairs to be passed to NCBI database
+           for either &#39;batch&#39; or &#39;single&#39; sequence retrieval method
+ Returns : a key,value pair hash
+ Args    : &#39;single&#39; or &#39;batch&#39; mode for retrieval</code></code></pre>
+
+<h2 id="default_format">default_format</h2>
+
+<pre><code><code> Title   : default_format
+ Usage   : my $format = $self-&gt;default_format
+ Function: Returns default sequence format for this module
+ Returns : string
+ Args    : none</code></code></pre>
+
+<h2 id="get_request">get_request</h2>
+
+<pre><code><code> Title   : get_request
+ Usage   : my $url = $self-&gt;get_request
+ Function: HTTP::Request
+ Returns : 
+ Args    : %qualifiers = a hash of qualifiers (ids, format, etc)</code></code></pre>
+
+<h2 id="get_Stream_by_batch">get_Stream_by_batch</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Stream_by_batch</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Stream_by_batch</span><span class="operator">(</span><span class="variable">$ref</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieves</span> <span class="variable">Seq</span> <span class="variable">objects</span> <span class="variable">from</span> <span class="variable">Entrez</span> <span class="string">'en masse'</span><span class="operator">,</span> <span class="variable">rather</span> <span class="variable">than</span> <span class="variable">one</span>
+            <span class="variable">at</span> <span class="variable">a</span> <span class="keyword">time</span><span class="operator">.</span>  <span class="variable">For</span> <span class="variable">large</span> <span class="variable">numbers</span> <span class="variable">of</span> <span class="variable">sequences</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">far</span> <span class="variable">superior</span>
+            <span class="variable">than</span> <span class="variable">get_Stream_by_</span><span class="operator">[</span><span class="variable">id</span><span class="operator">/</span><span class="variable">acc</span><span class="operator">]</span><span class="operator">().</span>
+  <span class="variable">Example</span> <span class="operator">:</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span> <span class="variable">stream</span> <span class="variable">object</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$ref</span> <span class="operator">:</span> <span class="variable">either</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">reference</span><span class="operator">,</span> <span class="variable">a</span> <span class="variable">filename</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">filehandle</span>
+            <span class="variable">from</span> <span class="variable">which</span> <span class="variable">to</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">unique</span> <span class="variable">ids</span><span class="operator">/</span><span class="variable">accession</span> <span class="variable">numbers</span><span class="operator">.</span>
+</code></code></pre>
+
+<p>NOTE: deprecated API. Use get_Stream_by_id() instead.</p>
+
+<h2 id="get_Stream_by_query">get_Stream_by_query</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Stream_by_query</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Stream_by_query</span><span class="operator">(</span><span class="variable">$query</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieves</span> <span class="variable">Seq</span> <span class="variable">objects</span> <span class="variable">from</span> <span class="variable">Entrez</span> <span class="string">'en masse'</span><span class="operator">,</span> <span class="variable">rather</span> <span class="variable">than</span> <span class="variable">one</span>
+            <span class="variable">at</span> <span class="variable">a</span> <span class="keyword">time</span><span class="operator">.</span>  <span class="variable">For</span> <span class="variable">large</span> <span class="variable">numbers</span> <span class="variable">of</span> <span class="variable">sequences</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">far</span> <span class="variable">superior</span>
+            <span class="variable">than</span> <span class="variable">get_Stream_by_</span><span class="operator">[</span><span class="variable">id</span><span class="operator">/</span><span class="variable">acc</span><span class="operator">]</span><span class="operator">().</span>
+  <span class="variable">Example</span> <span class="operator">:</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span> <span class="variable">stream</span> <span class="variable">object</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$query</span> <span class="operator">:</span>   <span class="variable">An</span> <span class="variable">Entrez</span> <span class="variable">query</span> <span class="variable">string</span> <span class="keyword">or</span> <span class="variable">a</span>
+            <span class="variable">Bio::DB::Query::GenBank</span> <span class="variable">object</span><span class="operator">.</span>  <span class="variable">It</span> <span class="variable">is</span> <span class="variable">suggested</span> <span class="variable">that</span> <span class="variable">you</span>
+            <span class="variable">create</span> <span class="variable">a</span> <span class="variable">Bio::DB::Query::GenBank</span> <span class="variable">object</span> <span class="keyword">and</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">entry</span>
+            <span class="variable">count</span> <span class="variable">before</span> <span class="variable">you</span> <span class="variable">fetch</span> <span class="variable">a</span> <span class="variable">potentially</span> <span class="variable">large</span> <span class="variable">stream</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="postprocess_data">postprocess_data</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">postprocess_data</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">postprocess_data</span> <span class="operator">(</span> <span class="string">'type'</span> <span class="operator">=&gt;</span> <span class="string">'string'</span><span class="operator">,</span>
+                                                         <span class="string">'location'</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">$datastr</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">process</span> <span class="variable">downloaded</span> <span class="variable">data</span> <span class="variable">before</span> <span class="variable">loading</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">void</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">hash</span> <span class="variable">with</span> <span class="variable">two</span> <span class="keyword">keys</span> <span class="operator">-</span> <span class="string">'type'</span> <span class="variable">can</span> <span class="variable">be</span> <span class="string">'string'</span> <span class="keyword">or</span> <span class="string">'file'</span>
+                              <span class="operator">-</span> <span class="string">'location'</span> <span class="variable">either</span> <span class="variable">file</span> <span class="variable">location</span> <span class="keyword">or</span> <span class="variable">string</span> 
+                                           <span class="variable">reference</span> <span class="variable">containing</span> <span class="variable">data</span>
+</code></code></pre>
+
+<h2 id="request_format">request_format</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">request_format</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$req_format</span><span class="operator">,</span> <span class="variable">$ioformat</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">request_format</span><span class="operator">;</span>
+           <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">request_format</span><span class="operator">(</span><span class="string">"genbank"</span><span class="operator">);</span>
+           <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">request_format</span><span class="operator">(</span><span class="string">"fasta"</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">sequence</span> <span class="keyword">format</span> <span class="variable">retrieval</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">get</span><span class="operator">-</span><span class="variable">form</span> <span class="variable">will</span> <span class="variable">normally</span> <span class="keyword">not</span>
+           <span class="variable">be</span> <span class="variable">used</span> <span class="variable">outside</span> <span class="variable">of</span> <span class="variable">this</span> <span class="keyword">and</span> <span class="variable">derived</span> <span class="variable">modules</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">of</span> <span class="variable">two</span> <span class="variable">strings</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">representing</span> <span class="variable">the</span> <span class="keyword">format</span> <span class="keyword">for</span>
+           <span class="variable">retrieval</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">the</span> <span class="variable">second</span> <span class="variable">specifying</span> <span class="variable">the</span> <span class="variable">corresponding</span> <span class="variable">SeqIO</span> <span class="keyword">format</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$format</span> <span class="operator">=</span> <span class="variable">sequence</span> <span class="keyword">format</span>
+</code></code></pre>
+
+<h2 id="redirect_refseq">redirect_refseq</h2>
+
+<pre><code><code> Title   : redirect_refseq
+ Usage   : $db-&gt;redirect_refseq(1)
+ Function: simple getter/setter which redirects RefSeqs to use Bio::DB::RefSeq
+ Returns : Boolean value
+ Args    : Boolean value (optional)
+ Throws  : &#39;unparseable output exception&#39;
+ Note    : This replaces &#39;no_redirect&#39; as a more straightforward flag to
+           redirect possible RefSeqs to use Bio::DB::RefSeq (EBI interface)
+           instead of retrievign the NCBI records</code></code></pre>
+
+<h2 id="complexity">complexity</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">complexity</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">complexity</span><span class="operator">(</span><span class="number">3</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">complexity</span> <span class="variable">value</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">value</span> <span class="variable">from</span> <span class="number">0</span><span class="operator">-</span><span class="number">4</span> <span class="variable">indicating</span> <span class="variable">level</span> <span class="variable">of</span> <span class="variable">complexity</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">value</span> <span class="variable">from</span> <span class="number">0</span><span class="operator">-</span><span class="number">4</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">);</span> <span class="keyword">if</span> <span class="variable">unset</span> <span class="variable">server</span> <span class="variable">assumes</span> <span class="number">1</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="keyword">if</span> <span class="variable">arg</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">an</span> <span class="variable">integer</span> <span class="keyword">or</span> <span class="variable">falls</span> <span class="variable">outside</span> <span class="variable">of</span> <span class="variable">noted</span> <span class="variable">range</span> <span class="variable">above</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">From</span> <span class="variable">efetch</span> <span class="variable">docs</span><span class="operator">:</span>
+ 
+    <span class="variable">Complexity</span> <span class="variable">regulates</span> <span class="variable">the</span> <span class="variable">display</span><span class="operator">:</span>
+ 
+       <span class="operator">*</span> <span class="number">0</span> <span class="operator">-</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">whole</span> <span class="variable">blob</span>
+       <span class="operator">*</span> <span class="number">1</span> <span class="operator">-</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">bioseq</span> <span class="keyword">for</span> <span class="variable">gi</span> <span class="variable">of</span> <span class="variable">interest</span> <span class="operator">(</span><span class="keyword">default</span> <span class="variable">in</span> <span class="variable">Entrez</span><span class="operator">)</span>
+       <span class="operator">*</span> <span class="number">2</span> <span class="operator">-</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">minimal</span> <span class="variable">bioseq</span><span class="operator">-</span><span class="variable">set</span> <span class="variable">containing</span> <span class="variable">the</span> <span class="variable">gi</span> <span class="variable">of</span> <span class="variable">interest</span>
+       <span class="operator">*</span> <span class="number">3</span> <span class="operator">-</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">minimal</span> <span class="variable">nuc</span><span class="operator">-</span><span class="variable">prot</span> <span class="variable">containing</span> <span class="variable">the</span> <span class="variable">gi</span> <span class="variable">of</span> <span class="variable">interest</span>
+       <span class="operator">*</span> <span class="number">4</span> <span class="operator">-</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">minimal</span> <span class="variable">pub</span><span class="operator">-</span><span class="variable">set</span> <span class="variable">containing</span> <span class="variable">the</span> <span class="variable">gi</span> <span class="variable">of</span> <span class="variable">interest</span>
+</code></code></pre>
+
+<h2 id="strand">strand</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">strand</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">strand</span><span class="operator">(</span><span class="number">1</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">strand</span> <span class="variable">value</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">strand</span> <span class="variable">value</span> <span class="keyword">if</span> <span class="variable">set</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="number">1</span> <span class="operator">(</span><span class="variable">plus</span><span class="operator">)</span> <span class="keyword">or</span> <span class="number">2</span> <span class="operator">(</span><span class="variable">minus</span><span class="operator">);</span> <span class="keyword">if</span> <span class="variable">unset</span> <span class="variable">server</span> <span class="variable">assumes</span> <span class="number">1</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="keyword">if</span> <span class="variable">arg</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">an</span> <span class="variable">integer</span> <span class="keyword">or</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="number">1</span> <span class="keyword">or</span> <span class="number">2</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">This</span> <span class="variable">differs</span> <span class="variable">from</span> <span class="variable">BioPerl's</span> <span class="keyword">use</span> <span class="variable">of</span> <span class="variable">strand</span><span class="operator">:</span> <span class="number">1</span> <span class="operator">=</span> <span class="variable">plus</span><span class="operator">,</span> <span class="operator">-</span><span class="number">1</span> <span class="operator">=</span> <span class="variable">minus</span> <span class="number">0</span> <span class="operator">=</span> <span class="keyword">not</span> <span class="variable">relevant</span><span class="operator">.</span>
+           <span class="variable">We</span> <span class="variable">should</span> <span class="variable">probably</span> <span class="variable">add</span> <span class="variable">in</span> <span class="variable">some</span> <span class="variable">functionality</span> <span class="variable">to</span> <span class="variable">convert</span> <span class="variable">over</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">future</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="seq_start">seq_start</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">seq_start</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">seq_start</span><span class="operator">(</span><span class="number">123</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">sequence</span> <span class="variable">start</span> <span class="variable">location</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">sequence</span> <span class="variable">start</span> <span class="variable">value</span> <span class="keyword">if</span> <span class="variable">set</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">integer</span><span class="operator">;</span> <span class="keyword">if</span> <span class="variable">unset</span> <span class="variable">server</span> <span class="variable">assumes</span> <span class="number">1</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="keyword">if</span> <span class="variable">arg</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">an</span> <span class="variable">integer</span>
+</code></code></pre>
+
+<h2 id="seq_stop">seq_stop</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">seq_stop</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">seq_stop</span><span class="operator">(</span><span class="number">456</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">sequence</span> <span class="variable">stop</span> <span class="operator">(</span><span class="variable">end</span><span class="operator">)</span> <span class="variable">location</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">sequence</span> <span class="variable">stop</span> <span class="operator">(</span><span class="variable">end</span><span class="operator">)</span> <span class="variable">value</span> <span class="keyword">if</span> <span class="variable">set</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">integer</span><span class="operator">;</span> <span class="keyword">if</span> <span class="variable">unset</span> <span class="variable">server</span> <span class="variable">assumes</span> <span class="number">1</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="keyword">if</span> <span class="variable">arg</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">an</span> <span class="variable">integer</span>
+</code></code></pre>
+
+<h2 id="Bio::DB::WebDBSeqI-methods">Bio::DB::WebDBSeqI methods</h2>
+
+<p>Overriding WebDBSeqI method to help newbies to retrieve sequences</p>
+
+<h2 id="get_Stream_by_acc">get_Stream_by_acc</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Stream_by_acc</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Stream_by_acc</span><span class="operator">(</span><span class="operator">[</span><span class="variable">$acc1</span><span class="operator">,</span> <span class="variable">$acc2</span><span class="operator">]</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">a</span> <span class="variable">series</span> <span class="variable">of</span> <span class="variable">Seq</span> <span class="variable">objects</span> <span class="variable">by</span> <span class="variable">accession</span> <span class="variable">numbers</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span> <span class="variable">stream</span> <span class="variable">object</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$ref</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">accession</span> <span class="variable">numbers</span> <span class="keyword">for</span>
+                   <span class="variable">the</span> <span class="variable">desired</span> <span class="variable">sequence</span> <span class="variable">entries</span>
+  <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">For</span> <span class="variable">GenBank</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">just</span> <span class="variable">calls</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">code</span> <span class="keyword">for</span> <span class="variable">get_Stream_by_id</span><span class="operator">()</span>
+</code></code></pre>
+
+<h2 id="check_id">_check_id</h2>
+
+<pre><code><code>  Title   : _check_id
+  Usage   : 
+  Function: 
+  Returns : A Bio::DB::RefSeq reference or throws
+  Args    : $id(s), $string</code></code></pre>
+
+<h2 id="delay_policy">delay_policy</h2>
+
+<pre><code><code>  Title   : delay_policy
+  Usage   : $secs = $self-&gt;delay_policy
+  Function: return number of seconds to delay between calls to remote db
+  Returns : number of seconds to delay
+  Args    : none
+
+  NOTE: NCBI requests a delay of 3 seconds between requests.  This method
+        implements that policy.</code></code></pre>
+
+<h2 id="cookie">cookie</h2>
+
+<pre><code><code> Title   : cookie
+ Usage   : ($cookie,$querynum) = $db-&gt;cookie
+ Function: return the NCBI query cookie
+ Returns : list of (cookie,querynum)
+ Args    : none</code></code></pre>
+
+<p>NOTE: this information is used by Bio::DB::GenBank in conjunction with efetch.</p>
+
+<h2 id="parse_response">_parse_response</h2>
+
+<pre><code><code> Title   : _parse_response
+ Usage   : $db-&gt;_parse_response($content)
+ Function: parse out response for cookie
+ Returns : empty
+ Args    : none
+ Throws  : &#39;unparseable output exception&#39;</code></code></pre>
+
+<h2 id="no_redirect">no_redirect</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">no_redirect</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">no_redirect</span><span class="operator">(</span><span class="variable">$content</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Used</span> <span class="variable">to</span> <span class="variable">indicate</span> <span class="variable">that</span> <span class="variable">Bio::DB::GenBank</span> <span class="variable">instance</span> <span class="variable">retrieves</span>
+           <span class="variable">possible</span> <span class="variable">RefSeqs</span> <span class="variable">from</span> <span class="variable">EBI</span> <span class="variable">instead</span><span class="operator">;</span> <span class="keyword">default</span> <span class="variable">behavior</span> <span class="variable">is</span> <span class="variable">now</span> <span class="variable">to</span>
+           <span class="variable">retrieve</span> <span class="variable">directly</span> <span class="variable">from</span> <span class="variable">NCBI</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">None</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="variable">Method</span> <span class="variable">is</span> <span class="variable">deprecated</span> <span class="variable">in</span> <span class="variable">favor</span> <span class="variable">of</span> <span class="variable">positive</span> <span class="variable">flag</span> <span class="variable">method</span> <span class="string">'redirect_refseq'</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

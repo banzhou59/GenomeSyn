@@ -1,0 +1,148 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Stefan-Kirov">AUTHOR - Stefan Kirov</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+  <li><a href="#process_products_coordinates">_process_products_coordinates</a></li>
+  <li><a href="#process_prop">_process_prop</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqIO::entrezgene - Entrez Gene ASN1 parser</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+   
+   <span class="comment"># don't instantiate directly - instead do</span>
+   <span class="keyword">my</span> <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'entrezgene'</span><span class="operator">,</span>
+                               <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$file</span><span class="operator">);</span>
+   <span class="keyword">my</span> <span class="variable">$gene</span> <span class="operator">=</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is EntrezGene ASN bioperl parser. It is built on top of <a>Bio::ASN1::EntrezGene</a>, a low level ASN parser built by Mingyi Liu (<a href="http://sourceforge.net/projects/egparser">http://sourceforge.net/projects/egparser</a>). The easiest way to use it is shown above.</p>
+
+<p>You will get most of the Entrez Gene annotation such as gene symbol, gene name and description, accession numbers associated with the gene, etc. Almost all of these are given as <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/AnnotationI.html">Bio::AnnotationI</a> objects.</p>
+
+<p>If you need all the data do:</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'entrezgene'</span><span class="operator">,</span>
+                               <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$file</span><span class="operator">,</span>
+                               <span class="string">-debug</span> <span class="operator">=&gt;</span> <span class="string">'on'</span> <span class="operator">);</span>
+   <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$gene</span><span class="operator">,</span><span class="variable">$genestructure</span><span class="operator">,</span><span class="variable">$uncaptured</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The second variable returned, <code><code>$genestructure</code></code>, is a <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Cluster/SequenceFamily.html">Bio::Cluster::SequenceFamily</a> object. It contains all Refseqs and the genomic contigs that are associated with the particular gene. The third variable, <code><code>$uncaptured</code></code>, is a reference to a plain array.</p>
+
+<p>You can also modify the output to allow back compatibility with the old LocusLink parser:</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'entrezgene'</span><span class="operator">,</span>
+                               <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$file</span><span class="operator">,</span>
+                               <span class="string">-locuslink</span> <span class="operator">=&gt;</span> <span class="string">'convert'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The <code><code>-debug</code></code> and <code><code>-locuslink</code></code> options slow down the parser.</p>
+
+<p>Example code which looks for ontology terms:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$eio</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::SeqIO</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$file</span><span class="operator">,</span>
+                           <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'entrezgene'</span><span class="operator">,</span>
+                           <span class="string">-service_record</span> <span class="operator">=&gt;</span> <span class="string">'yes'</span><span class="operator">);</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$eio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">my</span> <span class="variable">$gid</span> <span class="operator">=</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">accession_number</span><span class="operator">;</span>
+    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$ot</span> <span class="operator">(</span><span class="variable">$ann</span><span class="operator">-&gt;</span><span class="variable">get_Annotations</span><span class="operator">(</span><span class="string">'OntologyTerm'</span><span class="operator">))</span> <span class="operator">{</span>
+      <span class="keyword">next</span> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$ot</span><span class="operator">-&gt;</span><span class="variable">term</span><span class="operator">-&gt;</span><span class="variable">authority</span> <span class="keyword">eq</span> <span class="string">'STS marker'</span><span class="operator">);</span> <span class="comment"># No STS markers</span>
+      <span class="keyword">my</span> <span class="variable">$evid</span> <span class="operator">=</span> <span class="variable">$ot</span><span class="operator">-&gt;</span><span class="variable">comment</span><span class="operator">;</span>
+      <span class="variable">$evid</span> <span class="operator">=~</span> <span class="regex">s/evidence: //i</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">@ref</span> <span class="operator">=</span> <span class="variable">$ot</span><span class="operator">-&gt;</span><span class="variable">term</span><span class="operator">-&gt;</span><span class="variable">get_references</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">$id</span> <span class="operator">=</span> <span class="variable">$ot</span><span class="operator">-&gt;</span><span class="variable">identifier</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">$fid</span> <span class="operator">=</span> <span class="string">'GO:'</span> <span class="operator">.</span> <span class="keyword">sprintf</span><span class="operator">(</span><span class="string">"%07u"</span><span class="operator">,</span><span class="variable">$id</span><span class="operator">);</span>
+      <span class="keyword">print</span> <span class="keyword">join</span><span class="operator">(</span><span class="string">"\t"</span><span class="operator">,</span><span class="variable">$gid</span><span class="operator">,</span> <span class="variable">$ot</span><span class="operator">-&gt;</span><span class="variable">ontology</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">,</span> <span class="variable">$ot</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">,</span> <span class="variable">$evid</span><span class="operator">,</span>
+        <span class="variable">$fid</span><span class="operator">,</span> <span class="variable">@ref</span><span class="operator">?</span><span class="variable">$ref</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="variable">medline</span><span class="operator">:</span><span class="string">''</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Stefan-Kirov">AUTHOR - Stefan Kirov</h1>
+
+<p>Email skirov at utk.edu</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Hilmar Lapp, hlapp at gmx.net</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>This parser is based on Bio::ASN1::EntrezGene module.</p>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h1 id="process_products_coordinates">_process_products_coordinates</h1>
+
+<p>To do:</p>
+
+<h1 id="process_prop">_process_prop</h1>
+
+<p>To do: process GO</p>
+
+
+</body>
+
+</html>
+
+

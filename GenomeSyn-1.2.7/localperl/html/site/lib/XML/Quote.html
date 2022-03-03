@@ -1,0 +1,125 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FUNCTIONS">FUNCTIONS</a></li>
+  <li><a href="#EXPORT">EXPORT</a></li>
+  <li><a href="#PERFORMANCE">PERFORMANCE</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>XML::Quote - XML quote/dequote functions</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">XML::Quote</span> <span class="string">qw(:all)</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$str</span><span class="operator">=</span><span class="string">q{666 &gt; 444 &amp; "apple" &lt; 'earth'}</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="variable">xml_quote</span><span class="operator">(</span><span class="variable">$str</span><span class="operator">),</span><span class="string">"\n"</span><span class="operator">;</span>
+  <span class="comment"># 666 &amp;gt; 444 &amp;amp; &amp;quot;apple&amp;quot; &amp;lt; &amp;apos;earth&amp;apos;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$str2</span><span class="operator">=</span><span class="string">q{666 &amp;gt; 444 &amp;amp; &amp;quot;apple&amp;quot; &amp;lt; &amp;apos;earth&amp;apos;}</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="variable">xml_dequote</span><span class="operator">(</span><span class="variable">$str2</span><span class="operator">),</span><span class="string">"\n"</span><span class="operator">;</span>
+  <span class="comment"># 666 &gt; 444 &amp; "apple" &lt; 'earth'</span>
+  
+  <span class="keyword">my</span> <span class="variable">$str3</span><span class="operator">=</span><span class="string">q{666 &gt; 444 &amp; "apple" &lt; 'earth'}</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="variable">xml_quote_min</span><span class="operator">(</span><span class="variable">$str3</span><span class="operator">),</span><span class="string">"\n"</span><span class="operator">;</span>
+  <span class="comment"># 666 &gt; 444 &amp;amp; &amp;quot;apple&amp;quot; &amp;lt; 'earth'</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module provides functions to quote/dequote strings in &quot;xml&quot;-way.</p>
+
+<p>All functions are written in XS and are very fast; they correctly process utf8, tied, overloaded variables and all the rest of perl &quot;magic&quot;.</p>
+
+<h1 id="FUNCTIONS">FUNCTIONS</h1>
+
+<dl>
+
+<dt id="quoted-xml_quote-str-">$quoted = xml_quote($str);</dt>
+<dd>
+
+<p>This function replaces all occurences of symbols &#39;&amp;&#39;, &#39;&quot;&#39;, &#39;&#39;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39; to &#39;&amp;amp;&#39;, &#39;&amp;quot;&#39;, &#39;&amp;apos;&#39;, &#39;&amp;gt;&#39;, &#39;&amp;lt;&#39; respectively.</p>
+
+<p>Returns quoted string or undef if $str is undef.</p>
+
+</dd>
+<dt id="dequoted-xml_dequote-str-">$dequoted = xml_dequote($str);</dt>
+<dd>
+
+<p>This function replaces all occurences of &#39;&amp;amp;&#39;, &#39;&amp;quot;&#39;, &#39;&amp;apos;&#39;, &#39;&amp;gt;&#39;, &#39;&amp;lt;&#39; to &#39;&amp;&#39;, &#39;&quot;&#39;, &#39;&#39;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39; respectively. All other entities (for example &amp;nbsp;) will not be touched.</p>
+
+<p>Returns dequoted string or undef if $str is undef.</p>
+
+</dd>
+<dt id="quoted-xml_quote_min-str-">$quoted = xml_quote_min($str);</dt>
+<dd>
+
+<p>This function replaces all occurences of symbols &#39;&amp;&#39;, &#39;&quot;&#39;, &#39;&lt;&#39; to &#39;&amp;amp;&#39;, &#39;&amp;quot;&#39;, &#39;&amp;lt;&#39; respectively. Symbols &#39;&#39;&#39; and &#39;&gt;&#39; are not replaced.</p>
+
+<p>Returns quoted string or undef if $str is undef.</p>
+
+</dd>
+</dl>
+
+<h1 id="EXPORT">EXPORT</h1>
+
+<p>xml_quote(), xml_dequote() are exported as default.</p>
+
+<h1 id="PERFORMANCE">PERFORMANCE</h1>
+
+<p>You can use t/benchmark.pl to test the perfomance. Here is the result on my P4 box.</p>
+
+<pre><code><code>  Benchmark: timing 1000000 iterations of perl quote, xs quote...
+  perl quote: 108 wallclock secs (88.08 usr +  0.01 sys = 88.09 CPU) @ 11351.64/s (n=1000000)
+    xs quote: 20 wallclock secs (16.78 usr +  0.00 sys = 16.78 CPU) @ 59591.20/s (n=1000000)
+
+  Benchmark: timing 1000000 iterations of perl dequote, xs dequote...
+  perl dequote: 106 wallclock secs (85.22 usr +  0.09 sys = 85.31 CPU) @ 11721.54/s (n=1000000)
+    xs dequote: 19 wallclock secs (15.92 usr +  0.02 sys = 15.94 CPU) @ 62743.13/s (n=1000000)</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Sergey Skvortsov &lt;skv@protey.ru&gt;</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="http://www.w3.org/TR/REC-xml">http://www.w3.org/TR/REC-xml</a>, <a href="../../../lib/pod/perlre.html">perlre</a></p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright 2003 Sergey Skvortsov &lt;skv@protey.ru&gt;. All rights reserved.</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

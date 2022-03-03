@@ -1,0 +1,279 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Pass-through-behavior">Pass through behavior</a></li>
+    </ul>
+  </li>
+  <li><a href="#SKELETON-BOULDER-PROGRAM">SKELETON BOULDER PROGRAM</a></li>
+  <li><a href="#Boulder::Stream-METHODS">Boulder::Stream METHODS</a>
+    <ul>
+      <li><a href="#stream-Boulder::Stream-new-IN-OUT-">$stream = Boulder::Stream-&gt;new(*IN,*OUT)</a></li>
+      <li><a href="#stream-Boulder::Stream-new--in-IN--out-OUT-">$stream = Boulder::Stream-&gt;new(-in=&gt;*IN,-out=&gt;*OUT)</a></li>
+      <li><a href="#fh-Boulder::Stream-newFh--in-IN--out-OUT-">$fh = Boulder::Stream-&gt;newFh(-in=&gt;*IN, -out=&gt;*OUT)</a></li>
+      <li><a href="#stone-stream-get-taglist-">$stone = $stream-&gt;get(@taglist)</a></li>
+      <li><a href="#stones-stream-get-taglist-">@stones = $stream-&gt;get(@taglist)</a></li>
+      <li><a href="#stone-stream-read_record-taglist-">$stone = $stream-&gt;read_record(@taglist)</a></li>
+      <li><a href="#stream-put-stone-">$stream-&gt;put($stone)</a></li>
+      <li><a href="#stream-write_record-stone-">$stream-&gt;write_record($stone)</a></li>
+      <li><a href="#Useful-State-Variables-in-a-Boulder::Stream">Useful State Variables in a Boulder::Stream</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Boulder::Stream - Read and write tag/value data from an input stream</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="comment">#!/bin/perl</span>
+   <span class="comment"># Read a series of People records from STDIN.</span>
+   <span class="comment"># Add an "Eligible" tag to all those whose</span>
+   <span class="comment"># Age &gt;= 35 and Friends list includes "Fred"</span>
+   <span class="keyword">use</span> <span class="variable">Boulder::Stream</span><span class="operator">;</span>
+   
+   <span class="comment"># filestream way:</span>
+   <span class="keyword">my</span> <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Stream</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">;</span>
+   <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$record</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$stream</span><span class="operator">&gt;</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">Age</span> <span class="operator">&gt;=</span> <span class="number">35</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">@friends</span> <span class="operator">=</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">Friends</span><span class="operator">;</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="keyword">grep</span> <span class="operator">{</span><span class="variable">$_</span> <span class="keyword">eq</span> <span class="string">'Fred'</span><span class="operator">}</span> <span class="variable">@friends</span><span class="operator">;</span>
+   
+      <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="string">Eligible</span> <span class="operator">=&gt;</span> <span class="string">'yes'</span><span class="operator">);</span>
+      <span class="keyword">print</span> <span class="variable">$stream</span> <span class="variable">$record</span><span class="operator">;</span>
+    <span class="operator">}</span>
+   
+    <span class="comment"># object oriented way:</span>
+   <span class="keyword">my</span> <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Stream</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+   <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$record</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">get</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">Age</span> <span class="operator">&gt;=</span> <span class="number">35</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">@friends</span> <span class="operator">=</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">Friends</span><span class="operator">;</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="keyword">grep</span> <span class="operator">{</span><span class="variable">$_</span> <span class="keyword">eq</span> <span class="string">'Fred'</span><span class="operator">}</span> <span class="variable">@friends</span><span class="operator">;</span>
+   
+      <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="string">Eligible</span> <span class="operator">=&gt;</span> <span class="string">'yes'</span><span class="operator">);</span>
+      <span class="keyword">print</span> <span class="variable">$stream</span> <span class="variable">$record</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Boulder::Stream provides stream-oriented access to <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder.html">Boulder</a> IO hierarchical tag/value data. It can be used in a magic tied filehandle mode, as shown in the synopsis, or in object-oriented mode. Using tied filehandles, <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Stone.html">Stone</a> objects are read from input using the standard &lt;&gt; operator. Stone objects printed to the tied filehandle appear on the output stream in <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder.html">Boulder</a> format.</p>
+
+<p>By default, data is read from the magic ARGV filehandle (STDIN or a list of files provided on the command line) and written to STDOUT. This can be changed to the filehandles of your choice.</p>
+
+<h2 id="Pass-through-behavior">Pass through behavior</h2>
+
+<p>When using the object-oriented form of Boulder::Stream, tags which aren&#39;t specifically requested by the get() method are passed through to output unchanged. This allows pipes of programs to be constructed easily. Most programs will want to put the tags back into the boulder stream once they&#39;re finished, potentially adding their own. Of course some programs will want to behave differently. For example, a database query program will generate but not read a <b>boulderio</b> stream, while a report generator will read but not write the stream.</p>
+
+<p>This convention allows the following type of pipe to be set up:</p>
+
+<pre><code><code>  query_database | find_vector | find_dups | \
+    | blast_sequence | pick_primer | mail_report</code></code></pre>
+
+<p>If all the programs in the pipe follow the conventions, then it will be possible to interpose other programs, such as a repetitive element finder, in the middle of the pipe without disturbing other components.</p>
+
+<h1 id="SKELETON-BOULDER-PROGRAM">SKELETON BOULDER PROGRAM</h1>
+
+<p>Here is a skeleton example.</p>
+
+<pre><code><code>   <span class="comment">#!/bin/perl</span>
+   <span class="keyword">use</span> <span class="variable">Boulder::Stream</span><span class="operator">;</span>
+   
+   <span class="keyword">my</span> <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Stream</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">;</span>
+   
+   <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$record</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$stream</span><span class="operator">&gt;</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">Age</span> <span class="operator">&gt;=</span> <span class="number">35</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">@friends</span> <span class="operator">=</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">Friends</span><span class="operator">;</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="keyword">grep</span> <span class="operator">{</span><span class="variable">$_</span> <span class="keyword">eq</span> <span class="string">'Fred'</span><span class="operator">}</span> <span class="variable">@friends</span><span class="operator">;</span>
+   
+      <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="string">Eligible</span> <span class="operator">=&gt;</span> <span class="string">'yes'</span><span class="operator">);</span>
+      <span class="keyword">print</span> <span class="variable">$stream</span> <span class="variable">$record</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>The code starts by creating a <b>Boulder::Stream</b> object to handle the I/O. It reads from the stream one record at a time, returning a <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Stone.html">Stone</a> object. We recover the <i>Age</i> and <i>Friends</i> tags, and continue looping unless the Age is greater or equal to 35, and the list of Friends contains &quot;Fred&quot;. If these criteria match, then we insert a new tag named Eligible and print the record to the stream. The output may look like this:</p>
+
+<pre><code><code>  Name=Janice
+  Age=36
+  Eligible=yes
+  Friends=Susan
+  Friends=Fred
+  Friends=Ralph
+  =
+  Name=Ralph
+  Age=42
+  Eligible=yes
+  Friends=Janice
+  Friends=Fred
+  =
+  Name=Susan
+  Age=35
+  Eligible=yes
+  Friends=Susan
+  Friends=Fred
+  =</code></code></pre>
+
+<p>Note that in this case only records that meet the criteria are echoed to standard output. The object-oriented version of the program looks like this:</p>
+
+<pre><code><code>   <span class="comment">#!/bin/perl</span>
+   <span class="keyword">use</span> <span class="variable">Boulder::Stream</span><span class="operator">;</span>
+   
+   <span class="keyword">my</span> <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Stream</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+   
+   <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$record</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">get</span><span class="operator">(</span><span class="string">'Age'</span><span class="operator">,</span><span class="string">'Friends'</span><span class="operator">)</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">Age</span> <span class="operator">&gt;=</span> <span class="number">35</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">@friends</span> <span class="operator">=</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">Friends</span><span class="operator">;</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="keyword">grep</span> <span class="operator">{</span><span class="variable">$_</span> <span class="keyword">eq</span> <span class="string">'Fred'</span><span class="operator">}</span> <span class="variable">@friends</span><span class="operator">;</span>
+   
+      <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="string">Eligible</span> <span class="operator">=&gt;</span> <span class="string">'yes'</span><span class="operator">);</span>
+      <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">put</span><span class="operator">(</span><span class="variable">$record</span><span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>The get() method is used to fetch Stones containing one or more of the indicated tags. The put() method is used to send the result to standard output. The pass-through behavior might produce a set of records like this one:</p>
+
+<pre><code><code>  Name=Janice
+  Age=36
+  Eligible=yes
+  Friends=Susan
+  Friends=Fred
+  Friends=Ralph
+  =
+  Name=Phillip
+  Age=30
+  =
+  Name=Ralph
+  Age=42
+  Eligible=yes
+  Friends=Janice
+  Friends=Fred
+  =
+  Name=Barbara
+  Friends=Agatha
+  Friends=Janice
+  =
+  Name=Susan
+  Age=35
+  Eligible=yes
+  Friends=Susan
+  Friends=Fred
+  =</code></code></pre>
+
+<p>Notice that there are now two records (&quot;Phillip&quot; and &quot;Barbara&quot;) that do not contain the Eligible tag.</p>
+
+<h1 id="Boulder::Stream-METHODS">Boulder::Stream METHODS</h1>
+
+<h2 id="stream-Boulder::Stream-new-IN-OUT-">$stream = Boulder::Stream-&gt;new(*IN,*OUT)</h2>
+
+<h2 id="stream-Boulder::Stream-new--in-IN--out-OUT-">$stream = Boulder::Stream-&gt;new(-in=&gt;*IN,-out=&gt;*OUT)</h2>
+
+<p>The <b>new()</b> method creates a new <b>Boulder::Stream</b> object. You can provide input and output filehandles. If you leave one or both undefined <b>new()</b> will default to standard input or standard output. You are free to use files, pipes, sockets, and other types of file handles. You may provide the filehandle arguments as bare words, globs, or glob refs. You are also free to use the named argument style shown in the second heading.</p>
+
+<h2 id="fh-Boulder::Stream-newFh--in-IN--out-OUT-">$fh = Boulder::Stream-&gt;newFh(-in=&gt;*IN, -out=&gt;*OUT)</h2>
+
+<p>Returns a filehandle object tied to a Boulder::Stream object. Reads on the filehandle perform a get(). Writes invoke a put().</p>
+
+<p>To retrieve the underlying Boulder::Stream object, call Perl&#39;s built-in tied() function:</p>
+
+<pre><code><code>  <span class="variable">$stream</span> <span class="operator">=</span> <span class="keyword">tied</span> <span class="variable">$fh</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="stone-stream-get-taglist-">$stone = $stream-&gt;get(@taglist)</h2>
+
+<h2 id="stones-stream-get-taglist-">@stones = $stream-&gt;get(@taglist)</h2>
+
+<p>Every time get() is called, it will return a new Stone object. The Stone will be created from the input stream, using just the tags provided in the argument list. Pass no tags to receive whatever tags are present in the input stream.</p>
+
+<p>If none of the tags that you specify are in the current boulder record, you will receive an empty <b>Stone</b>. At the end of the input stream, you will receive <b>undef</b>.</p>
+
+<p>If called in an array context, get() returns a list of all stones from the input stream that contain one or more of the specified tags.</p>
+
+<h2 id="stone-stream-read_record-taglist-">$stone = $stream-&gt;read_record(@taglist)</h2>
+
+<p>Identical to get(&gt;, but the name is longer.</p>
+
+<h2 id="stream-put-stone-">$stream-&gt;put($stone)</h2>
+
+<p>Write a <b>Stone</b> to the output filehandle.</p>
+
+<h2 id="stream-write_record-stone-">$stream-&gt;write_record($stone)</h2>
+
+<p>Identical to put(), but the name is longer.</p>
+
+<h2 id="Useful-State-Variables-in-a-Boulder::Stream">Useful State Variables in a <b>Boulder::Stream</b></h2>
+
+<p>Every Boulder::Stream has several state variables that you can adjust. Fix them in this fashion:</p>
+
+<pre><code><code>        <span class="variable">$a</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Boulder::Stream</span><span class="operator">;</span>
+        <span class="variable">$a</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">delim</span><span class="operator">}</span><span class="operator">=</span><span class="string">':'</span><span class="operator">;</span>
+        <span class="variable">$a</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">record_start</span><span class="operator">}</span><span class="operator">=</span><span class="string">'['</span><span class="operator">;</span>
+        <span class="variable">$a</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">record_end</span><span class="operator">}</span><span class="operator">=</span><span class="string">']'</span><span class="operator">;</span>
+        <span class="variable">$a</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">passthru</span><span class="operator">}</span><span class="operator">=</span><span class="keyword">undef</span><span class="operator">;</span>
+</code></code></pre>
+
+<ul>
+
+<li><p>delim</p>
+
+<p>This is the delimiter character between tags and values, &quot;=&quot; by default.</p>
+
+</li>
+<li><p>record_start</p>
+
+<p>This is the start of nested record character, &quot;{&quot; by default.</p>
+
+</li>
+<li><p>record_end</p>
+
+<p>This is the end of nested record character, &quot;}&quot; by default.</p>
+
+</li>
+<li><p>passthru</p>
+
+<p>This determines whether unrecognized tags should be passed through from the input stream to the output stream. This is &#39;true&#39; by default. Set it to undef to override this behavior.</p>
+
+</li>
+</ul>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Because the delim, record_start and record_end characters in the <b>Boulder::Stream</b> object are used in optimized (once-compiled) pattern matching, you cannot change these values once get() has once been called. To change the defaults, you must create the Boulder::Stream, set the characters, and only then begin reading from the input stream. For the same reason, different Boulder::Stream objects cannot use different delimiters.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Lincoln D. Stein &lt;lstein@cshl.org&gt;, Cold Spring Harbor Laboratory, Cold Spring Harbor, NY. This module can be used and distributed on the same terms as Perl itself.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder.html">Boulder</a>, <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Blast.html">Boulder::Blast</a>, <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Genbank.html">Boulder::Genbank</a>, <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Medline.html">Boulder::Medline</a>, <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Unigene.html">Boulder::Unigene</a>, <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Omim.html">Boulder::Omim</a>, <a>Boulder::SwissProt</a></p>
+
+
+</body>
+
+</html>
+
+

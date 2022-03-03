@@ -1,0 +1,414 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Hilmar-Lapp">AUTHOR - Hilmar Lapp</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+    </ul>
+  </li>
+  <li><a href="#AnnotationI-implementing-functions">AnnotationI implementing functions</a>
+    <ul>
+      <li><a href="#as_text">as_text</a></li>
+      <li><a href="#display_text">display_text</a></li>
+      <li><a href="#hash_tree">hash_tree</a></li>
+      <li><a href="#tagname">tagname</a></li>
+    </ul>
+  </li>
+  <li><a href="#Methods-for-Bio::Ontology::TermI-compliance">Methods for Bio::Ontology::TermI compliance</a>
+    <ul>
+      <li><a href="#term">term</a></li>
+      <li><a href="#identifier">identifier</a></li>
+      <li><a href="#name">name</a></li>
+      <li><a href="#definition">definition</a></li>
+      <li><a href="#ontology">ontology</a></li>
+      <li><a href="#is_obsolete">is_obsolete</a></li>
+      <li><a href="#comment">comment</a></li>
+      <li><a href="#get_synonyms">get_synonyms</a></li>
+      <li><a href="#add_synonym">add_synonym</a></li>
+      <li><a href="#remove_synonyms">remove_synonyms</a></li>
+      <li><a href="#get_dblinks">get_dblinks</a></li>
+      <li><a href="#get_dbxrefs">get_dbxrefs</a></li>
+      <li><a href="#add_dblink">add_dblink</a></li>
+      <li><a href="#add_dbxref">add_dbxref</a></li>
+      <li><a href="#remove_dblinks">remove_dblinks</a></li>
+      <li><a href="#remove_dbxrefs">remove_dbxrefs</a></li>
+      <li><a href="#get_secondary_ids">get_secondary_ids</a></li>
+      <li><a href="#add_secondary_id">add_secondary_id</a></li>
+      <li><a href="#remove_secondary_ids">remove_secondary_ids</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Annotation::OntologyTerm - An ontology term adapted to AnnotationI</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="keyword">use</span> <span class="variable">Bio::Annotation::OntologyTerm</span><span class="operator">;</span>
+   <span class="keyword">use</span> <span class="variable">Bio::Annotation::Collection</span><span class="operator">;</span>
+   <span class="keyword">use</span> <span class="variable">Bio::Ontology::Term</span><span class="operator">;</span>
+   
+   <span class="keyword">my</span> <span class="variable">$coll</span> <span class="operator">=</span> <span class="variable">Bio::Annotation::Collection</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+   
+   <span class="comment"># this also implements a tag/value pair, where tag _and_ value are treated</span>
+   <span class="comment"># as ontology terms</span>
+   <span class="keyword">my</span> <span class="variable">$annterm</span> <span class="operator">=</span> <span class="variable">Bio::Annotation::OntologyTerm</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-label</span> <span class="operator">=&gt;</span> <span class="string">'ABC1'</span><span class="operator">,</span>
+                                                   <span class="string">-tagname</span> <span class="operator">=&gt;</span> <span class="string">'Gene Name'</span><span class="operator">);</span>
+   <span class="comment"># ontology terms can be added directly - they implicitly have a tag</span>
+   <span class="variable">$coll</span><span class="operator">-&gt;</span><span class="variable">add_Annotation</span><span class="operator">(</span><span class="variable">$annterm</span><span class="operator">);</span>
+   
+   <span class="comment"># implementation is by composition - you can get/set the term object</span>
+   <span class="comment"># e.g.</span>
+   <span class="keyword">my</span> <span class="variable">$term</span> <span class="operator">=</span> <span class="variable">$annterm</span><span class="operator">-&gt;</span><span class="variable">term</span><span class="operator">();</span> <span class="comment"># term is-a Bio::Ontology::TermI</span>
+   <span class="keyword">print</span> <span class="string">"ontology term "</span><span class="operator">,</span><span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">(),</span><span class="string">" (ID "</span><span class="operator">,</span><span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">identifier</span><span class="operator">(),</span>
+         <span class="string">"), ontology "</span><span class="operator">,</span><span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">ontology</span><span class="operator">()-&gt;</span><span class="variable">name</span><span class="operator">(),</span><span class="string">"\n"</span><span class="operator">;</span>
+   <span class="variable">$term</span> <span class="operator">=</span> <span class="variable">Bio::Ontology::Term</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'ABC2'</span><span class="operator">,</span>
+                                    <span class="string">-ontology</span> <span class="operator">=&gt;</span> <span class="string">'Gene Name'</span><span class="operator">);</span>
+   <span class="variable">$annterm</span><span class="operator">-&gt;</span><span class="variable">term</span><span class="operator">(</span><span class="variable">$term</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Ontology term annotation object</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Hilmar-Lapp">AUTHOR - Hilmar Lapp</h1>
+
+<p>Email hlapp at gmx.net</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$sv</span> <span class="operator">=</span> <span class="variable">Bio::Annotation::OntologyTerm</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Instantiate</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">OntologyTerm</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Annotation::OntologyTerm</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-term</span> <span class="operator">=&gt;</span> <span class="variable">$term</span> <span class="variable">to</span> <span class="variable">initialize</span> <span class="variable">the</span> <span class="variable">term</span> <span class="variable">data</span> <span class="variable">field</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span>
+           <span class="variable">Most</span> <span class="variable">named</span> <span class="variable">arguments</span> <span class="variable">that</span> <span class="variable">Bio::Ontology::Term</span> <span class="variable">accepts</span> <span class="variable">will</span> <span class="variable">work</span>
+           <span class="variable">here</span> <span class="variable">too</span><span class="operator">.</span> <span class="operator">-</span><span class="variable">label</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">synonym</span> <span class="keyword">for</span> <span class="operator">-</span><span class="variable">name</span><span class="operator">,</span> <span class="operator">-</span><span class="variable">tagname</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">synonym</span> <span class="keyword">for</span>
+           <span class="operator">-</span><span class="variable">ontology</span><span class="operator">.</span>
+</code></code></pre>
+
+<h1 id="AnnotationI-implementing-functions">AnnotationI implementing functions</h1>
+
+<h2 id="as_text">as_text</h2>
+
+<pre><code><code> Title   : as_text
+ Usage   : my $text = $obj-&gt;as_text
+ Function: Returns a textual representation of the annotation that
+           this object holds. Presently, it is tag name, name of the
+           term, and the is_obsolete attribute concatenated togather
+           with a delimiter (|).
+
+ Returns : string
+ Args    : none</code></code></pre>
+
+<h2 id="display_text">display_text</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">display_text</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$str</span> <span class="operator">=</span> <span class="variable">$ann</span><span class="operator">-&gt;</span><span class="variable">display_text</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">a</span> <span class="variable">string</span><span class="operator">.</span> <span class="variable">Unlike</span> <span class="variable">as_text</span><span class="operator">(),</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">returns</span> <span class="variable">a</span> <span class="variable">string</span>
+           <span class="variable">formatted</span> <span class="variable">as</span> <span class="variable">would</span> <span class="variable">be</span> <span class="variable">expected</span> <span class="keyword">for</span> <span class="variable">te</span> <span class="variable">specific</span> <span class="variable">implementation</span><span class="operator">.</span>
+ 
+           <span class="variable">One</span> <span class="variable">can</span> <span class="variable">pass</span> <span class="variable">a</span> <span class="variable">callback</span> <span class="variable">as</span> <span class="variable">an</span> <span class="variable">argument</span> <span class="variable">which</span> <span class="variable">allows</span> <span class="variable">custom</span> <span class="variable">text</span>
+           <span class="variable">generation</span><span class="operator">;</span> <span class="variable">the</span> <span class="variable">callback</span> <span class="variable">is</span> <span class="variable">passed</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">instance</span> <span class="keyword">and</span> <span class="variable">any</span> <span class="variable">text</span>
+           <span class="variable">returned</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">callback</span>
+</code></code></pre>
+
+<h2 id="hash_tree">hash_tree</h2>
+
+<pre><code><code> Title   : hash_tree
+ Usage   : my $hashtree = $value-&gt;hash_tree
+ Function: For supporting the AnnotationI interface just returns the value
+           as a hashref with the key &#39;value&#39; pointing to the value
+ Returns : hashrf
+ Args    : none</code></code></pre>
+
+<h2 id="tagname">tagname</h2>
+
+<pre><code><code> Title   : tagname
+ Usage   : $obj-&gt;tagname($newval)
+ Function: Get/set the tagname for this annotation value.
+
+           Setting this is optional. If set, it obviates the need to provide
+           a tag to AnnotationCollection when adding this object.
+
+           This is aliased to ontology() here.
+ Example :
+ Returns : value of tagname (a scalar)
+ Args    : new value (a scalar, optional)</code></code></pre>
+
+<h1 id="Methods-for-Bio::Ontology::TermI-compliance">Methods for Bio::Ontology::TermI compliance</h1>
+
+<h2 id="term">term</h2>
+
+<pre><code><code> Title   : term
+ Usage   : $obj-&gt;term($newval)
+ Function: Get/set the Bio::Ontology::TermI implementing object.
+
+           We implement TermI by composition, and this method sets/gets the
+           object we delegate to.
+ Example :
+ Returns : value of term (a Bio::Ontology::TermI compliant object)
+ Args    : new value (a Bio::Ontology::TermI compliant object, optional)</code></code></pre>
+
+<h2 id="identifier">identifier</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">identifier</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">identifier</span><span class="operator">(</span> <span class="string">"0003947"</span> <span class="operator">);</span>
+           <span class="keyword">or</span>
+           <span class="keyword">print</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">identifier</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span><span class="operator">/</span><span class="variable">get</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">identifier</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">Term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">identifier</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">The</span> <span class="variable">identifier</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">).</span>
+</code></code></pre>
+
+<h2 id="name">name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">(</span> <span class="string">"N-acetylgalactosaminyltransferase"</span> <span class="operator">);</span>
+           <span class="keyword">or</span>
+           <span class="keyword">print</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span><span class="operator">/</span><span class="variable">get</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">Term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">name</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">The</span> <span class="variable">name</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">).</span>
+</code></code></pre>
+
+<h2 id="definition">definition</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">definition</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">definition</span><span class="operator">(</span> <span class="string">"Catalysis of ..."</span> <span class="operator">);</span>
+           <span class="keyword">or</span>
+           <span class="keyword">print</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">definition</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span><span class="operator">/</span><span class="variable">get</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">definition</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">Term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">definition</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">The</span> <span class="variable">definition</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">).</span>
+</code></code></pre>
+
+<h2 id="ontology">ontology</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">ontology</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">ontology</span><span class="operator">(</span> <span class="variable">$top</span> <span class="operator">);</span>
+           <span class="keyword">or</span>
+           <span class="variable">$top</span> <span class="operator">=</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">ontology</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span><span class="operator">/</span><span class="variable">get</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">relationship</span> <span class="variable">between</span> <span class="variable">this</span> <span class="variable">Term</span> <span class="keyword">and</span>
+           <span class="variable">another</span> <span class="variable">Term</span> <span class="operator">(</span><span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.</span> <span class="variable">the</span> <span class="variable">top</span> <span class="variable">level</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">ontology</span><span class="operator">).</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">ontology</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">Term</span> <span class="operator">[</span><span class="variable">TermI</span><span class="operator">]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">The</span> <span class="variable">ontology</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">Term</span> <span class="operator">[</span><span class="variable">TermI</span> <span class="keyword">or</span> <span class="keyword">scalar</span> <span class="operator">--</span> <span class="variable">which</span>
+           <span class="variable">becomes</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">catagory</span> <span class="variable">term</span><span class="operator">]</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">).</span>
+</code></code></pre>
+
+<h2 id="is_obsolete">is_obsolete</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">is_obsolete</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">is_obsolete</span><span class="operator">(</span> <span class="number">1</span> <span class="operator">);</span>
+           <span class="keyword">or</span>
+           <span class="keyword">if</span> <span class="operator">(</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">is_obsolete</span><span class="operator">()</span> <span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span><span class="operator">/</span><span class="variable">get</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">obsoleteness</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">Term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">the</span> <span class="variable">obsoleteness</span> <span class="operator">[</span><span class="number">0</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">the</span> <span class="variable">obsoleteness</span> <span class="operator">[</span><span class="number">0</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">]</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">).</span>
+</code></code></pre>
+
+<h2 id="comment">comment</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">comment</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">comment</span><span class="operator">(</span> <span class="string">"Consider the term ..."</span> <span class="operator">);</span>
+           <span class="keyword">or</span>
+           <span class="keyword">print</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">comment</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span><span class="operator">/</span><span class="variable">get</span> <span class="keyword">for</span> <span class="variable">an</span> <span class="variable">arbitrary</span> <span class="variable">comment</span> <span class="variable">about</span> <span class="variable">this</span> <span class="variable">Term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">comment</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">A</span> <span class="variable">comment</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">).</span>
+</code></code></pre>
+
+<h2 id="get_synonyms">get_synonyms</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_synonyms</span><span class="operator">()</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@aliases</span> <span class="operator">=</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">get_synonyms</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">aliases</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">Term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">aliases</span> <span class="operator">[</span><span class="variable">array</span> <span class="variable">of</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="add_synonym">add_synonym</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add_synonym</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">add_synonym</span><span class="operator">(</span> <span class="variable">@asynonyms</span> <span class="operator">);</span>
+           <span class="keyword">or</span>
+           <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">add_synonym</span><span class="operator">(</span> <span class="variable">$synonym</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Pushes</span> <span class="variable">one</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">synonyms</span> <span class="variable">into</span> <span class="variable">the</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">synonyms</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">One</span> <span class="variable">synonym</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">synonyms</span> <span class="operator">[</span><span class="variable">array</span> <span class="variable">of</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]]</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="remove_synonyms">remove_synonyms</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">remove_synonyms</span><span class="operator">()</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">remove_synonyms</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Deletes</span> <span class="operator">(</span><span class="keyword">and</span> <span class="variable">returns</span><span class="operator">)</span> <span class="variable">the</span> <span class="variable">synonyms</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">Term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">synonyms</span> <span class="operator">[</span><span class="variable">array</span> <span class="variable">of</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="get_dblinks">get_dblinks</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_dblinks</span><span class="operator">()</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@ds</span> <span class="operator">=</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">get_dblinks</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="keyword">each</span> <span class="variable">dblinks</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">GO</span> <span class="variable">term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">dblinks</span> <span class="operator">[</span><span class="variable">array</span> <span class="variable">of</span> <span class="operator">[</span><span class="variable">scalars</span><span class="operator">]]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">deprecated</span> <span class="variable">in</span> <span class="variable">favor</span> <span class="variable">of</span> <span class="variable">get_dbxrefs</span><span class="operator">(),</span> <span class="variable">which</span> <span class="variable">works</span> <span class="variable">with</span> <span class="variable">strings</span>
+           <span class="keyword">or</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Annotation::DBLink</span><span class="operator">&gt;</span> <span class="variable">instances</span>
+</code></code></pre>
+
+<h2 id="get_dbxrefs">get_dbxrefs</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_dbxrefs</span><span class="operator">()</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@ds</span> <span class="operator">=</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">get_dbxrefs</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="keyword">each</span> <span class="variable">dblinks</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">GO</span> <span class="variable">term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">dblinks</span> <span class="operator">[</span><span class="variable">array</span> <span class="variable">of</span> <span class="operator">[</span><span class="variable">scalars</span><span class="operator">]</span> <span class="keyword">or</span> <span class="variable">Bio::Annotation::DBLink</span> <span class="variable">instances</span><span class="operator">]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="add_dblink">add_dblink</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add_dblink</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">add_dblink</span><span class="operator">(</span> <span class="variable">@dbls</span> <span class="operator">);</span>
+           <span class="keyword">or</span>
+           <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">add_dblink</span><span class="operator">(</span> <span class="variable">$dbl</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Pushes</span> <span class="variable">one</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">dblinks</span>
+           <span class="variable">into</span> <span class="variable">the</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">dblinks</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">One</span>  <span class="variable">dblink</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span>
+            <span class="variable">dblinks</span> <span class="operator">[</span><span class="variable">array</span> <span class="variable">of</span> <span class="operator">[</span><span class="variable">scalars</span><span class="operator">]]</span><span class="operator">.</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">deprecated</span> <span class="variable">in</span> <span class="variable">favor</span> <span class="variable">of</span> <span class="variable">add_dbxref</span><span class="operator">(),</span> <span class="variable">which</span> <span class="variable">works</span> <span class="variable">with</span> <span class="variable">strings</span>
+           <span class="keyword">or</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Annotation::DBLink</span><span class="operator">&gt;</span> <span class="variable">instances</span>
+</code></code></pre>
+
+<h2 id="add_dbxref">add_dbxref</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add_dbxref</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">add_dbxref</span><span class="operator">(</span> <span class="variable">@dbls</span> <span class="operator">);</span>
+           <span class="keyword">or</span>
+           <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">add_dbxref</span><span class="operator">(</span> <span class="variable">$dbl</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Pushes</span> <span class="variable">one</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">dblinks</span>
+           <span class="variable">into</span> <span class="variable">the</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">dblinks</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> 
+</code></code></pre>
+
+<h2 id="remove_dblinks">remove_dblinks</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">remove_dblinks</span><span class="operator">()</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">remove_dblinks</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Deletes</span> <span class="operator">(</span><span class="keyword">and</span> <span class="variable">returns</span><span class="operator">)</span> <span class="variable">the</span> <span class="variable">definition</span> <span class="variable">references</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">GO</span> <span class="variable">term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">definition</span> <span class="variable">references</span> <span class="operator">[</span><span class="variable">array</span> <span class="variable">of</span> <span class="operator">[</span><span class="variable">scalars</span><span class="operator">]]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">deprecated</span> <span class="variable">in</span> <span class="variable">favor</span> <span class="variable">of</span> <span class="variable">remove_dbxrefs</span><span class="operator">(),</span> <span class="variable">which</span> <span class="variable">works</span> <span class="variable">with</span> <span class="variable">strings</span>
+           <span class="keyword">or</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Annotation::DBLink</span><span class="operator">&gt;</span> <span class="variable">instances</span>
+</code></code></pre>
+
+<h2 id="remove_dbxrefs">remove_dbxrefs</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">remove_dbxrefs</span><span class="operator">()</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">remove_dbxrefs</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Deletes</span> <span class="operator">(</span><span class="keyword">and</span> <span class="variable">returns</span><span class="operator">)</span> <span class="variable">the</span> <span class="variable">definition</span> <span class="variable">references</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">GO</span> <span class="variable">term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">definition</span> <span class="variable">references</span> <span class="operator">[</span><span class="variable">array</span> <span class="variable">of</span> <span class="operator">[</span><span class="variable">scalars</span><span class="operator">]]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="get_secondary_ids">get_secondary_ids</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_secondary_ids</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">get_secondary_ids</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">secondary</span> <span class="variable">identifiers</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">Term</span><span class="operator">.</span>
+ 
+           <span class="variable">Secondary</span> <span class="variable">identifiers</span> <span class="variable">mostly</span> <span class="variable">originate</span> <span class="variable">from</span> <span class="variable">merging</span> <span class="variable">terms</span><span class="operator">,</span>
+           <span class="keyword">or</span> <span class="variable">possibly</span> <span class="variable">also</span> <span class="variable">from</span> <span class="variable">splitting</span> <span class="variable">terms</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">secondary</span> <span class="variable">identifiers</span> <span class="operator">[</span><span class="variable">array</span> <span class="variable">of</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]]</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="add_secondary_id">add_secondary_id</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add_secondary_id</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">add_secondary_id</span><span class="operator">(</span> <span class="variable">@ids</span> <span class="operator">);</span>
+           <span class="keyword">or</span>
+           <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">add_secondary_id</span><span class="operator">(</span> <span class="variable">$id</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Adds</span> <span class="variable">one</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">secondary</span> <span class="variable">identifiers</span> <span class="variable">to</span> <span class="variable">this</span> <span class="variable">term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">One</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">secondary</span> <span class="variable">identifiers</span> <span class="operator">[</span><span class="variable">scalars</span><span class="operator">]</span>
+</code></code></pre>
+
+<h2 id="remove_secondary_ids">remove_secondary_ids</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">remove_secondary_ids</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$term</span><span class="operator">-&gt;</span><span class="variable">remove_secondary_ids</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Deletes</span> <span class="operator">(</span><span class="keyword">and</span> <span class="variable">returns</span><span class="operator">)</span> <span class="variable">the</span> <span class="variable">secondary</span> <span class="variable">identifiers</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">Term</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">previous</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">secondary</span> <span class="variable">identifiers</span> <span class="operator">[</span><span class="variable">array</span> <span class="variable">of</span> <span class="operator">[</span><span class="variable">scalars</span><span class="operator">]]</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

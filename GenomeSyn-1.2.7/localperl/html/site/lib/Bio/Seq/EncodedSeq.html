@@ -1,0 +1,313 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#ENCODING">ENCODING</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Aaron-Mackey">AUTHOR - Aaron Mackey</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#encoding">encoding</a></li>
+      <li><a href="#cds">cds</a></li>
+      <li><a href="#translate">translate</a></li>
+      <li><a href="#protseq">protseq</a></li>
+      <li><a href="#dnaseq">dnaseq</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Seq::EncodedSeq - subtype of <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/LocatableSeq.html">Bio::LocatableSeq</a> to store DNA that encodes a protein</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Seq::EncodedSeq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$dna</span><span class="operator">,</span>
+                                  <span class="string">-encoding</span> <span class="operator">=&gt;</span> <span class="string">"CCCCCCCIIIIICCCCC"</span><span class="operator">,</span>
+                                  <span class="string">-start</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                  <span class="string">-strand</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                  <span class="string">-length</span> <span class="operator">=&gt;</span> <span class="number">17</span><span class="operator">);</span>
+  
+  <span class="comment"># splice out (and possibly revcomp) the coding sequence</span>
+  <span class="variable">$cds</span> <span class="operator">=</span> <span class="variable">obj</span><span class="operator">-&gt;</span><span class="variable">cds</span><span class="operator">;</span>
+  
+  <span class="comment"># obtain the protein translation of the sequence</span>
+  <span class="variable">$prot</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">translate</span><span class="operator">;</span>
+  
+  <span class="comment"># other access/inspection routines as with Bio::LocatableSeq and</span>
+  <span class="comment"># Bio::SeqI; note that coordinates are relative only to the DNA</span>
+  <span class="comment"># sequence, not it's implicit encoded protein sequence.</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::Seq::EncodedSeq is a <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/LocatableSeq.html">Bio::LocatableSeq</a> object that holds a DNA sequence as well as information about the coding potential of that DNA sequence. It is meant to be useful in an alignment context, where the DNA may contain frameshifts, gaps and/or introns, or in describing the transcript of a gene. An EncodedSeq provides the ability to access the &quot;spliced&quot; coding sequence, meaning that all introns and gaps are removed, and any frameshifts are adjusted to provide a &quot;clean&quot; CDS.</p>
+
+<p>In order to make simultaneous use of either the DNA or the implicit encoded protein sequence coordinates, please see <a>Bio::Coordinate::EncodingPair</a>.</p>
+
+<h1 id="ENCODING">ENCODING</h1>
+
+<p>We use the term &quot;encoding&quot; here to refer to the series of symbols that we use to identify which residues of a DNA sequence are protein-coding (i.e. part of a codon), intronic, part of a 5&#39; or 3&#39;, frameshift &quot;mutations&quot;, etc. From this information, a Bio::Seq::EncodedSeq is able to &quot;figure out&quot; its translational CDS. There are two sets of coding characters, one termed &quot;implicit&quot; and one termed &quot;explicit&quot;.</p>
+
+<p>The &quot;implicit&quot; encoding is a bit simpler than the &quot;explicit&quot; encoding: &#39;C&#39; is used for any nucleotide that&#39;s part of a codon, &#39;U&#39; for any UTR, etc. The full list is shown below:</p>
+
+<pre><code><code> Code  Meaning
+ ----  -------
+  C    coding
+  I    intronic
+  U    untranslated
+  G    gapped (for use in alignments)
+  F    a &quot;forward&quot;, +1 frameshift
+  B    a &quot;backward&quot;, -1 frameshift</code></code></pre>
+
+<p>The &quot;explicit&quot; encoding is just an expansion of the &quot;implicit&quot; encoding, to denote phase:</p>
+
+<pre><code><code> Code  Meaning
+ ----  -------
+  C    coding, 1st codon position
+  D    coding, 2nd codon position
+  E    coding, 3rd codon position
+
+  I    intronic, phase 0 (relative to intron begin)
+  J    intronic, phase 1
+  K    intronic, phase 2
+
+  U    untranslated 3&#39;UTR
+  V    untranslated 5&#39;UTR
+
+  G    gapped (for use in alignments)
+  F    a &quot;forward&quot;, +1 frameshift
+  B    a &quot;backward&quot;, -1 frameshift</code></code></pre>
+
+<p>Note that the explicit coding is meant to provide easy access to position/phase specific nucleotides:</p>
+
+<pre><code><code>  <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Seq::EncodedSeq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="string">"ACAATCAGACTACG..."</span><span class="operator">,</span>
+                                   <span class="string">-encoding</span> <span class="operator">=&gt;</span> <span class="string">"CCCCCCIII..."</span>
+                                  <span class="operator">);</span>
+  
+  <span class="comment"># fetch arrays of nucleotides at each codon position:</span>
+  <span class="keyword">my</span> <span class="variable">@pos1</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">dnaseq</span><span class="operator">(</span><span class="string">encoding</span> <span class="operator">=&gt;</span> <span class="string">'C'</span><span class="operator">,</span> <span class="string">explicit</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@pos2</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">dnaseq</span><span class="operator">(</span><span class="string">encoding</span> <span class="operator">=&gt;</span> <span class="string">'D'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@pos3</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">dnaseq</span><span class="operator">(</span><span class="string">encoding</span> <span class="operator">=&gt;</span> <span class="string">'E'</span><span class="operator">);</span>
+  
+  <span class="comment"># fetch arrays of "3-1" codon dinucleotides, useful for genomic</span>
+  <span class="comment"># signature analyses without compounding influences of codon bias:</span>
+  <span class="keyword">my</span> <span class="variable">@pairs</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">dnaseq</span><span class="operator">(</span><span class="string">encoding</span> <span class="operator">=&gt;</span> <span class="string">'EC'</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Aaron-Mackey">AUTHOR - Aaron Mackey</h1>
+
+<p>Email amackey@virginia.edu</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Seq::EncodedSeq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span>      <span class="operator">=&gt;</span> <span class="string">"AGTACGTGTCATG"</span><span class="operator">,</span>
+                                            <span class="string">-encoding</span> <span class="operator">=&gt;</span> <span class="string">"CCCCCCFCCCCCC"</span><span class="operator">,</span>
+                                            <span class="string">-id</span>       <span class="operator">=&gt;</span> <span class="string">"myseq"</span><span class="operator">,</span>
+                                            <span class="string">-start</span>    <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                            <span class="string">-end</span>      <span class="operator">=&gt;</span> <span class="number">13</span><span class="operator">,</span>
+                                            <span class="string">-strand</span>   <span class="operator">=&gt;</span> <span class="number">1</span>
+                                      <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">creates</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Seq::EncodedSeq</span> <span class="variable">object</span> <span class="variable">from</span> <span class="variable">a</span> <span class="variable">supplied</span> <span class="variable">DNA</span>
+           <span class="variable">sequence</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Seq::EncodedSeq</span> <span class="variable">object</span>
+ 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">seq</span>      <span class="operator">-</span> <span class="variable">primary</span> <span class="variable">nucleotide</span> <span class="variable">sequence</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">encode</span> <span class="variable">the</span>
+                      <span class="variable">protein</span><span class="operator">;</span> <span class="variable">note</span> <span class="variable">that</span> <span class="variable">any</span> <span class="variable">positions</span> <span class="variable">involved</span> <span class="variable">in</span> <span class="variable">a</span>
+                      <span class="variable">gap</span> <span class="operator">(</span><span class="string">'G'</span><span class="operator">)</span> <span class="keyword">or</span> <span class="variable">backward</span> <span class="variable">frameshift</span> <span class="operator">(</span><span class="string">'B'</span><span class="operator">)</span> <span class="variable">should</span>
+                      <span class="variable">have</span> <span class="variable">one</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">gap</span> <span class="variable">characters</span><span class="operator">;</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="variable">encoding</span>
+                      <span class="variable">specifies</span> <span class="variable">G</span> <span class="keyword">or</span> <span class="variable">B</span><span class="operator">,</span> <span class="variable">but</span> <span class="keyword">no</span> <span class="operator">(</span><span class="keyword">or</span> <span class="keyword">not</span> <span class="variable">enough</span><span class="operator">)</span> <span class="variable">gap</span>
+                      <span class="variable">characters</span> <span class="variable">exist</span><span class="operator">,</span> <span class="variable">*they'll</span> <span class="variable">be</span> <span class="variable">added</span><span class="operator">*;</span> <span class="variable">similary</span><span class="operator">,</span>
+                      <span class="keyword">if</span> <span class="variable">there</span> <span class="variable">are</span> <span class="variable">gap</span> <span class="variable">characters</span> <span class="variable">without</span> <span class="variable">a</span>
+                      <span class="variable">corresponding</span> <span class="variable">G</span> <span class="keyword">or</span> <span class="variable">B</span> <span class="variable">encoding</span><span class="operator">,</span> <span class="variable">G's</span> <span class="variable">will</span> <span class="variable">be</span>
+                      <span class="variable">inserted</span> <span class="variable">into</span> <span class="variable">the</span> <span class="variable">encoding</span><span class="operator">.</span>  <span class="variable">This</span> <span class="variable">allows</span> <span class="variable">some</span>
+                      <span class="variable">flexibility</span> <span class="variable">in</span> <span class="variable">specifying</span> <span class="variable">your</span> <span class="variable">sequence</span> <span class="keyword">and</span>
+                      <span class="variable">coding</span> <span class="variable">without</span> <span class="variable">having</span> <span class="variable">to</span> <span class="variable">calculate</span> <span class="variable">a</span> <span class="variable">lot</span> <span class="variable">of</span> <span class="variable">the</span>
+                      <span class="variable">encoding</span> <span class="keyword">for</span> <span class="variable">yourself</span><span class="operator">.</span>
+ 
+           <span class="variable">encoding</span> <span class="operator">-</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">of</span> <span class="variable">characters</span> <span class="operator">(</span><span class="variable">see</span> <span class="variable">Encoding</span> <span class="variable">Table</span><span class="operator">)</span>
+                      <span class="variable">describing</span> <span class="variable">backwards</span> <span class="variable">frameshifts</span> <span class="variable">implied</span> <span class="variable">by</span> <span class="variable">the</span>
+                      <span class="variable">encoding</span> <span class="variable">but</span> <span class="keyword">not</span> <span class="variable">present</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">will</span> <span class="variable">be</span>
+                      <span class="variable">added</span> <span class="operator">(</span><span class="variable">as</span> <span class="string">'-'</span><span class="regex">s) to the sequence.  If not
+                      supplied, it will be assumed that all positions
+                      are coding (C).  Encoding may include either
+                      implicit phase encoding characters (i.e. "CCC")</span>
+                      <span class="keyword">and</span><span class="regex">/or explicit encoding characters (i.e. "CDE").
+                      Additionally, prefixed numbers may be used to
+                      denote repetition (i.e. "27C3I28C").
+ 
+                      Alternatively, encoding may be a hashref
+                      datastructure, with encoding characters as keys
+                      and Bio::LocationI objects (or arrayrefs of
+                      Bio::LocationI objects) as values, e.g.:
+ 
+                      { C =&gt; [ Bio::Location::Simple-&gt;new(1,9),
+                               Bio::Location::Simple-&gt;new(11,13) ],
+                        F =&gt; Bio::Location::Simple-&gt;new(10,10),
+                      } # same as "CCCCCCCCCFCCC"
+ 
+                      Note that if the location ranges overlap, the
+                      behavior of the encoding will be undefined
+                      (well, it will be defined, but only according to
+                      the order in which the hash keys are read, which
+                      is basically undefined ... just don't do that).
+ 
+           id, start, end, strand - as with Bio::LocatableSeq; note
+                      that the coordinates are relative to the
+                      encoding DNA sequence, not the implicit protein
+                      sequence.  If strand is reversed, then the
+                      encoding is assumed to be relative to the
+                      reverse strand as well.
+ </span>
+</code></code></pre>
+
+<h2 id="encoding">encoding</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">encoding</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">encoding</span><span class="operator">(</span><span class="string">"CCCCCC"</span><span class="operator">);</span>
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">encoding</span><span class="operator">(</span> <span class="string">-encoding</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">I</span> <span class="operator">=&gt;</span> <span class="variable">$location</span> <span class="operator">}</span> <span class="operator">);</span>
+           <span class="variable">$enc</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">encoding</span><span class="operator">(</span><span class="string">-explicit</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+           <span class="variable">$enc</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">encoding</span><span class="operator">(</span><span class="string">"CCCCCC"</span><span class="operator">,</span> <span class="string">-explicit</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+           <span class="variable">$enc</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">encoding</span><span class="operator">(</span><span class="string">-location</span> <span class="operator">=&gt;</span> <span class="variable">$location</span><span class="operator">,</span>
+                                 <span class="string">-explicit</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                 <span class="string">-absolute</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">the</span> <span class="variable">objects</span> <span class="variable">encoding</span><span class="operator">,</span> <span class="variable">either</span> <span class="variable">globally</span> <span class="keyword">or</span> <span class="variable">by</span> <span class="variable">location</span><span class="operator">(</span><span class="regex">s).
+ Returns : the (possibly new) encoding string.
+ Args    : encoding - see the encoding argument to the new()</span> <span class="variable">function</span><span class="operator">.</span>
+ 
+           <span class="variable">explicit</span> <span class="operator">-</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="variable">to</span> <span class="keyword">return</span> <span class="variable">explicit</span> <span class="variable">phase</span>
+                      <span class="variable">information</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">coding</span> <span class="operator">(</span><span class="variable">i</span><span class="operator">.</span><span class="variable">e</span><span class="operator">.</span> <span class="string">"CCC"</span> <span class="variable">becomes</span>
+                      <span class="string">"CDE"</span><span class="operator">,</span> <span class="string">"III"</span> <span class="variable">becomes</span> <span class="string">"IJK"</span><span class="operator">,</span> <span class="variable">etc</span><span class="operator">);</span> <span class="variable">defaults</span> <span class="variable">to</span> <span class="number">0</span><span class="operator">.</span>
+ 
+           <span class="variable">location</span> <span class="operator">-</span> <span class="variable">optional</span><span class="operator">;</span> <span class="variable">location</span> <span class="variable">to</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">the</span> <span class="variable">encoding</span><span class="operator">.</span>
+                      <span class="variable">Defaults</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">entire</span> <span class="variable">sequence</span><span class="operator">.</span>
+ 
+           <span class="variable">absolute</span> <span class="operator">-</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="variable">the</span> <span class="variable">locational</span> <span class="variable">elements</span> <span class="operator">(</span><span class="variable">either</span>
+                      <span class="variable">in</span> <span class="variable">the</span> <span class="variable">encoding</span> <span class="variable">hashref</span> <span class="keyword">or</span> <span class="variable">the</span> <span class="variable">location</span>
+                      <span class="variable">argument</span><span class="operator">)</span> <span class="variable">are</span> <span class="variable">relative</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">absolute</span> <span class="variable">start</span><span class="operator">/</span><span class="variable">end</span>
+                      <span class="variable">of</span> <span class="variable">the</span> <span class="variable">Bio::LocatableSeq</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">internal</span><span class="operator">,</span>
+                      <span class="variable">relative</span> <span class="variable">coordinate</span> <span class="keyword">system</span> <span class="operator">(</span><span class="variable">beginning</span> <span class="variable">at</span> <span class="number">1</span><span class="operator">);</span>
+                      <span class="variable">defaults</span> <span class="variable">to</span> <span class="number">0</span> <span class="operator">(</span><span class="variable">i</span><span class="operator">.</span><span class="variable">e</span><span class="operator">.</span> <span class="variable">relative</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="cds">cds</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">cds</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$cds</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">cds</span><span class="operator">(</span><span class="string">-nogaps</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">obtain</span> <span class="variable">the</span> <span class="string">"spliced"</span> <span class="variable">DNA</span> <span class="variable">sequence</span><span class="operator">,</span> <span class="variable">by</span> <span class="variable">removing</span> <span class="variable">any</span>
+           <span class="variable">nucleotides</span> <span class="variable">that</span> <span class="variable">participate</span> <span class="variable">in</span> <span class="variable">an</span> <span class="variable">UTR</span><span class="operator">,</span> <span class="variable">forward</span> <span class="variable">frameshift</span>
+           <span class="keyword">or</span> <span class="variable">intron</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">replacing</span> <span class="variable">any</span> <span class="variable">unknown</span> <span class="variable">nucleotide</span> <span class="variable">implied</span> <span class="variable">by</span>
+           <span class="variable">a</span> <span class="variable">backward</span> <span class="variable">frameshift</span> <span class="keyword">or</span> <span class="variable">gap</span> <span class="variable">with</span> <span class="variable">N's</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Seq::EncodedSeq</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">with</span> <span class="variable">an</span> <span class="variable">encoding</span> <span class="variable">consisting</span> <span class="variable">only</span>
+           <span class="variable">of</span> <span class="string">"CCCC.."</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">nogaps</span> <span class="operator">-</span> <span class="variable">strip</span> <span class="variable">any</span> <span class="variable">gap</span> <span class="variable">characters</span> <span class="operator">(</span><span class="variable">resulting</span> <span class="variable">from</span> <span class="string">'G'</span> <span class="keyword">or</span> <span class="string">'B'</span>
+           <span class="variable">encodings</span><span class="operator">),</span> <span class="variable">rather</span> <span class="variable">than</span> <span class="variable">replacing</span> <span class="variable">them</span> <span class="variable">with</span> <span class="variable">N's</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="translate">translate</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">translate</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$prot</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">translate</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">obtain</span> <span class="variable">the</span> <span class="variable">protein</span> <span class="variable">sequence</span> <span class="variable">encoded</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">underlying</span> <span class="variable">DNA</span>
+           <span class="variable">sequence</span><span class="operator">;</span> <span class="variable">same</span> <span class="variable">as</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">cds</span><span class="operator">()-&gt;</span><span class="variable">translate</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">).</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::PrimarySeq</span> <span class="variable">object</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">same</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">translate</span><span class="operator">()</span> <span class="variable">function</span> <span class="variable">of</span> <span class="variable">Bio::PrimarySeqI</span>
+</code></code></pre>
+
+<h2 id="protseq">protseq</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">seq</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$protseq</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">protseq</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">obtain</span> <span class="variable">the</span> <span class="variable">raw</span> <span class="variable">protein</span> <span class="variable">sequence</span> <span class="variable">encoded</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">underlying</span>
+           <span class="variable">DNA</span> <span class="variable">sequence</span><span class="operator">;</span> <span class="variable">This</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">as</span> <span class="variable">calling</span>
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">translate</span><span class="operator">()-&gt;</span><span class="variable">seq</span><span class="operator">();</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">of</span> <span class="variable">single</span><span class="operator">-</span><span class="variable">letter</span> <span class="variable">amino</span> <span class="variable">acid</span> <span class="variable">codes</span>
+ <span class="variable">Args</span> <span class="operator">:</span>    <span class="variable">same</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">seq</span><span class="operator">()</span> <span class="variable">function</span> <span class="variable">of</span> <span class="variable">Bio::PrimarySeq</span><span class="operator">;</span> <span class="variable">note</span> <span class="variable">that</span> <span class="variable">this</span>
+           <span class="variable">function</span> <span class="variable">may</span> <span class="keyword">not</span> <span class="variable">be</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">protein</span> <span class="variable">sequence</span><span class="operator">;</span> <span class="variable">see</span>
+           <span class="variable">the</span> <span class="variable">dnaseq</span><span class="operator">()</span> <span class="variable">function</span> <span class="keyword">for</span> <span class="variable">that</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="dnaseq">dnaseq</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">dnaseq</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$dnaseq</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">dnaseq</span><span class="operator">();</span>
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">dnaseq</span><span class="operator">(</span><span class="string">"ACGTGTCGT"</span><span class="operator">,</span> <span class="string">"CCCCCCCCC"</span><span class="operator">);</span>
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">dnaseq</span><span class="operator">(</span><span class="string">-seq</span>      <span class="operator">=&gt;</span> <span class="string">"ATG"</span><span class="operator">,</span>
+                        <span class="string">-encoding</span> <span class="operator">=&gt;</span> <span class="string">"CCC"</span><span class="operator">,</span>
+                        <span class="string">-location</span> <span class="operator">=&gt;</span> <span class="variable">$loc</span> <span class="operator">);</span>
+           <span class="variable">@introns</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">$dnaseq</span><span class="operator">(</span><span class="string">-encoding</span> <span class="operator">=&gt;</span> <span class="string">'I'</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">the</span> <span class="variable">underlying</span> <span class="variable">DNA</span> <span class="variable">sequence</span><span class="operator">;</span> <span class="variable">will</span> <span class="variable">overwrite</span> <span class="variable">any</span>
+           <span class="variable">current</span> <span class="variable">DNA</span> <span class="keyword">and</span><span class="regex">/or encoding information present.
+ Returns : a string of single-letter nucleotide codes, including any
+           gaps implied by the encoding.
+ Args    : seq      - the DNA sequence to be used as a replacement
+           encoding - the encoding of the DNA sequence (see the new()
+                      constructor); defaults to all 'C' if setting a
+                      new DNA sequence.  If no new DNA sequence is
+                      being provided, then the encoding is used as a
+                      "filter" for which to return fragments of
+                      non-overlapping DNA that match the encoding.
+           location - optional, the location of the DNA sequence to
+                      get/set</span><span class="operator">;</span> <span class="variable">defaults</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">entire</span> <span class="variable">sequence</span><span class="operator">.</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

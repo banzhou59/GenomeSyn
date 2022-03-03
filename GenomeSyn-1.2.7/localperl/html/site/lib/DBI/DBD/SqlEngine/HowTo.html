@@ -1,0 +1,329 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#CREATING-DRIVER-CLASSES">CREATING DRIVER CLASSES</a>
+    <ul>
+      <li><a href="#Sample-Skeleton">Sample Skeleton</a></li>
+      <li><a href="#Deal-with-own-attributes">Deal with own attributes</a></li>
+      <li><a href="#User-comfort">User comfort</a></li>
+      <li><a href="#Dealing-with-Tables">Dealing with Tables</a></li>
+      <li><a href="#Testing">Testing</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DBI::DBD::SqlEngine::HowTo - Guide to create DBI::DBD::SqlEngine based driver</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  perldoc DBI::DBD::SqlEngine::HowTo
+  perldoc DBI
+  perldoc DBI::DBD
+  perldoc DBI::DBD::SqlEngine::Developers
+  perldoc SQL::Eval
+  perldoc DBI::DBD::SqlEngine
+  perldoc DBI::DBD::SqlEngine::HowTo
+  perldoc SQL::Statement::Embed</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This document provides a step-by-step guide, how to create a new <code><code>DBI::DBD::SqlEngine</code></code> based DBD. It expects that you carefully read the <a href="../../../../../lib/DBI.html">DBI</a> documentation and that you&#39;re familiar with <a href="../../../../../lib/DBI/DBD.html">DBI::DBD</a> and had read and understood <a>DBD::ExampleP</a>.</p>
+
+<p>This document addresses experienced developers who are really sure that they need to invest time when writing a new DBI Driver. Writing a DBI Driver is neither a weekend project nor an easy job for hobby coders after work. Expect one or two man-month of time for the first start.</p>
+
+<p>Those who are still reading, should be able to sing the rules of <a href="../../../../../lib/DBI/DBD.html#CREATING-A-NEW-DRIVER">&quot;CREATING A NEW DRIVER&quot; in DBI::DBD</a>.</p>
+
+<h1 id="CREATING-DRIVER-CLASSES">CREATING DRIVER CLASSES</h1>
+
+<p>Do you have an entry in DBI&#39;s DBD registry? DBI::DBD::SqlEngine expect having a unique prefix for every driver class in inheritance chain.</p>
+
+<p>It&#39;s easy to get a prefix - just drop the DBI team a note (<a href="../../../../../lib/DBI.html#GETTING_HELP">&quot;GETTING_HELP&quot; in DBI</a>). If you want for some reason hide your work, take a look at <a>Class::Method::Modifiers</a> how to wrap a private prefix method around existing <code><code>driver_prefix</code></code>.</p>
+
+<p>For this guide, a prefix of <code><code>foo_</code></code> is assumed.</p>
+
+<h2 id="Sample-Skeleton">Sample Skeleton</h2>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">DBD::Foo</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">warnings</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw($VERSION)</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">base</span> <span class="string">qw(DBI::DBD::SqlEngine)</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">DBI</span> <span class="operator">();</span>
+    
+    <span class="variable">$VERSION</span> <span class="operator">=</span> <span class="string">"0.001"</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">DBD::Foo::dr</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw(@ISA $imp_data_size)</span><span class="operator">;</span>
+    
+    <span class="variable">@ISA</span> <span class="operator">=</span> <span class="string">qw(DBI::DBD::SqlEngine::dr)</span><span class="operator">;</span>
+    <span class="variable">$imp_data_size</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">DBD::Foo::db</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw(@ISA $imp_data_size)</span><span class="operator">;</span>
+    
+    <span class="variable">@ISA</span> <span class="operator">=</span> <span class="string">qw(DBI::DBD::SqlEngine::db)</span><span class="operator">;</span>
+    <span class="variable">$imp_data_size</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">DBD::Foo::st</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw(@ISA $imp_data_size)</span><span class="operator">;</span>
+    
+    <span class="variable">@ISA</span> <span class="operator">=</span> <span class="string">qw(DBI::DBD::SqlEngine::st)</span><span class="operator">;</span>
+    <span class="variable">$imp_data_size</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">DBD::Foo::Statement</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw(@ISA)</span><span class="operator">;</span>
+    
+    <span class="variable">@ISA</span> <span class="operator">=</span> <span class="string">qw(DBI::DBD::SqlEngine::Statement)</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">DBD::Foo::Table</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw(@ISA)</span><span class="operator">;</span>
+    
+    <span class="variable">@ISA</span> <span class="operator">=</span> <span class="string">qw(DBI::DBD::SqlEngine::Table)</span><span class="operator">;</span>
+    
+    <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Tiny, eh? And all you have now is a DBD named foo which will is able to deal with temporary tables, as long as you use <a href="../../../../../lib/SQL/Statement.html">SQL::Statement</a>. In <a href="../../../../../lib/DBI/SQL/Nano.html">DBI::SQL::Nano</a> environments, this DBD can do nothing.</p>
+
+<h2 id="Deal-with-own-attributes">Deal with own attributes</h2>
+
+<p>Before we start doing usable stuff with our DBI driver, we need to think about what we want to do and how we want to do it.</p>
+
+<p>Do we need tunable knobs accessible by users? Do we need status information? All this is handled in attributes of the database handles (be careful when your DBD is running &quot;behind&quot; a <a href="../../../../../lib/DBD/Gofer.html">DBD::Gofer</a> proxy).</p>
+
+<p>How come the attributes into the DBD and how are they fetchable by the user? Good question, but you should know because you&#39;ve read the <a href="../../../../../lib/DBI.html">DBI</a> documentation.</p>
+
+<p><code><code>DBI::DBD::SqlEngine::db::FETCH</code></code> and <code><code>DBI::DBD::SqlEngine::db::STORE</code></code> taking care for you - all they need to know is which attribute names are valid and mutable or immutable. Tell them by adding <code><code>init_valid_attributes</code></code> to your db class:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> init_valid_attributes
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$dbh</span> <span class="operator">=</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+    
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">SUPER::init_valid_attributes</span> <span class="operator">();</span>
+    
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_valid_attrs</span><span class="operator">}</span> <span class="operator">=</span> <span class="operator">{</span>
+            <span class="string">foo_version</span>         <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains version of this driver</span>
+            <span class="string">foo_valid_attrs</span>     <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains the valid attributes of foo drivers</span>
+            <span class="string">foo_readonly_attrs</span>  <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains immutable attributes of foo drivers</span>
+            <span class="string">foo_bar</span>             <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains the bar attribute</span>
+            <span class="string">foo_baz</span>             <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains the baz attribute</span>
+            <span class="string">foo_manager</span>         <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains the manager of the driver instance</span>
+            <span class="string">foo_manager_type</span>    <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains the manager class of the driver instance</span>
+        <span class="operator">}</span><span class="operator">;</span>
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_readonly_attrs</span><span class="operator">}</span> <span class="operator">=</span> <span class="operator">{</span>
+            <span class="string">foo_version</span>         <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># ensure no-one modifies the driver version</span>
+            <span class="string">foo_valid_attrs</span>     <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># do not permit to add more valid attributes ...</span>
+            <span class="string">foo_readonly_attrs</span>  <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># ... or make the immutable mutable</span>
+            <span class="string">foo_manager</span>         <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># manager is set internally only</span>
+        <span class="operator">}</span><span class="operator">;</span>
+    
+        <span class="keyword">return</span> <span class="variable">$dbh</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>Woooho - but now the user cannot assign new managers? This is intended, overwrite <code><code>STORE</code></code> to handle it!</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> STORE </span><span class="operator">(</span>$$$<span class="operator">)</span>
+    <span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span> <span class="variable">$dbh</span><span class="operator">,</span> <span class="variable">$attrib</span><span class="operator">,</span> <span class="variable">$value</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+    
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">SUPER::STORE</span><span class="operator">(</span> <span class="variable">$attrib</span><span class="operator">,</span> <span class="variable">$value</span> <span class="operator">);</span>
+    
+        <span class="comment"># we're still alive, so no exception is thrown ...</span>
+        <span class="comment"># by DBI::DBD::SqlEngine::db::STORE</span>
+        <span class="keyword">if</span> <span class="operator">(</span> <span class="variable">$attrib</span> <span class="keyword">eq</span> <span class="string">"foo_manager_type"</span> <span class="operator">)</span>
+        <span class="operator">{</span>
+            <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_manager</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_manager_type</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+            <span class="comment"># ... probably correct some states based on the new</span>
+            <span class="comment"># foo_manager_type - see DBD::Sys for an example</span>
+        <span class="operator">}</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>But ... my driver runs without a manager until someone first assignes a <code><code>foo_manager_type</code></code>. Well, no - there&#39;re two places where you can initialize defaults:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> init_default_attributes
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$dbh</span><span class="operator">,</span> <span class="variable">$phase</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+    
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">SUPER::init_default_attributes</span><span class="operator">(</span><span class="variable">$phase</span><span class="operator">);</span>
+    
+        <span class="keyword">if</span><span class="operator">(</span> <span class="number">0</span> <span class="operator">==</span> <span class="variable">$phase</span> <span class="operator">)</span>
+        <span class="operator">{</span>
+            <span class="comment"># init all attributes which have no knowledge about</span>
+            <span class="comment"># user settings from DSN or the attribute hash</span>
+            <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_manager_type</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"DBD::Foo::Manager"</span><span class="operator">;</span>
+        <span class="operator">}</span>
+        <span class="keyword">elsif</span><span class="operator">(</span> <span class="number">1</span> <span class="operator">==</span> <span class="variable">$phase</span> <span class="operator">)</span>
+        <span class="operator">{</span>
+            <span class="comment"># init phase with more knowledge from DSN or attribute</span>
+            <span class="comment"># hash</span>
+            <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_manager</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_manager_type</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+        <span class="operator">}</span>
+    
+        <span class="keyword">return</span> <span class="variable">$dbh</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>So far we can prevent the users to use our database driver as data storage for anything and everything. We care only about the real important stuff for peace on earth and alike attributes. But in fact, the driver still can&#39;t do anything. It can do less than nothing - meanwhile it&#39;s not a stupid storage area anymore.</p>
+
+<h2 id="User-comfort">User comfort</h2>
+
+<p><code><code>DBI::DBD::SqlEngine</code></code> since <code><code>0.05</code></code> consolidates all persistent meta data of a table into a single structure stored in <code><code><span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">sql_meta</span><span class="operator">}</span>
+</code></code>. While DBI::DBD::SqlEngine provides only readonly access to this structure, modifications are still allowed.</p>
+
+<p>Primarily DBI::DBD::SqlEngine provides access via the setters <code><code>new_sql_engine_meta</code></code>, <code><code>get_sql_engine_meta</code></code>, <code><code>get_single_table_meta</code></code>, <code><code>set_single_table_meta</code></code>, <code><code>set_sql_engine_meta</code></code> and <code><code>clear_sql_engine_meta</code></code>. Those methods are easily accessible by the users via the <code><code>$dbh-&gt;func ()</code></code> interface provided by DBI. Well, many users don&#39;t feel comfortize when calling</p>
+
+<pre><code><code>    <span class="comment"># don't require extension for tables cars</span>
+    <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">func</span> <span class="operator">(</span><span class="string">"cars"</span><span class="operator">,</span> <span class="string">"f_ext"</span><span class="operator">,</span> <span class="string">".csv"</span><span class="operator">,</span> <span class="string">"set_sql_engine_meta"</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>DBI::DBD::SqlEngine will inject a method into your driver to increase the user comfort to allow:</p>
+
+<pre><code><code>    <span class="comment"># don't require extension for tables cars</span>
+    <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">foo_set_meta</span> <span class="operator">(</span><span class="string">"cars"</span><span class="operator">,</span> <span class="string">"f_ext"</span><span class="operator">,</span> <span class="string">".csv"</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Better, but here and there users likes to do:</p>
+
+<pre><code><code>    <span class="comment"># don't require extension for tables cars</span>
+    <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_tables</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">cars</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">f_ext</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">".csv"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This interface is provided when derived DBD&#39;s define following in <code><code>init_valid_attributes</code></code> (re-capture <a href="#Deal-with-own-attributes">&quot;Deal with own attributes&quot;</a>):</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> init_valid_attributes
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$dbh</span> <span class="operator">=</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+    
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">SUPER::init_valid_attributes</span> <span class="operator">();</span>
+    
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_valid_attrs</span><span class="operator">}</span> <span class="operator">=</span> <span class="operator">{</span>
+            <span class="string">foo_version</span>         <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains version of this driver</span>
+            <span class="string">foo_valid_attrs</span>     <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains the valid attributes of foo drivers</span>
+            <span class="string">foo_readonly_attrs</span>  <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains immutable attributes of foo drivers</span>
+            <span class="string">foo_bar</span>             <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains the bar attribute</span>
+            <span class="string">foo_baz</span>             <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains the baz attribute</span>
+            <span class="string">foo_manager</span>         <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains the manager of the driver instance</span>
+            <span class="string">foo_manager_type</span>    <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains the manager class of the driver instance</span>
+            <span class="string">foo_meta</span>            <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># contains the public interface to modify table meta attributes</span>
+        <span class="operator">}</span><span class="operator">;</span>
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_readonly_attrs</span><span class="operator">}</span> <span class="operator">=</span> <span class="operator">{</span>
+            <span class="string">foo_version</span>         <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># ensure no-one modifies the driver version</span>
+            <span class="string">foo_valid_attrs</span>     <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># do not permit to add more valid attributes ...</span>
+            <span class="string">foo_readonly_attrs</span>  <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># ... or make the immutable mutable</span>
+            <span class="string">foo_manager</span>         <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># manager is set internally only</span>
+            <span class="string">foo_meta</span>            <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>   <span class="comment"># ensure public interface to modify table meta attributes are immutable</span>
+        <span class="operator">}</span><span class="operator">;</span>
+    
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_meta</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"foo_tables"</span><span class="operator">;</span>
+    
+        <span class="keyword">return</span> <span class="variable">$dbh</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>This provides a tied hash in <code><code><span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_tables</span><span class="operator">}</span>
+</code></code> and a tied hash for each table&#39;s meta data in <code><code><span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_tables</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$table_name</span><span class="operator">}</span>
+</code></code>. Modifications on the table meta attributes are done using the table methods:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> get_table_meta_attr </span><span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span>
+    <span class="keyword">sub</span><span class="variable"> set_table_meta_attr </span><span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>Both methods can adjust the attribute name for compatibility reasons, e.g. when former versions of the DBD allowed different names to be used for the same flag:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">%compat_map</span> <span class="operator">=</span> <span class="operator">(</span>
+                       <span class="string">abc</span> <span class="operator">=&gt;</span> <span class="string">'foo_abc'</span><span class="operator">,</span>
+                       <span class="string">xyz</span> <span class="operator">=&gt;</span> <span class="string">'foo_xyz'</span><span class="operator">,</span>
+                     <span class="operator">);</span>
+    <span class="keyword">__PACKAGE__</span><span class="operator">-&gt;</span><span class="variable">register_compat_map</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">%compat_map</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>If any user modification on a meta attribute needs reinitialization of the meta structure (in case of <code><code>DBI::DBD::SqlEngine</code></code> these are the attributes <code><code>f_file</code></code>, <code><code>f_dir</code></code>, <code><code>f_ext</code></code> and <code><code>f_lockfile</code></code>), inform DBI::DBD::SqlEngine by doing</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">%reset_on_modify</span> <span class="operator">=</span> <span class="operator">(</span>
+                            <span class="string">foo_xyz</span> <span class="operator">=&gt;</span> <span class="string">"foo_bar"</span><span class="operator">,</span>
+                            <span class="string">foo_abc</span> <span class="operator">=&gt;</span> <span class="string">"foo_bar"</span><span class="operator">,</span>
+                          <span class="operator">);</span>
+    <span class="keyword">__PACKAGE__</span><span class="operator">-&gt;</span><span class="variable">register_reset_on_modify</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">%reset_on_modify</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>The next access to the table meta data will force DBI::DBD::SqlEngine to re-do the entire meta initialization process.</p>
+
+<p>Any further action which needs to be taken can handled in <code><code>table_meta_attr_changed</code></code>:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> table_meta_attr_changed
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$class</span><span class="operator">,</span> <span class="variable">$meta</span><span class="operator">,</span> <span class="variable">$attrib</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+        <span class="operator">...</span>
+        <span class="variable">$class</span><span class="operator">-&gt;</span><span class="variable">SUPER::table_meta_attr_changed</span> <span class="operator">(</span><span class="variable">$meta</span><span class="operator">,</span> <span class="variable">$attrib</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>This is done before the new value is set in <code><code>$meta</code></code>, so the attribute changed handler can act depending on the old value.</p>
+
+<h2 id="Dealing-with-Tables">Dealing with Tables</h2>
+
+<p>Let&#39;s put some life into it - it&#39;s going to be time for it.</p>
+
+<p>This is a good point where a quick side step to <a href="../../../../../lib/SQL/Statement/Embed.html">SQL::Statement::Embed</a> will help to shorten the next paragraph. The documentation in SQL::Statement::Embed regarding embedding in own DBD&#39;s works pretty fine with SQL::Statement and DBI::SQL::Nano.</p>
+
+<p>Second look should go to <a href="../../../../../lib/DBI/DBD/SqlEngine/Developers.html">DBI::DBD::SqlEngine::Developers</a> to get a picture over the driver part of the table API. Usually there isn&#39;t much to do for an easy driver.</p>
+
+<h2 id="Testing">Testing</h2>
+
+<p>Now you should have your first own DBD. Was easy, wasn&#39;t it? But does it work well? Prove it by writing tests and remember to use dbd_edit_mm_attribs from <a href="../../../../../lib/DBI/DBD.html">DBI::DBD</a> to ensure testing even rare cases.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>This guide is written by Jens Rehsack. DBI::DBD::SqlEngine is written by Jens Rehsack using code from DBD::File originally written by Jochen Wiedmann and Jeff Zucker.</p>
+
+<p>The module DBI::DBD::SqlEngine is currently maintained by</p>
+
+<p>H.Merijn Brand &lt; h.m.brand at xs4all.nl &gt; and Jens Rehsack &lt; rehsack at googlemail.com &gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (C) 2010 by H.Merijn Brand &amp; Jens Rehsack</p>
+
+<p>All rights reserved.</p>
+
+<p>You may freely distribute and/or modify this module under the terms of either the GNU General Public License (GPL) or the Artistic License, as specified in the Perl README file.</p>
+
+
+</body>
+
+</html>
+
+

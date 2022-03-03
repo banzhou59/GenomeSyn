@@ -1,0 +1,573 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Classification-of-Hits">Classification of Hits</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#DISCLAIMER">DISCLAIMER</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#number">number</a></li>
+      <li><a href="#converged">converged</a></li>
+      <li><a href="#next_hit">next_hit</a></li>
+      <li><a href="#next_hit_new">next_hit_new</a></li>
+      <li><a href="#next_hit_old">next_hit_old</a></li>
+      <li><a href="#num_hits">num_hits</a></li>
+      <li><a href="#num_hits_new">num_hits_new</a></li>
+      <li><a href="#num_hits_old">num_hits_old</a></li>
+      <li><a href="#hits">hits</a></li>
+      <li><a href="#newhits">newhits</a></li>
+      <li><a href="#oldhits">oldhits</a></li>
+      <li><a href="#newhits_below_threshold">newhits_below_threshold</a></li>
+      <li><a href="#oldhits_below_threshold">oldhits_below_threshold</a></li>
+      <li><a href="#oldhits_newly_below_threshold">oldhits_newly_below_threshold</a></li>
+      <li><a href="#oldhits_not_below_threshold">oldhits_not_below_threshold</a></li>
+      <li><a href="#newhits_not_below_threshold">newhits_not_below_threshold</a></li>
+      <li><a href="#hits_below_threshold">hits_below_threshold</a></li>
+      <li><a href="#add_hit">add_hit</a></li>
+      <li><a href="#get_hit">get_hit</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Search::Iteration::IterationI - Abstract interface to an iteration from an iterated search result, such as PSI-BLAST.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment"># Bio::Search::Iteration::IterationI objects cannot be </span>
+    <span class="comment"># instantiated since this module defines a pure interface.</span>
+    <span class="comment"># Given an object that implements the </span>
+    <span class="comment"># Bio::Search::Iteration::IterationI interface, </span>
+    <span class="comment"># you can do the following things with it:</span>
+    
+    <span class="comment"># First, open up a SearchIO stream</span>
+    <span class="keyword">use</span> <span class="variable">Bio::SearchIO</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$file</span> <span class="operator">=</span> <span class="keyword">shift</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Usage: </span><span class="variable">$0</span><span class="string"> &lt;BLAST-report-file&gt;\n"</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'blast'</span><span class="operator">,</span>
+                               <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$file</span> <span class="comment"># comment out this line to read STDIN</span>
+                              <span class="operator">);</span>
+    <span class="comment"># Iterate over all results in the input stream</span>
+    <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_result</span><span class="operator">)</span> <span class="operator">{</span>
+    
+        <span class="keyword">printf</span> <span class="string">"Result #%d: %s\n"</span><span class="operator">,</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">result_count</span><span class="operator">,</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">to_string</span><span class="operator">;</span>
+        <span class="keyword">printf</span> <span class="string">"Total Iterations: %d\n"</span><span class="operator">,</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">num_iterations</span><span class="operator">();</span>
+    
+        <span class="comment"># Iterate over all iterations and process old and new hits</span>
+        <span class="comment"># separately.</span>
+    
+        <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$it</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">next_iteration</span><span class="operator">)</span> <span class="operator">{</span> 
+            <span class="keyword">printf</span> <span class="string">"\nIteration %d\n"</span><span class="operator">,</span> <span class="variable">$it</span><span class="operator">-&gt;</span><span class="variable">number</span><span class="operator">;</span>
+            <span class="keyword">printf</span> <span class="string">"Converged: %d\n"</span><span class="operator">,</span> <span class="variable">$it</span><span class="operator">-&gt;</span><span class="variable">converged</span><span class="operator">;</span>
+    
+            <span class="comment"># Print out the hits not found in previous iteration</span>
+            <span class="keyword">printf</span> <span class="string">"New hits: %d\n"</span><span class="operator">,</span> <span class="variable">$it</span><span class="operator">-&gt;</span><span class="variable">num_hits_new</span><span class="operator">;</span>
+            <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$it</span><span class="operator">-&gt;</span><span class="variable">next_hit_new</span> <span class="operator">)</span> <span class="operator">{</span>
+                <span class="keyword">printf</span> <span class="string">"  %s, Expect=%g\n"</span><span class="operator">,</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">,</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">expect</span><span class="operator">;</span> 
+            <span class="operator">}</span>
+    
+            <span class="comment"># Print out the hits found in previous iteration</span>
+            <span class="keyword">printf</span> <span class="string">"Old hits: %d\n"</span><span class="operator">,</span> <span class="variable">$it</span><span class="operator">-&gt;</span><span class="variable">num_hits_old</span><span class="operator">;</span> 
+            <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$it</span><span class="operator">-&gt;</span><span class="variable">next_hit_old</span> <span class="operator">)</span> <span class="operator">{</span>
+                <span class="keyword">printf</span> <span class="string">"  %s, Expect=%g\n"</span><span class="operator">,</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">,</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">expect</span><span class="operator">;</span> 
+            <span class="operator">}</span>
+        <span class="operator">}</span>
+        <span class="keyword">printf</span> <span class="string">"%s\n\n"</span><span class="operator">,</span> <span class="string">'-'</span> <span class="operator">x</span> <span class="number">50</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">printf</span> <span class="string">"Total Reports processed: %d: %s\n"</span><span class="operator">,</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">result_count</span><span class="operator">;</span>
+    
+    <span class="comment">__END__
+    
+    # NOTE: The following functionality is just proposed
+    # (does not yet exist but might, given sufficient hew and cry):
+    
+    # Zero-in on the new hits found in last iteration.
+    # By default, iteration() returns the last one.
+    
+    my $last_iteration = $result-&gt;iteration();
+    while( my $hit = $last_iteration-&gt;next_hit) {
+        # Do something with new hit...
+    }
+    
+    # Get the first iteration
+    
+    my $first_iteration = $result-&gt;iteration(1);
+    </span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::Search::Result::ResultI objects are data structures containing the results from the execution of a search algorithm. As such, it may contain various algorithm specific information as well as details of the execution, but will contain a few fundamental elements, including the ability to return Bio::Search::Hit::HitI objects.</p>
+
+<h2 id="Classification-of-Hits">Classification of Hits</h2>
+
+<p>Within a given iteration, the hits can be classified into a number of useful subsets based on whether or not the hit appeard in a previous iteration and whether or not the hit is below the threshold E-value for inclusion in the score matrix model.</p>
+
+<pre><code><code>                           All hits
+                             (A)
+               _______________|_________________
+               |                               |
+            New hits                        Old hits
+              (B)                             (C)
+      _________|________                _______|_________
+      |                |                |               |
+    Below            Above             Below          Above
+  threshold        threshold         threshold      threshold
+     (D)              (E)              (F)             (G)
+                               _________|___________
+                               |                   |
+                         Occurred in a         Occurred in a
+                         previous iteration    previous iteration
+                         below threshold       above threshold
+                              (H)                  (I)</code></code></pre>
+
+<p>Notes: The term <i>threshold</i> in the diagram and descriptions below refer to this inclusion threshold. <i>Below threshold</i> actually means <i>at or below threshold</i>.</p>
+
+<p>The IterationI interface defines a number of methods for extracting these subsets of hits.</p>
+
+<ul>
+
+<li><p>newhits_below_threshold() [subset D]</p>
+
+<p>Hits that did not appear in a previous iteration and are below threshold in the current iteration.</p>
+
+</li>
+<li><p>newhits_not_below_threshold() [subset E]</p>
+
+<p>Hits that did not appear in a previous iteration and are not below threshold in the current iteration.</p>
+
+</li>
+<li><p>newhits() [subset B]</p>
+
+<p>All newly found hits, below and above the inclusion threshold. This is the union of newhits_below_threshold() + newhits_not_below_threshold() [subset D + subset E].</p>
+
+</li>
+<li><p>oldhits_below_threshold() [subset H]</p>
+
+<p>Hits that appeared in a previous iteration below threshold and are still below threshold in the current iteration.</p>
+
+</li>
+<li><p>oldhits_newly_below_threshold() [subset I]</p>
+
+<p>Hits that appeared in a previous iteration above threshold but are below threshold in the current iteration. (Not applicable to the first iteration.)</p>
+
+</li>
+<li><p>oldhits_not_below_threshold() [subset G]</p>
+
+<p>Hits that appeared in a previous iteration not below threshold and are still not below threshold in the current iteration.</p>
+
+</li>
+<li><p>oldhits() [subset C]</p>
+
+<p>All hits that occured in a previous iteration, whether below or above threshold in the current iteration. Union of oldhits_below_threshold() + oldhits_newly_below_threshold() + oldhits_not_below_threshold() [subset H + subset I + subset G]. (Not applicable to the first iteration.)</p>
+
+</li>
+<li><p>hits_below_threshold() [subset D + subset F]</p>
+
+<p>All hits, old and new, that are below the inclusion threshold in this iteration. This is the union of newhits_below_threshold() + oldhits_below_threshold() + oldhits_newly_below_threshold() [subset D + subset H + subset I].</p>
+
+</li>
+<li><p>hits() [subset A]</p>
+
+<p>The union of newhits() and oldhits() [subset B + subset C].</p>
+
+</li>
+</ul>
+
+<p>For the first iteration, the methods <a>oldhits</a>, <a>oldhits_below_threshold</a>, <a>oldhits_newly_below_threshold</a>, and oldhits_not_below_threshold() will return empty lists.</p>
+
+<p>Iterator and numbers-of-hit methods are provided for subsets A, B, and C:</p>
+
+<ul>
+
+<li><p>next_hit_new(), num_hits_new() [subset B]</p>
+
+</li>
+<li><p>next_hit_old(), num_hits_old() [subset C]</p>
+
+</li>
+<li><p>next_hit(), num_hits() [subset A]</p>
+
+</li>
+</ul>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Steve Chervitz &lt;sac@bioperl.org&gt;</p>
+
+<p>See <a>the FEEDBACK section </a> for where to send bug reports and comments.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2003 Steve Chervitz. All Rights Reserved.</p>
+
+<h1 id="DISCLAIMER">DISCLAIMER</h1>
+
+<p>This software is provided &quot;as is&quot; without warranty of any kind.</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="number">number</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">number</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$it_number</span> <span class="operator">=</span> <span class="variable">$iteration</span><span class="operator">-&gt;</span><span class="variable">number</span><span class="operator">();</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">iteration</span> <span class="operator">(</span><span class="variable">a</span><span class="operator">.</span><span class="variable">k</span><span class="operator">.</span><span class="variable">a</span> <span class="string">"round"</span><span class="operator">)</span> 
+           <span class="variable">within</span> <span class="variable">the</span> <span class="variable">Result</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">integer</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">iteration</span>
+</code></code></pre>
+
+<h2 id="converged">converged</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">converged</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$it_converged</span> <span class="operator">=</span> <span class="variable">$iteration</span><span class="operator">-&gt;</span><span class="variable">converged</span><span class="operator">();</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Indicates</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="variable">the</span> <span class="variable">iteration</span> <span class="variable">has</span> <span class="variable">converged</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">boolean</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">boolean</span> <span class="variable">value</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">converged</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">iteration</span>
+</code></code></pre>
+
+<h2 id="next_hit">next_hit</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_hit</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">while</span><span class="operator">(</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$iteration</span><span class="operator">-&gt;</span><span class="variable">next_hit</span><span class="operator">(</span> <span class="operator">[</span><span class="variable">$found_again</span><span class="operator">]</span><span class="operator">)</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Iterates</span> <span class="variable">through</span> <span class="variable">all</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">HitI</span> <span class="variable">objects</span>
+           <span class="variable">including</span> <span class="variable">new</span> <span class="variable">hits</span> <span class="keyword">and</span> <span class="variable">old</span> <span class="variable">hits</span> <span class="variable">found</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">previous</span> <span class="variable">iteration</span>
+           <span class="keyword">and</span> <span class="variable">both</span> <span class="variable">below</span> <span class="keyword">and</span> <span class="variable">above</span> <span class="variable">the</span> <span class="variable">inclusion</span> <span class="variable">threshold</span><span class="operator">.</span>
+           <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">A</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+           <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">object</span> <span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="variable">there</span> <span class="variable">are</span> <span class="keyword">no</span> <span class="variable">more</span><span class="operator">.</span>
+           <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">order</span> <span class="variable">in</span> <span class="variable">which</span> <span class="variable">they</span> <span class="variable">occur</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+           <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>hits</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<p>next_hit() iterates through all hits, including the new ones for this iteration and those found in previous iterations. You can interrogate each hit using <a>Bio::Search::Hit::HitI::found_again</a> to determine whether it is new or old.</p>
+
+<p>To get just the new hits, use <a>next_hit_new</a>. To get just the old hits, use <a>next_hit_old</a>.</p>
+
+<h2 id="next_hit_new">next_hit_new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_hit_new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">while</span><span class="operator">(</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$iteration</span><span class="operator">-&gt;</span><span class="variable">next_hit_new</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Iterates</span> <span class="variable">through</span> <span class="variable">all</span> <span class="variable">newly</span> <span class="variable">found</span> <span class="variable">hits</span> <span class="operator">(</span><span class="variable">did</span> <span class="keyword">not</span> <span class="variable">occur</span> <span class="variable">in</span> <span class="variable">a</span>
+           <span class="variable">previous</span> <span class="variable">iteration</span><span class="operator">)</span> <span class="keyword">and</span> <span class="variable">are</span> <span class="variable">either</span> <span class="variable">below</span> <span class="keyword">or</span> <span class="variable">above</span> <span class="variable">the</span> <span class="variable">inclusion</span> <span class="variable">threshold</span><span class="operator">.</span>
+           <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">B</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+           <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">object</span> <span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="variable">there</span> <span class="variable">are</span> <span class="keyword">no</span> <span class="variable">more</span><span class="operator">.</span>
+           <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">order</span> <span class="variable">in</span> <span class="variable">which</span> <span class="variable">they</span> <span class="variable">occur</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+           <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>next_hit</a>, <a>next_hit_old</a>, <a>newhits</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="next_hit_old">next_hit_old</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_hit_old</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">while</span><span class="operator">(</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$iteration</span><span class="operator">-&gt;</span><span class="variable">next_hit_old</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Iterates</span> <span class="variable">through</span> <span class="variable">the</span> <span class="variable">Hit</span> <span class="variable">objects</span> <span class="variable">representing</span> <span class="variable">just</span> <span class="variable">the</span>
+           <span class="variable">hits</span> <span class="variable">that</span> <span class="variable">have</span> <span class="variable">been</span> <span class="variable">found</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">previous</span> <span class="variable">iteration</span><span class="operator">,</span> <span class="variable">whether</span>
+           <span class="variable">below</span> <span class="keyword">or</span> <span class="variable">above</span> <span class="variable">the</span> <span class="variable">inclusion</span> <span class="variable">threshold</span><span class="operator">.</span>
+           <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">C</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+           <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">object</span> <span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="variable">there</span> <span class="variable">are</span> <span class="keyword">no</span> <span class="variable">more</span><span class="operator">.</span>
+           <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">order</span> <span class="variable">in</span> <span class="variable">which</span> <span class="variable">they</span> <span class="variable">occur</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+           <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>next_hit</a>, <a>next_hit_old</a>, <a>oldhits</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="num_hits">num_hits</h2>
+
+<pre><code><code> Title   : num_hits
+ Usage   : my $hitcount_total = $iteration-&gt;num_hits
+ Purpose : Returns the total number of hits for this query result, including new and old
+           below and above inclusion threshold.
+ Returns : integer
+ Args    : none</code></code></pre>
+
+<p>See Also: <a>num_hits_new</a>, <a>num_hits_old</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="num_hits_new">num_hits_new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">num_hits_new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$hitcount_new</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">num_hits_new</span><span class="operator">;</span>
+         <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$hitcount_new_below_thresh</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">num_hits_new</span><span class="operator">(</span> <span class="number">1</span> <span class="operator">);</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">new</span> <span class="variable">hits</span> <span class="variable">in</span> <span class="variable">this</span> <span class="variable">iteration</span> <span class="variable">that</span> <span class="variable">were</span> <span class="keyword">not</span>
+           <span class="variable">found</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">previous</span> <span class="variable">iteration</span> <span class="keyword">and</span> <span class="variable">are</span> <span class="variable">either</span> <span class="variable">below</span> <span class="keyword">or</span> <span class="variable">above</span> <span class="variable">the</span>
+           <span class="variable">the</span> <span class="variable">inclusion</span> <span class="variable">threshold</span><span class="operator">.</span>
+           <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">B</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+           <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span> <span class="variable">boolean</span><span class="operator">,</span> <span class="variable">true</span> <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">want</span> <span class="variable">to</span> <span class="variable">get</span> <span class="variable">a</span> <span class="variable">count</span> <span class="variable">of</span> <span class="variable">just</span> <span class="variable">the</span> <span class="variable">new</span> <span class="variable">hits</span>
+           <span class="variable">that</span> <span class="variable">are</span> <span class="variable">below</span> <span class="variable">the</span> <span class="variable">inclusion</span> <span class="variable">threshold</span><span class="operator">.</span>
+</code></code></pre>
+
+<p>See Also: <a>num_hits</a>, <a>num_hits_old</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="num_hits_old">num_hits_old</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">num_hits_old</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$hitcount_old</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">num_hits_old</span><span class="operator">;</span>
+         <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$hitcount_old_below_thresh</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">num_hits_old</span><span class="operator">(</span> <span class="number">1</span> <span class="operator">);</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">new</span> <span class="variable">hits</span> <span class="variable">in</span> <span class="variable">this</span> <span class="variable">iteration</span> <span class="variable">that</span> <span class="variable">were</span>
+           <span class="variable">found</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">previous</span> <span class="variable">iteration</span> <span class="keyword">and</span> <span class="variable">are</span> <span class="variable">either</span> <span class="variable">below</span> <span class="keyword">or</span> <span class="variable">above</span> <span class="variable">the</span>
+           <span class="variable">the</span> <span class="variable">inclusion</span> <span class="variable">threshold</span><span class="operator">.</span>
+           <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">C</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+           <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span> <span class="variable">boolean</span><span class="operator">,</span> <span class="variable">true</span> <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">want</span> <span class="variable">to</span> <span class="variable">get</span> <span class="variable">a</span> <span class="variable">count</span> <span class="variable">of</span> <span class="variable">just</span> <span class="variable">the</span> <span class="variable">old</span> <span class="variable">hits</span>
+           <span class="variable">that</span> <span class="variable">are</span> <span class="variable">below</span> <span class="variable">the</span> <span class="variable">inclusion</span> <span class="variable">threshold</span><span class="operator">.</span>
+</code></code></pre>
+
+<p>See Also: <a>num_hits</a>, <a>num_hits_new</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="hits">hits</h2>
+
+<pre><code><code> <span class="variable">Title</span>    <span class="operator">:</span> <span class="variable">hits</span>
+ <span class="variable">Usage</span>    <span class="operator">:</span> <span class="keyword">foreach</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">hits</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">};</span>
+ <span class="variable">Purpose</span>  <span class="operator">:</span> <span class="variable">Provides</span> <span class="variable">access</span> <span class="variable">to</span> <span class="variable">all</span> <span class="variable">hits</span><span class="operator">,</span> <span class="variable">both</span> <span class="variable">new</span> <span class="keyword">and</span> <span class="variable">old</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">either</span>
+            <span class="variable">below</span> <span class="keyword">or</span> <span class="variable">above</span> <span class="variable">the</span> <span class="variable">inclusion</span> <span class="variable">threshold</span><span class="operator">.</span>
+            <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">A</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+            <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span>  <span class="operator">:</span> <span class="variable">An</span> <span class="variable">array</span> <span class="variable">containing</span> <span class="variable">all</span> <span class="variable">HitI</span> <span class="variable">objects</span><span class="operator">.</span>
+            <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">ordered</span> <span class="variable">according</span> <span class="variable">to</span> <span class="variable">their</span> <span class="variable">occurrence</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+            <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>     <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>newhits</a>, <a>oldhits</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="newhits">newhits</h2>
+
+<pre><code><code> <span class="variable">Title</span>    <span class="operator">:</span> <span class="variable">newhits</span>
+ <span class="variable">Usage</span>    <span class="operator">:</span> <span class="keyword">foreach</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">newhits</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">};</span>
+ <span class="variable">Purpose</span>  <span class="operator">:</span> <span class="variable">Provides</span> <span class="variable">access</span> <span class="variable">to</span> <span class="variable">hits</span> <span class="variable">that</span> <span class="variable">were</span> <span class="keyword">not</span> <span class="variable">found</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">previous</span> <span class="variable">iteration</span>
+            <span class="keyword">and</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">either</span> <span class="variable">below</span> <span class="keyword">or</span> <span class="variable">above</span> <span class="variable">the</span> <span class="variable">inclusion</span> <span class="variable">threshold</span><span class="operator">.</span>
+            <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">B</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+            <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span>  <span class="operator">:</span> <span class="variable">An</span> <span class="variable">array</span> <span class="variable">containing</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">objects</span><span class="operator">.</span>
+            <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">ordered</span> <span class="variable">according</span> <span class="variable">to</span> <span class="variable">their</span> <span class="variable">occurrence</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+            <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>     <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>hits</a>, <a>oldhits</a>, <a>newhits_below_threshold</a> + <a>newhits_not_below_threshold</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="oldhits">oldhits</h2>
+
+<pre><code><code> <span class="variable">Title</span>    <span class="operator">:</span> <span class="variable">oldhits</span>
+ <span class="variable">Usage</span>    <span class="operator">:</span> <span class="keyword">foreach</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">oldhits</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">};</span>
+ <span class="variable">Purpose</span>  <span class="operator">:</span> <span class="variable">Provides</span> <span class="variable">access</span> <span class="variable">to</span> <span class="variable">hits</span> <span class="variable">that</span> <span class="variable">were</span> <span class="variable">found</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">previous</span> <span class="variable">iteration</span>
+            <span class="keyword">and</span> <span class="variable">are</span> <span class="variable">either</span> <span class="variable">below</span> <span class="keyword">or</span> <span class="variable">above</span> <span class="variable">the</span> <span class="variable">inclusion</span> <span class="variable">threshold</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">iteration</span><span class="operator">.</span>
+            <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">C</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+            <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span>  <span class="operator">:</span> <span class="variable">An</span> <span class="variable">array</span> <span class="variable">containing</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">objects</span><span class="operator">.</span>
+            <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">ordered</span> <span class="variable">according</span> <span class="variable">to</span> <span class="variable">their</span> <span class="variable">occurrence</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+            <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>     <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>hits</a>, <a>newhits</a>, <a>oldhits_below_threshold</a>, <a>oldhits_newly_below_threshold</a>, <a>oldhits_not_below_threshold</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="newhits_below_threshold">newhits_below_threshold</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">newhits_below_threshold</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">foreach</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">newhits_below_threshold</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">};</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Provides</span> <span class="variable">access</span> <span class="variable">to</span> <span class="variable">hits</span> <span class="variable">that</span> <span class="variable">did</span> <span class="keyword">not</span> <span class="variable">appear</span> <span class="variable">in</span> <span class="variable">a</span> 
+           <span class="variable">previous</span> <span class="variable">iteration</span> <span class="keyword">and</span> <span class="variable">are</span> <span class="variable">below</span> <span class="variable">threshold</span><span class="operator">.</span>
+           <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">D</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+           <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">An</span> <span class="variable">array</span> <span class="variable">containing</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">objects</span><span class="operator">.</span>
+           <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">order</span> <span class="variable">in</span> <span class="variable">which</span> <span class="variable">they</span> <span class="variable">occur</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+           <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>newhits_not_below_threshold</a>, <a>oldhits_newly_below_threshold</a>, <a>newhits</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="oldhits_below_threshold">oldhits_below_threshold</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">oldhits_below_threshold</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">foreach</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">oldhits_below_threshold</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">};</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Provides</span> <span class="variable">access</span> <span class="variable">to</span> <span class="variable">hits</span> <span class="variable">that</span> <span class="variable">appeared</span> <span class="variable">in</span> <span class="variable">a</span> 
+           <span class="variable">previous</span> <span class="variable">iteration</span> <span class="variable">below</span> <span class="variable">inclusion</span> <span class="variable">threshold</span> <span class="keyword">and</span> <span class="variable">are</span> <span class="variable">still</span> <span class="variable">below</span> <span class="variable">threshold</span><span class="operator">.</span>
+           <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">H</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+           <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">An</span> <span class="variable">array</span> <span class="variable">containing</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">objects</span><span class="operator">.</span>
+           <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">order</span> <span class="variable">in</span> <span class="variable">which</span> <span class="variable">they</span> <span class="variable">occur</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+           <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>oldhits_not_below_threshold</a>, <a>oldhits_newly_below_threshold</a>, <a>oldhits</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="oldhits_newly_below_threshold">oldhits_newly_below_threshold</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">oldhits_newly_below_threshold</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">foreach</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">oldhits_newly_below_threshold</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">};</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Provides</span> <span class="variable">access</span> <span class="variable">to</span> <span class="variable">hits</span> <span class="variable">that</span> <span class="variable">appeared</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">previous</span>
+           <span class="variable">iteration</span> <span class="variable">above</span> <span class="variable">threshold</span> <span class="variable">but</span> <span class="variable">are</span> <span class="variable">below</span> <span class="variable">threshold</span> <span class="variable">in</span> <span class="variable">the</span> 
+           <span class="variable">current</span> <span class="variable">iteration</span><span class="operator">.</span> <span class="variable">Not</span> <span class="variable">applicable</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">iteration</span><span class="operator">.</span>
+           <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">I</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+           <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">An</span> <span class="variable">array</span> <span class="variable">containing</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">objects</span><span class="operator">.</span>
+           <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">order</span> <span class="variable">in</span> <span class="variable">which</span> <span class="variable">they</span> <span class="variable">occur</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+           <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>newhits_below_threshold</a>, <a>oldhits</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="oldhits_not_below_threshold">oldhits_not_below_threshold</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">oldhits_not_below_threshold</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">foreach</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">oldhits_not_below_threshold</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">};</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Provides</span> <span class="variable">access</span> <span class="variable">to</span> <span class="variable">hits</span> <span class="variable">that</span> <span class="variable">appeared</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">previous</span> <span class="variable">iteration</span>
+           <span class="keyword">not</span> <span class="variable">below</span> <span class="variable">threshold</span> <span class="keyword">and</span> <span class="variable">are</span> <span class="variable">still</span> <span class="keyword">not</span> <span class="variable">below</span> <span class="variable">threshold</span><span class="operator">.</span>
+           <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">G</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+           <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">An</span> <span class="variable">array</span> <span class="variable">containing</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">objects</span><span class="operator">.</span>
+           <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">order</span> <span class="variable">in</span> <span class="variable">which</span> <span class="variable">they</span> <span class="variable">occur</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+           <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>oldhits_below_threshold</a>, <a>oldhits</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="newhits_not_below_threshold">newhits_not_below_threshold</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">newhits_not_below_threshold</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">foreach</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">newhits_not_below_threshold</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">};</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Provides</span> <span class="variable">access</span> <span class="variable">to</span> <span class="variable">hits</span> <span class="variable">that</span> <span class="variable">did</span> <span class="keyword">not</span> <span class="variable">appear</span> <span class="variable">in</span> <span class="variable">a</span> 
+           <span class="variable">previous</span> <span class="variable">iteration</span> <span class="keyword">and</span> <span class="variable">are</span> <span class="keyword">not</span> <span class="variable">below</span> <span class="variable">threshold</span> 
+           <span class="variable">in</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">iteration</span><span class="operator">.</span>
+           <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">subset</span> <span class="variable">E</span> <span class="variable">in</span> <span class="variable">the</span> <span class="string">"Classification of Hits"</span>
+           <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">An</span> <span class="variable">array</span> <span class="variable">containing</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">objects</span><span class="operator">.</span>
+           <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">order</span> <span class="variable">in</span> <span class="variable">which</span> <span class="variable">they</span> <span class="variable">occur</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+           <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>newhits_below_threshold</a>, <a>newhits</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="hits_below_threshold">hits_below_threshold</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">hits_below_threshold</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">foreach</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">hits_below_threshold</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">};</span>
+ <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Provides</span> <span class="variable">access</span> <span class="variable">to</span> <span class="variable">all</span> <span class="variable">hits</span><span class="operator">,</span> <span class="variable">old</span> <span class="keyword">and</span> <span class="variable">new</span><span class="operator">,</span> <span class="variable">that</span> <span class="variable">are</span> <span class="variable">below</span> <span class="variable">the</span> <span class="variable">inclusion</span> <span class="variable">threshold</span><span class="operator">.</span>
+           <span class="variable">Corresponds</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">union</span> <span class="variable">of</span> <span class="variable">subset</span> <span class="variable">D</span> <span class="keyword">and</span> <span class="variable">subset</span> <span class="variable">F</span> <span class="variable">in</span> <span class="variable">the</span> 
+           <span class="string">"Classification of Hits"</span> <span class="variable">documentation</span> <span class="variable">section</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">module</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">An</span> <span class="variable">array</span> <span class="variable">containing</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">objects</span><span class="operator">.</span>
+           <span class="variable">Hits</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">order</span> <span class="variable">in</span> <span class="variable">which</span> <span class="variable">they</span> <span class="variable">occur</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">report</span>
+           <span class="keyword">unless</span> <span class="variable">otherwise</span> <span class="variable">specified</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>See Also: <a>newhits_below_threshold</a>, <a>oldhits_newly_below_threshold</a>, <a>oldhits_below_threshold</a>, <a href="#Classification-of-Hits">&quot;Classification of Hits&quot;</a></p>
+
+<h2 id="add_hit">add_hit</h2>
+
+<pre><code><code> Title   : add_hit
+ Usage   : $report-&gt;add_hit(-hit             =&gt;$hit_obj,
+                            -old             =&gt;$boolean,
+                            -below_threshold =&gt;$boolean,
+                            -newly_below     =&gt;$boolean )
+ Purpose : Adds a HitI to the stored list of hits
+ Returns : Number of HitI currently stored for the class of the added hit.
+ Args    : Tagged values, the only required one is -hit. All others are used
+           only for PSI-BLAST reports.
+           -hit =&gt; Bio::Search::Hit::HitI object
+           -old =&gt; boolean, true indicates that the hit was found 
+                   in a previous iteration. Default=false.
+           -below_threshold =&gt; boolean, true indicates that the hit is below
+                   the inclusion threshold.
+           -newly_below =&gt; boolean, true indicates that the hit is below
+                   the inclusion threshold in this iteration but was above
+                   the inclusion threshold in a previous iteration. 
+                   Only appropriate for old hits. Default=false.
+ Throws  : Bio::Root::BadParameter if the hit is not a
+           Bio::Search::Hit::HitI.
+           Bio::Root::BadParameter if -old=&gt;false and -newly_below=&gt;true.</code></code></pre>
+
+<h2 id="get_hit">get_hit</h2>
+
+<pre><code><code> Title   : get_hit
+ Usage   : $hit = $report-&gt;get_hit( $hit_name )
+ Purpose : Gets a HitI object given its name 
+           if a hit with this name exists within this Iteration.
+ Returns : Bio::Search::Hit::HitI object or undef if there is no such hit.
+ Args    : $hit_name = string containing name of the hit
+ Throws  : n/a</code></code></pre>
+
+<p>The name string must be the same as that returned by Bio::Search::Hit::HitI::name().</p>
+
+<p>The lookup should be case-insensitive.</p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,330 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#About-Footprinter">About Footprinter</a></li>
+      <li><a href="#Running-Footprinter">Running Footprinter</a></li>
+      <li><a href="#Available-Parameters">Available Parameters</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#executable">executable</a></li>
+      <li><a href="#new">new</a></li>
+      <li><a href="#run">run</a></li>
+      <li><a href="#run1">_run</a></li>
+      <li><a href="#setparams-">_setparams()</a></li>
+      <li><a href="#setinput-">_setinput()</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::Tools::Run::Wrapper-methods">Bio::Tools::Run::Wrapper methods</a>
+    <ul>
+      <li><a href="#no_param_checks">no_param_checks</a></li>
+      <li><a href="#save_tempfiles">save_tempfiles</a></li>
+      <li><a href="#outfile_name">outfile_name</a></li>
+      <li><a href="#tempdir">tempdir</a></li>
+      <li><a href="#cleanup">cleanup</a></li>
+      <li><a href="#io">io</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::FootPrinter - wrapper for the FootPrinter program</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::FootPrinter</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">size</span> <span class="operator">=&gt;</span> <span class="number">10</span><span class="operator">,</span>
+                 <span class="string">max_mutations_per_branch</span> <span class="operator">=&gt;</span> <span class="number">4</span><span class="operator">,</span>
+                 <span class="string">sequence_type</span> <span class="operator">=&gt;</span> <span class="string">'upstream'</span><span class="operator">,</span>
+                 <span class="string">subregion_size</span> <span class="operator">=&gt;</span> <span class="number">30</span><span class="operator">,</span>
+                 <span class="string">position_change_cost</span> <span class="operator">=&gt;</span> <span class="number">5</span><span class="operator">,</span>
+                 <span class="string">triplet_filtering</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                 <span class="string">pair_filtering</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                 <span class="string">post_filtering</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                 <span class="string">inversion_cost</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                 <span class="string">max_mutations</span> <span class="operator">=&gt;</span> <span class="number">4</span><span class="operator">,</span>
+                 <span class="string">tree</span> <span class="operator">=&gt;</span> <span class="string">"~/software/FootPrinter2.0/tree_of_life"</span> <span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$fp</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::FootPrinter</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">,</span> <span class="string">-verbose</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$sio</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"seq.fa"</span><span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">"fasta"</span><span class="operator">);</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$sio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">){</span>
+    <span class="keyword">push</span> <span class="variable">@seq</span><span class="operator">,</span> <span class="variable">$seq</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  <span class="keyword">my</span> <span class="variable">@fp</span> <span class="operator">=</span> <span class="variable">$fp</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">@seq</span><span class="operator">);</span>
+  
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$result</span><span class="operator">(</span><span class="variable">@fp</span><span class="operator">){</span>
+    <span class="keyword">print</span> <span class="string">"***************\n"</span><span class="operator">.</span><span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">seq_id</span><span class="operator">.</span><span class="string">"\n"</span><span class="operator">;</span>
+    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$feat</span><span class="operator">(</span><span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">sub_SeqFeature</span><span class="operator">){</span>
+      <span class="keyword">print</span> <span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">.</span><span class="string">"\t"</span><span class="operator">.</span><span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">end</span><span class="operator">.</span><span class="string">"\t"</span><span class="operator">.</span><span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">.</span><span class="string">"\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>From the FootPrinter manual:</p>
+
+<p>FootPrinter is a program that performs phylogenetic footprinting. It takes as input a set of unaligned orthologous sequences from various species, together with a phylogenetic tree relating these species. It then searches for short regions of the sequences that are highly conserved, according to a parsimony criterion.</p>
+
+<p>The regions identified are good candidates for regulatory elements. By default, the program searches for regions that are well conserved across all of the input sequences, but this can be relaxed to find regions conserved in only a subset of the species</p>
+
+<h2 id="About-Footprinter">About Footprinter</h2>
+
+<p>Written by Mathieu Blanchette and Martin Tompa. Available here:</p>
+
+<pre><code><code>  http://www.mcb.mcgill.ca/~blanchem/FootPrinter2.1.tar.gz </code></code></pre>
+
+<h2 id="Running-Footprinter">Running Footprinter</h2>
+
+<p>To run FootPrinter, you will need to set the enviroment variable FOOTPRINTER_DIR to where the binary is located (even if the executable is in your path). For example:</p>
+
+<pre><code><code>  setenv FOOTPRINTER_DIR /usr/local/bin/FootPrinter2.0/</code></code></pre>
+
+<h2 id="Available-Parameters">Available Parameters</h2>
+
+<pre><code><code>  PARAM         VALUES        DESCRIPTION
+  ------------------------------------------------------------------------
+  tree                      &lt;file&gt;     REQUIRED, Tree in Newick Format
+                                       to evaluate parsimony score 
+                                       REQUIRED unless tree_of_life
+                                       exists in FOOTPRINTER_DIR
+  sequence_type             upstream   Default upstream
+                            downstream
+                            other
+  size                      4-16       Specifies the size of the motifs sought
+  max_mutations             0-20       maximum parsimony score allowed for the motifs
+  max_mutations_per_branch  0-20       Allows at most a fixed number of mutations per 
+                                       branch of the tree
+  losses                    &lt;file&gt;     files give span constraints so that the motifs
+                                       reported are statistically significant
+                                       Example files
+                                       universal([6-9]|1[0-2])(loose|tight)?.config
+                                       come with FootPrinter2.0.
+                                       Install these in FOOTPRINTER_DIR and use by
+                                       setting &quot;losses&quot; to &quot;somewhat significant&quot;,
+                                       &quot;significant&quot;, or &quot;very significant&quot;. Do not
+                                       set loss_cost.
+  loss_cost                 0-20       a cost associated with losing a motif along some 
+                                       branch of the tre
+  subregion_size            1-infinity penalize motifs whose position in the sequences 
+                                       varies too much
+  position_change_cost      0-20       Cost for changing subregion
+  triplet_filtering         1/0        pre-filtering step that removes from consideration 
+                                       any substring that does not have a sufficiently good 
+                                       pair of matching substrings in some pair of the other 
+                                       input sequences
+  pair_filtering            1/0        Same as triplet filtering, but looks only for one match 
+                                       per other sequence
+  post_filtering            1/0        when used in conjunction with the triplet filtering 
+                                       option, this often significantly speeds up the program, 
+                                       while still garanteeing optimal results
+  indel_cost                1-5        insertions and deletions will be allowed in the motifs 
+                                       sought, at the given cost
+  inversion_cost            1-5        This option allows for motifs to undergo inversions, 
+                                       at the given cost. An inversion reverse-complements 
+                                       the motif.
+  details                   1/0        Shows some of the details about the progress of the 
+                                       computation
+  html                      1/0        produce html output (never deleted)
+  ps                        1/0        produce postscript output (never deleted)</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</h1>
+
+<p>Email shawnh@fugu-sg.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a &quot;_&quot;.</p>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : $factory&gt;program_name()
+ Function: holds the program name
+ Returns:  string
+ Args    : None</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> Title   : program_dir
+ Usage   : $factory-&gt;program_dir(@params)
+ Function: returns the program directory, obtained from ENV variable.
+ Returns:  string
+ Args    :</code></code></pre>
+
+<h2 id="executable">executable</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">executable</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$exe</span> <span class="operator">=</span> <span class="variable">$footprinter</span><span class="operator">-&gt;</span><span class="variable">executable</span><span class="operator">(</span><span class="string">'FootPrinter'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Finds</span> <span class="variable">the</span> <span class="variable">full</span> <span class="variable">path</span> <span class="variable">to</span> <span class="variable">the</span> <span class="string">'FootPrinter'</span> <span class="variable">executable</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">representing</span> <span class="variable">the</span> <span class="variable">full</span> <span class="variable">path</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">exe</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">executable</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">path</span> <span class="variable">to</span>
+           <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">boolean</span> <span class="variable">flag</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="keyword">warn</span> <span class="keyword">when</span> <span class="variable">exe</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">found</span>
+</code></code></pre>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : $rm-&gt;new($seq)
+ Function: creates a new wrapper
+ Returns:  Bio::Tools::Run::FootPrinter
+ Args    : self</code></code></pre>
+
+<h2 id="run">run</h2>
+
+<pre><code><code> Title   : run
+ Usage   : $fp-&gt;run(@seq)
+ Function: carry out FootPrinter 
+ Example :
+ Returns : An array of SeqFeatures 
+ Args    : An array of Bio::PrimarySeqI compliant object
+           At least 2 are needed.</code></code></pre>
+
+<h2 id="run1">_run</h2>
+
+<pre><code><code> Title   : _run
+ Usage   : $fp-&gt;_run ($filename,$param_string)
+ Function: internal function that runs FootPrinter 
+ Example :
+ Returns : an array of features
+ Args    : the filename to the input sequence, filename to phylo tree
+           and the parameter string</code></code></pre>
+
+<h2 id="setparams-">_setparams()</h2>
+
+<pre><code><code> Title   : _setparams
+ Usage   : Internal function, not to be called directly
+ Function:  Create parameter inputs for FootPrinter program
+ Example :
+ Returns : parameter string to be passed to FootPrinter
+ Args    : name of calling object</code></code></pre>
+
+<h2 id="setinput-">_setinput()</h2>
+
+<pre><code><code> Title   : _setinput
+ Usage   : Internal function, not to be called directly
+ Function: writes input sequence to file and return the file name
+ Example :
+ Returns : string 
+ Args    : a Bio::PrimarySeqI compliant object</code></code></pre>
+
+<h1 id="Bio::Tools::Run::Wrapper-methods">Bio::Tools::Run::Wrapper methods</h1>
+
+<h2 id="no_param_checks">no_param_checks</h2>
+
+<pre><code><code> Title   : no_param_checks
+ Usage   : $obj-&gt;no_param_checks($newval)
+ Function: Boolean flag as to whether or not we should
+           trust the sanity checks for parameter values  
+ Returns : value of no_param_checks
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="save_tempfiles">save_tempfiles</h2>
+
+<pre><code><code> Title   : save_tempfiles
+ Usage   : $obj-&gt;save_tempfiles($newval)
+ Function: 
+ Returns : value of save_tempfiles
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="outfile_name">outfile_name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">outfile_name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$outfile</span> <span class="operator">=</span> <span class="variable">$codeml</span><span class="operator">-&gt;</span><span class="variable">outfile_name</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">output</span> <span class="variable">file</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">run</span>
+           <span class="operator">(</span><span class="keyword">if</span> <span class="variable">you</span> <span class="variable">wanted</span> <span class="variable">to</span> <span class="keyword">do</span> <span class="variable">something</span> <span class="variable">special</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">value</span> <span class="variable">to</span>
+</code></code></pre>
+
+<h2 id="tempdir">tempdir</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">tempdir</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$tmpdir</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">tempdir</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieve</span> <span class="variable">a</span> <span class="variable">temporary</span> <span class="variable">directory</span> <span class="variable">name</span> <span class="operator">(</span><span class="variable">which</span> <span class="variable">is</span> <span class="variable">created</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">which</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">temporary</span> <span class="variable">directory</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="cleanup">cleanup</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">cleanup</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$codeml</span><span class="operator">-&gt;</span><span class="variable">cleanup</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Will</span> <span class="variable">cleanup</span> <span class="variable">the</span> <span class="variable">tempdir</span> <span class="variable">directory</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="io">io</h2>
+
+<pre><code><code> Title   : io
+ Usage   : $obj-&gt;io($newval)
+ Function:  Gets a L&lt;Bio::Root::IO&gt; object
+ Returns : L&lt;Bio::Root::IO&gt;
+ Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

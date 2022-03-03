@@ -1,0 +1,311 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#Instance-Constructor">Instance Constructor</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+    </ul>
+  </li>
+  <li><a href="#Instance-Methods">Instance Methods</a>
+    <ul>
+      <li><a href="#findTerms">findTerms</a></li>
+      <li><a href="#discardedGenes">discardedGenes</a></li>
+      <li><a href="#genesDatabaseIds">genesDatabaseIds</a></li>
+      <li><a href="#totalNumGenes">totalNumGenes</a></li>
+      <li><a href="#aspect">aspect</a></li>
+    </ul>
+  </li>
+  <li><a href="#Authors">Authors</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>GO::TermFinder - identify GO nodes that annotate a group of genes with a significant p-value</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This package is intended to provide a method whereby the P-values of a set of GO annotations can be determined for a set of genes, based on the number of genes that exist in the particular genome (or in a selected background distribution from the genome), and their annotation, and the frequency with which the GO nodes are annotated across the provided set of genes. The P-value is simply calculated using the hypergeometric distribution as the probability of x or more out of n genes having a given annotation, given that G of N have that annotation in the genome in general. We chose the hypergeometric distribution (sampling without replacement) since it is more accurate, though slower to calculate, than the binomial distribution (sampling with replacement).</p>
+
+<p>In addition, a corrected p-value can be calculated, to correct for multiple hypothesis testing. The correction factor used is the total number of nodes to which the provided list of genes are annotated, excepting any nodes which have only a single annotation in the background, as a priori, we know that these cannot be significantly enriched. The client has access to both the corrected and uncorrected values. It is also possible to correct the p-value using 1000 simulations, which control the Family Wise Error Rate - using this option suggests that the Bonferroni correction is in fact somewhat liberal, rather than conservative, as might be expected. Finally, the False Discovery Rate can also be calculated.</p>
+
+<p>The general idea is that a list of genes may have been identified for some reason, e.g. they are co-regulated, and TermFinder can be used to find out if any nodes annotate the set of genes to a level which is extremely improbable if the genes had simply been picked at random.</p>
+
+<h1 id="TODO">TODO</h1>
+
+<p>1. May want the client to decide the behavior for ambiguous names, rather than having it hard coded (e.g. always ignore; use if standard name (current implementation); use all databaseIds for the ambiguous name; decide on a case by case basis (potentially useful if running on command line)).</p>
+
+<p>2. Create new GO::Hypothesis and GO::HypothesisSet objects, so that it is easier to access the information generated about the p-value etc. of any particular GO node that annotates a set of genes.</p>
+
+<p>3. Instead of all the global variables, $k..., replace them with constants, which may improve runtime, as the optimizer should optimize the hash look ups to look like hard-coded strings at runtime, rather than variable lookups.</p>
+
+<p>4. Lots of other stuff....</p>
+
+<h1 id="Instance-Constructor">Instance Constructor</h1>
+
+<h2 id="new">new</h2>
+
+<p>This is the constructor. It expects to be passed named arguments for an annotationProvider, and an ontologyProvider. In addition, it must be told the aspect of the ontology provider, so that it knows how to query the annotationProvider.</p>
+
+<p>There are also some additional, optional arguments:</p>
+
+<p>population:</p>
+
+<p>This argument allows a client to indicate the population that should used to calculate a background distribution of GO terms. In the absence of population argument, then the background distribution will be drawn from all genes in the annotationProvider. This should be provided as an array reference, and no ambiguous names should be provided (see AnnotationProvider for details of name ambiguity). This option is particularly pertinent in a case where for example you assayed only 2000 genes in a two hybrid experiment, and found 20 interesting ones. To find significant terms, you need to do it in the context of the genes that you assayed, not in the context of all genes with annotation.</p>
+
+<p>Note, new in version 0.71, if you provided a population as the background distribution from which genes have been drawn, any genes provided to the findTerms method that are not in the background distribution will be discarded from the calculations. The identity of these genes can be retrieved using the discardedGenes() method, after the findTerms() method has been called.</p>
+
+<p>totalNumGenes:</p>
+
+<p>This argument allows a client to indicate that the size of the background distribution is in fact larger that the number of genes that exist in the annotation provider, and the extra genes are merely assumed to be entirely unannotated.</p>
+
+<p>NB: This is an API change, as totalNumGenes was previously required.</p>
+
+<p>Thus - if using &#39;population&#39;, the total number of genes considered as the background will be the number of genes in the provided population. If not using &#39;population&#39;, then the number of genes that will be considered as the total population will be the number of genes in the annotationProvider. However, if the totalNumGenes argument is provided, then that number will be used as the size of the population. If it is not larger than the total number of genes in the annotationParser, then the number of genes in the annotationParser will be used. The totalNumGenes and the population arguments are mutually exclusive, and both should not be provided at the same time.</p>
+
+<p>Usage ($num is larger than the number of genes with annotations):</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$termFinder</span> <span class="operator">=</span> <span class="variable">GO::TermFinder</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">annotationProvider</span><span class="operator">=&gt;</span> <span class="variable">$annotationProvider</span><span class="operator">,</span>
+                                        <span class="string">ontologyProvider</span>  <span class="operator">=&gt;</span> <span class="variable">$ontologyProvider</span><span class="operator">,</span>
+                                        <span class="string">totalNumGenes</span>     <span class="operator">=&gt;</span> <span class="variable">$num</span><span class="operator">,</span>
+                                        <span class="string">aspect</span>            <span class="operator">=&gt;</span> <span class="operator">&lt;</span><span class="variable">P</span><span class="operator">|</span><span class="variable">C</span><span class="operator">|</span><span class="variable">F</span><span class="operator">&gt;);</span>
+</code></code></pre>
+
+<p>Usage (use all annotated genes as population):</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$termFinder</span> <span class="operator">=</span> <span class="variable">GO::TermFinder</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">annotationProvider</span><span class="operator">=&gt;</span> <span class="variable">$annotationProvider</span><span class="operator">,</span>
+                                        <span class="string">ontologyProvider</span>  <span class="operator">=&gt;</span> <span class="variable">$ontologyProvider</span><span class="operator">,</span>
+                                        <span class="string">aspect</span>            <span class="operator">=&gt;</span> <span class="operator">&lt;</span><span class="variable">P</span><span class="operator">|</span><span class="variable">C</span><span class="operator">|</span><span class="variable">F</span><span class="operator">&gt;);</span>
+</code></code></pre>
+
+<p>Usage (use a subset of genes as the background population):</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$termFinder</span> <span class="operator">=</span> <span class="variable">GO::TermFinder</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">annotationProvider</span><span class="operator">=&gt;</span> <span class="variable">$annotationProvider</span><span class="operator">,</span>
+                                        <span class="string">ontologyProvider</span>  <span class="operator">=&gt;</span> <span class="variable">$ontologyProvider</span><span class="operator">,</span>
+                                        <span class="string">population</span>        <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@genes</span><span class="operator">,</span>
+                                        <span class="string">aspect</span>            <span class="operator">=&gt;</span> <span class="operator">&lt;</span><span class="variable">P</span><span class="operator">|</span><span class="variable">C</span><span class="operator">|</span><span class="variable">F</span><span class="operator">&gt;);</span>
+</code></code></pre>
+
+<h1 id="Instance-Methods">Instance Methods</h1>
+
+<h2 id="findTerms">findTerms</h2>
+
+<p>This method returns an array of hash references, one for each GO::Node that was tested as a hypothesis, that indicates which terms annotate the list of genes with what P-values. The contents of the hashes in the returned array depend on some of the run time options. They are:</p>
+
+<pre><code><code>    key                   value
+    -------------------------------------------------------------------------</code></code></pre>
+
+<p>Always Present:</p>
+
+<pre><code><code>    NODE                  A GO::Node
+
+    PVALUE                The P-value for having the observed number of
+                          annotations that the provided list of genes
+                          has to that node.
+
+    NUM_ANNOTATIONS       The number of genes within the provided list that
+                          are annotated to the node.
+
+    TOTAL_NUM_ANNOTATIONS The number of genes in the population (total
+                          or provided) that are annotated to the node.
+
+    ANNOTATED_GENES       A hash reference, whose keys are the
+                          databaseIds that are annotated to the node,
+                          and whose values are the original name
+                          supplied to the findTerms() method.</code></code></pre>
+
+<p>Present if corrected p-values are calculated:</p>
+
+<pre><code><code>    CORRECTED_PVALUE      The CORRECTED_PVALUE is the PVALUE, but corrected
+                          for multiple hypothesis testing, due to the
+                          fact that you are more likely to generate
+                          significant looking p-values if you test a
+                          lot of hypotheses.  See below for details of
+                          how this pvalue is calculated, and the
+                          options associated with it.</code></code></pre>
+
+<p>Present if p-values were corrected by simulation:</p>
+
+<pre><code><code>    NUM_OBSERVATIONS      The number of simulations in which a p-value as
+                          good as this one, or better, was observed.</code></code></pre>
+
+<p>Present if the False Discovery Rate is calculated:</p>
+
+<pre><code><code>    FDR_RATE              The False Discovery Rate - this is a fraction 
+                          of how many of the nodes with p-values as good or 
+                          better than the node with this FDR would be expected 
+                          to be false positives.
+
+    FDR_OBSERVATIONS      The average number of nodes during simulations 
+                          that had an uncorrected p-value as good or better
+                          than the p-value of this node.
+
+    EXPECTED_FALSE_POSITIVES The expected number of false positives if this node
+                             is chosen as the cut-off.</code></code></pre>
+
+<p>The entries in the returned array are sorted by increasing p-value (i.e. least likely is first). If there is a tie in the p-value, then the sort order is determined by GOID, using a cmp comparison.</p>
+
+<p>findTerm() expects to be passed, by reference, a list of gene names for which terms will be found. If a passed in name is ambiguous (see AnnotationProvider), then the following will occur:</p>
+
+<pre><code><code>    1) If the name can be used as a standard name, it will assume that
+       it is that.
+
+    2) Otherwise it will not use it.</code></code></pre>
+
+<p>Currently a warning will be printed to STDOUT in the case of an ambiguous name being used.</p>
+
+<p>The passed in gene names are converted into a list of databaseIds. If a gene does not map to a databaseId, then an undef is put in the list - however, if the same gene name, which does not map to a databaseId, is used twice then it will produce only one undef in the list. If more than one gene name maps to the same databaseId (either because you used the same name twice, or you used an alias as well), then that databaseId is only put into the list once, and a warning is printed.</p>
+
+<p>If a gene name does not have any information returned from the AnnotationProvider, then it is assumed that the gene is entirely unannotated. For these purposes, TermFinder annotates such genes to the root node (Gene_Ontology), its immediate child (which indicates the aspect of the ontology (such as biological_process), and a dummy go node, corresponding to unannotated. This node will have a goid of &#39;GO:XXXXXXX&#39;, and a term name of &#39;unannotated&#39;. No other information will be set up for this GO::Node, so you should not count on being able to retrieve it. What it does mean is that you can determine if the predominant feature of a set of genes is that they have no annotation.</p>
+
+<p>If more genes are provided that have been indicated exist in the genome (as provided during object construction), then an error message will be printed out, and an empty list will be returned.</p>
+
+<p>In addition, it is possible that for a small list of genes, that no hypotheses will be tested - in this case, those genes will only have annotated nodes with a count of 1, other than the Gene_Ontology node itself, and the node corresponding to the aspect of the ontology. Neither of these are considered for p-value testing, as a priori they must have a p-value of 1.</p>
+
+<p>MULTIPLE HYPOTHESIS CORRECTION</p>
+
+<p>An optional argument, &#39;correction&#39; may be used, which indicates what method of multiple hypothesis correction should be used. Multiple hypothesis correction attempts to keep the overall chance of getting any false positives at the same level (e.g. 0.05). Acceptable values are:</p>
+
+<p>bonferroni, none, simulation</p>
+
+<pre><code><code> : &#39;bonferroni&#39; will correct the p-values by using as the correction
+    factor the total number of nodes to which the provided list of
+    genes are annotated, either directly or indirectly, excepting any
+    nodes that are annotated only once in the background distribution,
+    as, a priori, these cannot be overrepresented.
+
+ : &#39;none&#39; will perform no multiple hypothesis correction
+
+ : &#39;simulation&#39; will run 1000 simulations with random lists of genes
+   (the same size as the originally provided gene list), and determine
+   a corrected value by how many simulations produced a p-value better
+   than the p-value associated with one of the real hypotheses.
+   E.g. if a node from the real data has a p-value of 0.05, but a
+   p-value that good or better is generated in 500 out of 1000 trials,
+   the corrected pvalue will be 0.5.  In the case that a p-value
+   generated from a real list of genes is never seen in the
+   simulations, it will be given a corrected p-value of &lt; 0.001, and
+   the NUM_OBSERVATIONS attribute of the hypothesis will be 0.  Using
+   this option takes 1000 time as long!</code></code></pre>
+
+<p>The default for this argument, if not provided, is bonferroni.</p>
+
+<p>FALSE DISCOVERY RATE</p>
+
+<p>As a way of preempting the potential problems of using p-values corrected for multiple hypothesis testing, the False Discovery Rate can instead be calculated, and you can instead set your cutoff based on an acceptable false discovery rate, such as 0.01 (1%), or 0.05 (5%) etc. Thus, the optional argument &#39;calculateFDR&#39; can be used. A non-zero value means that the False Discovery Rate will be calculated for each node, such that you can determine, if you chose your p-value cut-off at that node, what the FDR would be. The FDR is calculated by running 50 simulations, and counting the average number of times a p-value as good or better that a p-value generated from the real data is seen. This is used as the numerator. The denominator is the number of p-values in the real data that are as good or better than it.</p>
+
+<p>Usage example - in this example, the default (Bonferroni) correction is used to calculate a corrected p-value, and in addition, the False Discovery Rate is also calculated:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@pvalueStructures</span> <span class="operator">=</span> <span class="variable">$termFinder</span><span class="operator">-&gt;</span><span class="variable">findTerms</span><span class="operator">(</span><span class="string">genes</span>        <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@genes</span><span class="operator">,</span>
+                                                  <span class="string">calculateFDR</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">$hypothesis</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span>                                             
+    
+    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$pvalue</span> <span class="operator">(</span><span class="variable">@pvalueStructures</span><span class="operator">){</span>
+    
+    <span class="keyword">print</span> <span class="string">"-- </span><span class="variable">$hypothesis</span><span class="string"> of "</span><span class="operator">,</span> <span class="keyword">scalar</span> <span class="variable">@pvalueStructures</span><span class="operator">,</span> <span class="string">"--\n"</span><span class="operator">,</span>
+    
+        <span class="string">"GOID\t"</span><span class="operator">,</span> <span class="variable">$pvalue</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">NODE</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">goid</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">,</span>
+    
+        <span class="string">"TERM\t"</span><span class="operator">,</span> <span class="variable">$pvalue</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">NODE</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">term</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">,</span>
+    
+        <span class="string">"P-VALUE\t"</span><span class="operator">,</span> <span class="variable">$pvalue</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">PVALUE</span><span class="operator">}</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">,</span>
+    
+        <span class="string">"CORRECTED P-VALUE\t"</span><span class="operator">,</span> <span class="variable">$pvalue</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">CORRECTED_PVALUE</span><span class="operator">}</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">,</span>
+    
+        <span class="string">"FALSE DISCOVERY RATE\t"</span><span class="operator">,</span> <span class="variable">$pvalue</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">FDR_RATE</span><span class="operator">}</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">,</span>
+        
+        <span class="string">"NUM_ANNOTATIONS\t"</span><span class="operator">,</span> <span class="variable">$pvalue</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">NUM_ANNOTATIONS</span><span class="operator">}</span><span class="operator">,</span> <span class="string">" (of "</span><span class="operator">,</span> <span class="variable">$pvalue</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">TOTAL_NUM_ANNOTATIONS</span><span class="operator">}</span><span class="operator">,</span> <span class="string">")\n"</span><span class="operator">,</span>
+    
+        <span class="string">"ANNOTATED_GENES\t"</span><span class="operator">,</span> <span class="keyword">join</span><span class="operator">(</span><span class="string">", "</span><span class="operator">,</span> <span class="keyword">values</span> <span class="operator">(</span><span class="variable">%</span><span class="operator">{</span><span class="variable">$pvalue</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">ANNOTATED_GENES</span><span class="operator">}}</span><span class="operator">)),</span> <span class="string">"\n\n"</span><span class="operator">;</span>
+    
+        <span class="variable">$hypothesis</span><span class="operator">++;</span>
+    
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>If a background population had been provided when the object was constructed, you should check to see if any of your genes for which you are finding terms were discarded, due to not being found in the background population, e.g.:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@pvalueStructures</span> <span class="operator">=</span> <span class="variable">$termFinder</span><span class="operator">-&gt;</span><span class="variable">findTerms</span><span class="operator">(</span><span class="string">genes</span>        <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@genes</span><span class="operator">,</span>
+                                                  <span class="string">calculateFDR</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">@discardedGenes</span> <span class="operator">=</span> <span class="variable">$termFinder</span><span class="operator">-&gt;</span><span class="variable">discardedGenes</span><span class="operator">;</span>
+    
+    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">@discardedGenes</span><span class="operator">){</span>
+    
+        <span class="keyword">print</span> <span class="string">"The following genes were not considered in the pvalue
+    calculations, as they were not found in the provided background
+    population.\n\n"</span><span class="operator">,</span> <span class="keyword">join</span><span class="operator">(</span><span class="string">"\n"</span><span class="operator">,</span> <span class="variable">@discardedGenes</span><span class="operator">),</span> <span class="string">"\n\n"</span><span class="operator">;</span>
+    
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="discardedGenes">discardedGenes</h2>
+
+<p>This method returns an array of genes which were discarded from the pvalue calculations, because they could not be found in the background population. It should only be called after findTerms. It will either return an empty list, if no genes were discarded, or an array of genes that were discarded.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@pvalueStructures</span> <span class="operator">=</span> <span class="variable">$termFinder</span><span class="operator">-&gt;</span><span class="variable">findTerms</span><span class="operator">(</span><span class="string">genes</span>        <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@genes</span><span class="operator">,</span>
+                                                  <span class="string">calculateFDR</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">@discardedGenes</span> <span class="operator">=</span> <span class="variable">$termFinder</span><span class="operator">-&gt;</span><span class="variable">discardedGenes</span><span class="operator">;</span>
+    
+    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">@discardedGenes</span><span class="operator">){</span>
+    
+        <span class="keyword">print</span> <span class="string">"The following genes were not considered in the pvalue
+    calculations, as they were not found in the provided background
+    population.\n\n"</span><span class="operator">,</span> <span class="keyword">join</span><span class="operator">(</span><span class="string">"\n"</span><span class="operator">,</span> <span class="variable">@discardedGenes</span><span class="operator">),</span> <span class="string">"\n\n"</span><span class="operator">;</span>
+    
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="genesDatabaseIds">genesDatabaseIds</h2>
+
+<p>This method returns an array of databaseIds corresponding to the genes that were used for the findTerms() method. Thus it allows a client to find out how many actual entities their list of genes that were passed in mapped to, e.g. they may have passed in the same thing with two different names. Using this method, immediately following use of the findTerms method, they will determine how many genes their list collapsed to.</p>
+
+<h2 id="totalNumGenes">totalNumGenes</h2>
+
+<p>This returns the total number of genes that are in the background set of genes from which the genes of interest were drawn. Unannotated genes are included in this count.</p>
+
+<h2 id="aspect">aspect</h2>
+
+<p>Returns the aspect with the the GO::TermFinder object was constructed.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$aspect</span> <span class="operator">=</span> <span class="variable">$termFinder</span><span class="operator">-&gt;</span><span class="variable">aspect</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="Authors">Authors</h1>
+
+<pre><code><code>    <span class="variable">Gavin</span> <span class="variable">Sherlock</span><span class="operator">;</span> <span class="variable">sherlock</span><span class="variable">@genome</span><span class="operator">.</span><span class="variable">stanford</span><span class="operator">.</span><span class="variable">edu</span>
+    <span class="variable">Elizabeth</span> <span class="variable">Boyle</span><span class="operator">;</span> <span class="variable">ell</span><span class="variable">@mit</span><span class="operator">.</span><span class="variable">edu</span>
+    <span class="variable">Ihab</span> <span class="variable">Awad</span><span class="operator">;</span> <span class="variable">ihab</span><span class="variable">@genome</span><span class="operator">.</span><span class="variable">stanford</span><span class="operator">.</span><span class="variable">edu</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,368 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#new">new</a></li>
+      <li><a href="#run">run</a></li>
+      <li><a href="#alignment">alignment</a></li>
+      <li><a href="#tree">tree</a></li>
+      <li><a href="#get_flags">get_flags</a></li>
+      <li><a href="#set_flag">set_flag</a></li>
+      <li><a href="#get_parameters">get_parameters</a></li>
+      <li><a href="#set_parameter">set_parameter</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::Tools::Run::WrapperBase-methods">Bio::Tools::Run::WrapperBase methods</a>
+    <ul>
+      <li><a href="#no_param_checks">no_param_checks</a></li>
+      <li><a href="#save_tempfiles">save_tempfiles</a></li>
+      <li><a href="#outfile_name">outfile_name</a></li>
+      <li><a href="#tempdir">tempdir</a></li>
+      <li><a href="#cleanup">cleanup</a></li>
+      <li><a href="#io">io</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::Phylo::Molphy::ProtML - A wrapper for the Molphy pkg app ProtML</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::AlignIO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::TreeIO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Phylo::Molphy::ProtML</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">%args</span> <span class="operator">=</span> <span class="operator">(</span> <span class="string">'models'</span> <span class="operator">=&gt;</span> <span class="string">'jtt'</span><span class="operator">,</span>
+               <span class="string">'search'</span> <span class="operator">=&gt;</span> <span class="string">'quick'</span><span class="operator">,</span>
+               <span class="string">'other'</span>  <span class="operator">=&gt;</span> <span class="operator">[</span> <span class="string">'-information'</span><span class="operator">,</span> <span class="string">'-w'</span><span class="operator">]</span> <span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$verbose</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span> <span class="comment"># change to 1 if you want some debugging output</span>
+  <span class="keyword">my</span> <span class="variable">$protml</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Molphy::ProtML</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-verbose</span> <span class="operator">=&gt;</span> <span class="variable">$verbose</span><span class="operator">,</span>
+                                                          <span class="string">-flags</span>   <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">%args</span><span class="operator">);</span>
+  
+  <span class="keyword">die</span><span class="operator">(</span><span class="string">"cannot find the protml executable"</span><span class="operator">)</span> <span class="keyword">unless</span> <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">executable</span><span class="operator">;</span>
+  
+  <span class="comment"># read in a previously built protein alignment</span>
+  <span class="keyword">my</span> <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'clustalw'</span><span class="operator">,</span>
+                            <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'t/data/cel-cbr-fam.aln'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_aln</span><span class="operator">;</span>
+  <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">alignment</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$rc</span><span class="operator">,</span><span class="variable">$results</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">();</span>
+  
+  <span class="comment"># This may be a bit of overkill, but it is possible we could</span>
+  <span class="comment"># have a bunch of results and $results is a</span>
+  <span class="comment"># Bio::Tools::Phylo::Molphy object</span>
+  
+  <span class="keyword">my</span> <span class="variable">$r</span> <span class="operator">=</span> <span class="variable">$results</span><span class="operator">-&gt;</span><span class="variable">next_result</span><span class="operator">;</span>
+  <span class="comment"># $r is a Bio::Tools::Phylo::Molphy::Result object</span>
+  
+  <span class="keyword">my</span> <span class="variable">@trees</span><span class="operator">;</span>
+  <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">$r</span><span class="operator">-&gt;</span><span class="variable">next_tree</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">push</span> <span class="variable">@trees</span><span class="operator">,</span> <span class="variable">$t</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="keyword">print</span> <span class="string">"search space is "</span><span class="operator">,</span> <span class="variable">$r</span><span class="operator">-&gt;</span><span class="variable">search_space</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+        <span class="string">"1st tree score is "</span><span class="operator">,</span> <span class="variable">$tree</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="variable">score</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$out</span> <span class="operator">=</span> <span class="variable">Bio::TreeIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"&gt;saved_MLtrees.tre"</span><span class="operator">,</span>
+                            <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">"newick"</span><span class="operator">);</span>
+  <span class="variable">$out</span><span class="operator">-&gt;</span><span class="variable">write_tree</span><span class="operator">(</span><span class="variable">$tree</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">);</span>
+  <span class="variable">$out</span> <span class="operator">=</span> <span class="keyword">undef</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is a wrapper for the exe from the Molphy (MOLecular PHYlogenetics) package by Jun Adachi &amp; Masami Hasegawa. The software can be downloaded from <a href="http://www.ism.ac.jp/ismlib/softother.e.html">http://www.ism.ac.jp/ismlib/softother.e.html</a>. Note that PHYLIP (Joe Felsenstein) also provides a version of protml which this module is currently NOT prepared to handle. Use the package available directly from MOLPHY authors if you want to use the module in its present implementation (extensions are welcomed!).</p>
+
+<p>The main components are the protml and nucml executables which are used to build maximum likelihood (ML) phylogenetic trees based on either protein or nucleotide sequences.</p>
+
+<p>Here are the valid input parameters, we have added a longhand version of the parameters to help you understand what each one does. Either the longhand or the original Molphy parameter will work.</p>
+
+<pre><code><code>  Bioperl      Molphy           Description
+  Longhand     parameter
+  Model (one of these):
+  ---------------
+  jtt              j            Jones, Taylor &amp; Thornton (1992)
+  jtt-f            jf           JTT w/ frequencies
+  dayhoff          d            Dahoff et al. (1978)
+  dayhoff-f        d            dayhoff w/ frequencies
+  mtrev24          m            mtREV24 Adachi &amp; Hasegwa (1995)
+  mtrev24-f        mf           mtREV24 w/ frequencies
+  poisson          p            Poisson
+  proportional     pf           Proportional
+  rsr              r            Relative Substitution Rate
+  rsr-f            rf           RSR w/ frequencies
+  frequencies      f            data frequencies
+
+  Search Strategy (one of these):
+  ----------------
+  usertrees        u            User trees (must also supply a tree)
+  rearrangement    R            Local rearrangement
+  lbp              RX           Local boostrap prob
+  exhaustive       e            Exhaustive search
+  star             s            Star decomposition search (may not be ML)
+  quick            q            Quick Add OTU search (may not be ML)
+  distance         D            ML Distance matrix --&gt; NJDIST (need to supply
+                                                               NJDIST tree)
+
+  Others (can be some or all of these):
+  ---------------
+  norell-bp        b            No RELL-BP
+  minimumevolution M            Minimum evolution
+
+  sequential       S            Sequence is in Sequential format
+                     _OR_
+  interleaved      I            Sequence is in Interleaved format
+
+  verbose          v            Verbose messages directed to STDERR
+  information      i            Output some information (tree vals)
+                   w            More some extra information (transition
+                                                             matricies, etc)</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</h1>
+
+<p>Email jason-AT-bioperl_DOT_org</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Additional contributors names and emails here</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : &gt;program_name()
+ Function: holds the program name
+ Returns:  string
+ Args    : None</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> Title   : program_dir
+ Usage   : -&gt;program_dir()
+ Function: returns the program directory, obtained from ENV variable.
+ Returns:  string
+ Args    :</code></code></pre>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Molphy::ProtML</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Tools::Run::Phylo::Molphy::ProtML</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Tools::Run::Phylo::Molphy::ProtML</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-alignment</span> <span class="operator">=&gt;</span> <span class="variable">the</span> <span class="variable">Bio::Align::AlignI</span> <span class="variable">object</span>
+           <span class="operator">-</span><span class="string">save_tempfiles</span> <span class="operator">=&gt;</span> <span class="variable">boolean</span> <span class="variable">to</span> <span class="variable">save</span> <span class="variable">the</span> <span class="variable">generated</span> <span class="variable">tempfiles</span> <span class="keyword">and</span>
+                              <span class="variable">NOT</span> <span class="variable">cleanup</span> <span class="variable">after</span> <span class="variable">onesself</span> <span class="operator">(</span><span class="keyword">default</span> <span class="variable">FALSE</span><span class="operator">)</span>
+           <span class="string">-tree</span> <span class="operator">=&gt;</span> <span class="variable">the</span> <span class="variable">Bio::Tree::TreeI</span> <span class="variable">object</span>
+           <span class="operator">-</span><span class="string">params</span> <span class="operator">=&gt;</span> <span class="variable">a</span> <span class="variable">hashref</span> <span class="variable">of</span> <span class="variable">PAML</span> <span class="variable">parameters</span> <span class="operator">(</span><span class="variable">all</span> <span class="variable">passed</span> <span class="variable">to</span>
+                                                    <span class="variable">set_parameter</span><span class="operator">)</span>
+           <span class="string">-executable</span> <span class="operator">=&gt;</span> <span class="variable">where</span> <span class="variable">the</span> <span class="variable">protml</span> <span class="variable">executable</span> <span class="variable">resides</span>
+</code></code></pre>
+
+<p>See also: <a href="../../../../../../../lib/perl5/Bio/Tree/TreeI.html">Bio::Tree::TreeI</a>, <a href="../../../../../../../lib/perl5/Bio/Align/AlignI.html">Bio::Align::AlignI</a></p>
+
+<h2 id="run">run</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">run</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">run</span> <span class="variable">the</span> <span class="variable">protml</span> <span class="variable">analysis</span> <span class="variable">using</span> <span class="variable">the</span> <span class="keyword">default</span> <span class="keyword">or</span> <span class="variable">updated</span> <span class="variable">parameters</span>
+           <span class="variable">the</span> <span class="variable">alignment</span> <span class="variable">parameter</span> <span class="variable">must</span> <span class="variable">have</span> <span class="variable">been</span> <span class="variable">set</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Tools::Phylo::Molphy</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="alignment">alignment</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">alignment</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">align</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">Bio::Align::AlignI</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Align::AlignI</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">Bio::Align::AlignI</span>
+ <span class="variable">Comment</span> <span class="operator">:</span> <span class="variable">We</span> <span class="variable">could</span> <span class="variable">potentially</span> <span class="variable">add</span> <span class="variable">support</span> <span class="keyword">for</span> <span class="variable">running</span> <span class="variable">directly</span> <span class="variable">on</span> <span class="variable">a</span> <span class="variable">file</span>
+           <span class="variable">but</span> <span class="variable">we</span> <span class="variable">shall</span> <span class="variable">keep</span> <span class="variable">it</span> <span class="variable">simple</span>
+ <span class="variable">See</span> <span class="variable">also</span> <span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::SimpleAlign</span><span class="operator">&gt;,</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Align::AlignI</span><span class="operator">&gt;</span>
+</code></code></pre>
+
+<h2 id="tree">tree</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">tree</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">tree</span><span class="operator">(</span><span class="variable">$tree</span><span class="operator">,</span> <span class="variable">%params</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">Bio::Tree::TreeI</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Tree::TreeI</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">$tree</span> <span class="operator">=&gt;</span> <span class="variable">Bio::Tree::TreeI</span><span class="operator">,</span>
+ 
+ <span class="variable">Comment</span> <span class="operator">:</span> <span class="variable">We</span> <span class="variable">could</span> <span class="variable">potentially</span> <span class="variable">add</span> <span class="variable">support</span> <span class="keyword">for</span> <span class="variable">running</span> <span class="variable">directly</span> <span class="variable">on</span> <span class="variable">a</span> <span class="variable">file</span>
+           <span class="variable">but</span> <span class="variable">we</span> <span class="variable">shall</span> <span class="variable">keep</span> <span class="variable">it</span> <span class="variable">simple</span>
+ <span class="variable">See</span> <span class="variable">also</span> <span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Tree::Tree</span><span class="operator">&gt;</span>
+</code></code></pre>
+
+<h2 id="get_flags">get_flags</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_flags</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">get_flags</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">flags</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">flag</span> <span class="variable">names</span> <span class="variable">coded</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">way</span> <span class="variable">that</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="set_flag">set_flag</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">set_flag</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">set_parameter</span><span class="operator">(</span><span class="variable">$type</span><span class="operator">,</span><span class="variable">$val</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Sets</span> <span class="variable">a</span> <span class="variable">protml</span> <span class="variable">parameter</span><span class="operator">,</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">validated</span> <span class="variable">against</span>
+           <span class="variable">the</span> <span class="variable">valid</span> <span class="keyword">values</span> <span class="variable">as</span> <span class="variable">set</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">%VALIDVALUES</span> <span class="variable">class</span> <span class="variable">variable</span><span class="operator">.</span>
+           <span class="variable">The</span> <span class="variable">checks</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">ignored</span> <span class="keyword">if</span> <span class="variable">one</span> <span class="variable">turns</span> <span class="variable">off</span> <span class="variable">param</span> <span class="variable">checks</span> <span class="variable">like</span> <span class="variable">this</span><span class="operator">:</span>
+             <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">no_param_checks</span><span class="operator">(</span><span class="number">1</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">boolean</span> <span class="keyword">if</span> <span class="variable">set</span> <span class="variable">was</span> <span class="variable">success</span><span class="operator">,</span> <span class="keyword">if</span> <span class="variable">verbose</span> <span class="variable">is</span> <span class="variable">set</span> <span class="variable">to</span> <span class="operator">-</span><span class="number">1</span>
+           <span class="variable">then</span> <span class="keyword">no</span> <span class="variable">warning</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">reported</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$type</span> <span class="operator">=&gt;</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">parameter</span>
+           <span class="variable">This</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">one</span> <span class="variable">of</span> <span class="string">'search'</span><span class="operator">,</span> <span class="string">'model'</span><span class="operator">,</span> <span class="string">'other'</span>
+           <span class="variable">$value</span> <span class="operator">=&gt;</span> <span class="variable">flag</span> <span class="variable">value</span>
+ <span class="variable">See</span> <span class="variable">also</span><span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">no_param_checks</span><span class="operator">()&gt;</span>
+</code></code></pre>
+
+<h2 id="get_parameters">get_parameters</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_parameters</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">%params</span> <span class="operator">=</span> <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">get_parameters</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">parameters</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">hash</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">associative</span> <span class="variable">array</span> <span class="variable">keyed</span> <span class="variable">on</span> <span class="variable">parameter</span> <span class="variable">names</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="set_parameter">set_parameter</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">set_parameter</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">set_parameter</span><span class="operator">(</span><span class="variable">$param</span><span class="operator">,</span><span class="variable">$val</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Sets</span> <span class="variable">a</span> <span class="variable">protml</span> <span class="variable">parameter</span><span class="operator">,</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">validated</span> <span class="variable">against</span>
+           <span class="variable">the</span> <span class="variable">valid</span> <span class="keyword">values</span> <span class="variable">as</span> <span class="variable">set</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">%VALIDVALUES</span> <span class="variable">class</span> <span class="variable">variable</span><span class="operator">.</span>
+           <span class="variable">The</span> <span class="variable">checks</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">ignored</span> <span class="keyword">if</span> <span class="variable">one</span> <span class="variable">turns</span> <span class="variable">off</span> <span class="variable">param</span> <span class="variable">checks</span> <span class="variable">like</span> <span class="variable">this</span><span class="operator">:</span>
+             <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">no_param_checks</span><span class="operator">(</span><span class="number">1</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">boolean</span> <span class="keyword">if</span> <span class="variable">set</span> <span class="variable">was</span> <span class="variable">success</span><span class="operator">,</span> <span class="keyword">if</span> <span class="variable">verbose</span> <span class="variable">is</span> <span class="variable">set</span> <span class="variable">to</span> <span class="operator">-</span><span class="number">1</span>
+           <span class="variable">then</span> <span class="keyword">no</span> <span class="variable">warning</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">reported</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$param</span> <span class="operator">=&gt;</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">parameter</span>
+           <span class="variable">$value</span> <span class="operator">=&gt;</span> <span class="variable">value</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">parameter</span> <span class="variable">to</span>
+ <span class="variable">See</span> <span class="variable">also</span><span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">no_param_checks</span><span class="operator">()&gt;</span>
+</code></code></pre>
+
+<h1 id="Bio::Tools::Run::WrapperBase-methods">Bio::Tools::Run::WrapperBase methods</h1>
+
+<h2 id="no_param_checks">no_param_checks</h2>
+
+<pre><code><code> Title   : no_param_checks
+ Usage   : $obj-&gt;no_param_checks($newval)
+ Function: Boolean flag as to whether or not we should
+           trust the sanity checks for parameter values
+ Returns : value of no_param_checks
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="save_tempfiles">save_tempfiles</h2>
+
+<pre><code><code> Title   : save_tempfiles
+ Usage   : $obj-&gt;save_tempfiles($newval)
+ Function:
+ Returns : value of save_tempfiles
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="outfile_name">outfile_name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">outfile_name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$outfile</span> <span class="operator">=</span> <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">outfile_name</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">output</span> <span class="variable">file</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">run</span>
+           <span class="operator">(</span><span class="keyword">if</span> <span class="variable">you</span> <span class="variable">wanted</span> <span class="variable">to</span> <span class="keyword">do</span> <span class="variable">something</span> <span class="variable">special</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">value</span> <span class="variable">to</span>
+</code></code></pre>
+
+<h2 id="tempdir">tempdir</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">tempdir</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$tmpdir</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">tempdir</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieve</span> <span class="variable">a</span> <span class="variable">temporary</span> <span class="variable">directory</span> <span class="variable">name</span> <span class="operator">(</span><span class="variable">which</span> <span class="variable">is</span> <span class="variable">created</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">which</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">temporary</span> <span class="variable">directory</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="cleanup">cleanup</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">cleanup</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$protml</span><span class="operator">-&gt;</span><span class="variable">cleanup</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Will</span> <span class="variable">cleanup</span> <span class="variable">the</span> <span class="variable">tempdir</span> <span class="variable">directory</span> <span class="variable">after</span> <span class="variable">a</span> <span class="variable">PAML</span> <span class="variable">run</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="io">io</h2>
+
+<pre><code><code> Title   : io
+ Usage   : $obj-&gt;io($newval)
+ Function:  Gets a L&lt;Bio::Root::IO&gt; object
+ Returns : L&lt;Bio::Root::IO&gt;
+ Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

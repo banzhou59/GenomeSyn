@@ -1,0 +1,555 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+  <li><a href="#new">new</a></li>
+  <li><a href="#Methods-to-set-parameters">Methods to set parameters</a>
+    <ul>
+      <li><a href="#seq">seq</a></li>
+      <li><a href="#enzymes">enzymes</a></li>
+    </ul>
+  </li>
+  <li><a href="#Perform-the-analysis">Perform the analysis</a>
+    <ul>
+      <li><a href="#cut">cut</a></li>
+      <li><a href="#mulitple_digest">mulitple_digest</a></li>
+    </ul>
+  </li>
+  <li><a href="#Query-the-results-of-the-analysis">Query the results of the analysis</a>
+    <ul>
+      <li><a href="#positions">positions</a></li>
+      <li><a href="#fragments">fragments</a></li>
+      <li><a href="#fragment_maps">fragment_maps</a></li>
+      <li><a href="#sizes">sizes</a></li>
+    </ul>
+  </li>
+  <li><a href="#How-many-times-does-enzymes-X-cut-">How many times does enzymes X cut?</a>
+    <ul>
+      <li><a href="#cuts_by_enzyme">cuts_by_enzyme</a></li>
+    </ul>
+  </li>
+  <li><a href="#Which-enzymes-cut-the-sequence-N-times-">Which enzymes cut the sequence N times?</a>
+    <ul>
+      <li><a href="#cutters">cutters</a></li>
+      <li><a href="#unique_cutters">unique_cutters</a></li>
+      <li><a href="#zero_cutters">zero_cutters</a></li>
+      <li><a href="#max_cuts">max_cuts</a></li>
+    </ul>
+  </li>
+  <li><a href="#Internal-methods">Internal methods</a>
+    <ul>
+      <li><a href="#cuts">_cuts</a></li>
+      <li><a href="#enzyme_sites">_enzyme_sites</a></li>
+      <li><a href="#non_pal_enz">_non_pal_enz</a></li>
+      <li><a href="#ambig_cuts">_ambig_cuts</a></li>
+      <li><a href="#nonambig_cuts">_nonambig_cuts</a></li>
+      <li><a href="#make_cuts">_make_cuts</a></li>
+      <li><a href="#multiple_cuts">_multiple_cuts</a></li>
+      <li><a href="#circular">_circular</a></li>
+      <li><a href="#expanded_string">_expanded_string</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Restriction::Analysis - cutting sequences with restriction enzymes</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># analyze a DNA sequence for restriction enzymes</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Restriction::Analysis</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::PrimarySeq</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Data::Dumper</span><span class="operator">;</span>
+  
+  <span class="comment"># get a DNA sequence from somewhere</span>
+  <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">Bio::PrimarySeq</span><span class="operator">-&gt;</span><span class="variable">new</span>
+      <span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span><span class="string">'AGCTTAATTCATTAGCTCTGACTGCAACGGGCAATATGTCTC'</span><span class="operator">,</span>
+       <span class="string">-primary_id</span> <span class="operator">=&gt;</span> <span class="string">'synopsis'</span><span class="operator">,</span>
+       <span class="string">-molecule</span> <span class="operator">=&gt;</span> <span class="string">'dna'</span><span class="operator">);</span>
+  
+  <span class="comment"># now start an analysis.</span>
+  <span class="comment"># this is using the default set of enzymes</span>
+  <span class="keyword">my</span> <span class="variable">$ra</span> <span class="operator">=</span> <span class="variable">Bio::Restriction::Analysis</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">);</span>
+  
+  <span class="comment"># find unique cutters. This returns a</span>
+  <span class="comment"># Bio::Restriction::EnzymeCollection object</span>
+  <span class="keyword">my</span> <span class="variable">$enzymes</span> <span class="operator">=</span> <span class="variable">$ra</span><span class="operator">-&gt;</span><span class="variable">unique_cutters</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="string">"Unique cutters: "</span><span class="operator">,</span> <span class="keyword">join</span> <span class="operator">(</span><span class="string">', '</span><span class="operator">,</span> 
+      <span class="keyword">map</span> <span class="operator">{</span><span class="variable">$_</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">}</span> <span class="variable">$enzymes</span><span class="operator">-&gt;</span><span class="variable">unique_cutters</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+  
+  <span class="comment"># AluI is one them. Where does it cut?</span>
+  <span class="comment"># This is will return an array of the sequence strings</span>
+  
+  <span class="keyword">my</span> <span class="variable">$enz</span> <span class="operator">=</span> <span class="string">'AluI'</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">@frags</span> <span class="operator">=</span> <span class="variable">$ra</span><span class="operator">-&gt;</span><span class="variable">fragments</span><span class="operator">(</span><span class="variable">$enz</span><span class="operator">);</span>
+  <span class="comment"># how big are the fragments?</span>
+  <span class="keyword">print</span> <span class="string">"AluI fragment lengths: "</span><span class="operator">,</span> <span class="keyword">join</span><span class="operator">(</span><span class="string">' &amp; '</span><span class="operator">,</span> <span class="keyword">map</span> <span class="operator">{</span><span class="keyword">length</span> <span class="variable">$_</span><span class="operator">}</span> <span class="variable">@frags</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+  
+  <span class="comment"># You can also bypass fragments and call sizes directly:</span>
+  <span class="comment"># to see all the fragment sizes</span>
+  <span class="keyword">print</span> <span class="string">"All sizes: "</span><span class="operator">,</span> <span class="keyword">join</span> <span class="string">" "</span><span class="operator">,</span> <span class="variable">$ra</span><span class="operator">-&gt;</span><span class="variable">sizes</span><span class="operator">(</span><span class="variable">$enz</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="comment"># to see all the fragment sizes sorted by size like on a gel</span>
+  <span class="keyword">print</span> <span class="string">"All sizes, sorted "</span><span class="operator">,</span> <span class="keyword">join</span> <span class="operator">(</span><span class="string">" "</span><span class="operator">,</span> <span class="variable">$ra</span><span class="operator">-&gt;</span><span class="variable">sizes</span><span class="operator">(</span><span class="variable">$enz</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="number">1</span><span class="operator">)),</span> <span class="string">"\n"</span><span class="operator">;</span>
+  
+  <span class="comment"># how many times does each enzyme cut</span>
+  <span class="keyword">my</span> <span class="variable">$cuts</span> <span class="operator">=</span> <span class="variable">$ra</span><span class="operator">-&gt;</span><span class="variable">cuts_by_enzyme</span><span class="operator">(</span><span class="string">'BamHI'</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="string">"BamHI cuts </span><span class="variable">$cuts</span><span class="string"> times\n"</span><span class="operator">;</span>
+  
+  <span class="comment"># How many enzymes do not cut at all?</span>
+  <span class="keyword">print</span> <span class="string">"There are "</span><span class="operator">,</span> <span class="keyword">scalar</span> <span class="variable">$ra</span><span class="operator">-&gt;</span><span class="variable">zero_cutters</span><span class="operator">-&gt;</span><span class="variable">each_enzyme</span><span class="operator">,</span>
+        <span class="string">" enzymes that do not cut\n"</span><span class="operator">;</span>
+  
+  <span class="comment"># what about enzymes that cut twice?</span>
+  <span class="keyword">my</span> <span class="variable">$two_cutters</span> <span class="operator">=</span> <span class="variable">$ra</span><span class="operator">-&gt;</span><span class="variable">cutters</span><span class="operator">(</span><span class="number">2</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="keyword">join</span> <span class="operator">(</span><span class="string">" "</span><span class="operator">,</span> <span class="keyword">map</span> <span class="operator">{</span><span class="variable">$_</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">}</span> <span class="variable">$two_cutters</span><span class="operator">-&gt;</span><span class="variable">each_enzyme</span><span class="operator">),</span>
+      <span class="string">" cut the sequence twice\n"</span><span class="operator">;</span>
+  
+  <span class="comment"># what are all the enzymes that cut, and how often do they cut</span>
+  <span class="keyword">printf</span> <span class="string">"\n%-10s%s\n"</span><span class="operator">,</span> <span class="string">'Enzyme'</span><span class="operator">,</span> <span class="string">'Number of Cuts'</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$all_cutters</span> <span class="operator">=</span> <span class="variable">$ra</span><span class="operator">-&gt;</span><span class="variable">cutters</span><span class="operator">;</span>
+  <span class="keyword">map</span> <span class="operator">{</span>
+      <span class="keyword">printf</span> <span class="string">"%-10s%s\n"</span><span class="operator">,</span> <span class="variable">$_</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">,</span> <span class="variable">$ra</span><span class="operator">-&gt;</span><span class="variable">cuts_by_enzyme</span><span class="operator">(</span><span class="variable">$_</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">)</span>
+  <span class="operator">}</span> <span class="variable">$all_cutters</span><span class="operator">-&gt;</span><span class="variable">each_enzyme</span><span class="operator">;</span>
+  
+  <span class="comment"># Finally, we can interact the restriction enzyme object by</span>
+  <span class="comment"># retrieving it from the collection object see the docs for</span>
+  <span class="comment"># Bio::Restriction::Enzyme.pm</span>
+  <span class="keyword">my</span> <span class="variable">$enzobj</span> <span class="operator">=</span> <span class="variable">$enzymes</span><span class="operator">-&gt;</span><span class="variable">get_enzyme</span><span class="operator">(</span><span class="variable">$enz</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::Restriction::Analysis describes the results of cutting a DNA sequence with restriction enzymes.</p>
+
+<p>To use this module you can pass a sequence object and optionally a Bio::Restriction::EnzymeCollection that contains the enzyme(s) to cut the sequences with. There is a default set of enzymes that will be loaded if you do not pass in a Bio::Restriction::EnzymeCollection.</p>
+
+<p>To cut a sequence, set up a Restriction::Analysis object with a sequence like this:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Restriction::Analysis</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$ra</span> <span class="operator">=</span> <span class="variable">Bio::Restriction::Analysis</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seqobj</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$ra</span> <span class="operator">=</span> <span class="variable">Bio::Restriction::Analysis</span><span class="operator">-&gt;</span><span class="variable">new</span>
+      <span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seqobj</span><span class="operator">,</span> <span class="string">-enzymes</span><span class="operator">=&gt;</span><span class="variable">$enzs</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Then, to get the fragments for a particular enzyme use this:</p>
+
+<pre><code><code>  <span class="variable">@fragments</span> <span class="operator">=</span> <span class="variable">$ra</span><span class="operator">-&gt;</span><span class="variable">fragments</span><span class="operator">(</span><span class="string">'EcoRI'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Note that the naming of restriction enzymes is that the last numbers are usually Roman numbers (I, II, III, etc). You may want to use something like this:</p>
+
+<pre><code><code>  <span class="comment"># get a reference to an array of unique (single) cutters</span>
+  <span class="variable">$singles</span> <span class="operator">=</span> <span class="variable">$re</span><span class="operator">-&gt;</span><span class="variable">unique_cutters</span><span class="operator">;</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$enz</span> <span class="operator">(</span><span class="variable">$singles</span><span class="operator">-&gt;</span><span class="variable">each_enzyme</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="variable">@fragments</span> <span class="operator">=</span> <span class="variable">$re</span><span class="operator">-&gt;</span><span class="variable">fragments</span><span class="operator">(</span><span class="variable">$enz</span><span class="operator">);</span>
+      <span class="operator">...</span> <span class="keyword">do</span> <span class="variable">something</span> <span class="variable">here</span> <span class="operator">...</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>Note that if your sequence is circular, the first and last fragment will be joined so that they are the appropriate length and sequence for further analysis. This fragment will also be checked for cuts by the enzyme(s). However, this will change the start of the sequence!</p>
+
+<p>There are two separate algorithms used depending on whether your enzyme has ambiguity. The non-ambiguous algorithm is a lot faster, and if you are using very large sequences you should try and use this algorithm. If you have a large sequence (e.g. genome) and want to use ambgiuous enzymes you may want to make separate Bio::Restriction::Enzyme objects for each of the possible alternatives and make sure that you do not set is_ambiguous!</p>
+
+<p>This version should correctly deal with overlapping cut sites in both ambiguous and non-ambiguous enzymes.</p>
+
+<p>I have tried to write this module with speed and memory in mind so that it can be effectively used for large (e.g. genome sized) sequence. This module only stores the cut positions internally, and calculates everything else on an as-needed basis. Therefore when you call fragment_maps (for example), there may be another delay while these are generated.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Rob Edwards, redwards@utmem.edu, Steve Chervitz, sac@bioperl.org</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Heikki Lehvaslaiho, heikki-at-bioperl-dot-org Mark A. Jensen, maj-at-fortinbras-dot-us</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2003 Rob Edwards. Some of this work is Copyright (c) 1997-2002 Steve A. Chervitz. All Rights Reserved.</p>
+
+<p>This module is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Restriction/Enzyme.html">Bio::Restriction::Enzyme</a>, <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Restriction/EnzymeCollection.html">Bio::Restriction::EnzymeCollection</a></p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>Methods beginning with a leading underscore are considered private and are intended for internal use by this module. They are not considered part of the public interface and are described here for documentation purposes only.</p>
+
+<h1 id="new">new</h1>
+
+<pre><code><code> Title     : new
+ Function  : Initializes the restriction enzyme object
+ Returns   : The Restriction::Analysis object 
+ Arguments : 
+
+             $re_anal-&gt;new(-seq=$seqobj, 
+                 -enzymes=&gt;Restriction::EnzymeCollection object)
+             -seq requires a Bio::PrimarySeq object
+             -enzymes is optional.
+              If omitted it will use the default set of enzymes</code></code></pre>
+
+<p>This is the place to start. Pass in a sequence, and you will be able to get the fragments back out. Several other things are available like the number of zero cutters or single cutters.</p>
+
+<h1 id="Methods-to-set-parameters">Methods to set parameters</h1>
+
+<h2 id="seq">seq</h2>
+
+<pre><code><code> <span class="variable">Title</span>    <span class="operator">:</span> <span class="variable">seq</span>
+ <span class="variable">Usage</span>    <span class="operator">:</span> <span class="variable">$ranalysis</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$newval</span><span class="operator">);</span>
+ <span class="variable">Function</span> <span class="operator">:</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">method</span> <span class="keyword">for</span> <span class="variable">the</span>  <span class="variable">sequence</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">cut</span>
+ <span class="variable">Example</span>  <span class="operator">:</span> <span class="variable">$re</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+ <span class="variable">Returns</span>  <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">seq</span>
+ <span class="variable">Args</span>     <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::PrimarySeqI</span> <span class="variable">dna</span> <span class="variable">object</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="enzymes">enzymes</h2>
+
+<pre><code><code> Title    : enzymes
+ Usage    : $re-&gt;enzymes($newval)
+ Function : gets/Set the restriction enzyme enzymes
+ Example  : $re-&gt;enzymes(&#39;EcoRI&#39;)
+ Returns  : reference to the collection
+ Args     : an array of Bio::Restriction::EnzymeCollection and/or
+            Bio::Restriction::Enzyme objects</code></code></pre>
+
+<p>The default object for this method is Bio::Restriction::EnzymeCollection. However, you can also pass it a list of Bio::Restriction::Enzyme objects - even mixed with Collection objects. They will all be stored into one collection.</p>
+
+<h1 id="Perform-the-analysis">Perform the analysis</h1>
+
+<h2 id="cut">cut</h2>
+
+<pre><code><code> <span class="variable">Title</span>    <span class="operator">:</span> <span class="variable">cut</span>
+ <span class="variable">Usage</span>    <span class="operator">:</span> <span class="variable">$re</span><span class="operator">-&gt;</span><span class="variable">cut</span><span class="operator">()</span>
+ <span class="variable">Function</span> <span class="operator">:</span> <span class="variable">Cut</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">enzymes</span>
+ <span class="variable">Example</span>  <span class="operator">:</span> <span class="variable">$re</span><span class="operator">-&gt;</span><span class="variable">cut</span><span class="operator">();</span> <span class="variable">$re</span><span class="operator">-&gt;</span><span class="variable">cut</span><span class="operator">(</span><span class="string">'single'</span><span class="operator">);</span> <span class="keyword">or</span> <span class="variable">$re</span><span class="operator">-&gt;</span><span class="variable">cut</span><span class="operator">(</span><span class="string">'multiple'</span><span class="operator">,</span> <span class="variable">$enzymecollection</span><span class="operator">);</span>
+ <span class="variable">Returns</span>  <span class="operator">:</span> <span class="variable">$self</span>
+ <span class="variable">Args</span>     <span class="operator">:</span> <span class="string">'single'</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">),</span> <span class="string">'multiple'</span> <span class="variable">with</span> <span class="variable">enzyme</span> <span class="variable">collection</span><span class="operator">.</span>
+</code></code></pre>
+
+<p>An explicit cut method is needed to pass arguments to it.</p>
+
+<p>There are two varieties of cut. Single is the default, and need not be explicitly called. This cuts the sequence with each enzyme separately.</p>
+
+<p>Multiple cuts a sequence with more than one enzyme. You must pass it a Bio::Restriction::EnzymeCollection object of the set of enzymes that you want to use in the double digest. The results will be stored as an enzyme named &quot;multiple_digest&quot;, so you can use all the retrieval methods to get the data.</p>
+
+<p>If you want to use the default setting there is no need to call cut directly. Every method in the class that needs output checks the object&#39;s internal status and recalculates the cuts if needed.</p>
+
+<p>Note: cut doesn&#39;t now re-initialize everything before figuring out cuts. This is so that you can do multiple digests, or add more data or whatever. You&#39;ll have to use new to reset everything.</p>
+
+<p>See also the comments in above about ambiguous and non-ambiguous sequences.</p>
+
+<h2 id="mulitple_digest">mulitple_digest</h2>
+
+<pre><code><code> <span class="variable">Title</span>     <span class="operator">:</span> <span class="variable">multiple_digest</span>
+ <span class="variable">Function</span>  <span class="operator">:</span> <span class="variable">perform</span> <span class="variable">a</span> <span class="variable">multiple</span> <span class="variable">digest</span> <span class="variable">on</span> <span class="variable">a</span> <span class="variable">sequence</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">$self</span> <span class="variable">so</span> <span class="variable">you</span> <span class="variable">can</span> <span class="variable">go</span> <span class="keyword">and</span> <span class="variable">get</span> <span class="variable">any</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">other</span> <span class="variable">methods</span>
+ <span class="variable">Arguments</span> <span class="operator">:</span> <span class="variable">An</span> <span class="variable">enzyme</span> <span class="variable">collection</span>
+ 
+ <span class="variable">Multiple</span> <span class="variable">digests</span> <span class="variable">can</span> <span class="keyword">use</span> <span class="number">1</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">enzymes</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">the</span> <span class="variable">data</span> <span class="variable">is</span> <span class="variable">stored</span>
+ <span class="variable">in</span> <span class="variable">as</span> <span class="keyword">if</span> <span class="variable">it</span> <span class="variable">were</span> <span class="variable">an</span> <span class="variable">enzyme</span> <span class="variable">called</span> <span class="variable">multiple_digest</span><span class="operator">.</span> <span class="variable">You</span> <span class="variable">can</span> <span class="variable">then</span>
+ <span class="variable">retrieve</span> <span class="variable">information</span> <span class="variable">about</span> <span class="variable">multiple</span> <span class="variable">digests</span> <span class="variable">from</span> <span class="variable">any</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">other</span>
+ <span class="variable">methods</span><span class="operator">.</span>
+ 
+ <span class="variable">You</span> <span class="variable">can</span> <span class="keyword">use</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">in</span> <span class="variable">place</span> <span class="variable">of</span> <span class="variable">$re</span><span class="operator">-&gt;</span><span class="variable">cut</span><span class="operator">(</span><span class="string">'multiple'</span><span class="operator">,</span> <span class="variable">$enz_coll</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="Query-the-results-of-the-analysis">Query the results of the analysis</h1>
+
+<h2 id="positions">positions</h2>
+
+<pre><code><code>  Title    : positions
+  Function : Retrieve the positions that an enzyme cuts at
+  Returns  : An array of the positions that an enzyme cuts at
+           : or an empty array if the enzyme doesn&#39;t cut
+  Arguments: An enzyme name to retrieve the positions for
+  Comments : The cut occurs after the base specified.</code></code></pre>
+
+<h2 id="fragments">fragments</h2>
+
+<pre><code><code>  Title    : fragments
+  Function : Retrieve the fragments that we cut
+  Returns  : An array of the fragments retrieved. 
+  Arguments: An enzyme name to retrieve the fragments for</code></code></pre>
+
+<p>For example this code will retrieve the fragments for all enzymes that cut your sequence</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$all_cutters</span> <span class="operator">=</span> <span class="variable">$analysis</span><span class="operator">-&gt;</span><span class="variable">cutters</span><span class="operator">;</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$enz</span> <span class="operator">(</span><span class="variable">$$all_cutters</span><span class="operator">-&gt;</span><span class="variable">each_enzyme</span><span class="operator">})</span> <span class="operator">{</span>
+      <span class="variable">@fragments</span><span class="operator">=</span><span class="variable">$analysis</span><span class="operator">-&gt;</span><span class="variable">fragments</span><span class="operator">(</span><span class="variable">$enz</span><span class="operator">);</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="fragment_maps">fragment_maps</h2>
+
+<pre><code><code>  Title     : fragment_maps
+  Function  : Retrieves fragment sequences with start and end
+              points. Useful for feature construction.
+
+  Returns   : An array containing a hash reference for each fragment,
+              containing the start point, end point and DNA
+              sequence. The hash keys are &#39;start&#39;, &#39;end&#39; and
+              &#39;seq&#39;. Returns an empty array if not defined.
+
+  Arguments : An enzyme name, enzyme object, 
+              or enzyme collection to retrieve the fragments for.</code></code></pre>
+
+<p>If passes an enzyme collection it will return the result of a multiple digest. This : will also cause the special enzyme &#39;multiple_digest&#39; to be created so you can get : other information about this multiple digest. (TMTOWTDI).</p>
+
+<p>There is a minor problem with this and $self-&gt;fragments that I haven&#39;t got a good answer for (at the moment). If the sequence is not cut, do we return undef, or the whole sequence?</p>
+
+<p>For linear fragments it would be good to return the whole sequence. For circular fragments I am not sure.</p>
+
+<p>At the moment it returns the whole sequence with start of 1 and end of length of the sequence. For example:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Restriction::Analysis</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Restriction::EnzymeCollection</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::PrimarySeq</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">Bio::PrimarySeq</span><span class="operator">-&gt;</span><span class="variable">new</span>
+      <span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span><span class="string">'AGCTTAATTCATTAGCTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATCCAAAAAAGAGTGAGCTTCTGAT'</span><span class="operator">,</span>
+       <span class="string">-primary_id</span> <span class="operator">=&gt;</span> <span class="string">'synopsis'</span><span class="operator">,</span>
+       <span class="string">-molecule</span> <span class="operator">=&gt;</span> <span class="string">'dna'</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$ra</span> <span class="operator">=</span> <span class="variable">Bio::Restriction::Analysis</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">@gel</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">@bam_maps</span> <span class="operator">=</span> <span class="variable">$ra</span><span class="operator">-&gt;</span><span class="variable">fragment_maps</span><span class="operator">(</span><span class="string">'BamHI'</span><span class="operator">);</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$i</span> <span class="operator">(</span><span class="variable">@bam_maps</span><span class="operator">)</span> <span class="operator">{</span>
+     <span class="keyword">my</span> <span class="variable">$start</span> <span class="operator">=</span> <span class="variable">$i</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">start</span><span class="operator">}</span><span class="operator">;</span>
+     <span class="keyword">my</span> <span class="variable">$end</span> <span class="operator">=</span> <span class="variable">$i</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">end</span><span class="operator">}</span><span class="operator">;</span>
+     <span class="keyword">my</span> <span class="variable">$sequence</span> <span class="operator">=</span> <span class="variable">$i</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">seq</span><span class="operator">}</span><span class="operator">;</span>
+     <span class="keyword">push</span> <span class="variable">@gel</span><span class="operator">,</span> <span class="string">"</span><span class="variable">$start</span><span class="string">--</span><span class="variable">$sequence</span><span class="string">--</span><span class="variable">$end</span><span class="string">"</span><span class="operator">;</span>
+     <span class="variable">@gel</span> <span class="operator">=</span> <span class="keyword">sort</span> <span class="operator">{</span><span class="keyword">length</span> <span class="variable">$b</span> <span class="operator">&lt;=&gt;</span> <span class="keyword">length</span> <span class="variable">$a</span><span class="operator">}</span> <span class="variable">@gel</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  <span class="keyword">print</span> <span class="keyword">join</span><span class="operator">(</span><span class="string">"\n"</span><span class="operator">,</span> <span class="variable">@gel</span><span class="operator">)</span> <span class="operator">.</span> <span class="string">"\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="sizes">sizes</h2>
+
+<pre><code><code>  Title    : sizes
+  Function : Retrieves an array with the sizes of the fragments
+  Returns  : Array that has the sizes of the fragments ordered from 
+             largest to smallest like they would appear in a gel.
+  Arguments: An enzyme name to retrieve the sizes for is required and
+             kilobases to the nearest 0.1 kb, else it will be in
+             bp. If the optional third entry is set the results will
+             be sorted.</code></code></pre>
+
+<p>This is designed to make it easy to see what fragments you should get on a gel!</p>
+
+<p>You should be able to do these:</p>
+
+<pre><code><code>  <span class="comment"># to see all the fragment sizes,</span>
+  <span class="keyword">print</span> <span class="keyword">join</span> <span class="string">"\n"</span><span class="operator">,</span> <span class="variable">$re</span><span class="operator">-&gt;</span><span class="variable">sizes</span><span class="operator">(</span><span class="variable">$enz</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="comment"># to see all the fragment sizes sorted</span>
+  <span class="keyword">print</span> <span class="keyword">join</span> <span class="string">"\n"</span><span class="operator">,</span> <span class="variable">$re</span><span class="operator">-&gt;</span><span class="variable">sizes</span><span class="operator">(</span><span class="variable">$enz</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="number">1</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="comment"># to see all the fragment sizes in kb sorted</span>
+  <span class="keyword">print</span> <span class="keyword">join</span> <span class="string">"\n"</span><span class="operator">,</span> <span class="variable">$re</span><span class="operator">-&gt;</span><span class="variable">sizes</span><span class="operator">(</span><span class="variable">$enz</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="number">1</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="How-many-times-does-enzymes-X-cut-">How many times does enzymes X cut?</h1>
+
+<h2 id="cuts_by_enzyme">cuts_by_enzyme</h2>
+
+<pre><code><code> Title     : cuts_by_enzyme
+ Function  : Return the number of cuts for an enzyme
+ Returns   : An integer with the number of times each enzyme cuts.
+             Returns 0 if doesn&#39;t cut or undef if not defined
+ Arguments : An enzyme name string</code></code></pre>
+
+<h1 id="Which-enzymes-cut-the-sequence-N-times-">Which enzymes cut the sequence N times?</h1>
+
+<h2 id="cutters">cutters</h2>
+
+<pre><code><code> Title     : cutters
+ Function  : Find enzymes that cut a given number of times
+ Returns   : a Bio::Restriction::EnzymeCollection
+ Arguments : 1. exact time or lower limit,
+                non-negative integer, optional
+             2. upper limit, non-negative integer,
+                larger or equalthan first, optional</code></code></pre>
+
+<p>If no arguments are given, the method returns all enzymes that do cut the sequence. The argument zero, &#39;0&#39;, is same as method zero_cutters(). The argument one, &#39;1&#39;, corresponds to unique_cutters. If either of the limits is larger than number of cuts any enzyme cuts the sequence, the that limit is automagically lowered. The method max_cuts() gives the largest number of cuts.</p>
+
+<p>See Also : <a>unique_cutters</a>, <a>zero_cutters</a>, <a>max_cuts</a></p>
+
+<h2 id="unique_cutters">unique_cutters</h2>
+
+<pre><code><code> Title     : unique_cutters
+ Function  : A special case if cutters() where enzymes only cut once
+ Returns   : a Bio::Restriction::EnzymeCollection
+ Arguments : -</code></code></pre>
+
+<p>See also: <a>cutters</a>, <a>zero_cutters</a></p>
+
+<h2 id="zero_cutters">zero_cutters</h2>
+
+<pre><code><code> Title     : zero_cutters
+ Function  : A special case if cutters() where enzymes don&#39;t cut the sequence
+ Returns   : a Bio::Restriction::EnzymeCollection
+ Arguments : -</code></code></pre>
+
+<p>See also: <a>cutters</a>, <a>unique_cutters</a></p>
+
+<h2 id="max_cuts">max_cuts</h2>
+
+<pre><code><code> Title     : max_cuts
+ Function  : Find the most number of cuts
+ Returns   : The number of times the enzyme that cuts most cuts.
+ Arguments : None</code></code></pre>
+
+<p>This is not a very practical method, but if you are curious...</p>
+
+<h1 id="Internal-methods">Internal methods</h1>
+
+<h2 id="cuts">_cuts</h2>
+
+<pre><code><code> Title     : _cuts
+ Function  : Figures out which enzymes we know about and cuts the sequence.
+ Returns   : Nothing.
+ Arguments : None.
+ Comments  : An internal method. This will figure out where the sequence 
+             should be cut, and provide the appropriate results.</code></code></pre>
+
+<h2 id="enzyme_sites">_enzyme_sites</h2>
+
+<pre><code><code> Title     : _enzyme_sites
+ Function  : An internal method to figure out the two sides of an enzyme
+ Returns   : The sequence before the cut and the sequence after the cut
+ Arguments : A Bio::Restriction::Enzyme object,
+             $comp : boolean, calculate based on $enz-&gt;complementary_cut()
+                     if true, $enz-&gt;cut() if false
+ Status    : NOW DEPRECATED - maj</code></code></pre>
+
+<h2 id="non_pal_enz">_non_pal_enz</h2>
+
+<pre><code><code>  Title    : _non_pal_enz
+  Function : Analyses non_palindromic enzymes for cuts in both ways
+             (in fact, delivers only minus strand cut positions in the 
+              plus strand coordinates/maj)
+  Returns  : A reference to an array of cut positions
+  Arguments: The sequence to check and the enzyme object
+  NOW DEPRECATED/maj</code></code></pre>
+
+<h2 id="ambig_cuts">_ambig_cuts</h2>
+
+<pre><code><code> Title     : _ambig_cuts
+ Function  : An internal method to localize the cuts in the sequence
+ Returns   : A reference to an array of cut positions
+ Arguments : The separated enzyme site, the target sequence, and the enzyme object
+ Comments  : This is a slow implementation but works for ambiguous sequences.
+             Whenever possible, _nonambig_cuts should be used as it is a lot faster.</code></code></pre>
+
+<h2 id="nonambig_cuts">_nonambig_cuts</h2>
+
+<pre><code><code> Title     : _nonambig_cuts
+ Function  : Figures out which enzymes we know about and cuts the sequence.
+ Returns   : Nothing.
+ Arguments : The separated enzyme site, the target sequence, and the enzyme object</code></code></pre>
+
+<p>An internal method. This will figure out where the sequence should be cut, and provide the appropriate results. This is a much faster implementation because it doesn&#39;t use a regexp, but it can not deal with ambiguous sequences</p>
+
+<h2 id="make_cuts">_make_cuts</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_make_cuts</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$an</span><span class="operator">-&gt;</span><span class="variable">_make_cuts</span><span class="operator">(</span> <span class="variable">$target_sequence</span><span class="operator">,</span> <span class="variable">$enzyme</span><span class="operator">,</span> <span class="variable">$complement_q</span> <span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">cut</span> <span class="variable">sites</span> <span class="variable">on</span> <span class="variable">target</span> <span class="variable">seq</span><span class="operator">,</span> <span class="variable">using</span> <span class="variable">enzyme</span>
+           <span class="variable">on</span> <span class="variable">the</span> <span class="variable">plus</span> <span class="variable">strand</span> <span class="operator">(</span><span class="variable">$complement_q</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">)</span> <span class="keyword">or</span> <span class="variable">minus</span> <span class="variable">strand</span>
+           <span class="operator">(</span><span class="variable">$complement_q</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">);</span> <span class="variable">follows</span> <span class="variable">Enzyme</span> <span class="variable">objects</span> <span class="variable">in</span>
+           <span class="variable">$enzyme</span><span class="operator">-&gt;</span><span class="variable">others</span><span class="operator">()</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="keyword">scalar</span> <span class="variable">integers</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">sequence</span> <span class="variable">string</span><span class="operator">,</span> <span class="variable">B</span><span class="operator">:</span><span class="variable">R</span><span class="operator">:</span><span class="variable">Enzyme</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">boolean</span>
+</code></code></pre>
+
+<h2 id="multiple_cuts">_multiple_cuts</h2>
+
+<pre><code><code> Title     : _multiple_cuts
+ Function  : Figures out multiple digests
+ Returns   : An array of the cut sites for multiply digested DNA
+ Arguments : A Bio::Restriction::EnzymeCollection object
+ Comments  : Double digests is one subset of this, but you can use
+             as many enzymes as you want.</code></code></pre>
+
+<h2 id="circular">_circular</h2>
+
+<pre><code><code> Title     : _circular
+ Function  : Identifies cuts at the join of the end of the target with
+             the beginning of the target
+ Returns   : array of scalar integers ( cut sites near join, if any )
+ Arguments : scalar string (target sequence), Bio::Restriction::Enzyme obj</code></code></pre>
+
+<h2 id="expanded_string">_expanded_string</h2>
+
+<pre><code><code> Title     : _expanded_string
+ Function  : Expand nucleotide ambiguity codes to their representative letters
+ Returns   : The full length string
+ Arguments : The string to be expanded.</code></code></pre>
+
+<p>Stolen from the original RestrictionEnzyme.pm</p>
+
+
+</body>
+
+</html>
+
+

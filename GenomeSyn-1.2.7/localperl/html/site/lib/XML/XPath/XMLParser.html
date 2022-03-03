@@ -1,0 +1,178 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#Node-Structure">Node Structure</a>
+    <ul>
+      <li><a href="#Root-Node">Root Node</a></li>
+      <li><a href="#Element-Node">Element Node</a></li>
+      <li><a href="#Attribute-Node">Attribute Node</a></li>
+      <li><a href="#Namespace-Nodes">Namespace Nodes</a></li>
+      <li><a href="#Text-Nodes">Text Nodes</a></li>
+      <li><a href="#Comment-Nodes">Comment Nodes</a></li>
+      <li><a href="#Processing-Instruction-Nodes">Processing Instruction Nodes</a></li>
+    </ul>
+  </li>
+  <li><a href="#Usage">Usage</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#parse">parse</a></li>
+      <li><a href="#parsefile">parsefile</a></li>
+    </ul>
+  </li>
+  <li><a href="#NOTICES">NOTICES</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>XML::XPath::XMLParser - The default XML parsing class that produces a node tree</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">XML::XPath::XMLParser</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+                <span class="string">filename</span> <span class="operator">=&gt;</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">get_filename</span><span class="operator">,</span>
+                <span class="string">xml</span> <span class="operator">=&gt;</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">get_xml</span><span class="operator">,</span>
+                <span class="string">ioref</span> <span class="operator">=&gt;</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">get_ioref</span><span class="operator">,</span>
+                <span class="string">parser</span> <span class="operator">=&gt;</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">get_parser</span><span class="operator">,</span>
+            <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$root_node</span> <span class="operator">=</span> <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module generates a node tree for use as the context node for XPath processing. It aims to be a quick parser, nothing fancy, and yet has to store more information than most parsers. To achieve this I&#39;ve used array refs everywhere - no hashes. I don&#39;t have any performance figures for the speedups achieved, so I make no appologies for anyone not used to using arrays instead of hashes. I think they make good sense here where we know the attributes of each type of node.</p>
+
+<h1 id="Node-Structure">Node Structure</h1>
+
+<p>All nodes have the same first 2 entries in the array: node_parent and node_pos. The type of the node is determined using the ref() function. The node_parent always contains an entry for the parent of the current node - except for the root node which has undef in there. And node_pos is the position of this node in the array that it is in (think: $node == $node-&gt;[node_parent]-&gt;[node_children]-&gt;[$node-&gt;[node_pos]] )</p>
+
+<p>Nodes are structured as follows:</p>
+
+<h2 id="Root-Node">Root Node</h2>
+
+<p>The root node is just an element node with no parent.</p>
+
+<pre><code><code>    [
+      undef, # node_parent - check for undef to identify root node
+      undef, # node_pos
+      undef, # node_prefix
+      [ ... ], # node_children (see below)
+    ]</code></code></pre>
+
+<h2 id="Element-Node">Element Node</h2>
+
+<pre><code><code>    [
+      $parent, # node_parent
+      &lt;position in current array&gt;, # node_pos
+      &#39;xxx&#39;, # node_prefix - namespace prefix on this element
+      [ ... ], # node_children
+      &#39;yyy&#39;, # node_name - element tag name
+      [ ... ], # node_attribs - attributes on this element
+      [ ... ], # node_namespaces - namespaces currently in scope
+    ]</code></code></pre>
+
+<h2 id="Attribute-Node">Attribute Node</h2>
+
+<pre><code><code>    [
+      $parent, # node_parent - the element node
+      &lt;position in current array&gt;, # node_pos
+      &#39;xxx&#39;, # node_prefix - namespace prefix on this element
+      &#39;href&#39;, # node_key - attribute name
+      &#39;ftp://ftp.com/&#39;, # node_value - value in the node
+    ]</code></code></pre>
+
+<h2 id="Namespace-Nodes">Namespace Nodes</h2>
+
+<p>Each element has an associated set of namespace nodes that are currently in scope. Each namespace node stores a prefix and the expanded name (retrieved from the xmlns:prefix=&quot;...&quot; attribute).</p>
+
+<pre><code><code>    [
+      $parent,
+      &lt;pos&gt;,
+      &#39;a&#39;, # node_prefix - the namespace as it was written as a prefix
+      &#39;http://my.namespace.com&#39;, # node_expanded - the expanded name.
+    ]</code></code></pre>
+
+<h2 id="Text-Nodes">Text Nodes</h2>
+
+<pre><code><code>    [
+      $parent,
+      &lt;pos&gt;,
+      &#39;This is some text&#39; # node_text - the text in the node
+    ]</code></code></pre>
+
+<h2 id="Comment-Nodes">Comment Nodes</h2>
+
+<pre><code><code>    [
+      $parent,
+      &lt;pos&gt;,
+      &#39;This is a comment&#39; # node_comment
+    ]</code></code></pre>
+
+<h2 id="Processing-Instruction-Nodes">Processing Instruction Nodes</h2>
+
+<pre><code><code>    [
+      $parent,
+      &lt;pos&gt;,
+      &#39;target&#39;, # node_target
+      &#39;data&#39;, # node_data
+    ]</code></code></pre>
+
+<h1 id="Usage">Usage</h1>
+
+<p>If you feel the need to use this module outside of XML::XPath (for example you might use this module directly so that you can cache parsed trees), you can follow the following API:</p>
+
+<h2 id="new">new</h2>
+
+<p>The new method takes either no parameters, or any of the following parameters:</p>
+
+<pre><code><code>        filename
+        xml
+        parser
+        ioref</code></code></pre>
+
+<p>This uses the familiar hash syntax, so an example might be:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">XML::XPath::XMLParser</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">XML::XPath::XMLParser</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">filename</span> <span class="operator">=&gt;</span> <span class="string">'example.xml'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The parameters represent a filename, a string containing XML, an XML::Parser instance and an open filehandle ref respectively. You can also set or get all of these properties using the get_ and set_ functions that have the same name as the property: e.g. get_filename, set_ioref, etc.</p>
+
+<h2 id="parse">parse</h2>
+
+<p>The parse method generally takes no parameters, however you are free to pass either an open filehandle reference or an XML string if you so require. The return value is a tree that XML::XPath can use. The parse method will die if there is an error in your XML, so be sure to use perl&#39;s exception handling mechanism (eval{};) if you want to avoid this.</p>
+
+<h2 id="parsefile">parsefile</h2>
+
+<p>The parsefile method is identical to parse() except it expects a single parameter that is a string naming a file to open and parse. Again it returns a tree and also dies if there are XML errors.</p>
+
+<h1 id="NOTICES">NOTICES</h1>
+
+<p>This file is distributed as part of the XML::XPath module, and is copyright 2000 Fastnet Software Ltd. Please see the documentation for the module as a whole for licencing information.</p>
+
+
+</body>
+
+</html>
+
+

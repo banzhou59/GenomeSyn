@@ -1,0 +1,268 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#add_features">add_features</a></li>
+      <li><a href="#features_in_range">features_in_range</a></li>
+      <li><a href="#remove_features">remove_features</a></li>
+      <li><a href="#get_all_features">get_all_features</a></li>
+      <li><a href="#min_bin">min_bin</a></li>
+      <li><a href="#max_bin">max_bin</a></li>
+      <li><a href="#feature_count">feature_count</a></li>
+      <li><a href="#indexfile">indexfile</a></li>
+      <li><a href="#keep">keep</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqFeature::Collection - A container class for SeqFeatures suitable for performing operations such as finding features within a range, that match a certain feature type, etc.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::SeqFeature::Collection</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Location::Simple</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::GFF</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Root::IO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">File::Spec</span><span class="operator">;</span>
+  <span class="comment"># let's first input some features</span>
+  <span class="keyword">my</span> <span class="variable">$gffio</span> <span class="operator">=</span> <span class="variable">Bio::Tools::GFF</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">File::Spec</span><span class="operator">-&gt;</span><span class="variable">catfile</span>
+                                 <span class="operator">(</span><span class="string">"t"</span><span class="operator">,</span><span class="string">"data"</span><span class="operator">,</span><span class="string">"myco_sites.gff"</span><span class="operator">),</span>
+                                 <span class="string">-gff_version</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@features</span> <span class="operator">=</span> <span class="operator">();</span>
+  <span class="comment"># loop over the input stream</span>
+  <span class="keyword">while</span><span class="operator">(</span><span class="keyword">my</span> <span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$gffio</span><span class="operator">-&gt;</span><span class="variable">next_feature</span><span class="operator">())</span> <span class="operator">{</span>
+      <span class="comment"># do something with feature</span>
+      <span class="keyword">push</span> <span class="variable">@features</span><span class="operator">,</span> <span class="variable">$feature</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  <span class="variable">$gffio</span><span class="operator">-&gt;</span><span class="variable">close</span><span class="operator">();</span>
+  <span class="comment"># build the Collection object</span>
+  <span class="keyword">my</span> <span class="variable">$col</span> <span class="operator">=</span> <span class="variable">Bio::SeqFeature::Collection</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+  <span class="comment"># add these features to the object</span>
+  <span class="keyword">my</span> <span class="variable">$totaladded</span> <span class="operator">=</span> <span class="variable">$col</span><span class="operator">-&gt;</span><span class="variable">add_features</span><span class="operator">(\</span><span class="variable">@features</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">@subset</span> <span class="operator">=</span> <span class="variable">$col</span><span class="operator">-&gt;</span><span class="variable">features_in_range</span><span class="operator">(</span><span class="string">-start</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                     <span class="string">-end</span> <span class="operator">=&gt;</span> <span class="number">25000</span><span class="operator">,</span>
+                                     <span class="string">-strand</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                     <span class="string">-contain</span> <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">);</span>
+  <span class="comment"># subset should have 18 entries for this dataset</span>
+  <span class="keyword">print</span> <span class="string">"size is "</span><span class="operator">,</span> <span class="keyword">scalar</span> <span class="variable">@subset</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="variable">@subset</span> <span class="operator">=</span> <span class="variable">$col</span><span class="operator">-&gt;</span><span class="variable">features_in_range</span><span class="operator">(</span><span class="string">-range</span> <span class="operator">=&gt;</span> <span class="variable">Bio::Location::Simple</span><span class="operator">-&gt;</span><span class="variable">new</span>
+                                  <span class="operator">(</span><span class="string">-start</span> <span class="operator">=&gt;</span> <span class="number">70000</span><span class="operator">,</span>
+                                   <span class="string">-end</span> <span class="operator">=&gt;</span> <span class="number">150000</span><span class="operator">,</span>
+                                   <span class="string">-strand</span> <span class="operator">=&gt;</span> <span class="operator">-</span><span class="number">1</span><span class="operator">),</span>
+                                  <span class="string">-contain</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                  <span class="string">-strandmatch</span> <span class="operator">=&gt;</span> <span class="string">'strong'</span><span class="operator">);</span>
+  
+  <span class="comment"># subset should have 22 entries for this dataset</span>
+  <span class="keyword">print</span> <span class="string">"size is "</span><span class="operator">,</span> <span class="keyword">scalar</span> <span class="variable">@subset</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="string">"total number of features in collection is "</span><span class="operator">,</span>
+         <span class="variable">$col</span><span class="operator">-&gt;</span><span class="variable">feature_count</span><span class="operator">(),</span><span class="string">"\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object will efficiently allow one for query subsets of ranges within a large collection of sequence features (in fact the objects just have to be Bio::RangeI compliant). This is done by the creation of bins which are stored in order in a B-Tree data structure as provided by the DB_File interface to the Berkeley DB.</p>
+
+<p>This is based on work done by Lincoln for storage in a mysql instance - this is intended to be an embedded in-memory implementation for easily querying for subsets of a large range set.</p>
+
+<p>Collections can be made persistent by keeping the indexfile and passing in the -keep flag like this:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$collection</span> <span class="operator">=</span> <span class="variable">Bio::SeqFeature::Collection</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-keep</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                                   <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'col.idx'</span><span class="operator">);</span>
+  <span class="variable">$collaction</span><span class="operator">-&gt;</span><span class="variable">add_features</span><span class="operator">(\</span><span class="variable">@features</span><span class="operator">);</span>
+  <span class="keyword">undef</span> <span class="variable">$collection</span><span class="operator">;</span>
+  
+  <span class="comment"># To reuse this collection, next time you initialize a Collection object</span>
+  <span class="comment"># specify the filename and the index will be reused.</span>
+  <span class="variable">$collection</span> <span class="operator">=</span> <span class="variable">Bio::SeqFeature::Collection</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-keep</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                                <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'col.idx'</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</h1>
+
+<p>Email jason@bioperl.org</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Using code and strategy developed by Lincoln Stein (lstein@cshl.org) in Bio::DB::GFF implementation. Credit also to Lincoln for suggesting using Storable to serialize features rather than my previous implementation which kept the features in memory.</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::SeqFeature::Collection</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::SeqFeature::Collection</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::SeqFeature::Collection</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+ 
+           <span class="operator">-</span><span class="variable">minbin</span>        <span class="variable">minimum</span> <span class="variable">value</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="keyword">for</span> <span class="variable">binning</span>
+                          <span class="operator">(</span><span class="keyword">default</span> <span class="variable">is</span> <span class="number">100</span><span class="operator">,</span><span class="number">000</span><span class="operator">,</span><span class="number">000</span><span class="operator">)</span>
+           <span class="operator">-</span><span class="variable">maxbin</span>        <span class="variable">maximum</span> <span class="variable">value</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="keyword">for</span> <span class="variable">binning</span>
+                          <span class="operator">(</span><span class="keyword">default</span> <span class="variable">is</span> <span class="number">1</span><span class="operator">,</span><span class="number">000</span><span class="operator">)</span>
+           <span class="operator">-</span><span class="variable">file</span>          <span class="variable">filename</span> <span class="variable">to</span> <span class="variable">store</span><span class="operator">/</span><span class="keyword">read</span> <span class="variable">the</span>
+                          <span class="variable">BTREE</span> <span class="variable">from</span> <span class="variable">rather</span> <span class="variable">than</span> <span class="variable">an</span> <span class="variable">in</span><span class="operator">-</span><span class="variable">memory</span> <span class="variable">structure</span>
+                          <span class="operator">(</span><span class="keyword">default</span> <span class="variable">is</span> <span class="variable">false</span> <span class="keyword">and</span> <span class="variable">in</span><span class="operator">-</span><span class="variable">memory</span><span class="operator">).</span>
+           <span class="operator">-</span><span class="variable">keep</span>          <span class="variable">boolean</span><span class="operator">,</span> <span class="variable">will</span> <span class="keyword">not</span> <span class="variable">remove</span> <span class="keyword">index</span> <span class="variable">file</span> <span class="variable">on</span>
+                          <span class="variable">object</span> <span class="variable">destruction</span><span class="operator">.</span>
+           <span class="operator">-</span><span class="variable">features</span>      <span class="variable">Array</span> <span class="keyword">ref</span> <span class="variable">of</span> <span class="variable">features</span> <span class="variable">to</span> <span class="variable">add</span> <span class="variable">initially</span>
+</code></code></pre>
+
+<h2 id="add_features">add_features</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add_features</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$collection</span><span class="operator">-&gt;</span><span class="variable">add_features</span><span class="operator">(\</span><span class="variable">@features</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">features</span> <span class="variable">added</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">arrayref</span> <span class="variable">of</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">objects</span> <span class="variable">to</span> <span class="keyword">index</span>
+</code></code></pre>
+
+<h2 id="features_in_range">features_in_range</h2>
+
+<pre><code><code> Title   : features_in_range
+ Usage   : my @features = $collection-&gt;features_in_range($range)
+ Function: Retrieves a list of features which were contained or overlap the
+           the requested range (see Args for way to specify overlap or
+                                only those containe)d
+ Returns : List of Bio::SeqFeatureI objects
+ Args    : -range =&gt; Bio::RangeI object defining range to search,
+           OR
+           -start  =&gt; start,
+           -end    =&gt; end,
+           -strand  =&gt; strand
+
+           -contain =&gt; boolean - true if feature must be completely
+                       contained with range
+                       OR false if should include features that simply overlap
+                       the range. Default: true.
+           -strandmatch =&gt;  &#39;strong&#39;,  ranges must have the same strand
+                            &#39;weak&#39;,    ranges must have the same
+                                           strand or no strand
+                            &#39;ignore&#39;, ignore strand information
+                           Default. &#39;ignore&#39;.</code></code></pre>
+
+<h2 id="remove_features">remove_features</h2>
+
+<pre><code><code> Title   : remove_features
+ Usage   : $collection-&gt;remove_features(\@array)
+ Function: Removes the requested sequence features (based on features
+           which have the same location)
+ Returns : Number of features removed
+ Args    : Arrayref of Bio::RangeI objects</code></code></pre>
+
+<h2 id="get_all_features">get_all_features</h2>
+
+<pre><code><code> Title   : get_all_features
+ Usage   : my @f = $col-&gt;get_all_features()
+ Function: Return all the features stored in this collection (Could be large)
+ Returns : Array of Bio::RangeI objects
+ Args    : None</code></code></pre>
+
+<h2 id="min_bin">min_bin</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">min_bin</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$minbin</span><span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">min_bin</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">minimum</span> <span class="variable">value</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="keyword">for</span> <span class="variable">binning</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">minimum</span> <span class="variable">bin</span> <span class="variable">value</span>
+</code></code></pre>
+
+<h2 id="max_bin">max_bin</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">max_bin</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$maxbin</span><span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">max_bin</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">maximum</span> <span class="variable">value</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="keyword">for</span> <span class="variable">binning</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">maximum</span> <span class="variable">bin</span> <span class="variable">value</span>
+</code></code></pre>
+
+<h2 id="feature_count">feature_count</h2>
+
+<pre><code><code> Title   : feature_count
+ Usage   : my $c = $col-&gt;feature_count()
+ Function: Retrieve the total number of features in the collection
+ Returns : integer
+ Args    : none</code></code></pre>
+
+<h2 id="indexfile">indexfile</h2>
+
+<pre><code><code> Title   : indexfile
+ Usage   : $obj-&gt;indexfile($newval)
+ Function: Get/set the filename where index is kept
+ Returns : value of indexfile (a filename string)
+ Args    : on set, new value (a filename string )</code></code></pre>
+
+<h2 id="keep">keep</h2>
+
+<pre><code><code> Title   : keep
+ Usage   : $obj-&gt;keep($newval)
+ Function: Get/set boolean flag to keep the indexfile after
+           exiting program
+ Example :
+ Returns : value of keep (boolean)
+ Args    : on set, new value (boolean)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

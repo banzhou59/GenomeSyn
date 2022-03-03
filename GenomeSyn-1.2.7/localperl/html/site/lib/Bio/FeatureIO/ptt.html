@@ -1,0 +1,190 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Torsten-Seemann">AUTHOR - Torsten Seemann</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#initialize">_initialize</a></li>
+      <li><a href="#next_feature">next_feature</a></li>
+      <li><a href="#write_feature-NOT-IMPLEMENTED-">write_feature (NOT IMPLEMENTED)</a></li>
+      <li><a href="#description">description</a></li>
+      <li><a href="#protein_count">protein_count</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::FeatureIO::ptt - read/write features in PTT format</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="comment"># read features </span>
+ <span class="keyword">my</span> <span class="variable">$fin</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="string">'genes.ptt'</span><span class="operator">,</span> <span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'ptt'</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">@cds</span><span class="operator">;</span>
+ <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$f</span> <span class="operator">=</span> <span class="variable">$fin</span><span class="operator">-&gt;</span><span class="variable">next_feature</span><span class="operator">)</span> <span class="operator">{</span>
+   <span class="keyword">push</span> <span class="variable">@cds</span><span class="operator">,</span> <span class="variable">$f</span> <span class="keyword">if</span> <span class="variable">$f</span><span class="operator">-&gt;</span><span class="variable">strand</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="operator">;</span>
+ <span class="operator">}</span>
+ 
+ <span class="comment"># write features (NOT IMPLEMENTED)</span>
+ <span class="keyword">my</span> <span class="variable">$fout</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-fh</span><span class="operator">=&gt;\</span><span class="variable">*STDOUT</span><span class="operator">,</span> <span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'ptt'</span><span class="operator">);</span>
+ <span class="keyword">for</span> <span class="keyword">my</span> <span class="variable">$f</span> <span class="operator">(</span><span class="variable">@cds</span><span class="operator">)</span> <span class="operator">{</span>
+   <span class="variable">$fout</span><span class="operator">-&gt;</span><span class="variable">write_feature</span><span class="operator">(</span><span class="variable">$f</span><span class="operator">);</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>The PTT file format is a table of protein features. It is used mainly by NCBI who produce PTT files for all their published genomes found in <a href="ftp://ftp.ncbi.nih.gov/genomes/">ftp://ftp.ncbi.nih.gov/genomes/</a>. It has the following format:</p>
+
+<dl>
+
+<dt id="Line-1">Line 1</dt>
+<dd>
+
+<p>Description of sequence to which the features belong eg. &quot;Leptospira interrogans chromosome II, complete sequence - 0..358943&quot;</p>
+
+<p>It is usually equivalent to the DEFINITION line of a Genbank file, with the length of the sequence appended. It is unclear why &quot;0&quot; is used as a starting range, it should be &quot;1&quot;.</p>
+
+</dd>
+<dt id="Line-2">Line 2</dt>
+<dd>
+
+<p>Number of feature lines in the table eg. &quot;367 proteins&quot;</p>
+
+</dd>
+<dt id="Line-3">Line 3</dt>
+<dd>
+
+<p>Column headers, tab separated eg. &quot;Location Strand Length PID Gene Synonym Code COG Product&quot;</p>
+
+<pre><code><code> Location : &quot;begin..end&quot; span of feature
+ Strand   : &quot;+&quot; or &quot;-&quot;
+ Length   : number of amino acids excluding the stop codon
+ PID      : analogous to Genbank /db_xref=&quot;GI:xxxxxxxxx&quot;
+ Gene     : analogous to Genbank /gene=&quot;xxxx&quot;
+ Synonym  : analogous to Genbank /locus_tag=&quot;xxxx&quot;
+ Synonym  : analogous to Genbank /locus_tag=&quot;xxxx&quot;
+ COG      : CDD COG code with COG letter categories appended
+ Product  : analogous to Genbank /product=&quot;xxxx&quot;</code></code></pre>
+
+</dd>
+<dt id="Line-4-onwards">Line 4 onwards</dt>
+<dd>
+
+<p>Feature lines, nine columns, tab separated, &quot;-&quot; used for empty fields eg. &quot;2491..3423 + 310 24217063 metF LB002 - COG0685E 5,10-methylenetetrahydrofolate reductase&quot;</p>
+
+</dd>
+</dl>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Torsten-Seemann">AUTHOR - Torsten Seemann</h1>
+
+<p>Email torsten.seemann AT infotech.monash.edu.au</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Based on bed.pm and gff.pm by Allen Day.</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="initialize">_initialize</h2>
+
+<pre><code><code> Title   : _initialize
+ Function: Reading? parses the header of the input
+           Writing? </code></code></pre>
+
+<h2 id="next_feature">next_feature</h2>
+
+<pre><code><code> Title   : next_feature
+ Usage   : $io-&gt;next_feature()
+ Function: read the next feature from the PTT file
+ Example : 
+ Args    : 
+ Returns : Bio::SeqFeatureI object</code></code></pre>
+
+<h2 id="write_feature-NOT-IMPLEMENTED-">write_feature (NOT IMPLEMENTED)</h2>
+
+<pre><code><code> Title   : write_feature
+ Usage   : $io-&gt;write_feature($feature)
+ Function: write a Bio::SeqFeatureI object in PTT format
+ Example : 
+ Args    : Bio::SeqFeatureI object
+ Returns : </code></code></pre>
+
+<h2 id="description">description</h2>
+
+<pre><code><code> Title   : description
+ Usage   : $obj-&gt;description($newval)
+ Function: set/get the PTT file description for/from line one
+ Example : 
+ Returns : value of description (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="protein_count">protein_count</h2>
+
+<pre><code><code> Title   : protein_count
+ Usage   : $obj-&gt;protein_count($newval)
+ Function: set/get the PTT protein count for/from line two
+ Example : 
+ Args    : on set, new value (a scalar or undef, optional)
+ Returns : value of protein_count (a scalar)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

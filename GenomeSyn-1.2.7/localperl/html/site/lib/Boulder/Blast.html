@@ -1,0 +1,504 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#parse-Method">parse() Method</a></li>
+      <li><a href="#new-Method">new() Method</a></li>
+    </ul>
+  </li>
+  <li><a href="#TAGS">TAGS</a>
+    <ul>
+      <li><a href="#Information-about-the-program">Information about the program</a></li>
+      <li><a href="#Information-about-the-run">Information about the run</a></li>
+      <li><a href="#Information-about-the-query-sequence-and-subject-database">Information about the query sequence and subject database</a></li>
+      <li><a href="#The-search-results:-the-Blast_hits-tag.">The search results: the Blast_hits tag.</a></li>
+      <li><a href="#The-Hsp-records:-the-Hsps-tag">The Hsp records: the Hsps tag</a></li>
+    </ul>
+  </li>
+  <li><a href="#CAVEATS">CAVEATS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#EXAMPLE-BLASTN-RUN">EXAMPLE BLASTN RUN</a></li>
+  <li><a href="#Example-BLASTP-run">Example BLASTP run</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Boulder::Blast - Parse and read BLAST files</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Boulder::Blast</span><span class="operator">;</span>
+  
+  <span class="comment"># parse from a single file</span>
+  <span class="variable">$blast</span> <span class="operator">=</span> <span class="variable">Boulder::Blast</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span><span class="string">'run3.blast'</span><span class="operator">);</span>
+  
+  <span class="comment"># parse and read a set of blast output files</span>
+  <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Blast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'run3.blast'</span><span class="operator">,</span><span class="string">'run4.blast'</span><span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$blast</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">get</span><span class="operator">)</span> <span class="operator">{</span>
+     <span class="comment"># do something with $blast object</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># parse and read a whole directory of blast runs</span>
+  <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Blast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(&lt;*.</span><span class="variable">blast</span><span class="operator">&gt;);</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$blast</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">get</span><span class="operator">)</span> <span class="operator">{</span>
+     <span class="comment"># do something with $blast object</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># parse and read from STDIN</span>
+  <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Blast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$blast</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">get</span><span class="operator">)</span> <span class="operator">{</span>
+     <span class="comment"># do something with $blast object</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># parse and read as a filehandle</span>
+  <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Blast</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(&lt;*.</span><span class="variable">blast</span><span class="operator">&gt;);</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$blast</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$stream</span><span class="operator">&gt;)</span> <span class="operator">{</span>
+     <span class="comment"># do something with $blast object</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># once you have a $blast object, you can get info about it:      </span>
+  <span class="variable">$query</span> <span class="operator">=</span> <span class="variable">$blast</span><span class="operator">-&gt;</span><span class="variable">Blast_query</span><span class="operator">;</span>
+  <span class="variable">@hits</span>  <span class="operator">=</span> <span class="variable">$blast</span><span class="operator">-&gt;</span><span class="variable">Blast_hits</span><span class="operator">;</span>
+  <span class="keyword">foreach</span> <span class="variable">$hit</span> <span class="operator">(</span><span class="variable">@hits</span><span class="operator">)</span> <span class="operator">{</span>
+     <span class="variable">$hit_sequence</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">Name</span><span class="operator">;</span>    <span class="comment"># get the ID</span>
+     <span class="variable">$significance</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">Signif</span><span class="operator">;</span>  <span class="comment"># get the significance</span>
+     <span class="variable">@hsps</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">Hsps</span><span class="operator">;</span>            <span class="comment"># list of HSPs</span>
+     <span class="keyword">foreach</span> <span class="variable">$hsp</span> <span class="operator">(</span><span class="variable">@hsps</span><span class="operator">)</span> <span class="operator">{</span>
+       <span class="variable">$query</span>   <span class="operator">=</span> <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">Query</span><span class="operator">;</span>      <span class="comment"># query sequence</span>
+       <span class="variable">$subject</span> <span class="operator">=</span> <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">Subject</span><span class="operator">;</span>    <span class="comment"># subject sequence</span>
+       <span class="variable">$signif</span>  <span class="operator">=</span> <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">Signif</span><span class="operator">;</span>     <span class="comment"># significance of HSP</span>
+     <span class="operator">}</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>The <i>Boulder::Blast</i> class parses the output of the <b>Washington University (WU)</b> or National Cenber for Biotechnology Information (NCBI) series of BLAST programs and turns them into <i>Stone</i> records. You may then use the standard Stone access methods to retrieve information about the BLAST run, or add the information to a Boulder stream.</p>
+
+<p>The parser works equally well on the contents of a static file, or on information read dynamically from a filehandle or pipe.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="parse-Method">parse() Method</h2>
+
+<pre><code><code>    <span class="variable">$stone</span> <span class="operator">=</span> <span class="variable">Boulder::Blast</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span><span class="variable">$file_path</span><span class="operator">);</span>
+    <span class="variable">$stone</span> <span class="operator">=</span> <span class="variable">Boulder::Blast</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span><span class="variable">$filehandle</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The <i>parse()</i> method accepts a path to a file or a filehandle, parses its contents, and returns a Boulder Stone object. The file path may be absolute or relative to the current directgly. The filehandle may be specified as an IO::File object, a FileHandle object, or a reference to a glob (<code><code>\*FILEHANDLE</code></code> notation). If you call <i>parse()</i> without any arguments, it will try to parse the contents of standard input.</p>
+
+<h2 id="new-Method">new() Method</h2>
+
+<pre><code><code>    <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Blast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+    <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Blast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">$file</span> <span class="operator">[</span><span class="operator">,</span><span class="variable">@more_files</span><span class="operator">]</span><span class="operator">);</span>
+    <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Blast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(\</span><span class="variable">*FILEHANDLE</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>If you wish, you may create the parser first with <i>Boulder::Blast</i> <i>new()</i>, and then invoke the parser object&#39;s <i>parse()</i> method as many times as you wish to, producing a Stone object each time.</p>
+
+<h1 id="TAGS">TAGS</h1>
+
+<p>The following tags are defined in the parsed Blast Stone object:</p>
+
+<h2 id="Information-about-the-program">Information about the program</h2>
+
+<p>These top-level tags provide information about the version of the BLAST program itself.</p>
+
+<dl>
+
+<dt id="Blast_program">Blast_program</dt>
+<dd>
+
+<p>The name of the algorithm used to run the analysis. Possible values include:</p>
+
+<pre><code><code>        blastn
+        blastp
+        blastx
+        tblastn
+        tblastx
+        fasta3
+        fastx3
+        fasty3
+        tfasta3
+        tfastx3
+        tfasty3</code></code></pre>
+
+</dd>
+<dt id="Blast_version">Blast_version</dt>
+<dd>
+
+<p>This gives the version of the program in whatever form appears on the banner page, e.g. &quot;2.0a19-WashU&quot;.</p>
+
+</dd>
+<dt id="Blast_program_date">Blast_program_date</dt>
+<dd>
+
+<p>This gives the date at which the program was compiled, if and only if it appears on the banner page.</p>
+
+</dd>
+</dl>
+
+<h2 id="Information-about-the-run">Information about the run</h2>
+
+<p>These top-level tags give information about the particular run, such as the parameters that were used for the algorithm.</p>
+
+<dl>
+
+<dt id="Blast_run_date">Blast_run_date</dt>
+<dd>
+
+<p>This gives the date and time at which the similarity analysis was run, in the format &quot;Fri Jul 6 09:32:36 1998&quot;</p>
+
+</dd>
+<dt id="Blast_parms">Blast_parms</dt>
+<dd>
+
+<p>This points to a subrecord containing information about the algorithm&#39;s runtime parameters. The following subtags are used. Others may be added in the future:</p>
+
+<pre><code><code>        Hspmax          the value of the -hspmax argument
+        Expectation     the value of E
+        Matrix          the matrix in use, e.g. BLOSUM62
+        Ctxfactor       the value of the -ctxfactor argument
+        Gapall          The value of the -gapall argument</code></code></pre>
+
+</dd>
+</dl>
+
+<h2 id="Information-about-the-query-sequence-and-subject-database">Information about the query sequence and subject database</h2>
+
+<p>Thse top-level tags give information about the query sequence and the database that was searched on.</p>
+
+<dl>
+
+<dt id="Blast_query">Blast_query</dt>
+<dd>
+
+<p>The identifier for the search sequence, as defined by the FASTA format. This will be the first set of non-whitespace characters following the &quot;&gt;&quot; character. In other words, the search sequence &quot;name&quot;.</p>
+
+</dd>
+<dt id="Blast_query_length">Blast_query_length</dt>
+<dd>
+
+<p>The length of the query sequence, in base pairs.</p>
+
+</dd>
+<dt id="Blast_db">Blast_db</dt>
+<dd>
+
+<p>The Unix filesystem path to the subject database.</p>
+
+</dd>
+<dt id="Blast_db_title">Blast_db_title</dt>
+<dd>
+
+<p>The title of the subject database.</p>
+
+</dd>
+</dl>
+
+<h2 id="The-search-results:-the-Blast_hits-tag.">The search results: the <i>Blast_hits</i> tag.</h2>
+
+<p>Each BLAST hit is represented by the tag <i>Blast_hits</i>. There may be zero, one, or many such tags. They will be presented in reverse sorted order of significance, i.e. most significant hit first.</p>
+
+<p>Each <i>Blast_hits</i> tag is a Stone subrecord containing the following subtags:</p>
+
+<dl>
+
+<dt id="Name">Name</dt>
+<dd>
+
+<p>The name/identifier of the sequence that was hit.</p>
+
+</dd>
+<dt id="Length">Length</dt>
+<dd>
+
+<p>The total length of the sequence that was hit</p>
+
+</dd>
+<dt id="Signif">Signif</dt>
+<dd>
+
+<p>The significance of the hit. If there are multiple HSPs in the hit, this will be the most significant (smallest) value.</p>
+
+</dd>
+<dt id="Identity">Identity</dt>
+<dd>
+
+<p>The percent identity of the hit. If there are multiple HSPs, this will be the one with the highest percent identity.</p>
+
+</dd>
+<dt id="Expect">Expect</dt>
+<dd>
+
+<p>The expectation value for the hit. If there are multiple HSPs, this will be the lowest expectation value in the set.</p>
+
+</dd>
+<dt id="Hsps">Hsps</dt>
+<dd>
+
+<p>One or more sub-sub-tags, pointing to a nested record containing information about each high-scoring segment pair (HSP). See the next section for details.</p>
+
+</dd>
+</dl>
+
+<h2 id="The-Hsp-records:-the-Hsps-tag">The Hsp records: the <i>Hsps</i> tag</h2>
+
+<p>Each <i>Blast_hit</i> tag will have at least one, and possibly several <i>Hsps</i> tags, each one corresponding to a high-scoring segment pair (HSP). These records contain detailed information about the hit, including the alignments. Tags are as follows:</p>
+
+<dl>
+
+<dt id="Signif1">Signif</dt>
+<dd>
+
+<p>The significance (P value) of this HSP.</p>
+
+</dd>
+<dt id="Bits">Bits</dt>
+<dd>
+
+<p>The number of bits of significance.</p>
+
+</dd>
+<dt id="Expect1">Expect</dt>
+<dd>
+
+<p>Expectation value for this HSP.</p>
+
+</dd>
+<dt id="Identity1">Identity</dt>
+<dd>
+
+<p>Percent identity.</p>
+
+</dd>
+<dt id="Positives">Positives</dt>
+<dd>
+
+<p>Percent positive matches.</p>
+
+</dd>
+<dt id="Score">Score</dt>
+<dd>
+
+<p>The Smith-Waterman alignment score.</p>
+
+</dd>
+<dt id="Orientation">Orientation</dt>
+<dd>
+
+<p>The word &quot;plus&quot; or &quot;minus&quot;. This tag is only present for nucleotide searches, when the reverse complement match may be present.</p>
+
+</dd>
+<dt id="Strand">Strand</dt>
+<dd>
+
+<p>Depending on algorithm used, indicates complementarity of match and possibly the reading frame. This is copied out of the blast report. Possibilities include:</p>
+
+<pre><code><code> &quot;Plus / Minus&quot; &quot;Plus / Plus&quot; -- blastn algorithm
+ &quot;+1 / -2&quot; &quot;+2 / -2&quot;         -- blastx, tblastx</code></code></pre>
+
+</dd>
+<dt id="Query_start">Query_start</dt>
+<dd>
+
+<p>Position at which the HSP starts in the query sequence (1-based indexing).</p>
+
+</dd>
+<dt id="Query_end">Query_end</dt>
+<dd>
+
+<p>Position at which the HSP stops in the query sequence.</p>
+
+</dd>
+<dt id="Subject_start">Subject_start</dt>
+<dd>
+
+<p>Position at which the HSP starts in the subject (target) sequence.</p>
+
+</dd>
+<dt id="Subject_end">Subject_end</dt>
+<dd>
+
+<p>Position at which the HSP stops in the subject (target) sequence.</p>
+
+</dd>
+<dt id="Query-Subject-Alignment">Query, Subject, Alignment</dt>
+<dd>
+
+<p>These three tags contain strings which, together, create the gapped alignment of the query sequence with the subject sequence.</p>
+
+<p>For example, to print the alignment of the first HSP of the first match, you might say:</p>
+
+<pre><code><code>  <span class="variable">$hsp</span> <span class="operator">=</span> <span class="variable">$blast</span><span class="operator">-&gt;</span><span class="variable">Blast_hits</span><span class="operator">-&gt;</span><span class="variable">Hsps</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="keyword">join</span><span class="operator">(</span><span class="string">"\n"</span><span class="operator">,</span><span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">Query</span><span class="operator">,</span><span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">Alignment</span><span class="operator">,</span><span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">Subject</span><span class="operator">),</span><span class="string">"\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<p>See the bottom of this manual page for an example BLAST run.</p>
+
+<h1 id="CAVEATS">CAVEATS</h1>
+
+<p>This module has been extensively tested with WUBLAST, but very little with NCBI BLAST. It probably will not work with PSI Blast or other variants.</p>
+
+<p>The author plans to adapt this module to parse other formats, as well as non-BLAST formats such as the output of Fastn.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder.html">Boulder</a>, <a>Boulder::GenBank</a></p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Lincoln Stein &lt;lstein@cshl.org&gt;.</p>
+
+<p>Copyright (c) 1998-1999 Cold Spring Harbor Laboratory</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself. See DISCLAIMER.txt for disclaimers of warranty.</p>
+
+<h1 id="EXAMPLE-BLASTN-RUN">EXAMPLE BLASTN RUN</h1>
+
+<p>This output was generated by the <i>quickblast.pl</i> program, which is located in the <i>eg/</i> subdirectory of the <i>Boulder</i> distribution directory. It is a typical <i>blastn</i> (nucleotide-&gt;nucleotide) run; however long lines (usually DNA sequences) have been truncated. Also note that per the Boulder protocol, the percent sign (%) is escaped in the usual way. It will be unescaped when reading the stream back in.</p>
+
+<pre><code><code> <span class="variable">Blast_run_date</span><span class="operator">=</span><span class="variable">Fri</span> <span class="variable">Nov</span>  <span class="number">6</span> <span class="number">14</span><span class="operator">:</span><span class="number">40</span><span class="operator">:</span><span class="number">41</span> <span class="number">1998</span>
+ <span class="variable">Blast_db_date</span><span class="operator">=</span><span class="number">2</span><span class="operator">:</span><span class="number">40</span> <span class="variable">PM</span> <span class="variable">EST</span> <span class="variable">Nov</span> <span class="number">6</span><span class="operator">,</span> <span class="number">1998</span>
+ <span class="variable">Blast_parms</span><span class="operator">=</span><span class="operator">{</span>
+   <span class="variable">Hspmax</span><span class="operator">=</span><span class="number">10</span>
+   <span class="variable">Expectation</span><span class="operator">=</span><span class="number">10</span>
+   <span class="variable">Matrix</span><span class="operator">=+</span><span class="number">5</span><span class="operator">,-</span><span class="number">4</span>
+   <span class="variable">Ctxfactor</span><span class="operator">=</span><span class="number">2.00</span>
+ <span class="operator">}</span>
+ <span class="variable">Blast_program_date</span><span class="operator">=</span><span class="number">05</span><span class="operator">-</span><span class="variable">Feb</span><span class="operator">-</span><span class="number">1998</span>
+ <span class="variable">Blast_db</span><span class="operator">=</span> <span class="regex">/usr/tmp</span><span class="operator">/</span><span class="variable">quickblast18202aaaa</span>
+ <span class="variable">Blast_version</span><span class="operator">=</span><span class="number">2.0</span><span class="variable">a19</span><span class="operator">-</span><span class="variable">WashU</span>
+ <span class="variable">Blast_query</span><span class="operator">=</span><span class="variable">BCD207R</span>
+ <span class="variable">Blast_db_title</span><span class="operator">=</span> <span class="variable">test</span><span class="operator">.</span><span class="variable">fasta</span>
+ <span class="variable">Blast_query_length</span><span class="operator">=</span><span class="number">332</span>
+ <span class="variable">Blast_program</span><span class="operator">=</span><span class="variable">blastn</span>
+ <span class="variable">Blast_hits</span><span class="operator">=</span><span class="operator">{</span>
+   <span class="variable">Signif</span><span class="operator">=</span><span class="number">3.5e-74</span>
+   <span class="variable">Expect</span><span class="operator">=</span><span class="number">3.5e-74</span><span class="operator">,</span>
+   <span class="variable">Name</span><span class="operator">=</span><span class="variable">BCD207R</span>
+   <span class="variable">Identity</span><span class="operator">=</span><span class="number">100</span><span class="variable">%25</span>
+   <span class="variable">Length</span><span class="operator">=</span><span class="number">332</span>
+   <span class="variable">Hsps</span><span class="operator">=</span><span class="operator">{</span>
+     <span class="variable">Subject</span><span class="operator">=</span><span class="variable">GTGCTTTCAAACATTGATGGATTCCTCCCCTTGACATATATATATACTTTGGGTTCCCGCAA</span><span class="operator">...</span>
+     <span class="variable">Signif</span><span class="operator">=</span><span class="number">3.5e-74</span>
+     <span class="variable">Length</span><span class="operator">=</span><span class="number">332</span>
+     <span class="variable">Bits</span><span class="operator">=</span><span class="number">249.1</span>
+     <span class="variable">Query_start</span><span class="operator">=</span><span class="number">1</span>
+     <span class="variable">Subject_end</span><span class="operator">=</span><span class="number">332</span>
+     <span class="variable">Query</span><span class="operator">=</span><span class="variable">GTGCTTTCAAACATTGATGGATTCCTCCCCTTGACATATATATATACTTTGGGTTCCCGCAA</span><span class="operator">...</span>
+     <span class="variable">Positives</span><span class="operator">=</span><span class="number">100</span><span class="variable">%25</span>
+     <span class="variable">Expect</span><span class="operator">=</span><span class="number">3.5e-74</span><span class="operator">,</span>
+     <span class="variable">Identity</span><span class="operator">=</span><span class="number">100</span><span class="variable">%25</span>
+     <span class="variable">Query_end</span><span class="operator">=</span><span class="number">332</span>
+     <span class="variable">Orientation</span><span class="operator">=</span><span class="variable">plus</span>
+     <span class="variable">Score</span><span class="operator">=</span><span class="number">1660</span>
+     <span class="variable">Strand</span><span class="operator">=</span><span class="variable">Plus</span> <span class="operator">/</span> <span class="variable">Plus</span>
+     <span class="variable">Subject_start</span><span class="operator">=</span><span class="number">1</span>
+     <span class="variable">Alignment</span><span class="operator">=||||||||||||||||||||||||||||||||||||||||||||||||||||||||||...</span>
+   <span class="operator">}</span>
+ <span class="operator">}</span>
+ <span class="operator">=</span>
+</code></code></pre>
+
+<h1 id="Example-BLASTP-run">Example BLASTP run</h1>
+
+<p>Here is the output from a typical <i>blastp</i> (protein-&gt;protein) run. Long lines have again been truncated.</p>
+
+<pre><code><code> <span class="variable">Blast_run_date</span><span class="operator">=</span><span class="variable">Fri</span> <span class="variable">Nov</span>  <span class="number">6</span> <span class="number">14</span><span class="operator">:</span><span class="number">37</span><span class="operator">:</span><span class="number">23</span> <span class="number">1998</span>
+ <span class="variable">Blast_db_date</span><span class="operator">=</span><span class="number">2</span><span class="operator">:</span><span class="number">36</span> <span class="variable">PM</span> <span class="variable">EST</span> <span class="variable">Nov</span> <span class="number">6</span><span class="operator">,</span> <span class="number">1998</span>
+ <span class="variable">Blast_parms</span><span class="operator">=</span><span class="operator">{</span>
+   <span class="variable">Hspmax</span><span class="operator">=</span><span class="number">10</span>
+   <span class="variable">Expectation</span><span class="operator">=</span><span class="number">10</span>
+   <span class="variable">Matrix</span><span class="operator">=</span><span class="variable">BLOSUM62</span>
+   <span class="variable">Ctxfactor</span><span class="operator">=</span><span class="number">1.00</span>
+ <span class="operator">}</span>
+ <span class="variable">Blast_program_date</span><span class="operator">=</span><span class="number">05</span><span class="operator">-</span><span class="variable">Feb</span><span class="operator">-</span><span class="number">1998</span>
+ <span class="variable">Blast_db</span><span class="operator">=</span> <span class="regex">/usr/tmp</span><span class="operator">/</span><span class="variable">quickblast18141aaaa</span>
+ <span class="variable">Blast_version</span><span class="operator">=</span><span class="number">2.0</span><span class="variable">a19</span><span class="operator">-</span><span class="variable">WashU</span>
+ <span class="variable">Blast_query</span><span class="operator">=</span><span class="variable">YAL004W</span>
+ <span class="variable">Blast_db_title</span><span class="operator">=</span> <span class="variable">elegans</span><span class="operator">.</span><span class="variable">fasta</span>
+ <span class="variable">Blast_query_length</span><span class="operator">=</span><span class="number">216</span>
+ <span class="variable">Blast_program</span><span class="operator">=</span><span class="variable">blastp</span>
+ <span class="variable">Blast_hits</span><span class="operator">=</span><span class="operator">{</span>
+   <span class="variable">Signif</span><span class="operator">=</span><span class="number">0</span><span class="operator">.</span><span class="number">95</span>
+   <span class="variable">Expect</span><span class="operator">=</span><span class="number">3.0</span><span class="operator">,</span>
+   <span class="variable">Name</span><span class="operator">=</span><span class="variable">C28H8</span><span class="number">.2</span>
+   <span class="variable">Identity</span><span class="operator">=</span><span class="number">30</span><span class="variable">%25</span>
+   <span class="variable">Length</span><span class="operator">=</span><span class="number">51</span>
+   <span class="variable">Hsps</span><span class="operator">=</span><span class="operator">{</span>
+     <span class="variable">Subject</span><span class="operator">=</span><span class="variable">HMTVEFHVTSQSW</span><span class="operator">---</span><span class="variable">FGFEDHFHMIIR</span><span class="operator">-</span><span class="variable">AVNDENVGWGVRYLSMAF</span>
+     <span class="variable">Signif</span><span class="operator">=</span><span class="number">0</span><span class="operator">.</span><span class="number">95</span>
+     <span class="variable">Length</span><span class="operator">=</span><span class="number">46</span>
+     <span class="variable">Bits</span><span class="operator">=</span><span class="number">15.8</span>
+     <span class="variable">Query_start</span><span class="operator">=</span><span class="number">100</span>
+     <span class="variable">Subject_end</span><span class="operator">=</span><span class="number">49</span>
+     <span class="variable">Query</span><span class="operator">=</span><span class="variable">HLTQD</span><span class="operator">-</span><span class="variable">HGGDLFWGKVLGFTLKFNLNLRLTVNIDQLEWEVLHVSLHF</span>
+     <span class="variable">Positives</span><span class="operator">=</span><span class="number">52</span><span class="variable">%25</span>
+     <span class="variable">Expect</span><span class="operator">=</span><span class="number">3.0</span><span class="operator">,</span>
+     <span class="variable">Identity</span><span class="operator">=</span><span class="number">30</span><span class="variable">%25</span>
+     <span class="variable">Query_end</span><span class="operator">=</span><span class="number">145</span>
+     <span class="variable">Orientation</span><span class="operator">=</span><span class="variable">plus</span>
+     <span class="variable">Score</span><span class="operator">=</span><span class="number">45</span>
+     <span class="variable">Subject_start</span><span class="operator">=</span><span class="number">7</span>
+     <span class="variable">Alignment</span><span class="operator">=</span><span class="variable">H</span><span class="operator">+</span><span class="variable">T</span> <span class="operator">+</span> <span class="variable">H</span>     <span class="variable">W</span>    <span class="variable">GF</span>   <span class="variable">F</span><span class="operator">++</span> <span class="operator">+</span><span class="variable">R</span>  <span class="variable">VN</span> <span class="operator">+</span> <span class="operator">+</span> <span class="variable">W</span> <span class="variable">V</span> <span class="operator">++</span><span class="variable">S</span><span class="operator">+</span> <span class="variable">F</span>
+   <span class="operator">}</span>
+ <span class="operator">}</span>
+ <span class="variable">Blast_hits</span><span class="operator">=</span><span class="operator">{</span>
+   <span class="variable">Signif</span><span class="operator">=</span><span class="number">0</span><span class="operator">.</span><span class="number">99</span>
+   <span class="variable">Expect</span><span class="operator">=</span><span class="number">4.7</span><span class="operator">,</span>
+   <span class="variable">Name</span><span class="operator">=</span><span class="variable">ZK896</span><span class="number">.2</span>
+   <span class="variable">Identity</span><span class="operator">=</span><span class="number">24</span><span class="variable">%25</span>
+   <span class="variable">Length</span><span class="operator">=</span><span class="number">340</span>
+   <span class="variable">Hsps</span><span class="operator">=</span><span class="operator">{</span>
+     <span class="variable">Subject</span><span class="operator">=</span><span class="variable">FSGKFTTFVLNKDQATLRMSSAEKTAEWNTAFDSRRGFF</span><span class="operator">----</span><span class="variable">TSGNYGL</span><span class="operator">...</span>
+     <span class="variable">Signif</span><span class="operator">=</span><span class="number">0</span><span class="operator">.</span><span class="number">99</span>
+     <span class="variable">Length</span><span class="operator">=</span><span class="number">101</span>
+     <span class="variable">Bits</span><span class="operator">=</span><span class="number">22.9</span>
+     <span class="variable">Query_start</span><span class="operator">=</span><span class="number">110</span>
+     <span class="variable">Subject_end</span><span class="operator">=</span><span class="number">243</span>
+     <span class="variable">Query</span><span class="operator">=</span><span class="variable">FWGKVLGFTL</span><span class="operator">-</span><span class="variable">KFNLNLRLTVNIDQLEWEVLHVSLHFWVVEVSTDQTLSVE</span><span class="operator">...</span>
+     <span class="variable">Positives</span><span class="operator">=</span><span class="number">41</span><span class="variable">%25</span>
+     <span class="variable">Expect</span><span class="operator">=</span><span class="number">4.7</span><span class="operator">,</span>
+     <span class="variable">Identity</span><span class="operator">=</span><span class="number">24</span><span class="variable">%25</span>
+     <span class="variable">Query_end</span><span class="operator">=</span><span class="number">210</span>
+     <span class="variable">Orientation</span><span class="operator">=</span><span class="variable">plus</span>
+     <span class="variable">Score</span><span class="operator">=</span><span class="number">65</span>
+     <span class="variable">Subject_start</span><span class="operator">=</span><span class="number">146</span>
+     <span class="variable">Alignment</span><span class="operator">=</span><span class="variable">F</span> <span class="variable">GK</span>   <span class="variable">F</span> <span class="variable">L</span> <span class="variable">K</span>    <span class="variable">LR</span><span class="operator">++</span>      <span class="variable">EW</span>     <span class="variable">S</span>   <span class="operator">+</span>     <span class="variable">T</span>     <span class="operator">+...</span>
+   <span class="operator">}</span>
+ <span class="operator">}</span>
+ <span class="operator">=</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

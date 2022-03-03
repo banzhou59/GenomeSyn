@@ -1,0 +1,274 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#ABOUT">ABOUT</a></li>
+  <li><a href="#Getting-Started">Getting Started</a></li>
+  <li><a href="#Formatting">Formatting</a>
+    <ul>
+      <li><a href="#perltidy">perltidy</a></li>
+    </ul>
+  </li>
+  <li><a href="#Tests-and-Coverage">Tests and Coverage</a></li>
+  <li><a href="#Writing-for-Compatibility">Writing for Compatibility</a></li>
+  <li><a href="#Use-TAP::Object">Use TAP::Object</a></li>
+  <li><a href="#Exception-Handling">Exception Handling</a></li>
+  <li><a href="#Deprecation-cycle">Deprecation cycle</a></li>
+  <li><a href="#Documentation">Documentation</a>
+    <ul>
+      <li><a href="#Pod-Commands">Pod Commands</a></li>
+      <li><a href="#Pod-Formatting-Codes">Pod Formatting Codes</a></li>
+      <li><a href="#VERSION">VERSION</a></li>
+      <li><a href="#DEVELOPER-DOCS-NOTES">DEVELOPER DOCS/NOTES</a></li>
+    </ul>
+  </li>
+  <li><a href="#Committing-to-Subversion">Committing to Subversion</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>HACKING.pod - contributing to TAP::Harness</p>
+
+<h1 id="ABOUT">ABOUT</h1>
+
+<p>This is the guide for TAP::Harness internals contributors (developers, testers, documenters.)</p>
+
+<p>If you are looking for more information on how to <i>use</i> TAP::Harness, you probably want <a href="http://testanything.org/testing-with-tap/perl/tap::parser-cookbook.html">http://testanything.org/testing-with-tap/perl/tap::parser-cookbook.html</a> instead.</p>
+
+<h1 id="Getting-Started">Getting Started</h1>
+
+<p>See the resources section in <i>META.yml</i> or <i>Build.PL</i> for links to the project mailing list, bug tracker, svn repository, etc.</p>
+
+<p>For ease of reference, at the time of writing the SVN repository was at:</p>
+
+<pre><code><code>  http://svn.hexten.net/tapx</code></code></pre>
+
+<p>To get the latest version of trunk:</p>
+
+<pre><code><code>  git clone git://github.com/Perl-Toolchain-Gang/Test-Harness.git</code></code></pre>
+
+<p>For best results, read the rest of this file, check RT for bugs which scratch your itch, join the mailing list, etc.</p>
+
+<h1 id="Formatting">Formatting</h1>
+
+<h2 id="perltidy">perltidy</h2>
+
+<p>The project comes with a <code><code>.perltidyrc</code></code>, which perltidy will automatically use if the project root is your working directory. This is setup by default to read and write the perl code on a pipe. To configure your editor:</p>
+
+<ul>
+
+<li><p>vim</p>
+
+<p>In <code><code>.vimrc</code></code>, you can add the following lines:</p>
+
+<pre><code><code> nnoremap &lt;Leader&gt;pt :%!perltidy -q&lt;cr&gt; &quot; only work in &#39;normal&#39; mode
+ vnoremap &lt;Leader&gt;pt :!perltidy -q&lt;cr&gt;  &quot; only work in &#39;visual&#39; mode</code></code></pre>
+
+<p>In other words, if your <code><code>Leader</code></code> is a backslash, you can type <code><code>\pt</code></code> to reformat the file using the <code><code>.perltidyrc</code></code>. If you are in visual mode (selecting lines with shift-v), then only the code you have currently have selected will be reformatted.</p>
+
+</li>
+<li><p>emacs</p>
+
+<p>For emacs, you can use this snippet from Sam Tregar (<a href="http://use.perl.org/~samtregar/journal/30185">http://use.perl.org/~samtregar/journal/30185</a>):</p>
+
+<pre><code><code> (defun perltidy-region ()
+    &quot;Run perltidy on the current region.&quot;
+    (interactive)
+    (save-excursion
+      (shell-command-on-region (point) (mark) &quot;perltidy -q&quot; nil t)
+      (cperl-mode)))
+
+ (defun perltidy-all ()
+    &quot;Run perltidy on the current region.&quot;
+    (interactive)
+    (let ((p (point)))
+      (save-excursion
+        (shell-command-on-region (point-min) (point-max) &quot;perltidy -q&quot; nil t)
+        )
+      (goto-char p)
+      (cperl-mode)))
+
+ (global-set-key &quot;\M-t&quot; `perltidy-region)
+ (global-set-key &quot;\M-T&quot; `perltidy-all) </code></code></pre>
+
+</li>
+</ul>
+
+<h1 id="Tests-and-Coverage">Tests and Coverage</h1>
+
+<p>...</p>
+
+<h1 id="Writing-for-Compatibility">Writing for Compatibility</h1>
+
+<p>...</p>
+
+<h1 id="Use-TAP::Object">Use TAP::Object</h1>
+
+<p>TAP::Object is the common base class to all TAP::* modules, and should be for any that you write.</p>
+
+<h1 id="Exception-Handling">Exception Handling</h1>
+
+<p>Exceptions should be raised with <a href="../../../lib/Carp.html">Carp</a>:</p>
+
+<pre><code><code>  <span class="keyword">require</span> <span class="variable">Carp</span><span class="operator">;</span>
+  <span class="variable">Carp::croak</span><span class="operator">(</span><span class="string">"Unsupported syntax version: </span><span class="variable">$version</span><span class="string">"</span><span class="operator">);</span>
+  
+  <span class="keyword">require</span> <span class="variable">Carp</span><span class="operator">;</span>
+  <span class="variable">Carp::confess</span><span class="operator">(</span><span class="string">"Unsupported syntax version: </span><span class="variable">$version</span><span class="string">"</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="Deprecation-cycle">Deprecation cycle</h1>
+
+<p>Any <i>documented</i> sub that needs to be changed or removed (and would therefore cause a backwards-compat issue) must go through a deprecation cycle to give developers a chance to adjust:</p>
+
+<pre><code><code>  1. Document the deprecation
+  2. Carp a suitable message
+  3. Release
+  4. Change the code
+  5. Release</code></code></pre>
+
+<h1 id="Documentation">Documentation</h1>
+
+<p>The end-user and API documentation is all in the &#39;lib/&#39; directory. In .pm files, the pod is &quot;inline&quot; to the code. See <a href="../../../lib/pod/perlpod.html">perlpod</a> for more about pod.</p>
+
+<h2 id="Pod-Commands">Pod Commands</h2>
+
+<p>For compatibility&#39;s sake, we do not use the =head3 and =head4 commands.</p>
+
+<dl>
+
+<dt id="head1-SECTION"><code><code>=head1 SECTION</code></code></dt>
+<dd>
+
+<p>Sections begin with an <code><code>=head1</code></code> command and are all-caps.</p>
+
+<pre><code><code>  NAME
+  VERSION
+  SYNOPSIS
+  CONSTRUCTOR
+  METHODS
+  CLASS METHODS
+  SOME OTHER SORT OF METHODS
+  SEE ALSO</code></code></pre>
+
+</dd>
+<dt id="head2-method"><code><code>=head2 method</code></code></dt>
+<dd>
+
+<p>The <code><code>=head2</code></code> command documents a method. The name of the method should have no adornment (e.g. don&#39;t C&lt;method&gt; or C&lt;method($list, $of, $params)&gt;.)</p>
+
+<p>These sections should begin with a short description of what the method does, followed by one or more examples of usage. If needed, elaborate on the subtleties of the parameters and context after (and/or between) the example(s).</p>
+
+<pre><code><code>  <span class="comment">=head2 this_method
+  
+  This method does some blah blah blah.
+  
+    my @answer = $thing-&gt;this_method(@arguments);
+  
+  =head2 that_thing
+  
+  Returns true if the thing is true.
+  
+    if($thing-&gt;that_thing) {
+      ...
+    }
+  </span>
+</code></code></pre>
+
+</dd>
+<dt id="item-parameter"><code><code>=item parameter</code></code></dt>
+<dd>
+
+<p>Use <code><code>=item</code></code> commands for method arguments and parameters (and etc.) In most html pod formatters, these <i>do not</i> get added to the table-of-contents at the top of the page.</p>
+
+</dd>
+</dl>
+
+<h2 id="Pod-Formatting-Codes">Pod Formatting Codes</h2>
+
+<dl>
+
+<dt id="LSome::Module">L&lt;Some::Module&gt;</dt>
+<dd>
+
+<p>Be careful of the wording of <code><code>L&lt;Some::Module&gt;</code></code>. Older pod formatters would render this as &quot;the Some::Module manpage&quot;, so it is best to either word your links as &quot;<code><code>(see &lt;Some::Module&gt; for details.)</code></code>&quot; or use the &quot;explicit rendering&quot; form of &quot;<code><code>&lt;Some::Module|Some::Module&gt;</code></code>&quot;.</p>
+
+</dd>
+</dl>
+
+<h2 id="VERSION">VERSION</h2>
+
+<p>The version numbers are updated by <a>Perl::Version</a>.</p>
+
+<h2 id="DEVELOPER-DOCS-NOTES">DEVELOPER DOCS/NOTES</h2>
+
+<p>The following &quot;formats&quot; are used with <code><code>=begin</code></code>/<code><code>=end</code></code> and <code><code>=for</code></code> commands for pod which is not part of the public end-user/API documentation.</p>
+
+<dl>
+
+<dt id="note">note</dt>
+<dd>
+
+<p>Use this if you are uncertain about a change to some pod or think it needs work.</p>
+
+<pre><code><code>  =head2 some_method
+
+    ...
+
+  =for note
+    This is either falsely documented or a bug -- see ...</code></code></pre>
+
+</dd>
+<dt id="developer">developer</dt>
+<dd>
+
+<pre><code><code>  =begin developer
+
+  Long-winded explanation of why some code is the way it is or various
+  other subtleties which might incite head-scratching and WTF&#39;ing.
+
+  =end developer</code></code></pre>
+
+</dd>
+<dt id="deprecated">deprecated</dt>
+<dd>
+
+<pre><code><code>  =for deprecated
+    removed in 0.09, kill by ~0.25</code></code></pre>
+
+</dd>
+</dl>
+
+<h1 id="Committing-to-Subversion">Committing to Subversion</h1>
+
+<p>If you have commit access, please bear this in mind.</p>
+
+<p>Development is done either on trunk or a branch, as appropriate:</p>
+
+<p>If it&#39;s something that might be controversial, break the build or take a long time (more than a couple of weeks) to complete then it&#39;d probably be appropriate to branch. Otherwise it can go in trunk.</p>
+
+<p>If in doubt discuss it on the mailing list before you commit.</p>
+
+
+</body>
+
+</html>
+
+

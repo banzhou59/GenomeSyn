@@ -1,0 +1,380 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Peter-Schattner">AUTHOR - Peter Schattner</a></li>
+  <li><a href="#MAINTAINER---Torsten-Seemann">MAINTAINER - Torsten Seemann</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#executable">executable</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#setinput">_setinput</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::Tools::Run::WrapperBase-methods">Bio::Tools::Run::WrapperBase methods</a>
+    <ul>
+      <li><a href="#no_param_checks">no_param_checks</a></li>
+      <li><a href="#save_tempfiles">save_tempfiles</a></li>
+      <li><a href="#outfile_name">outfile_name</a></li>
+      <li><a href="#tempdir">tempdir</a></li>
+      <li><a href="#cleanup">cleanup</a></li>
+      <li><a href="#io">io</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::StandAloneBlast - Object for the local execution of the NCBI BLAST program suite (blastall, blastpgp, bl2seq). There is experimental support for WU-Blast and NCBI rpsblast.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="comment"># Local-blast "factory object" creation and blast-parameter</span>
+ <span class="comment"># initialization:</span>
+ <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">-database</span> <span class="operator">=&gt;</span> <span class="string">'swissprot'</span><span class="operator">,</span> <span class="string">-outfile</span> <span class="operator">=&gt;</span> <span class="string">'blast1.out'</span><span class="operator">);</span>
+ <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+ 
+ <span class="comment"># Blast a sequence against a database:</span>
+ <span class="variable">$str</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="string">'t/amino.fa'</span><span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'Fasta'</span><span class="operator">);</span>
+ <span class="variable">$input</span> <span class="operator">=</span> <span class="variable">$str</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">();</span>
+ <span class="variable">$input2</span> <span class="operator">=</span> <span class="variable">$str</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">();</span>
+ <span class="variable">$blast_report</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">blastall</span><span class="operator">(</span><span class="variable">$input</span><span class="operator">);</span>
+ 
+ <span class="comment"># Run an iterated Blast (psiblast) of a sequence against a database:</span>
+ <span class="variable">$factory</span><span class="operator">-&gt;</span>j<span class="operator">(</span><span class="number">3</span><span class="operator">);</span>    <span class="comment"># 'j' is blast parameter for # of iterations</span>
+ <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">outfile</span><span class="operator">(</span><span class="string">'psiblast1.out'</span><span class="operator">);</span>
+ <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+ <span class="variable">$blast_report</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">blastpgp</span><span class="operator">(</span><span class="variable">$input</span><span class="operator">);</span>
+ 
+ <span class="comment"># Use blast to align 2 sequences against each other:</span>
+ <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-outfile</span> <span class="operator">=&gt;</span> <span class="string">'bl2seq.out'</span><span class="operator">);</span>
+ <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">bl2seq</span><span class="operator">(</span><span class="variable">$input</span><span class="operator">,</span> <span class="variable">$input2</span><span class="operator">);</span>
+ 
+ <span class="comment"># Experimental support for WU-Blast 2.0</span>
+ <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-program</span> <span class="operator">=&gt;</span><span class="string">"wublastp"</span><span class="operator">,</span>
+                                                     <span class="string">-database</span> <span class="operator">=&gt;</span><span class="string">"swissprot"</span><span class="operator">,</span>
+                                                     <span class="string">-e</span> <span class="operator">=&gt;</span> <span class="number">1e-20</span><span class="operator">);</span> 
+ <span class="keyword">my</span> <span class="variable">$blast_report</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">wublast</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+ 
+ <span class="comment"># Experimental support for NCBI rpsblast</span>
+ <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'CDD/Cog'</span><span class="operator">,</span> 
+                                                     <span class="string">-expect</span> <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">.</span><span class="number">001</span><span class="operator">);</span>
+ <span class="variable">$factory</span><span class="operator">-&gt;</span>F<span class="operator">(</span><span class="string">'T'</span><span class="operator">);</span> <span class="comment"># turn on SEG filtering of query sequence</span>
+ <span class="keyword">my</span> <span class="variable">$blast_report</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">rpsblast</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+ 
+ <span class="comment"># Use the experimental fast Blast parser, 'blast_pull'</span>
+ <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-_READMETHOD</span> <span class="operator">=&gt;</span><span class="string">'blast_pull'</span><span class="operator">,</span>
+                                                     <span class="variable">@other_params</span><span class="operator">);</span>
+ 
+ <span class="comment"># Various additional options and input formats are available,</span>
+ <span class="comment"># see the DESCRIPTION section for details.</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This DESCRIPTION only documents Bio::Tools::Run::StandAloneBlast: - a Bioperl object for running the NCBI standAlone BLAST package. Blast itself, is a large &amp; complex program - for more information regarding BLAST, please see the BLAST documentation which accompanies the BLAST distribution. BLAST is available from ftp://ncbi.nlm.nih.gov/blast/.</p>
+
+<p>A source of confusion in documenting a BLAST interface is that the term &quot;program&quot; is used in - at least - three different ways in the BLAST documentation. In this DESCRIPTION, &quot;program&quot; will refer to the BLAST routine set by the BLAST <code><code>-p</code></code> parameter that can be set to blastn, blastp, tblastx etc. We will use the term Blast &quot;executable&quot; to refer to the various different executable files that may be called - ie. blastall, blastpgp or bl2seq. In addition, there are several BLAST capabilities, which are also referred to as &quot;programs&quot;, and are implemented by using specific combinations of BLAST executables, programs and parameters. They will be referred by their specific names - eg PSIBLAST and PHIBLAST.</p>
+
+<p>Before running StandAloneBlast it is necessary: to install BLAST on your system, to edit set the environmental variable $BLASTDIR or your $PATH variable to point to the BLAST directory, and to ensure that users have execute privileges for the BLAST program.</p>
+
+<p>If the databases which will be searched by BLAST are located in the data subdirectory of the blast program directory (the default installation location), StandAloneBlast will find them; however, if the database files are located in any other location, environmental variable $BLASTDATADIR will need to be set to point to that directory.</p>
+
+<p>The use of the StandAloneBlast module is as follows: Initially, a local blast &quot;factory object&quot; is created. The constructor may be passed an optional array of (non-default) parameters to be used by the factory, eg:</p>
+
+<pre><code><code> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">-program</span> <span class="operator">=&gt;</span> <span class="string">'blastn'</span><span class="operator">,</span> <span class="string">-database</span> <span class="operator">=&gt;</span> <span class="string">'ecoli.nt'</span><span class="operator">);</span>
+ <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Any parameters not explicitly set will remain as the defaults of the BLAST executable. Note each BLAST executable has somewhat different parameters and options. See the BLAST Documentation for a description or run the BLAST executable from the command line followed solely with a &quot;-&quot; to see a list of options and default values for that executable; eg &gt;blastall -.</p>
+
+<p>BLAST parameters can be changed and/or examined at any time after the factory has been created. The program checks that any parameter/switch being set/read is valid. Except where specifically noted, StandAloneBlast uses the same single-letter, case-sensitive parameter names as the actual blast program. Currently no checks are included to verify that parameters are of the proper type (e.g. string or numeric) or that their values are within the proper range.</p>
+
+<p>As an example, to change the value of the Blast parameter &#39;e&#39; (&#39;e&#39; is the parameter for expectation-value cutoff)</p>
+
+<pre><code><code>  <span class="variable">$expectvalue</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">.</span><span class="number">01</span><span class="operator">;</span>
+  <span class="variable">$factory</span><span class="operator">-&gt;</span>e<span class="operator">(</span><span class="variable">$expectvalue</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Note that for improved script readibility one can modify the name of the (ncbi) BLAST parameters as desired as long as the initial letter (and case) of the parameter are preserved, e.g.:</p>
+
+<pre><code><code>  <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">expectvalue</span><span class="operator">(</span><span class="variable">$expectvalue</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Unfortunately, some of the BLAST parameters are not the single letter one might expect (eg &quot;iteration round&quot; in blastpgp is &#39;j&#39;). Again one can check by using, for example:</p>
+
+<pre><code><code>  &gt; blastpgp -</code></code></pre>
+
+<p>Wublast parameters need to be complete (ie. don&#39;t truncate them to their first letter), but are case-insensitive.</p>
+
+<p>Once the factory has been created and the appropriate parameters set, one can call one of the supported blast executables. The input sequence(s) to these executables may be fasta file(s) as described in the BLAST documentation.</p>
+
+<pre><code><code>  <span class="variable">$inputfilename</span> <span class="operator">=</span> <span class="string">'t/testquery.fa'</span><span class="operator">;</span>
+  <span class="variable">$blast_report</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">blastall</span><span class="operator">(</span><span class="variable">$inputfilename</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>In addition, sequence input may be in the form of either a Bio::Seq object or (a reference to) an array of Bio::Seq objects, e.g.:</p>
+
+<pre><code><code>  <span class="variable">$input</span> <span class="operator">=</span> <span class="variable">Bio::Seq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-id</span> <span class="operator">=&gt;</span> <span class="string">"test query"</span><span class="operator">,</span>
+                         <span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="string">"ACTACCCTTTAAATCAGTGGGGG"</span><span class="operator">);</span>
+  <span class="variable">$blast_report</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">blastall</span><span class="operator">(</span><span class="variable">$input</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>NOTE: Use of the BPlite method has been deprecated and is no longer supported.</p>
+
+<p>For blastall and non-psiblast blastpgp runs, report object is a<a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SearchIO.html">Bio::SearchIO</a> object, selected by the user with the parameter _READMETHOD. The leading underscore is needed to distinguish this option from options which are passed to the BLAST executable. The default parser is Bio::SearchIO::blast. In any case, the &quot;raw&quot; blast report is also available. The filename is set by the &#39;outfile&#39; parameter and has the default value of &quot;blastreport.out&quot;.</p>
+
+<p>For psiblast execution in the BLAST &quot;jumpstart&quot; mode, the program must be passed (in addition to the query sequence itself) an alignment containing the query sequence (in the form of a SimpleAlign object) as well as a &quot;mask&quot; specifying at what residues position-specific scoring matrices (PSSMs) are to used and at what residues default scoring matrices (eg BLOSUM) are to be used. See psiblast documentation for more details. The mask itself is a string of 0&#39;s and 1&#39;s which is the same length as each sequence in the alignment and has a &quot;1&quot; at locations where (PSSMs) are to be used and a &quot;0&quot; at all other locations. So for example:</p>
+
+<pre><code><code>  <span class="variable">$str</span> <span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"cysprot.msf"</span><span class="operator">,</span> 
+                           <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'msf'</span><span class="operator">);</span>
+  <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$str</span><span class="operator">-&gt;</span><span class="variable">next_aln</span><span class="operator">();</span>
+  <span class="variable">$len</span> <span class="operator">=</span> <span class="variable">$aln</span><span class="operator">-&gt;</span><span class="variable">length_aln</span><span class="operator">();</span>
+  <span class="variable">$mask</span> <span class="operator">=</span> <span class="string">'1'</span> <span class="operator">x</span> <span class="variable">$len</span><span class="operator">;</span>
+  <span class="comment"># simple case where PSSM's to be used at all residues</span>
+  <span class="variable">$report</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">blastpgp</span><span class="operator">(</span><span class="string">"cysprot1.fa"</span><span class="operator">,</span> <span class="variable">$aln</span><span class="operator">,</span> <span class="variable">$mask</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>For bl2seq execution, StandAloneBlast.pm can be combined with AlignIO.pm to directly produce a SimpleAlign object from the alignment of the two sequences produced by bl2seq as in:</p>
+
+<pre><code><code>  <span class="comment"># Get 2 sequences</span>
+  <span class="variable">$str</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="string">'t/amino.fa'</span> <span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'Fasta'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$seq3</span> <span class="operator">=</span> <span class="variable">$str</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">();</span>
+  <span class="keyword">my</span> <span class="variable">$seq4</span> <span class="operator">=</span> <span class="variable">$str</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">();</span>
+  
+  <span class="comment"># Run bl2seq on them</span>
+  <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-program</span> <span class="operator">=&gt;</span> <span class="string">'blastp'</span><span class="operator">,</span>
+                                                   <span class="string">-outfile</span> <span class="operator">=&gt;</span> <span class="string">'bl2seq.out'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$bl2seq_report</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">bl2seq</span><span class="operator">(</span><span class="variable">$seq3</span><span class="operator">,</span> <span class="variable">$seq4</span><span class="operator">);</span>
+  
+  <span class="comment"># Use AlignIO.pm to create a SimpleAlign object from the bl2seq report</span>
+  <span class="variable">$str</span> <span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span> <span class="string">'bl2seq.out'</span><span class="operator">,</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'bl2seq'</span><span class="operator">);</span>
+  <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$str</span><span class="operator">-&gt;</span><span class="variable">next_aln</span><span class="operator">();</span>
+</code></code></pre>
+
+<p>For more examples of syntax and use of StandAloneBlast.pm, the user is encouraged to run the scripts standaloneblast.pl in the bioperl examples/tools directory and StandAloneBlast.t in the bioperl t/ directory.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Peter-Schattner">AUTHOR - Peter Schattner</h1>
+
+<p>Email schattner at alum.mit.edu</p>
+
+<h1 id="MAINTAINER---Torsten-Seemann">MAINTAINER - Torsten Seemann</h1>
+
+<p>Email torsten at infotech.monash.edu.au</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Sendu Bala bix@sendu.me.uk (reimplementation)</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">newBio::Tools::Run::StandAloneBlast</span> <span class="variable">object</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Tools::Run::StandAloneNCBIBlast</span> <span class="keyword">or</span> <span class="variable">StandAloneWUBlast</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-quiet</span> <span class="operator">=&gt;</span> <span class="variable">boolean</span> <span class="comment"># make program execution quiet</span>
+           <span class="operator">-</span><span class="string">_READMETHOD</span> <span class="operator">=&gt;</span> <span class="string">'BLAST'</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">,</span> <span class="variable">synonym</span> <span class="string">'SearchIO'</span><span class="operator">)</span> <span class="operator">||</span> <span class="string">'blast_pull'</span>
+                           <span class="comment"># the parsing method, case insensitive</span>
+</code></code></pre>
+
+<p>Essentially all BLAST parameters can be set via StandAloneBlast.pm. Some of the most commonly used parameters are listed below. All parameters have defaults and are optional except for -p in those programs that have it. For a complete listing of settable parameters, run the relevant executable BLAST program with the option &quot;-&quot; as in blastall - Note that the input parameters (-i, -j, -input) should not be set directly by you: this module sets them when you call one of the executable methods.</p>
+
+<p>Blastall</p>
+
+<pre><code><code>  -p  Program Name [String]
+        Input should be one of &quot;blastp&quot;, &quot;blastn&quot;, &quot;blastx&quot;, 
+        &quot;tblastn&quot;, or &quot;tblastx&quot;.
+  -d  Database [String] default = nr
+        The database specified must first be formatted with formatdb.
+        Multiple database names (bracketed by quotations) will be accepted.
+        An example would be -d &quot;nr est&quot;
+  -e  Expectation value (E) [Real] default = 10.0
+  -o  BLAST report Output File [File Out]  Optional,
+            default = ./blastreport.out ; set by StandAloneBlast.pm             
+  -S  Query strands to search against database (for blast[nx], and tblastx). 3 is both, 1 is top, 2 is bottom [Integer]
+            default = 3</code></code></pre>
+
+<p>Blastpgp (including Psiblast)</p>
+
+<pre><code><code>  <span class="operator">-</span><span class="variable">j</span>  <span class="variable">is</span> <span class="variable">the</span> <span class="variable">maximum</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">rounds</span> <span class="operator">(</span><span class="keyword">default</span> <span class="number">1</span><span class="operator">;</span> <span class="variable">i</span><span class="operator">.</span><span class="variable">e</span><span class="operator">.,</span> <span class="variable">regular</span> <span class="variable">BLAST</span><span class="operator">)</span>
+  <span class="operator">-</span><span class="variable">h</span>  <span class="variable">is</span> <span class="variable">the</span> <span class="variable">e</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">threshold</span> <span class="keyword">for</span> <span class="variable">including</span> <span class="variable">sequences</span> <span class="variable">in</span> <span class="variable">the</span>
+            <span class="variable">score</span> <span class="variable">matrix</span> <span class="variable">model</span> <span class="operator">(</span><span class="keyword">default</span> <span class="number">0</span><span class="operator">.</span><span class="number">001</span><span class="operator">)</span>
+  <span class="keyword">-c</span>  <span class="variable">is</span> <span class="variable">the</span> <span class="string">"constant"</span> <span class="variable">used</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">pseudocount</span> <span class="variable">formula</span> <span class="variable">specified</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">paper</span> <span class="operator">(</span><span class="keyword">default</span> <span class="number">10</span><span class="operator">)</span>
+  <span class="keyword">-B</span>  <span class="variable">Multiple</span> <span class="variable">alignment</span> <span class="variable">file</span> <span class="keyword">for</span> <span class="variable">PSI</span><span class="operator">-</span><span class="variable">BLAST</span> <span class="string">"jump start mode"</span>  <span class="variable">Optional</span>
+  <span class="operator">-</span><span class="variable">Q</span>  <span class="variable">Output</span> <span class="variable">File</span> <span class="keyword">for</span> <span class="variable">PSI</span><span class="operator">-</span><span class="variable">BLAST</span> <span class="variable">Matrix</span> <span class="variable">in</span> <span class="variable">ASCII</span> <span class="operator">[</span><span class="variable">File</span> <span class="variable">Out</span><span class="operator">]</span>  <span class="variable">Optional</span>
+</code></code></pre>
+
+<p>rpsblast</p>
+
+<pre><code><code>  -d  Database [String] default = (none - you must specify a database)
+        The database specified must first be formatted with formatdb.
+        Multiple database names (bracketed by quotations) will be accepted.
+        An example would be -d &quot;Cog Smart&quot;
+  -e  Expectation value (E) [Real] default = 10.0
+  -o  BLAST report Output File [File Out]  Optional,
+            default = ./blastreport.out ; set by StandAloneBlast.pm             </code></code></pre>
+
+<p>Bl2seq</p>
+
+<pre><code><code>  -p  Program name: blastp, blastn, blastx. For blastx 1st argument should be nucleotide [String]
+    default = blastp
+  -o  alignment output file [File Out] default = stdout
+  -e  Expectation value (E) [Real]  default = 10.0
+  -S  Query strands to search against database (blastn only).  3 is both, 1 is top, 2 is bottom [Integer]
+    default = 3</code></code></pre>
+
+<p>WU-Blast</p>
+
+<pre><code><code>  -p Program Name [String] 
+        Input should be one of &quot;wublastp&quot;, &quot;wublastn&quot;, &quot;wublastx&quot;, 
+        &quot;wutblastn&quot;, or &quot;wutblastx&quot;.
+  -d  Database [String] default = nr
+        The database specified must first be formatted with xdformat.
+  -E  Expectation value (E) [Real] default = 10.0
+  -o  BLAST report Output File [File Out]  Optional,
+            default = ./blastreport.out ; set by StandAloneBlast.pm             </code></code></pre>
+
+<h2 id="executable">executable</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">executable</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$exe</span> <span class="operator">=</span> <span class="variable">$blastfactory</span><span class="operator">-&gt;</span><span class="variable">executable</span><span class="operator">(</span><span class="string">'blastall'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Finds</span> <span class="variable">the</span> <span class="variable">full</span> <span class="variable">path</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">executable</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">representing</span> <span class="variable">the</span> <span class="variable">full</span> <span class="variable">path</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">exe</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">executable</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">path</span> <span class="variable">to</span> 
+           <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">boolean</span> <span class="variable">flag</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="keyword">warn</span> <span class="keyword">when</span> <span class="variable">exe</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">found</span>
+</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">program_dir</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$dir</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">program_dir</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Abstract</span> <span class="variable">get</span> <span class="variable">method</span> <span class="keyword">for</span> <span class="variable">dir</span> <span class="variable">of</span> <span class="variable">program</span><span class="operator">.</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">representing</span> <span class="variable">program</span> <span class="variable">directory</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span> 
+</code></code></pre>
+
+<h2 id="setinput">_setinput</h2>
+
+<pre><code><code> Title   :  _setinput
+ Usage   :  Internal function, not to be called directly        
+ Function:   Create input file(s) for Blast executable
+ Example :
+ Returns : name of file containing Blast data input
+ Args    : Seq object reference or input file name</code></code></pre>
+
+<h1 id="Bio::Tools::Run::WrapperBase-methods">Bio::Tools::Run::WrapperBase methods</h1>
+
+<h2 id="no_param_checks">no_param_checks</h2>
+
+<pre><code><code> Title   : no_param_checks
+ Usage   : $obj-&gt;no_param_checks($newval)
+ Function: Boolean flag as to whether or not we should
+           trust the sanity checks for parameter values  
+ Returns : value of no_param_checks
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="save_tempfiles">save_tempfiles</h2>
+
+<pre><code><code> Title   : save_tempfiles
+ Usage   : $obj-&gt;save_tempfiles($newval)
+ Function: 
+ Returns : value of save_tempfiles
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="outfile_name">outfile_name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">outfile_name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$outfile</span> <span class="operator">=</span> <span class="variable">$tcoffee</span><span class="operator">-&gt;</span><span class="variable">outfile_name</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">output</span> <span class="variable">file</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">run</span>
+           <span class="operator">(</span><span class="keyword">if</span> <span class="variable">you</span> <span class="variable">wanted</span> <span class="variable">to</span> <span class="keyword">do</span> <span class="variable">something</span> <span class="variable">special</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">value</span> <span class="variable">to</span>
+</code></code></pre>
+
+<h2 id="tempdir">tempdir</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">tempdir</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$tmpdir</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">tempdir</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieve</span> <span class="variable">a</span> <span class="variable">temporary</span> <span class="variable">directory</span> <span class="variable">name</span> <span class="operator">(</span><span class="variable">which</span> <span class="variable">is</span> <span class="variable">created</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">which</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">temporary</span> <span class="variable">directory</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="cleanup">cleanup</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">cleanup</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$tcoffee</span><span class="operator">-&gt;</span><span class="variable">cleanup</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Will</span> <span class="variable">cleanup</span> <span class="variable">the</span> <span class="variable">tempdir</span> <span class="variable">directory</span> <span class="variable">after</span> <span class="variable">a</span> <span class="variable">PAML</span> <span class="variable">run</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="io">io</h2>
+
+<pre><code><code> Title   : io
+ Usage   : $obj-&gt;io($newval)
+ Function:  Gets a Bio::Root::IO object
+ Returns : Bio::Root::IO
+ Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

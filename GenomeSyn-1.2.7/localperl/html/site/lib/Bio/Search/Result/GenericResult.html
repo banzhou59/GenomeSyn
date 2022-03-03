@@ -1,0 +1,464 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich-and-Steve-Chervitz">AUTHOR - Jason Stajich and Steve Chervitz</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#algorithm">algorithm</a></li>
+      <li><a href="#algorithm_version">algorithm_version</a></li>
+      <li><a href="#Bio::Search::Result::ResultI-interface-methods">Bio::Search::Result::ResultI interface methods</a></li>
+      <li><a href="#next_hit">next_hit</a></li>
+      <li><a href="#query_name">query_name</a></li>
+      <li><a href="#query_accession">query_accession</a></li>
+      <li><a href="#query_gi">query_gi</a></li>
+      <li><a href="#query_length">query_length</a></li>
+      <li><a href="#query_description">query_description</a></li>
+      <li><a href="#database_name">database_name</a></li>
+      <li><a href="#database_letters">database_letters</a></li>
+      <li><a href="#database_entries">database_entries</a></li>
+      <li><a href="#get_parameter">get_parameter</a></li>
+      <li><a href="#available_parameters">available_parameters</a></li>
+      <li><a href="#get_statistic">get_statistic</a></li>
+      <li><a href="#available_statistics">available_statistics</a></li>
+      <li><a href="#Bio::Search::Report">Bio::Search::Report</a></li>
+      <li><a href="#add_hit">add_hit</a></li>
+      <li><a href="#hit_factory">hit_factory</a></li>
+      <li><a href="#rewind">rewind</a></li>
+      <li><a href="#nexthitindex">_nexthitindex</a></li>
+      <li><a href="#add_parameter">add_parameter</a></li>
+      <li><a href="#add_statistic">add_statistic</a></li>
+      <li><a href="#num_hits">num_hits</a></li>
+      <li><a href="#hits">hits</a></li>
+      <li><a href="#algorithm_reference">algorithm_reference</a></li>
+      <li><a href="#program_reference">program_reference</a></li>
+      <li><a href="#rid">rid</a></li>
+      <li><a href="#no_hits_found">no_hits_found</a></li>
+      <li><a href="#set_no_hits_found">set_no_hits_found</a></li>
+      <li><a href="#to_string">to_string</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Search::Result::GenericResult - Generic Implementation of Bio::Search::Result::ResultI interface applicable to most search results.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment"># typically one gets Results from a SearchIO stream</span>
+    <span class="keyword">use</span> <span class="variable">Bio::SearchIO</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'blast'</span><span class="operator">,</span>
+                                <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'t/data/HUMBETGLOA.tblastx'</span><span class="operator">);</span>
+    <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$io</span><span class="operator">-&gt;</span><span class="variable">next_result</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="comment"># process all search results within the input stream</span>
+        <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">next_hit</span> <span class="operator">)</span> <span class="operator">{</span>  
+            <span class="comment"># insert code here for hit processing</span>
+        <span class="operator">}</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">use</span> <span class="variable">Bio::Search::Result::GenericResult</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">@hits</span> <span class="operator">=</span> <span class="operator">();</span> <span class="comment"># would be a list of Bio::Search::Hit::HitI objects</span>
+    <span class="comment"># typically these are created from a Bio::SearchIO stream</span>
+    <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">Bio::Search::Result::GenericResult</span><span class="operator">-&gt;</span><span class="variable">new</span>
+        <span class="operator">(</span> <span class="string">-query_name</span>        <span class="operator">=&gt;</span> <span class="string">'HUMBETGLOA'</span><span class="operator">,</span>
+          <span class="string">-query_accession</span>   <span class="operator">=&gt;</span> <span class="string">''</span>
+          <span class="string">-query_description</span> <span class="operator">=&gt;</span> <span class="string">'Human haplotype C4 beta-globin gene, complete cds.'</span>
+          <span class="string">-query_length</span>      <span class="operator">=&gt;</span> <span class="number">3002</span>
+          <span class="operator">-</span><span class="string">database_name</span>     <span class="operator">=&gt;</span> <span class="string">'ecoli.aa'</span>
+          <span class="string">-database_letters</span>  <span class="operator">=&gt;</span> <span class="number">4662239</span><span class="operator">,</span>
+          <span class="string">-database_entries</span>  <span class="operator">=&gt;</span> <span class="number">400</span><span class="operator">,</span>
+          <span class="string">-parameters</span>        <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'e'</span> <span class="operator">=&gt;</span> <span class="string">'0.001'</span> <span class="operator">}</span><span class="operator">,</span>
+          <span class="string">-statistics</span>        <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'kappa'</span> <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">.</span><span class="number">731</span> <span class="operator">}</span><span class="operator">,</span>
+          <span class="string">-algorithm</span>         <span class="operator">=&gt;</span> <span class="string">'blastp'</span><span class="operator">,</span>
+          <span class="string">-algorithm_version</span> <span class="operator">=&gt;</span> <span class="string">'2.1.2'</span><span class="operator">,</span>
+          <span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">$id</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">query_name</span><span class="operator">();</span>
+    
+    <span class="keyword">my</span> <span class="variable">$desc</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">query_description</span><span class="operator">();</span>
+    
+    <span class="keyword">my</span> <span class="variable">$name</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">database_name</span><span class="operator">();</span>
+    
+    <span class="keyword">my</span> <span class="variable">$size</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">database_letters</span><span class="operator">();</span>
+    
+    <span class="keyword">my</span> <span class="variable">$num_entries</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">database_entries</span><span class="operator">();</span>
+    
+    <span class="keyword">my</span> <span class="variable">$gap_ext</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_parameter</span><span class="operator">(</span><span class="string">'e'</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$kappa</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_statistic</span><span class="operator">(</span><span class="string">'kappa'</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">@statnames</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">available_statistics</span><span class="operator">;</span>
+</code></code></pre>
+
+<p># TODO: Show how to configure a SearchIO stream so that it generates # GenericResult objects.</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object is an implementation of the Bio::Search::Result::ResultI interface and provides a generic place to store results from a sequence database search.</p>
+
+<p>Unless you&#39;re writing a parser, you won&#39;t ever need to create a GenericResult or any other ResultI-implementing object. If you use the SearchIO system, ResultI objects are created automatically from a SearchIO stream which returns Bio::Search::Result::ResultI objects.</p>
+
+<p>For documentation on what you can do with GenericResult (and other ResultI objects), please see the API documentation in <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Search/Result/ResultI.html">Bio::Search::Result::ResultI</a>.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich-and-Steve-Chervitz">AUTHOR - Jason Stajich and Steve Chervitz</h1>
+
+<p>Email jason@bioperl.org Email sac@bioperl.org</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Sendu Bala, bix@sendu.me.uk</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Search::Result::GenericResult</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Search::Result::GenericResult</span> <span class="variable">object</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Search::Result::GenericResult</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-query_name</span>        <span class="operator">=&gt;</span> <span class="variable">Name</span> <span class="variable">of</span> <span class="variable">query</span> <span class="variable">Sequence</span>
+           <span class="operator">-</span><span class="string">query_accession</span>   <span class="operator">=&gt;</span> <span class="variable">Query</span> <span class="variable">accession</span> <span class="variable">number</span> <span class="operator">(</span><span class="keyword">if</span> <span class="variable">available</span><span class="operator">)</span>
+           <span class="string">-query_description</span> <span class="operator">=&gt;</span> <span class="variable">Description</span> <span class="variable">of</span> <span class="variable">query</span> <span class="variable">sequence</span>
+           <span class="operator">-</span><span class="string">query_length</span>      <span class="operator">=&gt;</span> <span class="variable">Length</span> <span class="variable">of</span> <span class="variable">query</span> <span class="variable">sequence</span>
+           <span class="operator">-</span><span class="string">database_name</span>     <span class="operator">=&gt;</span> <span class="variable">Name</span> <span class="variable">of</span> <span class="variable">database</span>
+           <span class="operator">-</span><span class="string">database_letters</span>  <span class="operator">=&gt;</span> <span class="variable">Number</span> <span class="variable">of</span> <span class="variable">residues</span> <span class="variable">in</span> <span class="variable">database</span>
+           <span class="operator">-</span><span class="string">database_entries</span>  <span class="operator">=&gt;</span> <span class="variable">Number</span> <span class="variable">of</span> <span class="variable">entries</span> <span class="variable">in</span> <span class="variable">database</span>
+           <span class="operator">-</span><span class="string">hits</span>              <span class="operator">=&gt;</span> <span class="variable">array</span> <span class="keyword">ref</span> <span class="variable">of</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">objects</span>
+           <span class="operator">-</span><span class="string">parameters</span>        <span class="operator">=&gt;</span> <span class="variable">hash</span> <span class="keyword">ref</span> <span class="variable">of</span> <span class="variable">search</span> <span class="variable">parameters</span> <span class="operator">(</span><span class="string">key</span> <span class="operator">=&gt;</span> <span class="variable">value</span><span class="operator">)</span>
+           <span class="string">-statistics</span>        <span class="operator">=&gt;</span> <span class="variable">hash</span> <span class="keyword">ref</span> <span class="variable">of</span> <span class="variable">search</span> <span class="variable">statistics</span> <span class="operator">(</span><span class="string">key</span> <span class="operator">=&gt;</span> <span class="variable">value</span><span class="operator">)</span>
+           <span class="string">-algorithm</span>         <span class="operator">=&gt;</span> <span class="variable">program</span> <span class="variable">name</span> <span class="operator">(</span><span class="variable">blastx</span><span class="operator">)</span>
+           <span class="string">-algorithm_version</span>   <span class="operator">=&gt;</span> <span class="variable">version</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">algorithm</span> <span class="operator">(</span><span class="number">2.1</span><span class="operator">.</span><span class="number">2</span><span class="operator">)</span>
+           <span class="string">-algorithm_reference</span> <span class="operator">=&gt;</span> <span class="variable">literature</span> <span class="variable">reference</span> <span class="variable">string</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">algorithm</span>
+           <span class="operator">-</span><span class="string">rid</span>               <span class="operator">=&gt;</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">BLAST</span> <span class="variable">Request</span> <span class="variable">ID</span> <span class="operator">(</span><span class="variable">eg</span><span class="operator">.</span> <span class="variable">RID</span><span class="operator">:</span> <span class="variable">ZABJ4EA7014</span><span class="operator">)</span>
+           <span class="string">-hit_factory</span>       <span class="operator">=&gt;</span> <span class="variable">Bio::Factory::ObjectFactoryI</span> <span class="variable">capable</span> <span class="variable">of</span> <span class="variable">making</span>
+                                 <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">objects</span>
+</code></code></pre>
+
+<h2 id="algorithm">algorithm</h2>
+
+<pre><code><code> Title   : algorithm
+ Usage   : my $r_type = $hsp-&gt;algorithm
+ Function: Obtain the name of the algorithm used to obtain the Result
+ Returns : string (e.g., BLASTP)
+ Args    : [optional] scalar string to set value</code></code></pre>
+
+<h2 id="algorithm_version">algorithm_version</h2>
+
+<pre><code><code> Title   : algorithm_version
+ Usage   : my $r_version = $hsp-&gt;algorithm_version
+ Function: Obtain the version of the algorithm used to obtain the Result
+ Returns : string (e.g., 2.1.2)
+ Args    : [optional] scalar string to set algorithm version value</code></code></pre>
+
+<h2 id="Bio::Search::Result::ResultI-interface-methods">Bio::Search::Result::ResultI interface methods</h2>
+
+<p>Bio::Search::Result::ResultI implementation</p>
+
+<h2 id="next_hit">next_hit</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_hit</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">while</span><span class="operator">(</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">next_hit</span><span class="operator">())</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">available</span> <span class="variable">Hit</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">representing</span> <span class="variable">potential</span>
+           <span class="variable">matches</span> <span class="variable">between</span> <span class="variable">the</span> <span class="variable">query</span> <span class="keyword">and</span> <span class="variable">various</span> <span class="variable">entities</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">database</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Search::Hit::HitI</span> <span class="variable">object</span> <span class="keyword">or</span> <span class="keyword">undef</span> <span class="keyword">if</span> <span class="variable">there</span> <span class="variable">are</span> <span class="keyword">no</span> <span class="variable">more</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="query_name">query_name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">query_name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$id</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">query_name</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">string</span> <span class="variable">identifier</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">query</span> <span class="variable">used</span> <span class="variable">by</span> <span class="variable">the</span>
+           <span class="variable">algorithm</span> <span class="variable">that</span> <span class="variable">performed</span> <span class="variable">the</span> <span class="variable">search</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">new</span> <span class="variable">string</span> <span class="variable">value</span> <span class="keyword">for</span> <span class="variable">query</span> <span class="variable">name</span>
+</code></code></pre>
+
+<h2 id="query_accession">query_accession</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">query_accession</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$id</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">query_accession</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">accession</span> <span class="operator">(</span><span class="keyword">if</span> <span class="variable">available</span><span class="operator">)</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">query</span> <span class="variable">sequence</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">new</span> <span class="variable">string</span> <span class="variable">value</span> <span class="keyword">for</span> <span class="variable">accession</span>
+</code></code></pre>
+
+<h2 id="query_gi">query_gi</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">query_gi</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$acc</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">query_gi</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieve</span> <span class="variable">the</span> <span class="variable">NCBI</span> <span class="variable">Unique</span> <span class="variable">ID</span> <span class="operator">(</span><span class="variable">aka</span> <span class="variable">the</span> <span class="variable">GI</span> <span class="comment">#),</span>
+           <span class="keyword">if</span> <span class="variable">available</span><span class="operator">,</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">query</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="keyword">scalar</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">empty</span> <span class="variable">string</span> <span class="keyword">if</span> <span class="keyword">not</span> <span class="variable">set</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="query_length">query_length</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">query_length</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$id</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">query_length</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="keyword">length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">query</span> <span class="variable">sequence</span>
+           <span class="variable">used</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">search</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">number</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>  <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">new</span> <span class="variable">integer</span> <span class="variable">value</span> <span class="keyword">for</span> <span class="variable">query</span> <span class="keyword">length</span>
+</code></code></pre>
+
+<h2 id="query_description">query_description</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">query_description</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$id</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">query_description</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">description</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">query</span> <span class="variable">sequence</span>
+           <span class="variable">used</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">search</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">new</span> <span class="variable">string</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">query</span> <span class="variable">description</span>
+</code></code></pre>
+
+<h2 id="database_name">database_name</h2>
+
+<pre><code><code> Title   : database_name
+ Usage   : $name = $result-&gt;database_name()
+ Function: Used to obtain the name of the database that the query was searched
+           against by the algorithm.
+ Returns : a scalar string
+ Args    : [optional] new string for the db name</code></code></pre>
+
+<h2 id="database_letters">database_letters</h2>
+
+<pre><code><code> Title   : database_letters
+ Usage   : $size = $result-&gt;database_letters()
+ Function: Used to obtain the size of database that was searched against.
+ Returns : a scalar integer (units specific to algorithm, but probably the
+           total number of residues in the database, if available) or undef if
+           the information was not available to the Processor object.
+ Args    : [optional] new scalar integer for number of letters in db </code></code></pre>
+
+<h2 id="database_entries">database_entries</h2>
+
+<pre><code><code> Title   : database_entries
+ Usage   : $num_entries = $result-&gt;database_entries()
+ Function: Used to obtain the number of entries contained in the database.
+ Returns : a scalar integer representing the number of entities in the database
+           or undef if the information was not available.
+ Args    : [optional] new integer for the number of sequence entries in the db</code></code></pre>
+
+<h2 id="get_parameter">get_parameter</h2>
+
+<pre><code><code> Title   : get_parameter
+ Usage   : my $gap_ext = $report-&gt;get_parameter(&#39;gapext&#39;)
+ Function: Returns the value for a specific parameter used
+           when running this report
+ Returns : string
+ Args    : name of parameter (string)</code></code></pre>
+
+<h2 id="available_parameters">available_parameters</h2>
+
+<pre><code><code> Title   : available_parameters
+ Usage   : my @params = $report-&gt;available_paramters
+ Function: Returns the names of the available parameters
+ Returns : Return list of available parameters used for this report
+ Args    : none</code></code></pre>
+
+<h2 id="get_statistic">get_statistic</h2>
+
+<pre><code><code> Title   : get_statistic
+ Usage   : my $gap_ext = $report-&gt;get_statistic(&#39;kappa&#39;)
+ Function: Returns the value for a specific statistic available 
+           from this report
+ Returns : string
+ Args    : name of statistic (string)</code></code></pre>
+
+<h2 id="available_statistics">available_statistics</h2>
+
+<pre><code><code> Title   : available_statistics
+ Usage   : my @statnames = $report-&gt;available_statistics
+ Function: Returns the names of the available statistics
+ Returns : Return list of available statistics used for this report
+ Args    : none</code></code></pre>
+
+<h2 id="Bio::Search::Report">Bio::Search::Report</h2>
+
+<p>Bio::Search::Result::GenericResult specific methods</p>
+
+<h2 id="add_hit">add_hit</h2>
+
+<pre><code><code> Title   : add_hit
+ Usage   : $report-&gt;add_hit($hit)
+ Function: Adds a HitI to the stored list of hits
+ Returns : Number of HitI currently stored
+ Args    : Bio::Search::Hit::HitI</code></code></pre>
+
+<h2 id="hit_factory">hit_factory</h2>
+
+<pre><code><code> Title   : hit_factory
+ Usage   : $hit-&gt;hit_factory($hit_factory)
+ Function: Get/set the factory used to build HitI objects if necessary.
+ Returns : Bio::Factory::ObjectFactoryI
+ Args    : Bio::Factory::ObjectFactoryI</code></code></pre>
+
+<h2 id="rewind">rewind</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">rewind</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">rewind</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Allow</span> <span class="variable">one</span> <span class="variable">to</span> <span class="keyword">reset</span> <span class="variable">the</span> <span class="variable">Hit</span> <span class="variable">iterator</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">beginning</span>
+           <span class="variable">Since</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">an</span> <span class="variable">in</span><span class="operator">-</span><span class="variable">memory</span> <span class="variable">implementation</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="nexthitindex">_nexthitindex</h2>
+
+<pre><code><code> Title   : _nexthitindex
+ Usage   : private</code></code></pre>
+
+<h2 id="add_parameter">add_parameter</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add_parameter</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$report</span><span class="operator">-&gt;</span><span class="variable">add_parameter</span><span class="operator">(</span><span class="string">'gapext'</span><span class="operator">,</span> <span class="number">11</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Adds</span> <span class="variable">a</span> <span class="variable">parameter</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">key</span>  <span class="operator">-</span> <span class="variable">key</span> <span class="variable">value</span> <span class="variable">name</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">parama</span>
+           <span class="variable">value</span> <span class="operator">-</span> <span class="variable">value</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">parameter</span>
+</code></code></pre>
+
+<h2 id="add_statistic">add_statistic</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add_statistic</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$report</span><span class="operator">-&gt;</span><span class="variable">add_statistic</span><span class="operator">(</span><span class="string">'lambda'</span><span class="operator">,</span> <span class="number">2.3</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Adds</span> <span class="variable">a</span> <span class="variable">parameter</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">key</span>  <span class="operator">-</span> <span class="variable">key</span> <span class="variable">value</span> <span class="variable">name</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">parama</span>
+           <span class="variable">value</span> <span class="operator">-</span> <span class="variable">value</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">parameter</span>
+</code></code></pre>
+
+<h2 id="num_hits">num_hits</h2>
+
+<pre><code><code> Title   : num_hits
+ Usage   : my $hitcount= $result-&gt;num_hits
+ Function: returns the number of hits for this query result
+ Returns : integer
+ Args    : none</code></code></pre>
+
+<h2 id="hits">hits</h2>
+
+<pre><code><code> Title   : hits
+ Usage   : my @hits = $result-&gt;hits
+ Function: Returns the available hits for this Result
+ Returns : Array of L&lt;Bio::Search::Hit::HitI&gt; objects
+ Args    : none</code></code></pre>
+
+<h2 id="algorithm_reference">algorithm_reference</h2>
+
+<pre><code><code> Title   : algorithm_reference
+ Usage   : $obj-&gt;algorithm_reference($newval)
+ Function: 
+ Returns : string containing literature reference for the algorithm
+ Args    : newvalue string (optional)
+ Comments: Formerly named program_reference(), which is still supported
+           for backwards compatibility.</code></code></pre>
+
+<h2 id="program_reference">program_reference</h2>
+
+<pre><code><code> Title   : program_reference
+ Usage   : $obj-&gt;program_reference()
+ Function:
+ Returns : string containing literature reference for the algorithm
+ Args    : 
+ Comments: Deprecated - use algorithm_reference() instead.</code></code></pre>
+
+<h2 id="rid">rid</h2>
+
+<pre><code><code> Title   : rid
+ Usage   : $obj-&gt;rid($newval)
+ Function:
+ Returns : value of the BLAST Request ID (eg. RID: ZABJ4EA7014)
+ Args    : newvalue (optional)
+ Comments: The default implementation in ResultI returns an empty string
+           rather than throwing a NotImplemented exception, since
+           the RID may not always be available and is not critical.
+           See: (1) http://www.ncbi.nlm.nih.gov/Class/MLACourse/Modules/BLAST/rid.html
+                (2) http://www.ncbi.nlm.nih.gov/staff/tao/URLAPI/new/node63.html</code></code></pre>
+
+<h2 id="no_hits_found">no_hits_found</h2>
+
+<p>See documentation in <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Search/Result/ResultI.html">Bio::Search::Result::ResultI::no_hits_found()</a></p>
+
+<h2 id="set_no_hits_found">set_no_hits_found</h2>
+
+<p>See documentation in <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Search/Result/ResultI.html">Bio::Search::Result::ResultI::set_no_hits_found()</a></p>
+
+<h2 id="to_string">to_string</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">to_string</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">print</span> <span class="variable">$blast</span><span class="operator">-&gt;</span><span class="variable">to_string</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">representation</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">Blast</span> <span class="variable">result</span><span class="operator">.</span> 
+           <span class="variable">Primarily</span> <span class="variable">intended</span> <span class="keyword">for</span> <span class="variable">debugging</span> <span class="variable">purposes</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">see</span> <span class="variable">usage</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">string</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">form</span><span class="operator">:</span>
+           <span class="operator">[</span><span class="variable">GenericResult</span><span class="operator">]</span> <span class="operator">&lt;</span><span class="variable">analysis_method</span><span class="operator">&gt;</span> <span class="variable">query</span><span class="operator">=&lt;</span><span class="variable">name</span><span class="operator">&gt;</span> <span class="operator">&lt;</span><span class="variable">description</span><span class="operator">&gt;</span> <span class="variable">db</span><span class="operator">=&lt;</span><span class="variable">database</span>
+           <span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.:</span>
+           <span class="operator">[</span><span class="variable">GenericResult</span><span class="operator">]</span> <span class="variable">BLASTP</span> <span class="variable">query</span><span class="operator">=</span><span class="variable">YEL060C</span> <span class="variable">vacuolar</span> <span class="variable">protease</span> <span class="variable">B</span><span class="operator">,</span> <span class="variable">db</span><span class="operator">=</span><span class="variable">PDBUNIQ</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

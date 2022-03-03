@@ -1,0 +1,454 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+    </ul>
+  </li>
+  <li><a href="#AnnotationI-implementing-functions">AnnotationI implementing functions</a>
+    <ul>
+      <li><a href="#as_text">as_text</a></li>
+      <li><a href="#display_text">display_text</a></li>
+      <li><a href="#hash_tree">hash_tree</a></li>
+      <li><a href="#tagname">tagname</a></li>
+    </ul>
+  </li>
+  <li><a href="#Specific-accessors-for-TagTree">Specific accessors for TagTree</a>
+    <ul>
+      <li><a href="#value">value</a></li>
+      <li><a href="#tagformat">tagformat</a></li>
+      <li><a href="#node">node</a></li>
+      <li><a href="#Data::Stag-convenience-methods">Data::Stag convenience methods</a></li>
+      <li><a href="#element">element</a></li>
+      <li><a href="#data">data</a></li>
+      <li><a href="#children">children</a></li>
+      <li><a href="#subnodes">subnodes</a></li>
+      <li><a href="#get">get</a></li>
+      <li><a href="#find">find</a></li>
+      <li><a href="#findnode">findnode</a></li>
+      <li><a href="#findval">findval</a></li>
+      <li><a href="#addchild">addchild</a></li>
+      <li><a href="#add">add</a></li>
+      <li><a href="#set">set</a></li>
+      <li><a href="#unset">unset</a></li>
+      <li><a href="#free">free</a></li>
+      <li><a href="#hash">hash</a></li>
+      <li><a href="#pairs">pairs</a></li>
+      <li><a href="#qmatch">qmatch</a></li>
+      <li><a href="#tnodes">tnodes</a></li>
+      <li><a href="#ntnodes">ntnodes</a></li>
+      <li><a href="#StructureValue-like-methods">StructureValue-like methods</a></li>
+      <li><a href="#get_all_values">get_all_values</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Annotation::TagTree - AnnotationI with tree-like hierarchal key-value relationships (&#39;structured tags&#39;) that can be represented as simple text.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="keyword">use</span> <span class="variable">Bio::Annotation::TagTree</span><span class="operator">;</span>
+   <span class="keyword">use</span> <span class="variable">Bio::Annotation::Collection</span><span class="operator">;</span>
+   
+   <span class="keyword">my</span> <span class="variable">$col</span> <span class="operator">=</span> <span class="variable">Bio::Annotation::Collection</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+   
+   <span class="comment"># data structure can be an array reference with a data structure</span>
+   <span class="comment"># corresponding to that defined by Data::Stag:</span>
+   
+   <span class="keyword">my</span> <span class="variable">$sv</span> <span class="operator">=</span> <span class="variable">Bio::Annotation::TagTree</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-tagname</span> <span class="operator">=&gt;</span> <span class="string">'mytag1'</span><span class="operator">,</span>
+                                          <span class="string">-value</span> <span class="operator">=&gt;</span> <span class="variable">$data_structure</span><span class="operator">);</span>
+   <span class="variable">$col</span><span class="operator">-&gt;</span><span class="variable">add_Annotation</span><span class="operator">(</span><span class="variable">$sv</span><span class="operator">);</span>
+   
+   <span class="comment"># regular text passed is parsed based on the tagformat().</span>
+   <span class="keyword">my</span> <span class="variable">$sv2</span> <span class="operator">=</span> <span class="variable">Bio::Annotation::TagTree</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-tagname</span> <span class="operator">=&gt;</span> <span class="string">'mytag2'</span><span class="operator">,</span>
+                                          <span class="string">-tagformat</span> <span class="operator">=&gt;</span> <span class="string">'xml'</span><span class="operator">,</span>
+                                          <span class="string">-value</span> <span class="operator">=&gt;</span> <span class="variable">$xmltext</span><span class="operator">);</span>
+   <span class="variable">$col</span><span class="operator">-&gt;</span><span class="variable">add_Annotation</span><span class="operator">(</span><span class="variable">$sv2</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This takes tagged data values and stores them in a hierarchal structured element-value hierarchy (complements of Chris Mungall&#39;s Data::Stag module). Data can then be represented as text using a variety of output formats (indention, itext, xml, spxr). Furthermore, the data structure can be queried using various means. See <a href="../../../../lib/perl5/Data/Stag.html">Data::Stag</a> for details.</p>
+
+<p>Data passed in using value() or the &#39;-value&#39; parameter upon instantiation can either be:</p>
+
+<p>1) an array reference corresponding to the data structure for Data::Stag;</p>
+
+<p>2) a text string in &#39;xml&#39;, &#39;itext&#39;, &#39;spxr&#39;, or &#39;indent&#39; format. The default format is &#39;xml&#39;; this can be changed using tagformat() prior to using value() or by passing in the proper format using &#39;-tagformat&#39; upon instantiation;</p>
+
+<p>3) another Bio::Annotation::TagTree or Data::Stag node instance. In both cases a deep copy (duplicate) of the instance is generated.</p>
+
+<p>Beyond checking for an array reference no format guessing occurs (so, for roundtrip tests ensure that the IO formats correspond). For now, we recommend when using text input to set tagformat() to one of these formats prior to data loading to ensure the proper Data::Stag parser is selected. After data loading, the tagformat() can be changed to change the text string format returned by value(). (this may be rectified in the future)</p>
+
+<p>This Annotation type is fully BioSQL compatible and could be considered a temporary replacement for nested Bio::Annotation::Collections, at least until BioSQL and bioperl-db can support nested annotation collections.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via or the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Chris Fields</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$sv</span> <span class="operator">=</span> <span class="variable">Bio::Annotation::TagTree</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Instantiate</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">TagTree</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Annotation::TagTree</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-value</span> <span class="operator">=&gt;</span> <span class="variable">$value</span> <span class="variable">to</span> <span class="variable">initialize</span> <span class="variable">the</span> <span class="variable">object</span> <span class="variable">data</span> <span class="variable">field</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span>
+           <span class="operator">-</span><span class="string">tagname</span> <span class="operator">=&gt;</span> <span class="variable">$tag</span> <span class="variable">to</span> <span class="variable">initialize</span> <span class="variable">the</span> <span class="variable">tagname</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span>
+           <span class="operator">-</span><span class="string">tagformat</span> <span class="operator">=&gt;</span> <span class="keyword">format</span> <span class="keyword">for</span> <span class="variable">output</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span>
+                      <span class="operator">(</span><span class="variable">types</span> <span class="string">'xml'</span><span class="operator">,</span> <span class="string">'itext'</span><span class="operator">,</span> <span class="string">'sxpr'</span><span class="operator">,</span> <span class="string">'indent'</span><span class="operator">,</span> <span class="keyword">default</span> <span class="operator">=</span> <span class="string">'itext'</span><span class="operator">)</span>
+           <span class="string">-node</span> <span class="operator">=&gt;</span> <span class="variable">Data::Stag</span> <span class="variable">node</span> <span class="keyword">or</span> <span class="variable">Bio::Annotation::TagTree</span> <span class="variable">instance</span>
+</code></code></pre>
+
+<h1 id="AnnotationI-implementing-functions">AnnotationI implementing functions</h1>
+
+<h2 id="as_text">as_text</h2>
+
+<pre><code><code> Title   : as_text
+ Usage   : my $text = $obj-&gt;as_text
+ Function: return the string &quot;Value: $v&quot; where $v is the value
+ Returns : string
+ Args    : none</code></code></pre>
+
+<h2 id="display_text">display_text</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">display_text</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$str</span> <span class="operator">=</span> <span class="variable">$ann</span><span class="operator">-&gt;</span><span class="variable">display_text</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">a</span> <span class="variable">string</span><span class="operator">.</span> <span class="variable">Unlike</span> <span class="variable">as_text</span><span class="operator">(),</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">returns</span> <span class="variable">a</span> <span class="variable">string</span>
+           <span class="variable">formatted</span> <span class="variable">as</span> <span class="variable">would</span> <span class="variable">be</span> <span class="variable">expected</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">specific</span> <span class="variable">implementation</span><span class="operator">.</span>
+ 
+           <span class="variable">One</span> <span class="variable">can</span> <span class="variable">pass</span> <span class="variable">a</span> <span class="variable">callback</span> <span class="variable">as</span> <span class="variable">an</span> <span class="variable">argument</span> <span class="variable">which</span> <span class="variable">allows</span> <span class="variable">custom</span> <span class="variable">text</span>
+           <span class="variable">generation</span><span class="operator">;</span> <span class="variable">the</span> <span class="variable">callback</span> <span class="variable">is</span> <span class="variable">passed</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">instance</span> <span class="keyword">and</span> <span class="variable">any</span> <span class="variable">text</span>
+           <span class="variable">returned</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">callback</span>
+</code></code></pre>
+
+<h2 id="hash_tree">hash_tree</h2>
+
+<pre><code><code> Title   : hash_tree
+ Usage   : my $hashtree = $value-&gt;hash_tree
+ Function: For supporting the AnnotationI interface just returns the value
+           as a hashref with the key &#39;value&#39; pointing to the value
+           Maybe reimplement using Data::Stag::hash()?
+ Returns : hashrf
+ Args    : none</code></code></pre>
+
+<h2 id="tagname">tagname</h2>
+
+<pre><code><code> Title   : tagname
+ Usage   : $obj-&gt;tagname($newval)
+ Function: Get/set the tagname for this annotation value.
+
+           Setting this is optional. If set, it obviates the need to provide
+           a tag to AnnotationCollection when adding this object.
+ Example :
+ Returns : value of tagname (a scalar)
+ Args    : new value (a scalar, optional)</code></code></pre>
+
+<h1 id="Specific-accessors-for-TagTree">Specific accessors for TagTree</h1>
+
+<h2 id="value">value</h2>
+
+<pre><code><code> Title   : value
+ Usage   : $obj-&gt;value($newval)
+ Function: Get/set the value for this annotation.
+ Returns : value of value
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="tagformat">tagformat</h2>
+
+<pre><code><code> Title   : tagformat
+ Usage   : $obj-&gt;tagformat($newval)
+ Function: Get/set the output tag format for this annotation.
+ Returns : value of tagformat
+ Args    : newvalue (optional) - format for the data passed into value
+           must be of values &#39;xml&#39;, &#39;indent&#39;, &#39;sxpr&#39;, &#39;itext&#39;, &#39;perl&#39;</code></code></pre>
+
+<h2 id="node">node</h2>
+
+<pre><code><code> Title   : node
+ Usage   : $obj-&gt;node()
+ Function: Get/set the topmost Data::Stag node used for this annotation.  
+ Returns : Data::Stag node implementation
+           (default is Data::Stag::StagImpl)
+ Args    : (optional) Data::Stag node implementation
+           (optional)&#39;copy&#39; =&gt; flag to create a copy of the node</code></code></pre>
+
+<h2 id="Data::Stag-convenience-methods">Data::Stag convenience methods</h2>
+
+<p>Because Data::Stag uses blessed arrays and the core Bioperl class uses blessed hashes, TagTree uses an internal instance of a Data::Stag node for data storage. Therefore the following methods actually delegate to the Data:::Stag internal instance.</p>
+
+<p>For consistency (since one could recursively check child nodes), methods retain the same names as Data::Stag. Also, no &#39;magic&#39; (AUTOLOAD&#39;ed) methods are employed, simply b/c full-fledged Data::Stag functionality can be attained by grabbing the Data::Stag instance using node().</p>
+
+<h2 id="element">element</h2>
+
+<pre><code><code> Title   : element
+ Usage   :
+ Function: Returns the element name (key name) for this node
+ Example :
+ Returns : scalar
+ Args    : none</code></code></pre>
+
+<h2 id="data">data</h2>
+
+<pre><code><code> Title   : data
+ Usage   :
+ Function: Returns the data structure (array ref) for this node
+ Example :
+ Returns : array ref
+ Args    : none</code></code></pre>
+
+<h2 id="children">children</h2>
+
+<pre><code><code> Title   : children
+ Usage   :
+ Function: Get the top-level array of Data::Stag nodes or (if the top level is
+           a terminal node) a scalar value.
+
+           This is similar to StructuredValue&#39;s get_values() method, with the
+           key difference being instead of array refs and scalars you get either
+           Data::Stag nodes or the value for this particular node.
+
+           For consistency (since one could recursively check nodes),
+           we use the same method name as Data::Stag children().
+ Example :
+ Returns : an array
+ Args    : none</code></code></pre>
+
+<h2 id="subnodes">subnodes</h2>
+
+<pre><code><code> Title   : subnodes
+ Usage   :
+ Function: Get the top-level array of Data::Stag nodes.  Unlike children(),
+           this only returns an array of nodes (if this is a terminal node,
+           no value is returned)
+ Example :
+ Returns : an array of nodes
+ Args    : none</code></code></pre>
+
+<h2 id="get">get</h2>
+
+<pre><code><code> Title   : get
+ Usage   : 
+ Function: Returns the nodes or value for the named element or path
+ Example : 
+ Returns : returns array of nodes or a scalar (if node is terminal)
+           dependent on wantarray
+ Args    : none</code></code></pre>
+
+<h2 id="find">find</h2>
+
+<pre><code><code> Title   : find
+ Usage   : 
+ Function: Recursively searches for and returns the nodes or values for the
+           named element or path
+ Example : 
+ Returns : returns array of nodes or scalars (for terminal nodes)
+ Args    : none</code></code></pre>
+
+<h2 id="findnode">findnode</h2>
+
+<pre><code><code> Title   : findnode
+ Usage   : 
+ Function: Recursively searches for and returns a list of nodes
+           of the given element path
+ Example : 
+ Returns : returns array of nodes
+ Args    : none</code></code></pre>
+
+<h2 id="findval">findval</h2>
+
+<pre><code><code> Title   : findval
+ Usage   : 
+ Function: 
+ Example : 
+ Returns : returns array of nodes or values
+ Args    : none</code></code></pre>
+
+<h2 id="addchild">addchild</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">addchild</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$struct</span><span class="operator">-&gt;</span><span class="variable">addchild</span><span class="operator">(</span><span class="operator">[</span><span class="string">'name'</span> <span class="operator">=&gt;</span> <span class="operator">[[</span><span class="string">'foo'</span><span class="operator">=&gt;</span> <span class="string">'bar1'</span><span class="operator">]]]</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">add</span> <span class="variable">new</span> <span class="variable">child</span> <span class="variable">node</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">node</span><span class="operator">.</span>  <span class="variable">One</span> <span class="variable">can</span> <span class="variable">pass</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">node</span><span class="operator">,</span> <span class="variable">TagTree</span><span class="operator">,</span>
+           <span class="keyword">or</span> <span class="variable">data</span> <span class="variable">structure</span><span class="operator">;</span> <span class="keyword">for</span> <span class="variable">instance</span><span class="operator">,</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">above</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">would</span> <span class="variable">translate</span>
+           <span class="variable">to</span> <span class="operator">(</span><span class="variable">in</span> <span class="variable">XML</span><span class="operator">):</span>
+ 
+           <span class="operator">&lt;</span><span class="variable">name</span><span class="operator">&gt;</span>
+             <span class="operator">&lt;</span><span class="variable">foo</span><span class="operator">&gt;</span><span class="variable">bar1</span><span class="operator">&lt;/</span><span class="variable">foo</span><span class="operator">&gt;</span>
+           <span class="operator">&lt;/</span><span class="variable">name</span><span class="operator">&gt;</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">node</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">first</span> <span class="variable">arg</span> <span class="operator">=</span> <span class="variable">element</span> <span class="variable">name</span>
+           <span class="variable">all</span> <span class="variable">other</span> <span class="variable">args</span> <span class="variable">are</span> <span class="variable">added</span> <span class="variable">as</span> <span class="variable">tag</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span>
+</code></code></pre>
+
+<h2 id="add">add</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">add</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$struct</span><span class="operator">-&gt;</span><span class="variable">add</span><span class="operator">(</span><span class="string">'foo'</span><span class="operator">,</span> <span class="string">'bar1'</span><span class="operator">,</span> <span class="string">'bar2'</span><span class="operator">,</span> <span class="string">'bar3'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">add</span> <span class="variable">tag</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">nodes</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">node</span><span class="operator">.</span>  <span class="variable">In</span> <span class="variable">the</span> <span class="variable">above</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">would</span>
+           <span class="variable">translate</span> <span class="variable">to</span> <span class="operator">(</span><span class="variable">in</span> <span class="variable">XML</span><span class="operator">):</span>
+           <span class="operator">&lt;</span><span class="variable">foo</span><span class="operator">&gt;</span><span class="variable">bar1</span><span class="operator">&lt;/</span><span class="variable">foo</span><span class="operator">&gt;</span>
+           <span class="operator">&lt;</span><span class="variable">foo</span><span class="operator">&gt;</span><span class="variable">bar2</span><span class="operator">&lt;/</span><span class="variable">foo</span><span class="operator">&gt;</span>
+           <span class="operator">&lt;</span><span class="variable">foo</span><span class="operator">&gt;</span><span class="variable">bar3</span><span class="operator">&lt;/</span><span class="variable">foo</span><span class="operator">&gt;</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">first</span> <span class="variable">arg</span> <span class="operator">=</span> <span class="variable">element</span> <span class="variable">name</span>
+           <span class="variable">all</span> <span class="variable">other</span> <span class="variable">args</span> <span class="variable">are</span> <span class="variable">added</span> <span class="variable">as</span> <span class="variable">tag</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span>
+</code></code></pre>
+
+<h2 id="set">set</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">set</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$struct</span><span class="operator">-&gt;</span><span class="variable">set</span><span class="operator">(</span><span class="string">'foo'</span><span class="operator">,</span><span class="string">'bar'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">sets</span> <span class="variable">a</span> <span class="variable">single</span> <span class="variable">tag</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pair</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">node</span><span class="operator">.</span>  <span class="variable">Note</span> <span class="variable">this</span>
+           <span class="variable">differs</span> <span class="variable">from</span> <span class="variable">add</span><span class="operator">()</span> <span class="variable">in</span> <span class="variable">that</span> <span class="variable">this</span> <span class="variable">replaces</span> <span class="variable">any</span> <span class="variable">data</span> <span class="variable">already</span> <span class="variable">present</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">node</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">first</span> <span class="variable">arg</span> <span class="operator">=</span> <span class="variable">element</span> <span class="variable">name</span>
+           <span class="variable">all</span> <span class="variable">other</span> <span class="variable">args</span> <span class="variable">are</span> <span class="variable">added</span> <span class="variable">as</span> <span class="variable">tag</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span>
+</code></code></pre>
+
+<h2 id="unset">unset</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">unset</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$struct</span><span class="operator">-&gt;</span><span class="variable">unset</span><span class="operator">(</span><span class="string">'foo'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">unsets</span> <span class="variable">all</span> <span class="variable">key</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">passed</span> <span class="variable">element</span> <span class="variable">from</span> <span class="variable">the</span>
+           <span class="variable">current</span> <span class="variable">node</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">node</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">element</span> <span class="variable">name</span>
+</code></code></pre>
+
+<h2 id="free">free</h2>
+
+<pre><code><code> Title   : free
+ Usage   : $struct-&gt;free
+ Function: removes all data from the current node
+ Returns : 
+ Args    : </code></code></pre>
+
+<h2 id="hash">hash</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">hash</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$struct</span><span class="operator">-&gt;</span><span class="variable">hash</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">turns</span> <span class="variable">the</span> <span class="variable">tag</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">tree</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">hash</span><span class="operator">,</span> <span class="variable">all</span> <span class="variable">data</span> <span class="keyword">values</span> <span class="variable">are</span> <span class="variable">array</span> <span class="variable">refs</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">hash</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">first</span> <span class="variable">arg</span> <span class="operator">=</span> <span class="variable">element</span> <span class="variable">name</span>
+           <span class="variable">all</span> <span class="variable">other</span> <span class="variable">args</span> <span class="variable">are</span> <span class="variable">added</span> <span class="variable">as</span> <span class="variable">tag</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span>
+</code></code></pre>
+
+<h2 id="pairs">pairs</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">pairs</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$struct</span><span class="operator">-&gt;</span><span class="variable">pairs</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">turns</span> <span class="variable">the</span> <span class="variable">tag</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">tree</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">hash</span><span class="operator">,</span> <span class="variable">all</span> <span class="variable">data</span> <span class="keyword">values</span> <span class="variable">are</span> <span class="keyword">scalar</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">hash</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">first</span> <span class="variable">arg</span> <span class="operator">=</span> <span class="variable">element</span> <span class="variable">name</span>
+           <span class="variable">all</span> <span class="variable">other</span> <span class="variable">args</span> <span class="variable">are</span> <span class="variable">added</span> <span class="variable">as</span> <span class="variable">tag</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span><span class="operator">,</span> <span class="variable">note</span> <span class="variable">that</span> <span class="variable">duplicates</span>
+           <span class="variable">will</span> <span class="variable">be</span> <span class="variable">lost</span>
+</code></code></pre>
+
+<h2 id="qmatch">qmatch</h2>
+
+<pre><code><code> <span class="variable">Title</span>    <span class="operator">:</span> <span class="variable">qmatch</span>
+ <span class="variable">Usage</span>    <span class="operator">:</span> <span class="variable">@persons</span> <span class="operator">=</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">qmatch</span><span class="operator">(</span><span class="string">'person'</span><span class="operator">,</span> <span class="operator">(</span><span class="string">'name'</span><span class="operator">=&gt;</span><span class="string">'fred'</span><span class="operator">));</span>
+ <span class="variable">Function</span> <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">all</span> <span class="variable">elements</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">node</span> <span class="variable">tree</span> <span class="variable">which</span> <span class="variable">match</span> <span class="variable">the</span>
+            <span class="variable">element</span> <span class="variable">name</span> <span class="keyword">and</span> <span class="variable">the</span> <span class="variable">key</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pair</span>
+ <span class="variable">Returns</span>  <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">of</span> <span class="variable">nodes</span>
+ <span class="variable">Args</span>     <span class="operator">:</span> <span class="keyword">return</span><span class="operator">-</span><span class="variable">element</span> <span class="variable">str</span><span class="operator">,</span> <span class="variable">match</span><span class="operator">-</span><span class="variable">element</span> <span class="variable">str</span><span class="operator">,</span> <span class="variable">match</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">str</span>
+</code></code></pre>
+
+<h2 id="tnodes">tnodes</h2>
+
+<pre><code><code> <span class="variable">Title</span>    <span class="operator">:</span> <span class="variable">tnodes</span>
+ <span class="variable">Usage</span>    <span class="operator">:</span> <span class="variable">@termini</span> <span class="operator">=</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">tnodes</span><span class="operator">;</span>
+ <span class="variable">Function</span> <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">all</span> <span class="variable">terminal</span> <span class="variable">nodes</span> <span class="variable">below</span> <span class="variable">this</span> <span class="variable">node</span>
+ <span class="variable">Returns</span>  <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">of</span> <span class="variable">nodes</span>
+ <span class="variable">Args</span>     <span class="operator">:</span> <span class="keyword">return</span><span class="operator">-</span><span class="variable">element</span> <span class="variable">str</span><span class="operator">,</span> <span class="variable">match</span><span class="operator">-</span><span class="variable">element</span> <span class="variable">str</span><span class="operator">,</span> <span class="variable">match</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">str</span>
+</code></code></pre>
+
+<h2 id="ntnodes">ntnodes</h2>
+
+<pre><code><code> <span class="variable">Title</span>    <span class="operator">:</span> <span class="variable">ntnodes</span>
+ <span class="variable">Usage</span>    <span class="operator">:</span> <span class="variable">@termini</span> <span class="operator">=</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">ntnodes</span><span class="operator">;</span>
+ <span class="variable">Function</span> <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">all</span> <span class="variable">nonterminal</span> <span class="variable">nodes</span> <span class="variable">below</span> <span class="variable">this</span> <span class="variable">node</span>
+ <span class="variable">Returns</span>  <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">of</span> <span class="variable">nodes</span>
+ <span class="variable">Args</span>     <span class="operator">:</span> <span class="keyword">return</span><span class="operator">-</span><span class="variable">element</span> <span class="variable">str</span><span class="operator">,</span> <span class="variable">match</span><span class="operator">-</span><span class="variable">element</span> <span class="variable">str</span><span class="operator">,</span> <span class="variable">match</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">str</span>
+</code></code></pre>
+
+<h2 id="StructureValue-like-methods">StructureValue-like methods</h2>
+
+<h2 id="get_all_values">get_all_values</h2>
+
+<pre><code><code> <span class="variable">Title</span>    <span class="operator">:</span> <span class="variable">get_all_values</span>
+ <span class="variable">Usage</span>    <span class="operator">:</span> <span class="variable">@termini</span> <span class="operator">=</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">get_all_values</span><span class="operator">;</span>
+ <span class="variable">Function</span> <span class="operator">:</span> <span class="variable">returns</span> <span class="variable">all</span> <span class="variable">terminal</span> <span class="variable">node</span> <span class="keyword">values</span>
+ <span class="variable">Returns</span>  <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">of</span> <span class="keyword">values</span>
+ <span class="variable">Args</span>     <span class="operator">:</span> <span class="keyword">return</span><span class="operator">-</span><span class="variable">element</span> <span class="variable">str</span><span class="operator">,</span> <span class="variable">match</span><span class="operator">-</span><span class="variable">element</span> <span class="variable">str</span><span class="operator">,</span> <span class="variable">match</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">str</span>
+</code></code></pre>
+
+<p>This is meant to emulate the values one would get from StructureValue&#39;s get_all_values() method. Note, however, using this method dissociates the tag-value relationship (i.e. you only get the value list, no elements)</p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,255 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../displayToc.js"></script>
+<script language="JavaScript" src="../../tocParas.js"></script>
+<script language="JavaScript" src="../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Boulder-IO">Boulder IO</a></li>
+      <li><a href="#Hierarchical-Records">Hierarchical Records</a></li>
+      <li><a href="#Using-Boulder-for-I-O">Using Boulder for I/O</a></li>
+      <li><a href="#Stone-Objects">Stone Objects</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Boulder - An API for hierarchical tag/value structures</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="comment"># Read a series of People records from STDIN.</span>
+   <span class="comment"># Add an "Eligibility" attribute to all those whose</span>
+   <span class="comment"># Age &gt;= 35 and Friends list includes "Fred"</span>
+   
+   <span class="keyword">use</span> <span class="variable">Boulder::Stream</span><span class="operator">;</span>
+   
+   <span class="keyword">my</span> <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Boulder::Stream</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">;</span>
+   
+   <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$record</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$stream</span><span class="operator">&gt;</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">Age</span> <span class="operator">&gt;=</span> <span class="number">35</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">@friends</span> <span class="operator">=</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">Friends</span><span class="operator">;</span>
+      <span class="keyword">next</span> <span class="keyword">unless</span> <span class="keyword">grep</span> <span class="operator">{</span><span class="variable">$_</span> <span class="keyword">eq</span> <span class="string">'Fred'</span><span class="operator">}</span> <span class="variable">@friends</span><span class="operator">;</span>
+   
+      <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="string">Eligibility</span> <span class="operator">=&gt;</span> <span class="string">'yes'</span><span class="operator">);</span>
+      <span class="keyword">print</span> <span class="variable">$stream</span> <span class="variable">$record</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>Related manual pages:</p>
+
+<pre><code><code>  basics
+  ------
+  Stone            hierarchical tag/value records
+  Stone::Cursor    Traverse a hierarchy
+
+  Boulder::Stream  stream-oriented storage for Stones
+  Boulder::Store   record-oriented storage for Stones
+  Boulder::XML     XML conversion for Stones
+  Boulder::String  conversion to strings
+
+  genome-related
+  ---------------
+
+  Boulder::Genbank   parse Genbank (DNA sequence) records
+  Boulder::Blast     parse BLAST (basic local alignment search tool) reports
+  Boulder::Medline   parse Medline (pubmed) records
+  Boulder::Omim      parse OMIM (online Mendelian inheritance in man) records
+  Boulder::Swissprot parse Swissprot records
+  Boulder::Unigene   parse Unigene records</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<h2 id="Boulder-IO">Boulder IO</h2>
+
+<p>Boulder IO is a simple TAG=VALUE data format designed for sharing data between programs connected via a pipe. It is also simple enough to use as a common data exchange format between databases, Web pages, and other data representations.</p>
+
+<p>The basic data format is very simple. It consists of a series of TAG=VALUE pairs separated by newlines. It is record-oriented. The end of a record is indicated by an empty delimiter alone on a line. The delimiter is &quot;=&quot; by default, but can be adjusted by the user.</p>
+
+<p>An example boulder stream looks like this:</p>
+
+<pre><code><code>        Name=Lincoln Stein
+        Home=/u/bush202/lds32
+        Organization=Cold Spring Harbor Laboratory
+        Login=lds32
+        Password_age=20
+        Password_expires=60
+        Alias=lstein
+        Alias=steinl
+        =
+        Name=Leigh Deacon
+        Home=/u/bush202/tanager
+        Organization=Cold Spring Harbor Laboratory
+        Login=tanager
+        Password_age=2
+        Password_expires=60
+        =</code></code></pre>
+
+<p>Notes:</p>
+
+<dl>
+
+<dt id="pod-1-">(1)</dt>
+<dd>
+
+<p>There is no need for all tags to appear in all records, or indeed for all the records to be homogeneous.</p>
+
+</dd>
+<dt id="pod-2-">(2)</dt>
+<dd>
+
+<p>Multiple values are allowed, as with the Alias tag in the second record.</p>
+
+</dd>
+<dt id="pod-3-">(3)</dt>
+<dd>
+
+<p>Lines can be any length, as in a potential 40 Kbp DNA sequence entry.</p>
+
+</dd>
+<dt id="pod-4-">(4)</dt>
+<dd>
+
+<p>Tags can be any alphanumeric character (upper or lower case) and may contain embedded spaces. Conventionally we use the characters A-Z0-9_, because they can be used without single quoting as keys in Perl associative arrays, but this is merely stylistic. Values can be any character at all except for the reserved characters {}=% and newline. You can incorporate binary data into the data stream by escaping these characters in the URL manner, using a % sign followed by the (capitalized) hexadecimal code for the character. The module makes this automatic.</p>
+
+</dd>
+</dl>
+
+<h2 id="Hierarchical-Records">Hierarchical Records</h2>
+
+<p>The simple boulder format can be extended to accomodate nested relations and other intresting structures. Nested records can be created in this way:</p>
+
+<pre><code><code> <span class="variable">Name</span><span class="operator">=</span><span class="variable">Lincoln</span> <span class="variable">Stein</span>
+ <span class="variable">Home</span><span class="operator">=</span><span class="regex">/u/bush</span><span class="number">202</span><span class="operator">/</span><span class="variable">lds32</span>
+ <span class="variable">Organization</span><span class="operator">=</span><span class="variable">Cold</span> <span class="variable">Spring</span> <span class="variable">Harbor</span> <span class="variable">Laboratory</span>
+ <span class="variable">Login</span><span class="operator">=</span><span class="variable">lds32</span>
+ <span class="variable">Password_age</span><span class="operator">=</span><span class="number">20</span>
+ <span class="variable">Password_expires</span><span class="operator">=</span><span class="number">60</span>
+ <span class="variable">Privileges</span><span class="operator">=</span><span class="operator">{</span>
+   <span class="variable">ChangePasswd</span><span class="operator">=</span><span class="variable">yes</span>
+   <span class="variable">CronJobs</span><span class="operator">=</span><span class="variable">yes</span>
+   <span class="variable">Reboot</span><span class="operator">=</span><span class="variable">yes</span>
+   <span class="variable">Shutdown</span><span class="operator">=</span><span class="keyword">no</span>
+ <span class="operator">}</span>
+ <span class="operator">=</span>
+ <span class="variable">Name</span><span class="operator">=</span><span class="variable">Leigh</span> <span class="variable">Deacon</span>
+ <span class="variable">Home</span><span class="operator">=</span><span class="regex">/u/bush</span><span class="number">202</span><span class="operator">/</span><span class="variable">tanager</span>
+ <span class="variable">Organization</span><span class="operator">=</span><span class="variable">Cold</span> <span class="variable">Spring</span> <span class="variable">Harbor</span> <span class="variable">Laboratory</span>
+ <span class="variable">Login</span><span class="operator">=</span><span class="variable">tanager</span>
+ <span class="variable">Password_age</span><span class="operator">=</span><span class="number">2</span>
+ <span class="variable">Password_expires</span><span class="operator">=</span><span class="number">60</span>
+ <span class="variable">Privileges</span><span class="operator">=</span><span class="operator">{</span>
+   <span class="variable">ChangePasswd</span><span class="operator">=</span><span class="variable">yes</span>
+   <span class="variable">CronJobs</span><span class="operator">=</span><span class="keyword">no</span>
+   <span class="variable">Reboot</span><span class="operator">=</span><span class="keyword">no</span>
+   <span class="variable">Shutdown</span><span class="operator">=</span><span class="keyword">no</span>
+ <span class="operator">}</span>
+ <span class="operator">=</span>
+</code></code></pre>
+
+<p>As in the original format, tags may be multivalued. For example, there might be several Privilege record assigned to a login account. Each subrecord may contain further subrecords.</p>
+
+<p>Within the program, a hierarchical record is encapsulated within a &quot;Stone&quot;, an opaque structure that implements methods for fetching and settings its various tags.</p>
+
+<h2 id="Using-Boulder-for-I-O">Using Boulder for I/O</h2>
+
+<p>The Boulder API was designed to make reading and writing of complex hierarchical records almost as easy as reading and writing single lines of text.</p>
+
+<dl>
+
+<dt id="Boulder::Stream">Boulder::Stream</dt>
+<dd>
+
+<p>The main component of the Boulder modules is Boulder::Stream, which provides a stream-oriented view of the data. You can read and write to Boulder::Streams via tied filehandles, or via method calls. Data records are flattened into a simple format called &quot;boulderio&quot; format.</p>
+
+</dd>
+<dt id="Boulder::XML">Boulder::XML</dt>
+<dd>
+
+<p>Boulder::XML acts like Boulder::Stream, but the serialization format is XML. You need XML::Parser installed to use this module.</p>
+
+</dd>
+<dt id="Boulder::Store">Boulder::Store</dt>
+<dd>
+
+<p>This is a simple persistent storage class which allows you to store several (thousand) Stone&#39;s into a DB_File database. You must have libdb and the Perl DB_File extensions installed in order to take advantage of this class.</p>
+
+</dd>
+<dt id="Boulder::Genbank">Boulder::Genbank</dt>
+<dd>
+
+</dd>
+<dt id="Boulder::Unigene">Boulder::Unigene</dt>
+<dd>
+
+</dd>
+<dt id="Boulder::OMIM">Boulder::OMIM</dt>
+<dd>
+
+</dd>
+<dt id="Boulder::Blast">Boulder::Blast</dt>
+<dd>
+
+</dd>
+<dt id="Boulder::Medline">Boulder::Medline</dt>
+<dd>
+
+</dd>
+<dt id="Boulder::SwissProt">Boulder::SwissProt</dt>
+<dd>
+
+<p>These are parsers and accessors for various biological data sources. They act like Boulder::Stream, but return a set of Stone objects that have certain prescribed tags and values. Many of these modules were written by Luca I.G. Toldo &lt;luca.toldo@merck.de&gt;.</p>
+
+</dd>
+</dl>
+
+<h2 id="Stone-Objects">Stone Objects</h2>
+
+<p>The Stone object encapsulates a set of tags and values. Any tag can be single- or multivalued, and tags are allowed to contain subtags to any depth. A simple set of methods named tags(), get(), put(), insert(), replace() and so forth, allows you to examine the tags that are available, get and set their values, and search for particular tags. In addition, an autoload mechanism allows you to use method calls to access tags, for example:</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">@friends</span> <span class="operator">=</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">Friends</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>is equivalent to:</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">@friends</span> <span class="operator">=</span> <span class="variable">$record</span><span class="operator">-&gt;</span><span class="variable">get</span><span class="operator">(</span><span class="string">'Friends'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>A Stone::Cursor class allows you to traverse Stones systematically.</p>
+
+<p>A full explanation of the Stone class can be found in its manual page.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Lincoln D. Stein &lt;lstein@cshl.org&gt;, Cold Spring Harbor Laboratory, Cold Spring Harbor, NY. This module can be used and distributed on the same terms as Perl itself.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Blast.html">Boulder::Blast</a>, <a href="../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Genbank.html">Boulder::Genbank</a>, <a href="../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Medline.html">Boulder::Medline</a>, <a href="../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Unigene.html">Boulder::Unigene</a>, <a href="../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Omim.html">Boulder::Omim</a>, <a>Boulder::SwissProt</a></p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,316 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Data-Loading-Methods">Data Loading Methods</a></li>
+      <li><a href="#new">new</a></li>
+      <li><a href="#schema">schema</a></li>
+      <li><a href="#do_initialize">do_initialize</a></li>
+      <li><a href="#drop_all">drop_all</a></li>
+      <li><a href="#setup_load">setup_load</a></li>
+      <li><a href="#load_gff_line">load_gff_line</a></li>
+      <li><a href="#get_table_id">get_table_id</a></li>
+      <li><a href="#search_notes">search_notes</a></li>
+      <li><a href="#make_meta_set_query">make_meta_set_query</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::GFF::Adaptor::dbi::oracle -- Database adaptor for a specific oracle schema</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>See <a href="../../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/GFF.html">Bio::DB::GFF</a></p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This adaptor implements a specific oracle database schema that is compatible with Bio::DB::GFF. It inherits from Bio::DB::GFF::Adaptor::dbi, which itself inherits from Bio::DB::GFF.</p>
+
+<p>The schema uses several tables:</p>
+
+<dl>
+
+<dt id="fdata">fdata</dt>
+<dd>
+
+<p>This is the feature data table. Its columns are:</p>
+
+<pre><code><code>    <span class="variable">fid</span>            <span class="variable">feature</span> <span class="variable">ID</span> <span class="operator">(</span><span class="variable">integer</span><span class="operator">)</span>
+    <span class="variable">fref</span>           <span class="variable">reference</span> <span class="variable">sequence</span> <span class="variable">name</span> <span class="operator">(</span><span class="variable">string</span><span class="operator">)</span>
+    <span class="variable">fstart</span>         <span class="variable">start</span> <span class="variable">position</span> <span class="variable">relative</span> <span class="variable">to</span> <span class="variable">reference</span> <span class="operator">(</span><span class="variable">integer</span><span class="operator">)</span>
+    <span class="variable">fstop</span>          <span class="variable">stop</span> <span class="variable">postion</span> <span class="variable">relative</span> <span class="variable">to</span> <span class="variable">reference</span> <span class="operator">(</span><span class="variable">integer</span><span class="operator">)</span>
+    <span class="variable">ftypeid</span>        <span class="variable">feature</span> <span class="variable">type</span> <span class="variable">ID</span> <span class="operator">(</span><span class="variable">integer</span><span class="operator">)</span>
+    <span class="variable">fscore</span>         <span class="variable">feature</span> <span class="variable">score</span> <span class="operator">(</span><span class="variable">float</span><span class="operator">);</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">null</span>
+    <span class="variable">fstrand</span>        <span class="variable">strand</span><span class="operator">;</span> <span class="variable">one</span> <span class="variable">of</span> <span class="string">"+"</span> <span class="keyword">or</span> <span class="string">"-"</span><span class="operator">;</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">null</span>
+    <span class="variable">fphase</span>         <span class="variable">phase</span><span class="operator">;</span> <span class="variable">one</span> <span class="variable">of</span> <span class="number">0</span><span class="operator">,</span> <span class="number">1</span> <span class="keyword">or</span> <span class="number">2</span><span class="operator">;</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">null</span>
+    <span class="variable">gid</span>            <span class="variable">group</span> <span class="variable">ID</span> <span class="operator">(</span><span class="variable">integer</span><span class="operator">)</span>
+    <span class="variable">ftarget_start</span>  <span class="keyword">for</span> <span class="variable">similarity</span> <span class="variable">features</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">target</span> <span class="variable">start</span> <span class="variable">position</span> <span class="operator">(</span><span class="variable">integer</span><span class="operator">)</span>
+    <span class="variable">ftarget_stop</span>   <span class="keyword">for</span> <span class="variable">similarity</span> <span class="variable">features</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">target</span> <span class="variable">stop</span> <span class="variable">position</span> <span class="operator">(</span><span class="variable">integer</span><span class="operator">)</span>
+</code></code></pre>
+
+<p>Note that it would be desirable to normalize the reference sequence name, since there are usually many features that share the same reference feature. However, in the current schema, query performance suffers dramatically when this additional join is added.</p>
+
+</dd>
+<dt id="fgroup">fgroup</dt>
+<dd>
+
+<p>This is the group table. There is one row for each group. Columns:</p>
+
+<pre><code><code>    gid       the group ID (integer)
+    gclass    the class of the group (string)
+    gname     the name of the group (string)</code></code></pre>
+
+<p>The group table serves multiple purposes. As you might expect, it is used to cluster features that logically belong together, such as the multiple exons of the same transcript. It is also used to assign a name and class to a singleton feature. Finally, the group table is used to identify the target of a similarity hit. This is consistent with the way in which the group field is used in the GFF version 2 format.</p>
+
+<p>The fgroup.gid field joins with the fdata.gid field.</p>
+
+<p>Examples:</p>
+
+<pre><code><code>  <span class="variable">sql</span><span class="operator">&gt;</span> <span class="keyword">select</span> <span class="operator">*</span> <span class="variable">from</span> <span class="variable">fgroup</span> <span class="variable">where</span> <span class="variable">gname</span><span class="operator">=</span><span class="string">'sjj_2L52.1'</span><span class="operator">;</span>
+  <span class="operator">+-------+-------------+------------+</span>
+  <span class="operator">|</span> <span class="variable">gid</span>   <span class="operator">|</span> <span class="variable">gclass</span>      <span class="operator">|</span> <span class="variable">gname</span>      <span class="operator">|</span>
+  <span class="operator">+-------+-------------+------------+</span>
+  <span class="operator">|</span> <span class="number">69736</span> <span class="operator">|</span> <span class="variable">PCR_product</span> <span class="operator">|</span> <span class="variable">sjj_2L52</span><span class="number">.1</span> <span class="operator">|</span>
+  <span class="operator">+-------+-------------+------------+</span>
+  <span class="number">1</span> <span class="variable">row</span> <span class="variable">in</span> <span class="variable">set</span> <span class="operator">(</span><span class="number">0</span><span class="operator">.</span><span class="number">70</span> <span class="variable">sec</span><span class="operator">)</span>
+  
+  <span class="variable">sql</span><span class="operator">&gt;</span> <span class="keyword">select</span> <span class="variable">fref</span><span class="operator">,</span><span class="variable">fstart</span><span class="operator">,</span><span class="variable">fstop</span> <span class="variable">from</span> <span class="variable">fdata</span><span class="operator">,</span><span class="variable">fgroup</span> 
+            <span class="variable">where</span> <span class="variable">gclass</span><span class="operator">=</span><span class="string">'PCR_product'</span> <span class="keyword">and</span> <span class="variable">gname</span> <span class="operator">=</span> <span class="string">'sjj_2L52.1'</span> 
+                  <span class="keyword">and</span> <span class="variable">fdata</span><span class="operator">.</span><span class="variable">gid</span><span class="operator">=</span><span class="variable">fgroup</span><span class="operator">.</span><span class="variable">gid</span><span class="operator">;</span>
+  <span class="operator">+---------------+--------+-------+</span>
+  <span class="operator">|</span> <span class="variable">fref</span>          <span class="operator">|</span> <span class="variable">fstart</span> <span class="operator">|</span> <span class="variable">fstop</span> <span class="operator">|</span>
+  <span class="operator">+---------------+--------+-------+</span>
+  <span class="operator">|</span> <span class="variable">CHROMOSOME_II</span> <span class="operator">|</span>   <span class="number">1586</span> <span class="operator">|</span>  <span class="number">2355</span> <span class="operator">|</span>
+  <span class="operator">+---------------+--------+-------+</span>
+  <span class="number">1</span> <span class="variable">row</span> <span class="variable">in</span> <span class="variable">set</span> <span class="operator">(</span><span class="number">0</span><span class="operator">.</span><span class="number">03</span> <span class="variable">sec</span><span class="operator">)</span>
+</code></code></pre>
+
+</dd>
+<dt id="ftype">ftype</dt>
+<dd>
+
+<p>This table contains the feature types, one per row. Columns are:</p>
+
+<pre><code><code>    ftypeid      the feature type ID (integer)
+    fmethod      the feature type method name (string)
+    fsource      the feature type source name (string)</code></code></pre>
+
+<p>The ftype.ftypeid field joins with the fdata.ftypeid field. Example:</p>
+
+<pre><code><code>  <span class="variable">sql</span><span class="operator">&gt;</span> <span class="keyword">select</span> <span class="variable">fref</span><span class="operator">,</span><span class="variable">fstart</span><span class="operator">,</span><span class="variable">fstop</span><span class="operator">,</span><span class="variable">fmethod</span><span class="operator">,</span><span class="variable">fsource</span> <span class="variable">from</span> <span class="variable">fdata</span><span class="operator">,</span><span class="variable">fgroup</span><span class="operator">,</span><span class="variable">ftype</span> 
+         <span class="variable">where</span> <span class="variable">gclass</span><span class="operator">=</span><span class="string">'PCR_product'</span> 
+               <span class="keyword">and</span> <span class="variable">gname</span> <span class="operator">=</span> <span class="string">'sjj_2L52.1'</span>
+               <span class="keyword">and</span> <span class="variable">fdata</span><span class="operator">.</span><span class="variable">gid</span><span class="operator">=</span><span class="variable">fgroup</span><span class="operator">.</span><span class="variable">gid</span>
+               <span class="keyword">and</span> <span class="variable">fdata</span><span class="operator">.</span><span class="variable">ftypeid</span><span class="operator">=</span><span class="variable">ftype</span><span class="operator">.</span><span class="variable">ftypeid</span><span class="operator">;</span>
+  <span class="operator">+---------------+--------+-------+-------------+-----------+</span>
+  <span class="operator">|</span> <span class="variable">fref</span>          <span class="operator">|</span> <span class="variable">fstart</span> <span class="operator">|</span> <span class="variable">fstop</span> <span class="operator">|</span> <span class="variable">fmethod</span>     <span class="operator">|</span> <span class="variable">fsource</span>   <span class="operator">|</span>
+  <span class="operator">+---------------+--------+-------+-------------+-----------+</span>
+  <span class="operator">|</span> <span class="variable">CHROMOSOME_II</span> <span class="operator">|</span>   <span class="number">1586</span> <span class="operator">|</span>  <span class="number">2355</span> <span class="operator">|</span> <span class="variable">PCR_product</span> <span class="operator">|</span> <span class="variable">GenePairs</span> <span class="operator">|</span>
+  <span class="operator">+---------------+--------+-------+-------------+-----------+</span>
+  <span class="number">1</span> <span class="variable">row</span> <span class="variable">in</span> <span class="variable">set</span> <span class="operator">(</span><span class="number">0</span><span class="operator">.</span><span class="number">08</span> <span class="variable">sec</span><span class="operator">)</span>
+</code></code></pre>
+
+</dd>
+<dt id="fdna">fdna</dt>
+<dd>
+
+<p>This table holds the raw DNA of the reference sequences. It has three columns:</p>
+
+<pre><code><code>    fref          reference sequence name (string)
+    foffset       offset of this sequence
+    fdna          the DNA sequence (longblob)</code></code></pre>
+
+<p>To overcome problems loading large blobs, DNA is automatically fragmented into multiple segments when loading, and the position of each segment is stored in foffset. The fragment size is controlled by the -clump_size argument during initialization.</p>
+
+</dd>
+<dt id="fattribute_to_feature">fattribute_to_feature</dt>
+<dd>
+
+<p>This table holds &quot;attributes&quot;, which are tag/value pairs stuffed into the GFF line. The first tag/value pair is treated as the group, and anything else is treated as an attribute (weird, huh?).</p>
+
+<pre><code><code> CHR_I assembly_tag Finished     2032 2036 . + . Note &quot;Right: cTel33B&quot;
+ CHR_I assembly_tag Polymorphism 668  668  . + . Note &quot;A-&gt;C in cTel33B&quot;</code></code></pre>
+
+<p>The columns of this table are:</p>
+
+<pre><code><code>    fid                 feature ID (integer)
+    fattribute_id       ID of the attribute (integer)
+    fattribute_value    text of the attribute (text)</code></code></pre>
+
+<p>The fdata.fid column joins with fattribute_to_feature.fid.</p>
+
+</dd>
+<dt id="fattribute">fattribute</dt>
+<dd>
+
+<p>This table holds the normalized names of the attributes. Fields are:</p>
+
+<pre><code><code>  fattribute_id      ID of the attribute (integer)
+  fattribute_name    Name of the attribute (varchar)</code></code></pre>
+
+</dd>
+</dl>
+
+<h2 id="Data-Loading-Methods">Data Loading Methods</h2>
+
+<p>In addition to implementing the abstract SQL-generating methods of Bio::DB::GFF::Adaptor::dbi, this module also implements the data loading functionality of Bio::DB::GFF.</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : $db = Bio::DB::GFF-&gt;new(@args)
+ Function: create a new adaptor
+ Returns : a Bio::DB::GFF object
+ Args    : see below
+ Status  : Public</code></code></pre>
+
+<p>The new constructor is identical to the &quot;dbi&quot; adaptor&#39;s new() method, except that the prefix &quot;dbi:oracle&quot; is added to the database DSN identifier automatically if it is not there already.</p>
+
+<pre><code><code>  Argument       Description
+  --------       -----------
+
+  -dsn           the DBI data source, e.g. &#39;dbi:mysql:ens0040&#39; or &quot;ens0040&quot;
+
+  -user          username for authentication
+
+  -pass          the password for authentication</code></code></pre>
+
+<h2 id="schema">schema</h2>
+
+<pre><code><code> Title   : schema
+ Usage   : $schema = $db-&gt;schema
+ Function: return the CREATE script for the schema
+ Returns : a list of CREATE statemetns
+ Args    : none
+ Status  : protected</code></code></pre>
+
+<p>This method returns a list containing the various CREATE statements needed to initialize the database tables.</p>
+
+<h2 id="do_initialize">do_initialize</h2>
+
+<pre><code><code> Title   : do_initialize
+ Usage   : $success = $db-&gt;do_initialize($drop_all)
+ Function: initialize the database
+ Returns : a boolean indicating the success of the operation
+ Args    : a boolean indicating whether to delete existing data
+ Status  : protected</code></code></pre>
+
+<p>This method will load the schema into the database. If $drop_all is true, then any existing data in the tables known to the schema will be deleted.</p>
+
+<p>Internally, this method calls schema() to get the schema data.</p>
+
+<h2 id="drop_all">drop_all</h2>
+
+<pre><code><code> Title   : drop_all
+ Usage   : $db-&gt;drop_all
+ Function: empty the database
+ Returns : void
+ Args    : none
+ Status  : protected</code></code></pre>
+
+<p>This method drops the tables known to this module. Internally it calls the abstract tables() method.</p>
+
+<h2 id="setup_load">setup_load</h2>
+
+<pre><code><code> Title   : setup_load
+ Usage   : $db-&gt;setup_load
+ Function: called before load_gff_line()
+ Returns : void
+ Args    : none
+ Status  : protected</code></code></pre>
+
+<p>This method performs schema-specific initialization prior to loading a set of GFF records. It prepares a set of DBI statement handlers to be used in loading the data.</p>
+
+<h2 id="load_gff_line">load_gff_line</h2>
+
+<pre><code><code> Title   : load_gff_line
+ Usage   : $db-&gt;load_gff_line($fields)
+ Function: called to load one parsed line of GFF
+ Returns : true if successfully inserted
+ Args    : hashref containing GFF fields
+ Status  : protected</code></code></pre>
+
+<p>This method is called once per line of the GFF and passed a series of parsed data items that are stored into the hashref $fields. The keys are:</p>
+
+<pre><code><code> ref          reference sequence
+ source       annotation source
+ method       annotation method
+ start        annotation start
+ stop         annotation stop
+ score        annotation score (may be undef)
+ strand       annotation strand (may be undef)
+ phase        annotation phase (may be undef)
+ group_class  class of annotation&#39;s group (may be undef)
+ group_name   ID of annotation&#39;s group (may be undef)
+ target_start start of target of a similarity hit
+ target_stop  stop of target of a similarity hit
+ attributes   array reference of attributes, each of which is a [tag=&gt;value] array ref</code></code></pre>
+
+<h2 id="get_table_id">get_table_id</h2>
+
+<pre><code><code> Title   : get_table_id
+ Usage   : $integer = $db-&gt;get_table_id($table,@ids)
+ Function: get the ID of a group or type
+ Returns : an integer ID or undef
+ Args    : none
+ Status  : private</code></code></pre>
+
+<p>This internal method is called by load_gff_line to look up the integer ID of an existing feature type or group. The arguments are the name of the table, and two string identifiers. For feature types, the identifiers are the method and source. For groups, the identifiers are group name and class.</p>
+
+<p>This method requires that a statement handler named <i>lookup_$table</i>, have been created previously by setup_load(). It is here to overcome deficiencies in mysql&#39;s INSERT syntax.</p>
+
+<h2 id="search_notes">search_notes</h2>
+
+<pre><code><code> Title   : search_notes
+ Usage   : @search_results = $db-&gt;search_notes(&quot;full text search string&quot;,$limit)
+ Function: Search the notes for a text string, using mysql full-text search
+ Returns : array of results
+ Args    : full text search string, and an optional row limit
+ Status  : public</code></code></pre>
+
+<p>This is a mysql-specific method. Given a search string, it performs a full-text search of the notes table and returns an array of results. Each row of the returned array is a arrayref containing the following fields:</p>
+
+<pre><code><code>  column 1     A Bio::DB::GFF::Featname object, suitable for passing to segment()
+  column 2     The text of the note
+  column 3     A relevance score.
+  column 4     A Bio::DB::GFF::Typename object</code></code></pre>
+
+<h2 id="make_meta_set_query">make_meta_set_query</h2>
+
+<pre><code><code> Title   : make_meta_set_query
+ Usage   : $sql = $db-&gt;make_meta_set_query
+ Function: return SQL fragment for setting a meta parameter
+ Returns : SQL fragment
+ Args    : none
+ Status  : public</code></code></pre>
+
+<p>By default this does nothing; meta parameters are not stored or retrieved.</p>
+
+
+</body>
+
+</html>
+
+

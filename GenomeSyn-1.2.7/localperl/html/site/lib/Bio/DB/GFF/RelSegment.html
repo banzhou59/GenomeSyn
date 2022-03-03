@@ -1,0 +1,530 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#An-Example">An Example</a></li>
+    </ul>
+  </li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#refseq">refseq</a></li>
+      <li><a href="#abs_low">abs_low</a></li>
+      <li><a href="#abs_high">abs_high</a></li>
+      <li><a href="#asString">asString</a></li>
+      <li><a href="#name">name</a></li>
+      <li><a href="#absolute">absolute</a></li>
+      <li><a href="#features">features</a></li>
+      <li><a href="#get_SeqFeatures">get_SeqFeatures</a></li>
+      <li><a href="#feature_count">feature_count</a></li>
+      <li><a href="#get_feature_stream">get_feature_stream</a></li>
+      <li><a href="#get_seq_stream">get_seq_stream</a></li>
+      <li><a href="#overlapping_features">overlapping_features</a></li>
+      <li><a href="#contained_features">contained_features</a></li>
+      <li><a href="#contained_in">contained_in</a></li>
+      <li><a href="#delete">delete</a></li>
+      <li><a href="#process_feature_args">_process_feature_args</a></li>
+      <li><a href="#types">types</a></li>
+    </ul>
+  </li>
+  <li><a href="#Internal-Methods">Internal Methods</a>
+    <ul>
+      <li><a href="#new_from_segment">new_from_segment</a></li>
+      <li><a href="#abs2rel">_abs2rel</a></li>
+      <li><a href="#rel2abs">rel2abs</a></li>
+      <li><a href="#abs2rel1">abs2rel</a></li>
+      <li><a href="#Bio::RangeI-Methods">Bio::RangeI Methods</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::GFF::RelSegment -- Sequence segment with relative coordinate support</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>See <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/GFF.html">Bio::DB::GFF</a>.</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::DB::GFF::RelSegment is a stretch of sequence that can handle relative coordinate addressing. It inherits from Bio::DB::GFF::Segment, and is the base class for Bio::DB::GFF::Feature.</p>
+
+<p>In addition to the source sequence, a relative segment has a &quot;reference sequence&quot;, which is used as the basis for its coordinate system. The reference sequence can be changed at will, allowing you freedom to change the &quot;frame of reference&quot; for features contained within the segment. For example, by setting a segment&#39;s reference sequence to the beginning of a gene, you can view all other features in gene-relative coordinates.</p>
+
+<p>The reference sequence and the source sequence must be on the same physical stretch of DNA, naturally. However, they do not have to be on the same strand. The strandedness of the reference sequence determines whether coordinates increase to the right or the left.</p>
+
+<p>Generally, you will not create or manipulate Bio::DB::GFF::RelSeg0ment objects directly, but use those that are returned by the Bio::DB::GFF module.</p>
+
+<h2 id="An-Example">An Example</h2>
+
+<p>To understand how relative coordinates work, consider the following example from the C. elegans database. First we create the appropriate GFF accessor object (the factory):</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$db</span> <span class="operator">=</span> <span class="variable">Bio::DB::GFF</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-dsn</span> <span class="operator">=&gt;</span> <span class="string">'dbi:mysql:elegans'</span><span class="operator">,</span>
+                              <span class="string">-adaptor</span><span class="operator">=&gt;</span><span class="string">'dbi:mysqlopt'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Now we fetch out a segment based on cosmid clone ZK909:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$seg</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">segment</span><span class="operator">(</span><span class="string">'ZK909'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>If we call the segment&#39;s refseq() method, we see that the base of the coordinate system is the sequence &quot;ZK154&quot;, and that its start and stop positions are 1 and the length of the cosmid:</p>
+
+<pre><code><code>  <span class="keyword">print</span> <span class="variable">$seg</span><span class="operator">-&gt;</span><span class="variable">refseq</span><span class="operator">;</span>
+  <span class="operator">=&gt;</span> <span class="variable">ZK909</span>
+  
+  <span class="keyword">print</span> <span class="variable">$seg</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">,</span><span class="string">' - '</span><span class="operator">,</span><span class="variable">$seg</span><span class="operator">-&gt;</span><span class="variable">stop</span><span class="operator">;</span>
+  <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">-</span> <span class="number">33782</span>
+</code></code></pre>
+
+<p>As a convenience, the &quot;&quot; operator is overloaded in this class, to give the reference sequence, and start and stop positions:</p>
+
+<pre><code><code>  <span class="keyword">print</span> <span class="variable">$seg</span><span class="operator">;</span>
+  <span class="operator">=&gt;</span> <span class="variable">ZK909</span><span class="operator">:</span><span class="number">1</span><span class="operator">,</span><span class="number">33782</span>
+</code></code></pre>
+
+<p>Internally, Bio::DB::GFF::RelSegment has looked up the absolute coordinates of this segment and maintains the source sequence and the absolute coordinates relative to the source sequence. We can see this information using sourceseq() (inherited from Bio::DB::GFF::Segment) and the abs_start() and abs_end() methods:</p>
+
+<pre><code><code>  <span class="keyword">print</span> <span class="variable">$seg</span><span class="operator">-&gt;</span><span class="variable">sourceseq</span><span class="operator">;</span>
+  <span class="operator">=&gt;</span> <span class="variable">CHROMOSOME_I</span>
+  
+  <span class="keyword">print</span> <span class="variable">$seg</span><span class="operator">-&gt;</span><span class="variable">abs_start</span><span class="operator">,</span><span class="string">' - '</span><span class="operator">,</span><span class="variable">$seg</span><span class="operator">-&gt;</span><span class="variable">abs_end</span><span class="operator">;</span>
+  <span class="operator">=&gt;</span> <span class="number">14839545</span> <span class="operator">-</span> <span class="number">14873326</span>
+</code></code></pre>
+
+<p>We can also put the segment into absolute mode, so that it behaves like Bio::DB::Segment, and always represents coordinates on the source sequence. This is done by passing a true value to the absolute() method:</p>
+
+<pre><code><code>  <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">absolute</span><span class="operator">(</span><span class="number">1</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="variable">$seg</span><span class="operator">;</span>
+  <span class="operator">=&gt;</span> <span class="variable">CHROMOSOME_I</span><span class="operator">:</span><span class="number">14839545</span><span class="operator">,</span><span class="number">14873326</span>
+</code></code></pre>
+
+<p>We can change the reference sequence at any time. One way is to call the segment&#39;s ref() method, giving it the ID (and optionally the class) of another landmark on the genome. For example, if we know that cosmid ZK337 is adjacent to ZK909, then we can view ZK909 in ZK337-relative coordinates:</p>
+
+<pre><code><code>  <span class="variable">$seg</span><span class="operator">-&gt;</span><span class="variable">refseq</span><span class="operator">(</span><span class="string">'ZK337'</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="variable">$seg</span><span class="operator">;</span>
+  <span class="operator">=&gt;</span> <span class="variable">ZK337</span><span class="operator">:-</span><span class="number">33670</span><span class="operator">,</span><span class="number">111</span>
+</code></code></pre>
+
+<p>We can call the segment&#39;s features() method in order to get the list of contigs that overlap this segment (in the C. elegans database, contigs have feature type &quot;Sequence:Link&quot;):</p>
+
+<pre><code><code>  <span class="variable">@links</span> <span class="operator">=</span> <span class="variable">$seg</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">'Sequence:Link'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>We can now set the reference sequence to the first of these contigs like so:</p>
+
+<pre><code><code>  <span class="variable">$seg</span><span class="operator">-&gt;</span><span class="variable">refseq</span><span class="operator">(</span><span class="variable">$links</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="variable">$seg</span><span class="operator">;</span>
+  <span class="operator">=&gt;</span> <span class="variable">Sequence</span><span class="operator">:</span><span class="variable">Link</span><span class="operator">(</span><span class="variable">LINK_Y95D11A</span><span class="operator">):</span><span class="number">3997326</span><span class="operator">,</span><span class="number">4031107</span>
+</code></code></pre>
+
+<h1 id="API">API</h1>
+
+<p>The remainder of this document describes the API for Bio::DB::GFF::Segment.</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : $s = Bio::DB::GFF::RelSegment-&gt;new(@args)
+ Function: create a new relative segment
+ Returns : a new Bio::DB::GFF::RelSegment object
+ Args    : see below
+ Status  : Public</code></code></pre>
+
+<p>This method creates a new Bio::DB::GFF::RelSegment object. Generally this is called automatically by the Bio::DB::GFF module and derivatives.</p>
+
+<p>This function uses a named-argument style:</p>
+
+<pre><code><code> -factory      a Bio::DB::GFF::Adaptor to use for database access
+ -seq          ID of the source sequence
+ -class        class of the source sequence
+ -start        start of the desired segment relative to source sequence
+ -stop         stop of the desired segment relative to source sequence
+ -ref          ID of the reference sequence
+ -refclass     class of the reference sequence
+ -offset       0-based offset from source sequence to start of segment
+ -length       length of desired segment
+ -absolute, -force_absolute
+               use absolute coordinates, rather than coordinates relative
+               to the start of self or the reference sequence</code></code></pre>
+
+<p>The -seq argument accepts the ID of any landmark in the database. The stored source sequence becomes whatever the GFF file indicates is the proper sequence for this landmark. A class of &quot;Sequence&quot; is assumed unless otherwise specified in the -class argument.</p>
+
+<p>If the argument to -seq is a Bio::GFF::Featname object (such as returned by the group() method), then the class is taken from that.</p>
+
+<p>The optional -start and -stop arguments specify the end points for the retrieved segment. For those who do not like 1-based indexing, -offset and -length are provided. If both -start/-stop and -offset/-length are provided, the latter overrides the former. Generally it is not a good idea to mix metaphors.</p>
+
+<p>-ref and -refclass together indicate a sequence to be used for relative coordinates. If not provided, the source sequence indicated by -seq is used as the reference sequence. If the argument to -ref is a Bio::GFF::Featname object (such as returned by the group() method), then the class is taken from that.</p>
+
+<p>-force_absolute should be used if you wish to skip the lookup of the absolute position of the source sequence that ordinarily occurs when you create a relative segment. In this case, the source sequence must be a sequence that has been specified as the &quot;source&quot; in the GFF file.</p>
+
+<h2 id="refseq">refseq</h2>
+
+<pre><code><code> Title   : refseq
+ Usage   : $ref = $s-&gt;refseq([$newseq] [,$newseqclass])
+ Function: get/set reference sequence
+ Returns : current reference sequence
+ Args    : new reference sequence and class (optional)
+ Status  : Public</code></code></pre>
+
+<p>This method will get or set the reference sequence. Called with no arguments, it returns the current reference sequence. Called with either a sequence ID and class, a Bio::DB::GFF::Segment object (or subclass) or a Bio::DB::GFF::Featname object, it will set the current reference sequence and return the previous one.</p>
+
+<p>The method will generate an exception if you attempt to set the reference sequence to a sequence that isn&#39;t contained in the database, or one that has a different source sequence from the segment.</p>
+
+<h2 id="abs_low">abs_low</h2>
+
+<pre><code><code> Title   : abs_low
+ Usage   : $s-&gt;abs_low
+ Function: the absolute lowest coordinate of the segment
+ Returns : an integer
+ Args    : none
+ Status  : Public</code></code></pre>
+
+<p>This is for GadFly compatibility, and returns the low coordinate in absolute coordinates;</p>
+
+<h2 id="abs_high">abs_high</h2>
+
+<pre><code><code> Title   : abs_high
+ Usage   : $s-&gt;abs_high
+ Function: the absolute highest coordinate of the segment
+ Returns : an integer
+ Args    : none
+ Status  : Public</code></code></pre>
+
+<p>This is for GadFly compatibility, and returns the high coordinate in absolute coordinates;</p>
+
+<h2 id="asString">asString</h2>
+
+<pre><code><code> Title   : asString
+ Usage   : $s-&gt;asString
+ Function: human-readable representation of the segment
+ Returns : a string
+ Args    : none
+ Status  : Public</code></code></pre>
+
+<p>This method will return a human-readable representation of the segment. It is the overloaded method call for the &quot;&quot; operator.</p>
+
+<p>Currently the format is:</p>
+
+<pre><code><code>  refseq:start,stop</code></code></pre>
+
+<h2 id="name">name</h2>
+
+<pre><code><code> Title   : name
+ Usage   : Alias for asString()</code></code></pre>
+
+<h2 id="absolute">absolute</h2>
+
+<pre><code><code> Title   : absolute
+ Usage   : $abs = $s-&gt;absolute([$abs])
+ Function: get/set absolute coordinates
+ Returns : a boolean flag
+ Args    : new setting for flag (optional)
+ Status  : Public</code></code></pre>
+
+<p>Called with a boolean flag, this method controls whether to display relative coordinates (relative to the reference sequence) or absolute coordinates (relative to the source sequence). It will return the previous value of the setting.</p>
+
+<h2 id="features">features</h2>
+
+<pre><code><code> Title   : features
+ Usage   : @features = $s-&gt;features(@args)
+ Function: get features that overlap this segment
+ Returns : a list of Bio::DB::GFF::Feature objects
+ Args    : see below
+ Status  : Public</code></code></pre>
+
+<p>This method will find all features that overlap the segment and return a list of Bio::DB::GFF::Feature objects. The features will use coordinates relative to the reference sequence in effect at the time that features() was called.</p>
+
+<p>The returned list can be limited to certain types of feature by filtering on their method and/or source. In addition, it is possible to obtain an iterator that will step through a large number of features sequentially.</p>
+
+<p>Arguments can be provided positionally or using the named arguments format. In the former case, the arguments are a list of feature types in the format &quot;method:source&quot;. Either method or source can be omitted, in which case the missing component is treated as a wildcard. If no colon is present, then the type is treated as a method name. Multiple arguments are ORed together.</p>
+
+<p>Examples:</p>
+
+<pre><code><code> <span class="variable">@f</span> <span class="operator">=</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">'exon:curated'</span><span class="operator">);</span>           <span class="comment"># all curated exons</span>
+ <span class="variable">@f</span> <span class="operator">=</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">'exon:curated'</span><span class="operator">,</span><span class="string">'intron'</span><span class="operator">);</span>  <span class="comment"># curated exons and all introns</span>
+ <span class="variable">@f</span> <span class="operator">=</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">'similarity:.*EST.*'</span><span class="operator">);</span>     <span class="comment"># all similarities</span>
+                                              <span class="comment"># having something to do</span>
+                                              <span class="comment"># with ESTs</span>
+</code></code></pre>
+
+<p>The named parameter form gives you control over a few options:</p>
+
+<pre><code><code>  -types      an array reference to type names in the format
+              &quot;method:source&quot;
+
+  -merge     Whether to apply aggregators to the generated features (default yes)
+
+  -rare      Turn on an optimization suitable for a relatively rare feature type,
+             where it will be faster to filter by feature type first
+             and then by position, rather than vice versa.
+
+  -attributes a hashref containing a set of attributes to match
+
+  -range_type One of &#39;overlapping&#39;, &#39;contains&#39;, or &#39;contained_in&#39;
+
+  -iterator  Whether to return an iterator across the features.
+
+  -binsize   A true value will create a set of artificial features whose
+             start and stop positions indicate bins of the given size, and
+             whose scores are the number of features in the bin.  The
+             class and method of the feature will be set to &quot;bin&quot;,
+             its source to &quot;method:source&quot;, and its group to &quot;bin:method:source&quot;.
+             This is a handy way of generating histograms of feature density.</code></code></pre>
+
+<p>-merge is a boolean flag that controls whether the adaptor&#39;s aggregators wll be applied to the features returned by this method.</p>
+
+<p>If -iterator is true, then the method returns a single scalar value consisting of a Bio::SeqIO object. You can call next_seq() repeatedly on this object to fetch each of the features in turn. If iterator is false or absent, then all the features are returned as a list.</p>
+
+<p>The -attributes argument is a hashref containing one or more attributes to match against:</p>
+
+<pre><code><code>  <span class="string">-attributes</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">Gene</span> <span class="operator">=&gt;</span> <span class="string">'abc-1'</span><span class="operator">,</span>
+                   <span class="string">Note</span> <span class="operator">=&gt;</span> <span class="string">'confirmed'</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>Attribute matching is simple string matching, and multiple attributes are ANDed together.</p>
+
+<h2 id="get_SeqFeatures">get_SeqFeatures</h2>
+
+<pre><code><code> Title   : get_SeqFeatures
+ Usage   :
+ Function: returns the top level sequence features
+ Returns : L&lt;Bio::SeqFeatureI&gt; objects
+ Args    : none</code></code></pre>
+
+<p>Segments do not ordinarily return any subfeatures.</p>
+
+<h2 id="feature_count">feature_count</h2>
+
+<pre><code><code> Title   : feature_count
+ Usage   : $seq-&gt;feature_count()
+ Function: Return the number of SeqFeatures attached to a sequence
+ Returns : integer representing the number of SeqFeatures
+ Args    : none</code></code></pre>
+
+<p>This method comes through extension of Bio::FeatureHolderI. See <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/FeatureHolderI.html">Bio::FeatureHolderI</a> for more information.</p>
+
+<h2 id="get_feature_stream">get_feature_stream</h2>
+
+<pre><code><code> Title   : features
+ Usage   : $stream = $s-&gt;get_feature_stream(@args)
+ Function: get a stream of features that overlap this segment
+ Returns : a Bio::SeqIO::Stream-compliant stream
+ Args    : see below
+ Status  : Public</code></code></pre>
+
+<p>This is the same as features(), but returns a stream. Use like this:</p>
+
+<pre><code><code> <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">get_feature_stream</span><span class="operator">(</span><span class="string">'exon'</span><span class="operator">);</span>
+ <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$exon</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="variable">$exon</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="get_seq_stream">get_seq_stream</h2>
+
+<pre><code><code> Title   : get_seq_stream
+ Usage   : $stream = $s-&gt;get_seq_stream(@args)
+ Function: get a stream of features that overlap this segment
+ Returns : a Bio::SeqIO::Stream-compliant stream
+ Args    : see below
+ Status  : Public</code></code></pre>
+
+<p>This is the same as feature_stream(), and is provided for Bioperl compatibility. Use like this:</p>
+
+<pre><code><code> <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">get_seq_stream</span><span class="operator">(</span><span class="string">'exon'</span><span class="operator">);</span>
+ <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$exon</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="variable">$exon</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="overlapping_features">overlapping_features</h2>
+
+<pre><code><code> Title   : overlapping_features
+ Usage   : @features = $s-&gt;overlapping_features(@args)
+ Function: get features that overlap this segment
+ Returns : a list of Bio::DB::GFF::Feature objects
+ Args    : see features()
+ Status  : Public</code></code></pre>
+
+<p>This is an alias for the features() method, and takes the same arguments.</p>
+
+<h2 id="contained_features">contained_features</h2>
+
+<pre><code><code> Title   : contained_features
+ Usage   : @features = $s-&gt;contained_features(@args)
+ Function: get features that are contained by this segment
+ Returns : a list of Bio::DB::GFF::Feature objects
+ Args    : see features()
+ Status  : Public</code></code></pre>
+
+<p>This is identical in behavior to features() except that it returns only those features that are completely contained within the segment, rather than any that overlap.</p>
+
+<h2 id="contained_in">contained_in</h2>
+
+<pre><code><code> Title   : contained_in
+ Usage   : @features = $s-&gt;contained_in(@args)
+ Function: get features that contain this segment
+ Returns : a list of Bio::DB::GFF::Feature objects
+ Args    : see features()
+ Status  : Public</code></code></pre>
+
+<p>This is identical in behavior to features() except that it returns only those features that completely contain the segment.</p>
+
+<h2 id="delete">delete</h2>
+
+<pre><code><code> Title   : delete
+ Usage   : $db-&gt;delete(@args)
+ Function: delete features
+ Returns : count of features deleted -- if available
+ Args    : numerous, see below
+ Status  : public</code></code></pre>
+
+<p>This method deletes all features that overlap the specified region or are of a particular type. If no arguments are provided and the -force argument is true, then deletes ALL features.</p>
+
+<p>Arguments:</p>
+
+<pre><code><code> -type,-types  Either a single scalar type to be deleted, or an
+               reference to an array of types.
+
+ -range_type   Control the range type of the deletion.  One of &quot;overlaps&quot; (default)
+               &quot;contains&quot; or &quot;contained_in&quot;</code></code></pre>
+
+<p>Examples:</p>
+
+<pre><code><code>  <span class="variable">$segment</span><span class="operator">-&gt;</span><span class="variable">delete</span><span class="operator">(</span><span class="string">-type</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">'intron'</span><span class="operator">,</span><span class="string">'repeat:repeatMasker'</span><span class="operator">]</span><span class="operator">);</span>  <span class="comment"># remove all introns &amp; repeats</span>
+  <span class="variable">$segment</span><span class="operator">-&gt;</span><span class="variable">delete</span><span class="operator">(</span><span class="string">-type</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">'intron'</span><span class="operator">,</span><span class="string">'repeat:repeatMasker'</span><span class="operator">]</span>
+                   <span class="operator">-</span><span class="string">range_type</span> <span class="operator">=&gt;</span> <span class="string">'contains'</span><span class="operator">);</span>                <span class="comment"># remove all introns &amp; repeats</span>
+                                                              <span class="comment"># strictly contained in segment</span>
+</code></code></pre>
+
+<p>IMPORTANT NOTE: This method only deletes features. It does *NOT* delete the names of groups that contain the deleted features. Group IDs will be reused if you later load a feature with the same group name as one that was previously deleted.</p>
+
+<p>NOTE ON FEATURE COUNTS: The DBI-based versions of this call return the result code from the SQL DELETE operation. Some dbd drivers return the count of rows deleted, while others return 0E0. Caveat emptor.</p>
+
+<h2 id="process_feature_args">_process_feature_args</h2>
+
+<pre><code><code> Title   : _process_feature_args
+ Usage   : @args = $s-&gt;_process_feature_args(@args)
+ Function: preprocess arguments passed to features, 
+           contained_features, and overlapping_features
+ Returns : a list of parsed arguents
+ Args    : see feature()
+ Status  : Internal</code></code></pre>
+
+<p>This is an internal method that is used to check and format the arguments to features() before passing them on to the adaptor.</p>
+
+<h2 id="types">types</h2>
+
+<pre><code><code> Title   : types
+ Usage   : @types = $s-&gt;types([-enumerate=&gt;1])
+ Function: list feature types that overlap this segment
+ Returns : a list of Bio::DB::GFF::Typename objects or a hash
+ Args    : see below
+ Status  : Public</code></code></pre>
+
+<p>The types() method will return a list of Bio::DB::GFF::Typename objects, each corresponding to a feature that overlaps the segment. If the optional -enumerate parameter is set to a true value, then the method will return a hash in which the keys are the type names and the values are the number of times a feature of that type is present on the segment. For example:</p>
+
+<pre><code><code>  <span class="variable">%count</span> <span class="operator">=</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">types</span><span class="operator">(</span><span class="string">-enumerate</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="Internal-Methods">Internal Methods</h1>
+
+<p>The following are internal methods and should not be called directly.</p>
+
+<h2 id="new_from_segment">new_from_segment</h2>
+
+<pre><code><code> Title   : new_from_segment
+ Usage   : $s = $segment-&gt;new_from_segment(@args)
+ Function: create a new relative segment
+ Returns : a new Bio::DB::GFF::RelSegment object
+ Args    : see below
+ Status  : Internal</code></code></pre>
+
+<p>This constructor is used internally by the subseq() method. It forces the new segment into the Bio::DB::GFF::RelSegment package, regardless of the package that it is called from. This causes subclass-specfic information, such as feature types, to be dropped when a subsequence is created.</p>
+
+<h2 id="abs2rel">_abs2rel</h2>
+
+<pre><code><code> Title   : _abs2rel
+ Usage   : @coords = $s-&gt;_abs2rel(@coords)
+ Function: convert absolute coordinates into relative coordinates
+ Returns : a list of relative coordinates
+ Args    : a list of absolute coordinates
+ Status  : Internal</code></code></pre>
+
+<p>This is used internally to map from absolute to relative coordinates. It does not take the offset of the reference sequence into account, so please use abs2rel() instead.</p>
+
+<h2 id="rel2abs">rel2abs</h2>
+
+<pre><code><code> Title   : rel2abs
+ Usage   : @coords = $s-&gt;rel2abs(@coords)
+ Function: convert relative coordinates into absolute coordinates
+ Returns : a list of absolute coordinates
+ Args    : a list of relative coordinates
+ Status  : Public</code></code></pre>
+
+<p>This function takes a list of positions in relative coordinates to the segment, and converts them into absolute coordinates.</p>
+
+<h2 id="abs2rel1">abs2rel</h2>
+
+<pre><code><code> Title   : abs2rel
+ Usage   : @rel_coords = $s-&gt;abs2rel(@abs_coords)
+ Function: convert absolute coordinates into relative coordinates
+ Returns : a list of relative coordinates
+ Args    : a list of absolute coordinates
+ Status  : Public</code></code></pre>
+
+<p>This function takes a list of positions in absolute coordinates and returns a list expressed in relative coordinates.</p>
+
+<h2 id="Bio::RangeI-Methods">Bio::RangeI Methods</h2>
+
+<p>The following Bio::RangeI methods are supported:</p>
+
+<p>overlaps(), contains(), equals(),intersection(),union(),overlap_extent()</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Schemas need some work.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a>bioperl</a></p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Lincoln Stein &lt;lstein@cshl.org&gt;.</p>
+
+<p>Copyright (c) 2001 Cold Spring Harbor Laboratory.</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

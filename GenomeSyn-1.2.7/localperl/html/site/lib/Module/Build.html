@@ -1,0 +1,899 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#GUIDE-TO-DOCUMENTATION">GUIDE TO DOCUMENTATION</a></li>
+  <li><a href="#ACTIONS">ACTIONS</a></li>
+  <li><a href="#OPTIONS">OPTIONS</a>
+    <ul>
+      <li><a href="#Command-Line-Options">Command Line Options</a></li>
+      <li><a href="#Default-Options-File-.modulebuildrc-">Default Options File (.modulebuildrc)</a></li>
+      <li><a href="#Environment-variables">Environment variables</a></li>
+    </ul>
+  </li>
+  <li><a href="#INSTALL-PATHS">INSTALL PATHS</a></li>
+  <li><a href="#MOTIVATIONS">MOTIVATIONS</a></li>
+  <li><a href="#TO-DO">TO DO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Module::Build - Build and install Perl modules</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Standard process for building &amp; installing modules:</p>
+
+<pre><code><code>  perl Build.PL
+  ./Build
+  ./Build test
+  ./Build install</code></code></pre>
+
+<p>Or, if you&#39;re on a platform (like DOS or Windows) that doesn&#39;t require the &quot;./&quot; notation, you can do this:</p>
+
+<pre><code><code>  perl Build.PL
+  Build
+  Build test
+  Build install</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><code><code>Module::Build</code></code> is a system for building, testing, and installing Perl modules. It is meant to be an alternative to <code><code>ExtUtils::MakeMaker</code></code>. Developers may alter the behavior of the module through subclassing in a much more straightforward way than with <code><code>MakeMaker</code></code>. It also does not require a <code><code>make</code></code> on your system - most of the <code><code>Module::Build</code></code> code is pure-perl and written in a very cross-platform way.</p>
+
+<p>See <a href="#MOTIVATIONS">&quot;MOTIVATIONS&quot;</a> for more comparisons between <code><code>ExtUtils::MakeMaker</code></code> and <code><code>Module::Build</code></code>.</p>
+
+<p>To install <code><code>Module::Build</code></code>, and any other module that uses <code><code>Module::Build</code></code> for its installation process, do the following:</p>
+
+<pre><code><code>  perl Build.PL       # &#39;Build.PL&#39; script creates the &#39;Build&#39; script
+  ./Build             # Need ./ to ensure we&#39;re using this &quot;Build&quot; script
+  ./Build test        # and not another one that happens to be in the PATH
+  ./Build install</code></code></pre>
+
+<p>This illustrates initial configuration and the running of three &#39;actions&#39;. In this case the actions run are &#39;build&#39; (the default action), &#39;test&#39;, and &#39;install&#39;. Other actions defined so far include:</p>
+
+<pre><code><code>  build                          manifest
+  clean                          manifest_skip
+  code                           manpages
+  config_data                    pardist
+  diff                           ppd
+  dist                           ppmdist
+  distcheck                      prereq_data
+  distclean                      prereq_report
+  distdir                        pure_install
+  distinstall                    realclean
+  distmeta                       retest
+  distsign                       skipcheck
+  disttest                       test
+  docs                           testall
+  fakeinstall                    testcover
+  help                           testdb
+  html                           testpod
+  install                        testpodcoverage
+  installdeps                    versioninstall</code></code></pre>
+
+<p>You can run the &#39;help&#39; action for a complete list of actions.</p>
+
+<h1 id="GUIDE-TO-DOCUMENTATION">GUIDE TO DOCUMENTATION</h1>
+
+<p>The documentation for <code><code>Module::Build</code></code> is broken up into sections:</p>
+
+<dl>
+
+<dt id="General-Usage-Module::Build-">General Usage (<a href="../../../lib/Module/Build.html">Module::Build</a>)</dt>
+<dd>
+
+<p>This is the document you are currently reading. It describes basic usage and background information. Its main purpose is to assist the user who wants to learn how to invoke and control <code><code>Module::Build</code></code> scripts at the command line.</p>
+
+</dd>
+<dt id="Authoring-Reference-Module::Build::Authoring-">Authoring Reference (<a href="../../../lib/Module/Build/Authoring.html">Module::Build::Authoring</a>)</dt>
+<dd>
+
+<p>This document describes the structure and organization of <code><code>Module::Build</code></code>, and the relevant concepts needed by authors who are writing <i>Build.PL</i> scripts for a distribution or controlling <code><code>Module::Build</code></code> processes programmatically.</p>
+
+</dd>
+<dt id="API-Reference-Module::Build::API-">API Reference (<a href="../../../lib/Module/Build/API.html">Module::Build::API</a>)</dt>
+<dd>
+
+<p>This is a reference to the <code><code>Module::Build</code></code> API.</p>
+
+</dd>
+<dt id="Cookbook-Module::Build::Cookbook-">Cookbook (<a href="../../../lib/Module/Build/Cookbook.html">Module::Build::Cookbook</a>)</dt>
+<dd>
+
+<p>This document demonstrates how to accomplish many common tasks. It covers general command line usage and authoring of <i>Build.PL</i> scripts. Includes working examples.</p>
+
+</dd>
+</dl>
+
+<h1 id="ACTIONS">ACTIONS</h1>
+
+<p>There are some general principles at work here. First, each task when building a module is called an &quot;action&quot;. These actions are listed above; they correspond to the building, testing, installing, packaging, etc., tasks.</p>
+
+<p>Second, arguments are processed in a very systematic way. Arguments are always key=value pairs. They may be specified at <code><code>perl Build.PL</code></code> time (i.e. <code><code>perl Build.PL destdir=/my/secret/place</code></code>), in which case their values last for the lifetime of the <code><code>Build</code></code> script. They may also be specified when executing a particular action (i.e. <code><code>Build test verbose=1</code></code>), in which case their values last only for the lifetime of that command. Per-action command line parameters take precedence over parameters specified at <code><code>perl Build.PL</code></code> time.</p>
+
+<p>The build process also relies heavily on the <code><code>Config.pm</code></code> module. If the user wishes to override any of the values in <code><code>Config.pm</code></code>, she may specify them like so:</p>
+
+<pre><code><code>  perl Build.PL --config cc=gcc --config ld=gcc</code></code></pre>
+
+<p>The following build actions are provided by default.</p>
+
+<dl>
+
+<dt id="build">build</dt>
+<dd>
+
+<p>[version 0.01]</p>
+
+<p>If you run the <code><code>Build</code></code> script without any arguments, it runs the <code><code>build</code></code> action, which in turn runs the <code><code>code</code></code> and <code><code>docs</code></code> actions.</p>
+
+<p>This is analogous to the <code><code>MakeMaker</code></code> <i>make all</i> target.</p>
+
+</dd>
+<dt id="clean">clean</dt>
+<dd>
+
+<p>[version 0.01]</p>
+
+<p>This action will clean up any files that the build process may have created, including the <code><code>blib/</code></code> directory (but not including the <code><code>_build/</code></code> directory and the <code><code>Build</code></code> script itself).</p>
+
+</dd>
+<dt id="code">code</dt>
+<dd>
+
+<p>[version 0.20]</p>
+
+<p>This action builds your code base.</p>
+
+<p>By default it just creates a <code><code>blib/</code></code> directory and copies any <code><code>.pm</code></code> and <code><code>.pod</code></code> files from your <code><code>lib/</code></code> directory into the <code><code>blib/</code></code> directory. It also compiles any <code><code>.xs</code></code> files from <code><code>lib/</code></code> and places them in <code><code>blib/</code></code>. Of course, you need a working C compiler (probably the same one that built perl itself) for the compilation to work properly.</p>
+
+<p>The <code><code>code</code></code> action also runs any <code><code>.PL</code></code> files in your <i>lib/</i> directory. Typically these create other files, named the same but without the <code><code>.PL</code></code> ending. For example, a file <i>lib/Foo/Bar.pm.PL</i> could create the file <i>lib/Foo/Bar.pm</i>. The <code><code>.PL</code></code> files are processed first, so any <code><code>.pm</code></code> files (or other kinds that we deal with) will get copied correctly.</p>
+
+</dd>
+<dt id="config_data">config_data</dt>
+<dd>
+
+<p>[version 0.26]</p>
+
+<p>...</p>
+
+</dd>
+<dt id="diff">diff</dt>
+<dd>
+
+<p>[version 0.14]</p>
+
+<p>This action will compare the files about to be installed with their installed counterparts. For .pm and .pod files, a diff will be shown (this currently requires a &#39;diff&#39; program to be in your PATH). For other files like compiled binary files, we simply report whether they differ.</p>
+
+<p>A <code><code>flags</code></code> parameter may be passed to the action, which will be passed to the &#39;diff&#39; program. Consult your &#39;diff&#39; documentation for the parameters it will accept - a good one is <code><code>-u</code></code>:</p>
+
+<pre><code><code>  ./Build diff flags=-u</code></code></pre>
+
+</dd>
+<dt id="dist">dist</dt>
+<dd>
+
+<p>[version 0.02]</p>
+
+<p>This action is helpful for module authors who want to package up their module for source distribution through a medium like CPAN. It will create a tarball of the files listed in <i>MANIFEST</i> and compress the tarball using GZIP compression.</p>
+
+<p>By default, this action will use the <code><code>Archive::Tar</code></code> module. However, you can force it to use binary &quot;tar&quot; and &quot;gzip&quot; executables by supplying an explicit <code><code>tar</code></code> (and optional <code><code>gzip</code></code>) parameter:</p>
+
+<pre><code><code>  ./Build dist --tar C:\path\to\tar.exe --gzip C:\path\to\zip.exe</code></code></pre>
+
+</dd>
+<dt id="distcheck">distcheck</dt>
+<dd>
+
+<p>[version 0.05]</p>
+
+<p>Reports which files are in the build directory but not in the <i>MANIFEST</i> file, and vice versa. (See <a>manifest</a> for details.)</p>
+
+</dd>
+<dt id="distclean">distclean</dt>
+<dd>
+
+<p>[version 0.05]</p>
+
+<p>Performs the &#39;realclean&#39; action and then the &#39;distcheck&#39; action.</p>
+
+</dd>
+<dt id="distdir">distdir</dt>
+<dd>
+
+<p>[version 0.05]</p>
+
+<p>Creates a &quot;distribution directory&quot; named <code><code>$dist_name-$dist_version</code></code> (if that directory already exists, it will be removed first), then copies all the files listed in the <i>MANIFEST</i> file to that directory. This directory is what the distribution tarball is created from.</p>
+
+</dd>
+<dt id="distinstall">distinstall</dt>
+<dd>
+
+<p>[version 0.37]</p>
+
+<p>Performs the &#39;distdir&#39; action, then switches into that directory and runs a <code><code>perl Build.PL</code></code>, followed by the &#39;build&#39; and &#39;install&#39; actions in that directory. Use PERL_MB_OPT or <i>.modulebuildrc</i> to set options that should be applied during subprocesses</p>
+
+</dd>
+<dt id="distmeta">distmeta</dt>
+<dd>
+
+<p>[version 0.21]</p>
+
+<p>Creates the <i>META.yml</i> file that describes the distribution.</p>
+
+<p><i>META.yml</i> is a file containing various bits of <i>metadata</i> about the distribution. The metadata includes the distribution name, version, abstract, prerequisites, license, and various other data about the distribution. This file is created as <i>META.yml</i> in a simplified YAML format.</p>
+
+<p><i>META.yml</i> file must also be listed in <i>MANIFEST</i> - if it&#39;s not, a warning will be issued.</p>
+
+<p>The current version of the <i>META.yml</i> specification can be found on CPAN as <a href="../../../lib/CPAN/Meta/Spec.html">CPAN::Meta::Spec</a>.</p>
+
+</dd>
+<dt id="distsign">distsign</dt>
+<dd>
+
+<p>[version 0.16]</p>
+
+<p>Uses <code><code>Module::Signature</code></code> to create a SIGNATURE file for your distribution, and adds the SIGNATURE file to the distribution&#39;s MANIFEST.</p>
+
+</dd>
+<dt id="disttest">disttest</dt>
+<dd>
+
+<p>[version 0.05]</p>
+
+<p>Performs the &#39;distdir&#39; action, then switches into that directory and runs a <code><code>perl Build.PL</code></code>, followed by the &#39;build&#39; and &#39;test&#39; actions in that directory. Use PERL_MB_OPT or <i>.modulebuildrc</i> to set options that should be applied during subprocesses</p>
+
+</dd>
+<dt id="docs">docs</dt>
+<dd>
+
+<p>[version 0.20]</p>
+
+<p>This will generate documentation (e.g. Unix man pages and HTML documents) for any installable items under <b>blib/</b> that contain POD. If there are no <code><code>bindoc</code></code> or <code><code>libdoc</code></code> installation targets defined (as will be the case on systems that don&#39;t support Unix manpages) no action is taken for manpages. If there are no <code><code>binhtml</code></code> or <code><code>libhtml</code></code> installation targets defined no action is taken for HTML documents.</p>
+
+</dd>
+<dt id="fakeinstall">fakeinstall</dt>
+<dd>
+
+<p>[version 0.02]</p>
+
+<p>This is just like the <code><code>install</code></code> action, but it won&#39;t actually do anything, it will just report what it <i>would</i> have done if you had actually run the <code><code>install</code></code> action.</p>
+
+</dd>
+<dt id="help">help</dt>
+<dd>
+
+<p>[version 0.03]</p>
+
+<p>This action will simply print out a message that is meant to help you use the build process. It will show you a list of available build actions too.</p>
+
+<p>With an optional argument specifying an action name (e.g. <code><code>Build help test</code></code>), the &#39;help&#39; action will show you any POD documentation it can find for that action.</p>
+
+</dd>
+<dt id="html">html</dt>
+<dd>
+
+<p>[version 0.26]</p>
+
+<p>This will generate HTML documentation for any binary or library files under <b>blib/</b> that contain POD. The HTML documentation will only be installed if the install paths can be determined from values in <code><code>Config.pm</code></code>. You can also supply or override install paths on the command line by specifying <code><code>install_path</code></code> values for the <code><code>binhtml</code></code> and/or <code><code>libhtml</code></code> installation targets.</p>
+
+<p>With an optional <code><code>html_links</code></code> argument set to a false value, you can skip the search for other documentation to link to, because that can waste a lot of time if there aren&#39;t any links to generate anyway:</p>
+
+<pre><code><code>  ./Build html --html_links 0</code></code></pre>
+
+</dd>
+<dt id="install">install</dt>
+<dd>
+
+<p>[version 0.01]</p>
+
+<p>This action will use <code><code>ExtUtils::Install</code></code> to install the files from <code><code>blib/</code></code> into the system. See <a href="#INSTALL-PATHS">&quot;INSTALL PATHS&quot;</a> for details about how Module::Build determines where to install things, and how to influence this process.</p>
+
+<p>If you want the installation process to look around in <code><code>@INC</code></code> for other versions of the stuff you&#39;re installing and try to delete it, you can use the <code><code>uninst</code></code> parameter, which tells <code><code>ExtUtils::Install</code></code> to do so:</p>
+
+<pre><code><code>  ./Build install uninst=1</code></code></pre>
+
+<p>This can be a good idea, as it helps prevent multiple versions of a module from being present on your system, which can be a confusing situation indeed.</p>
+
+</dd>
+<dt id="installdeps">installdeps</dt>
+<dd>
+
+<p>[version 0.36]</p>
+
+<p>This action will use the <code><code>cpan_client</code></code> parameter as a command to install missing prerequisites. You will be prompted whether to install optional dependencies.</p>
+
+<p>The <code><code>cpan_client</code></code> option defaults to &#39;cpan&#39; but can be set as an option or in <i>.modulebuildrc</i>. It must be a shell command that takes a list of modules to install as arguments (e.g. &#39;cpanp -i&#39; for CPANPLUS). If the program part is a relative path (e.g. &#39;cpan&#39; or &#39;cpanp&#39;), it will be located relative to the perl program that executed Build.PL.</p>
+
+<pre><code><code>  /opt/perl/5.8.9/bin/perl Build.PL
+  ./Build installdeps --cpan_client &#39;cpanp -i&#39;
+  # installs to 5.8.9</code></code></pre>
+
+</dd>
+<dt id="manifest">manifest</dt>
+<dd>
+
+<p>[version 0.05]</p>
+
+<p>This is an action intended for use by module authors, not people installing modules. It will bring the <i>MANIFEST</i> up to date with the files currently present in the distribution. You may use a <i>MANIFEST.SKIP</i> file to exclude certain files or directories from inclusion in the <i>MANIFEST</i>. <i>MANIFEST.SKIP</i> should contain a bunch of regular expressions, one per line. If a file in the distribution directory matches any of the regular expressions, it won&#39;t be included in the <i>MANIFEST</i>.</p>
+
+<p>The following is a reasonable <i>MANIFEST.SKIP</i> starting point, you can add your own stuff to it:</p>
+
+<pre><code><code>  ^_build
+  ^Build$
+  ^blib
+  ~$
+  \.bak$
+  ^MANIFEST\.SKIP$
+  CVS</code></code></pre>
+
+<p>See the <a>distcheck</a> and <a>skipcheck</a> actions if you want to find out what the <code><code>manifest</code></code> action would do, without actually doing anything.</p>
+
+</dd>
+<dt id="manifest_skip">manifest_skip</dt>
+<dd>
+
+<p>[version 0.3608]</p>
+
+<p>This is an action intended for use by module authors, not people installing modules. It will generate a boilerplate MANIFEST.SKIP file if one does not already exist.</p>
+
+</dd>
+<dt id="manpages">manpages</dt>
+<dd>
+
+<p>[version 0.28]</p>
+
+<p>This will generate man pages for any binary or library files under <b>blib/</b> that contain POD. The man pages will only be installed if the install paths can be determined from values in <code><code>Config.pm</code></code>. You can also supply or override install paths by specifying there values on the command line with the <code><code>bindoc</code></code> and <code><code>libdoc</code></code> installation targets.</p>
+
+</dd>
+<dt id="pardist">pardist</dt>
+<dd>
+
+<p>[version 0.2806]</p>
+
+<p>Generates a PAR binary distribution for use with <a>PAR</a> or <a>PAR::Dist</a>.</p>
+
+<p>It requires that the PAR::Dist module (version 0.17 and up) is installed on your system.</p>
+
+</dd>
+<dt id="ppd">ppd</dt>
+<dd>
+
+<p>[version 0.20]</p>
+
+<p>Build a PPD file for your distribution.</p>
+
+<p>This action takes an optional argument <code><code>codebase</code></code> which is used in the generated PPD file to specify the (usually relative) URL of the distribution. By default, this value is the distribution name without any path information.</p>
+
+<p>Example:</p>
+
+<pre><code><code>  ./Build ppd --codebase &quot;MSWin32-x86-multi-thread/Module-Build-0.21.tar.gz&quot;</code></code></pre>
+
+</dd>
+<dt id="ppmdist">ppmdist</dt>
+<dd>
+
+<p>[version 0.23]</p>
+
+<p>Generates a PPM binary distribution and a PPD description file. This action also invokes the <code><code>ppd</code></code> action, so it can accept the same <code><code>codebase</code></code> argument described under that action.</p>
+
+<p>This uses the same mechanism as the <code><code>dist</code></code> action to tar &amp; zip its output, so you can supply <code><code>tar</code></code> and/or <code><code>gzip</code></code> parameters to affect the result.</p>
+
+</dd>
+<dt id="prereq_data">prereq_data</dt>
+<dd>
+
+<p>[version 0.32]</p>
+
+<p>This action prints out a Perl data structure of all prerequisites and the versions required. The output can be loaded again using <code><code>eval()</code></code>. This can be useful for external tools that wish to query a Build script for prerequisites.</p>
+
+</dd>
+<dt id="prereq_report">prereq_report</dt>
+<dd>
+
+<p>[version 0.28]</p>
+
+<p>This action prints out a list of all prerequisites, the versions required, and the versions actually installed. This can be useful for reviewing the configuration of your system prior to a build, or when compiling data to send for a bug report.</p>
+
+</dd>
+<dt id="pure_install">pure_install</dt>
+<dd>
+
+<p>[version 0.28]</p>
+
+<p>This action is identical to the <code><code>install</code></code> action. In the future, though, when <code><code>install</code></code> starts writing to the file <i>$(INSTALLARCHLIB)/perllocal.pod</i>, <code><code>pure_install</code></code> won&#39;t, and that will be the only difference between them.</p>
+
+</dd>
+<dt id="realclean">realclean</dt>
+<dd>
+
+<p>[version 0.01]</p>
+
+<p>This action is just like the <code><code>clean</code></code> action, but also removes the <code><code>_build</code></code> directory and the <code><code>Build</code></code> script. If you run the <code><code>realclean</code></code> action, you are essentially starting over, so you will have to re-create the <code><code>Build</code></code> script again.</p>
+
+</dd>
+<dt id="retest">retest</dt>
+<dd>
+
+<p>[version 0.2806]</p>
+
+<p>This is just like the <code><code>test</code></code> action, but doesn&#39;t actually build the distribution first, and doesn&#39;t add <i>blib/</i> to the load path, and therefore will test against a <i>previously</i> installed version of the distribution. This can be used to verify that a certain installed distribution still works, or to see whether newer versions of a distribution still pass the old regression tests, and so on.</p>
+
+</dd>
+<dt id="skipcheck">skipcheck</dt>
+<dd>
+
+<p>[version 0.05]</p>
+
+<p>Reports which files are skipped due to the entries in the <i>MANIFEST.SKIP</i> file (See <a>manifest</a> for details)</p>
+
+</dd>
+<dt id="test">test</dt>
+<dd>
+
+<p>[version 0.01]</p>
+
+<p>This will use <code><code>Test::Harness</code></code> or <code><code>TAP::Harness</code></code> to run any regression tests and report their results. Tests can be defined in the standard places: a file called <code><code>test.pl</code></code> in the top-level directory, or several files ending with <code><code>.t</code></code> in a <code><code>t/</code></code> directory.</p>
+
+<p>If you want tests to be &#39;verbose&#39;, i.e. show details of test execution rather than just summary information, pass the argument <code><code>verbose=1</code></code>.</p>
+
+<p>If you want to run tests under the perl debugger, pass the argument <code><code>debugger=1</code></code>.</p>
+
+<p>If you want to have Module::Build find test files with different file name extensions, pass the <code><code>test_file_exts</code></code> argument with an array of extensions, such as <code><code>[qw( .t .s .z )]</code></code>.</p>
+
+<p>If you want test to be run by <code><code>TAP::Harness</code></code>, rather than <code><code>Test::Harness</code></code>, pass the argument <code><code>tap_harness_args</code></code> as an array reference of arguments to pass to the TAP::Harness constructor.</p>
+
+<p>In addition, if a file called <code><code>visual.pl</code></code> exists in the top-level directory, this file will be executed as a Perl script and its output will be shown to the user. This is a good place to put speed tests or other tests that don&#39;t use the <code><code>Test::Harness</code></code> format for output.</p>
+
+<p>To override the choice of tests to run, you may pass a <code><code>test_files</code></code> argument whose value is a whitespace-separated list of test scripts to run. This is especially useful in development, when you only want to run a single test to see whether you&#39;ve squashed a certain bug yet:</p>
+
+<pre><code><code>  ./Build test --test_files t/something_failing.t</code></code></pre>
+
+<p>You may also pass several <code><code>test_files</code></code> arguments separately:</p>
+
+<pre><code><code>  ./Build test --test_files t/one.t --test_files t/two.t</code></code></pre>
+
+<p>or use a <code><code>glob()</code></code>-style pattern:</p>
+
+<pre><code><code>  ./Build test --test_files &#39;t/01-*.t&#39;</code></code></pre>
+
+</dd>
+<dt id="testall">testall</dt>
+<dd>
+
+<p>[version 0.2807]</p>
+
+<p>[Note: the &#39;testall&#39; action and the code snippets below are currently in alpha stage, see <a>&quot;/www.nntp.perl.org/group/perl.module.build/2007/03/msg584.html&quot;&quot; in &quot;http:</a> ]</p>
+
+<p>Runs the <code><code>test</code></code> action plus each of the <code><code>test$type</code></code> actions defined by the keys of the <code><code>test_types</code></code> parameter.</p>
+
+<p>Currently, you need to define the ACTION_test$type method yourself and enumerate them in the test_types parameter.</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$mb</span> <span class="operator">=</span> <span class="variable">Module::Build</span><span class="operator">-&gt;</span><span class="variable">subclass</span><span class="operator">(</span>
+    <span class="string">code</span> <span class="operator">=&gt;</span> <span class="string">q(
+      sub ACTION_testspecial { shift-&gt;generic_test(type =&gt; 'special'); }
+      sub ACTION_testauthor  { shift-&gt;generic_test(type =&gt; 'author'); }
+    )</span>
+  <span class="operator">)-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+    <span class="operator">...</span>
+    <span class="string">test_types</span>  <span class="operator">=&gt;</span> <span class="operator">{</span>
+      <span class="string">special</span> <span class="operator">=&gt;</span> <span class="string">'.st'</span><span class="operator">,</span>
+      <span class="string">author</span>  <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'.at'</span><span class="operator">,</span> <span class="string">'.pt'</span> <span class="operator">]</span><span class="operator">,</span>
+    <span class="operator">}</span><span class="operator">,</span>
+    <span class="operator">...</span>
+</code></code></pre>
+
+</dd>
+<dt id="testcover">testcover</dt>
+<dd>
+
+<p>[version 0.26]</p>
+
+<p>Runs the <code><code>test</code></code> action using <code><code>Devel::Cover</code></code>, generating a code-coverage report showing which parts of the code were actually exercised during the tests.</p>
+
+<p>To pass options to <code><code>Devel::Cover</code></code>, set the <code><code>$DEVEL_COVER_OPTIONS</code></code> environment variable:</p>
+
+<pre><code><code>  DEVEL_COVER_OPTIONS=-ignore,Build ./Build testcover</code></code></pre>
+
+</dd>
+<dt id="testdb">testdb</dt>
+<dd>
+
+<p>[version 0.05]</p>
+
+<p>This is a synonym for the &#39;test&#39; action with the <code><code>debugger=1</code></code> argument.</p>
+
+</dd>
+<dt id="testpod">testpod</dt>
+<dd>
+
+<p>[version 0.25]</p>
+
+<p>This checks all the files described in the <code><code>docs</code></code> action and produces <code><code>Test::Harness</code></code>-style output. If you are a module author, this is useful to run before creating a new release.</p>
+
+</dd>
+<dt id="testpodcoverage">testpodcoverage</dt>
+<dd>
+
+<p>[version 0.28]</p>
+
+<p>This checks the pod coverage of the distribution and produces <code><code>Test::Harness</code></code>-style output. If you are a module author, this is useful to run before creating a new release.</p>
+
+</dd>
+<dt id="versioninstall">versioninstall</dt>
+<dd>
+
+<p>[version 0.16]</p>
+
+<p>** Note: since <code><code>only.pm</code></code> is so new, and since we just recently added support for it here too, this feature is to be considered experimental. **</p>
+
+<p>If you have the <code><code>only.pm</code></code> module installed on your system, you can use this action to install a module into the version-specific library trees. This means that you can have several versions of the same module installed and <code><code>use</code></code> a specific one like this:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">only</span> <span class="string">MyModule</span> <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">.</span><span class="number">55</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>To override the default installation libraries in <code><code>only::config</code></code>, specify the <code><code>versionlib</code></code> parameter when you run the <code><code>Build.PL</code></code> script:</p>
+
+<pre><code><code>  perl Build.PL --versionlib /my/version/place/</code></code></pre>
+
+<p>To override which version the module is installed as, specify the <code><code>version</code></code> parameter when you run the <code><code>Build.PL</code></code> script:</p>
+
+<pre><code><code>  perl Build.PL --version 0.50</code></code></pre>
+
+<p>See the <code><code>only.pm</code></code> documentation for more information on version-specific installs.</p>
+
+</dd>
+</dl>
+
+<h1 id="OPTIONS">OPTIONS</h1>
+
+<h2 id="Command-Line-Options">Command Line Options</h2>
+
+<p>The following options can be used during any invocation of <code><code>Build.PL</code></code> or the Build script, during any action. For information on other options specific to an action, see the documentation for the respective action.</p>
+
+<p>NOTE: There is some preliminary support for options to use the more familiar long option style. Most options can be preceded with the <code><code>--</code></code> long option prefix, and the underscores changed to dashes (e.g. <code><code>--use-rcfile</code></code>). Additionally, the argument to boolean options is optional, and boolean options can be negated by prefixing them with <code><code>no</code></code> or <code><code>no-</code></code> (e.g. <code><code>--noverbose</code></code> or <code><code>--no-verbose</code></code>).</p>
+
+<dl>
+
+<dt id="quiet">quiet</dt>
+<dd>
+
+<p>Suppress informative messages on output.</p>
+
+</dd>
+<dt id="verbose">verbose</dt>
+<dd>
+
+<p>Display extra information about the Build on output. <code><code>verbose</code></code> will turn off <code><code>quiet</code></code></p>
+
+</dd>
+<dt id="cpan_client">cpan_client</dt>
+<dd>
+
+<p>Sets the <code><code>cpan_client</code></code> command for use with the <code><code>installdeps</code></code> action. See <code><code>installdeps</code></code> for more details.</p>
+
+</dd>
+<dt id="use_rcfile">use_rcfile</dt>
+<dd>
+
+<p>Load the <i>~/.modulebuildrc</i> option file. This option can be set to false to prevent the custom resource file from being loaded.</p>
+
+</dd>
+<dt id="allow_mb_mismatch">allow_mb_mismatch</dt>
+<dd>
+
+<p>Suppresses the check upon startup that the version of Module::Build we&#39;re now running under is the same version that was initially invoked when building the distribution (i.e. when the <code><code>Build.PL</code></code> script was first run). As of 0.3601, a mismatch results in a warning instead of a fatal error, so this option effectively just suppresses the warning.</p>
+
+</dd>
+<dt id="debug">debug</dt>
+<dd>
+
+<p>Prints Module::Build debugging information to STDOUT, such as a trace of executed build actions.</p>
+
+</dd>
+</dl>
+
+<h2 id="Default-Options-File-.modulebuildrc-">Default Options File (<i>.modulebuildrc</i>)</h2>
+
+<p>[version 0.28]</p>
+
+<p>When Module::Build starts up, it will look first for a file, <i>$ENV{HOME}/.modulebuildrc</i>. If it&#39;s not found there, it will look in the <i>.modulebuildrc</i> file in the directories referred to by the environment variables <code><code>HOMEDRIVE</code></code> + <code><code>HOMEDIR</code></code>, <code><code>USERPROFILE</code></code>, <code><code>APPDATA</code></code>, <code><code>WINDIR</code></code>, <code><code>SYS$LOGIN</code></code>. If the file exists, the options specified there will be used as defaults, as if they were typed on the command line. The defaults can be overridden by specifying new values on the command line.</p>
+
+<p>The action name must come at the beginning of the line, followed by any amount of whitespace and then the options. Options are given the same as they would be on the command line. They can be separated by any amount of whitespace, including newlines, as long there is whitespace at the beginning of each continued line. Anything following a hash mark (<code><code><span class="comment">#</span>
+</code></code>) is considered a comment, and is stripped before parsing. If more than one line begins with the same action name, those lines are merged into one set of options.</p>
+
+<p>Besides the regular actions, there are two special pseudo-actions: the key <code><code>*</code></code> (asterisk) denotes any global options that should be applied to all actions, and the key &#39;Build_PL&#39; specifies options to be applied when you invoke <code><code>perl Build.PL</code></code>.</p>
+
+<pre><code><code>  *           verbose=1   # global options
+  diff        flags=-u
+  install     --install_base /home/ken
+              --install_path html=/home/ken/docs/html
+  installdeps --cpan_client &#39;cpanp -i&#39;</code></code></pre>
+
+<p>If you wish to locate your resource file in a different location, you can set the environment variable <code><code>MODULEBUILDRC</code></code> to the complete absolute path of the file containing your options.</p>
+
+<h2 id="Environment-variables">Environment variables</h2>
+
+<dl>
+
+<dt id="MODULEBUILDRC">MODULEBUILDRC</dt>
+<dd>
+
+<p>[version 0.28]</p>
+
+<p>Specifies an alternate location for a default options file as described above.</p>
+
+</dd>
+<dt id="PERL_MB_OPT">PERL_MB_OPT</dt>
+<dd>
+
+<p>[version 0.36]</p>
+
+<p>Command line options that are applied to Build.PL or any Build action. The string is split as the shell would (e.g. whitespace) and the result is prepended to any actual command-line arguments.</p>
+
+</dd>
+</dl>
+
+<h1 id="INSTALL-PATHS">INSTALL PATHS</h1>
+
+<p>[version 0.19]</p>
+
+<p>When you invoke Module::Build&#39;s <code><code>build</code></code> action, it needs to figure out where to install things. The nutshell version of how this works is that default installation locations are determined from <i>Config.pm</i>, and they may be overridden by using the <code><code>install_path</code></code> parameter. An <code><code>install_base</code></code> parameter lets you specify an alternative installation root like <i>/home/foo</i>, and a <code><code>destdir</code></code> lets you specify a temporary installation directory like <i>/tmp/install</i> in case you want to create bundled-up installable packages.</p>
+
+<p>Natively, Module::Build provides default installation locations for the following types of installable items:</p>
+
+<dl>
+
+<dt id="lib">lib</dt>
+<dd>
+
+<p>Usually pure-Perl module files ending in <i>.pm</i>.</p>
+
+</dd>
+<dt id="arch">arch</dt>
+<dd>
+
+<p>&quot;Architecture-dependent&quot; module files, usually produced by compiling XS, <a href="../../../lib/perl5/Inline.html">Inline</a>, or similar code.</p>
+
+</dd>
+<dt id="script">script</dt>
+<dd>
+
+<p>Programs written in pure Perl. In order to improve reuse, try to make these as small as possible - put the code into modules whenever possible.</p>
+
+</dd>
+<dt id="bin">bin</dt>
+<dd>
+
+<p>&quot;Architecture-dependent&quot; executable programs, i.e. compiled C code or something. Pretty rare to see this in a perl distribution, but it happens.</p>
+
+</dd>
+<dt id="bindoc">bindoc</dt>
+<dd>
+
+<p>Documentation for the stuff in <code><code>script</code></code> and <code><code>bin</code></code>. Usually generated from the POD in those files. Under Unix, these are manual pages belonging to the &#39;man1&#39; category.</p>
+
+</dd>
+<dt id="libdoc">libdoc</dt>
+<dd>
+
+<p>Documentation for the stuff in <code><code>lib</code></code> and <code><code>arch</code></code>. This is usually generated from the POD in <i>.pm</i> files. Under Unix, these are manual pages belonging to the &#39;man3&#39; category.</p>
+
+</dd>
+<dt id="binhtml">binhtml</dt>
+<dd>
+
+<p>This is the same as <code><code>bindoc</code></code> above, but applies to HTML documents.</p>
+
+</dd>
+<dt id="libhtml">libhtml</dt>
+<dd>
+
+<p>This is the same as <code><code>libdoc</code></code> above, but applies to HTML documents.</p>
+
+</dd>
+</dl>
+
+<p>Four other parameters let you control various aspects of how installation paths are determined:</p>
+
+<dl>
+
+<dt id="installdirs">installdirs</dt>
+<dd>
+
+<p>The default destinations for these installable things come from entries in your system&#39;s <code><code>Config.pm</code></code>. You can select from three different sets of default locations by setting the <code><code>installdirs</code></code> parameter as follows:</p>
+
+<pre><code><code>                          &#39;installdirs&#39; set to:
+                   core          site                vendor
+
+              uses the following defaults from Config.pm:
+
+  lib     =&gt; installprivlib  installsitelib      installvendorlib
+  arch    =&gt; installarchlib  installsitearch     installvendorarch
+  script  =&gt; installscript   installsitescript   installvendorscript
+  bin     =&gt; installbin      installsitebin      installvendorbin
+  bindoc  =&gt; installman1dir  installsiteman1dir  installvendorman1dir
+  libdoc  =&gt; installman3dir  installsiteman3dir  installvendorman3dir
+  binhtml =&gt; installhtml1dir installsitehtml1dir installvendorhtml1dir [*]
+  libhtml =&gt; installhtml3dir installsitehtml3dir installvendorhtml3dir [*]
+
+  * Under some OS (eg. MSWin32) the destination for HTML documents is
+    determined by the C&lt;Config.pm&gt; entry C&lt;installhtmldir&gt;.</code></code></pre>
+
+<p>The default value of <code><code>installdirs</code></code> is &quot;site&quot;. If you&#39;re creating vendor distributions of module packages, you may want to do something like this:</p>
+
+<pre><code><code>  perl Build.PL --installdirs vendor</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>  ./Build install --installdirs vendor</code></code></pre>
+
+<p>If you&#39;re installing an updated version of a module that was included with perl itself (i.e. a &quot;core module&quot;), then you may set <code><code>installdirs</code></code> to &quot;core&quot; to overwrite the module in its present location.</p>
+
+<p>(Note that the &#39;script&#39; line is different from <code><code>MakeMaker</code></code> - unfortunately there&#39;s no such thing as &quot;installsitescript&quot; or &quot;installvendorscript&quot; entry in <code><code>Config.pm</code></code>, so we use the &quot;installsitebin&quot; and &quot;installvendorbin&quot; entries to at least get the general location right. In the future, if <code><code>Config.pm</code></code> adds some more appropriate entries, we&#39;ll start using those.)</p>
+
+</dd>
+<dt id="install_path">install_path</dt>
+<dd>
+
+<p>Once the defaults have been set, you can override them.</p>
+
+<p>On the command line, that would look like this:</p>
+
+<pre><code><code>  perl Build.PL --install_path lib=/foo/lib --install_path arch=/foo/lib/arch</code></code></pre>
+
+<p>or this:</p>
+
+<pre><code><code>  ./Build install --install_path lib=/foo/lib --install_path arch=/foo/lib/arch</code></code></pre>
+
+</dd>
+<dt id="install_base">install_base</dt>
+<dd>
+
+<p>You can also set the whole bunch of installation paths by supplying the <code><code>install_base</code></code> parameter to point to a directory on your system. For instance, if you set <code><code>install_base</code></code> to &quot;/home/ken&quot; on a Linux system, you&#39;ll install as follows:</p>
+
+<pre><code><code>  lib     =&gt; /home/ken/lib/perl5
+  arch    =&gt; /home/ken/lib/perl5/i386-linux
+  script  =&gt; /home/ken/bin
+  bin     =&gt; /home/ken/bin
+  bindoc  =&gt; /home/ken/man/man1
+  libdoc  =&gt; /home/ken/man/man3
+  binhtml =&gt; /home/ken/html
+  libhtml =&gt; /home/ken/html</code></code></pre>
+
+<p>Note that this is <i>different</i> from how <code><code>MakeMaker</code></code>&#39;s <code><code>PREFIX</code></code> parameter works. <code><code>install_base</code></code> just gives you a default layout under the directory you specify, which may have little to do with the <code><code>installdirs=site</code></code> layout.</p>
+
+<p>The exact layout under the directory you specify may vary by system - we try to do the &quot;sensible&quot; thing on each platform.</p>
+
+</dd>
+<dt id="destdir">destdir</dt>
+<dd>
+
+<p>If you want to install everything into a temporary directory first (for instance, if you want to create a directory tree that a package manager like <code><code>rpm</code></code> or <code><code>dpkg</code></code> could create a package from), you can use the <code><code>destdir</code></code> parameter:</p>
+
+<pre><code><code>  perl Build.PL --destdir /tmp/foo</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>  ./Build install --destdir /tmp/foo</code></code></pre>
+
+<p>This will effectively install to &quot;/tmp/foo/$sitelib&quot;, &quot;/tmp/foo/$sitearch&quot;, and the like, except that it will use <code><code>File::Spec</code></code> to make the pathnames work correctly on whatever platform you&#39;re installing on.</p>
+
+</dd>
+<dt id="prefix">prefix</dt>
+<dd>
+
+<p>Provided for compatibility with <code><code>ExtUtils::MakeMaker</code></code>&#39;s PREFIX argument. <code><code>prefix</code></code> should be used when you want Module::Build to install your modules, documentation, and scripts in the same place as <code><code>ExtUtils::MakeMaker</code></code>&#39;s PREFIX mechanism.</p>
+
+<p>The following are equivalent.</p>
+
+<pre><code><code>    perl Build.PL --prefix /tmp/foo
+    perl Makefile.PL PREFIX=/tmp/foo</code></code></pre>
+
+<p>Because of the complex nature of the prefixification logic, the behavior of PREFIX in <code><code>MakeMaker</code></code> has changed subtly over time. Module::Build&#39;s --prefix logic is equivalent to the PREFIX logic found in <code><code>ExtUtils::MakeMaker</code></code> 6.30.</p>
+
+<p>The maintainers of <code><code>MakeMaker</code></code> do understand the troubles with the PREFIX mechanism, and added INSTALL_BASE support in version 6.31 of <code><code>MakeMaker</code></code>, which was released in 2006.</p>
+
+<p>If you don&#39;t need to retain compatibility with old versions (pre-6.31) of <code><code>ExtUtils::MakeMaker</code></code> or are starting a fresh Perl installation we recommend you use <code><code>install_base</code></code> instead (and <code><code>INSTALL_BASE</code></code> in <code><code>ExtUtils::MakeMaker</code></code>). See <a href="../../../lib/Module/Build/Cookbook.html#Installing-in-the-same-location-as-ExtUtils::MakeMaker">&quot;Installing in the same location as ExtUtils::MakeMaker&quot; in Module::Build::Cookbook</a> for further information.</p>
+
+</dd>
+</dl>
+
+<h1 id="MOTIVATIONS">MOTIVATIONS</h1>
+
+<p>There are several reasons I wanted to start over, and not just fix what I didn&#39;t like about <code><code>MakeMaker</code></code>:</p>
+
+<ul>
+
+<li><p>I don&#39;t like the core idea of <code><code>MakeMaker</code></code>, namely that <code><code>make</code></code> should be involved in the build process. Here are my reasons:</p>
+
+<dl>
+
+<dt id="pod-">+</dt>
+<dd>
+
+<p>When a person is installing a Perl module, what can you assume about their environment? Can you assume they have <code><code>make</code></code>? No, but you can assume they have some version of Perl.</p>
+
+</dd>
+<dt id="pod-1">+</dt>
+<dd>
+
+<p>When a person is writing a Perl module for intended distribution, can you assume that they know how to build a Makefile, so they can customize their build process? No, but you can assume they know Perl, and could customize that way.</p>
+
+</dd>
+</dl>
+
+<p>For years, these things have been a barrier to people getting the build/install process to do what they want.</p>
+
+</li>
+<li><p>There are several architectural decisions in <code><code>MakeMaker</code></code> that make it very difficult to customize its behavior. For instance, when using <code><code>MakeMaker</code></code> you do <code><code>use ExtUtils::MakeMaker</code></code>, but the object created in <code><code>WriteMakefile()</code></code> is actually blessed into a package name that&#39;s created on the fly, so you can&#39;t simply subclass <code><code>ExtUtils::MakeMaker</code></code>. There is a workaround <code><code>MY</code></code> package that lets you override certain <code><code>MakeMaker</code></code> methods, but only certain explicitly preselected (by <code><code>MakeMaker</code></code>) methods can be overridden. Also, the method of customization is very crude: you have to modify a string containing the Makefile text for the particular target. Since these strings aren&#39;t documented, and <i>can&#39;t</i> be documented (they take on different values depending on the platform, version of perl, version of <code><code>MakeMaker</code></code>, etc.), you have no guarantee that your modifications will work on someone else&#39;s machine or after an upgrade of <code><code>MakeMaker</code></code> or perl.</p>
+
+</li>
+<li><p>It is risky to make major changes to <code><code>MakeMaker</code></code>, since it does so many things, is so important, and generally works. <code><code>Module::Build</code></code> is an entirely separate package so that I can work on it all I want, without worrying about backward compatibility with <code><code>MakeMaker</code></code>.</p>
+
+</li>
+<li><p>Finally, Perl is said to be a language for system administration. Could it really be the case that Perl isn&#39;t up to the task of building and installing software? Even if that software is a bunch of <code><code>.pm</code></code> files that just need to be copied from one place to another? My sense was that we could design a system to accomplish this in a flexible, extensible, and friendly manner. Or die trying.</p>
+
+</li>
+</ul>
+
+<h1 id="TO-DO">TO DO</h1>
+
+<p>The current method of relying on time stamps to determine whether a derived file is out of date isn&#39;t likely to scale well, since it requires tracing all dependencies backward, it runs into problems on NFS, and it&#39;s just generally flimsy. It would be better to use an MD5 signature or the like, if available. See <code><code>cons</code></code> for an example.</p>
+
+<pre><code><code> - append to perllocal.pod
+ - add a &#39;plugin&#39; functionality</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Ken Williams &lt;kwilliams@cpan.org&gt;</p>
+
+<p>Development questions, bug reports, and patches should be sent to the Module-Build mailing list at &lt;module-build@perl.org&gt;.</p>
+
+<p>Bug reports are also welcome at &lt;http://rt.cpan.org/NoAuth/Bugs.html?Dist=Module-Build&gt;.</p>
+
+<p>The latest development version is available from the Git repository at &lt;https://github.com/Perl-Toolchain-Gang/Module-Build&gt;</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2001-2006 Ken Williams. All rights reserved.</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>perl(1), <a href="../../../lib/Module/Build/Cookbook.html">Module::Build::Cookbook</a>, <a href="../../../lib/Module/Build/Authoring.html">Module::Build::Authoring</a>, <a href="../../../lib/Module/Build/API.html">Module::Build::API</a>, <a href="../../../lib/ExtUtils/MakeMaker.html">ExtUtils::MakeMaker</a></p>
+
+<p><i>META.yml</i> Specification: <a href="../../../lib/CPAN/Meta/Spec.html">CPAN::Meta::Spec</a></p>
+
+<p><a href="http://www.dsmit.com/cons/">http://www.dsmit.com/cons/</a></p>
+
+<p><a href="http://search.cpan.org/dist/PerlBuildSystem/">http://search.cpan.org/dist/PerlBuildSystem/</a></p>
+
+
+</body>
+
+</html>
+
+

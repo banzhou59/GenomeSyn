@@ -1,0 +1,126 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#VARIABLES">VARIABLES</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Config::General::Interpolated - Parse variables within Config files</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Config::General</span><span class="operator">;</span>
+ <span class="variable">$conf</span> <span class="operator">=</span> <span class="variable">Config::General</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+    <span class="string">-ConfigFile</span>      <span class="operator">=&gt;</span> <span class="string">'configfile'</span><span class="operator">,</span>
+    <span class="string">-InterPolateVars</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is an internal module which makes it possible to interpolate Perl style variables in your config file (i.e. <code><code>$variable</code></code> or <code><code><span class="variable">$</span><span class="operator">{</span><span class="string">variable</span><span class="operator">}</span>
+</code></code>).</p>
+
+<p>Normally you don&#39;t call it directly.</p>
+
+<h1 id="VARIABLES">VARIABLES</h1>
+
+<p>Variables can be defined everywhere in the config and can be used afterwards as the value of an option. Variables cannot be used as keys or as part of keys.</p>
+
+<p>If you define a variable inside a block or a named block then it is only visible within this block or within blocks which are defined inside this block. Well - let&#39;s take a look to an example:</p>
+
+<pre><code><code> <span class="comment"># sample config which uses variables</span>
+ <span class="variable">basedir</span>   <span class="operator">=</span> <span class="regex">/opt/ora</span>
+ <span class="variable">user</span>      <span class="operator">=</span> <span class="variable">t_space</span>
+ <span class="variable">sys</span>       <span class="operator">=</span> <span class="variable">unix</span>
+ <span class="operator">&lt;</span><span class="variable">table</span> <span class="variable">intern</span><span class="operator">&gt;</span>
+     <span class="variable">instance</span>  <span class="operator">=</span> <span class="variable">INTERN</span>
+     <span class="variable">owner</span>     <span class="operator">=</span> <span class="variable">$user</span>                 <span class="comment"># "t_space"</span>
+     <span class="variable">logdir</span>    <span class="operator">=</span> <span class="variable">$basedir</span><span class="operator">/</span><span class="keyword">log</span>          <span class="comment"># "/opt/ora/log"</span>
+     <span class="variable">sys</span>       <span class="operator">=</span> <span class="variable">macos</span>
+     <span class="operator">&lt;</span><span class="variable">procs</span><span class="operator">&gt;</span>
+         <span class="variable">misc1</span>   <span class="operator">=</span> <span class="variable">$</span><span class="operator">{</span><span class="string">sys</span><span class="operator">}</span><span class="variable">_</span><span class="variable">$</span><span class="operator">{</span><span class="string">instance</span><span class="operator">}</span>  <span class="comment"># macos_INTERN</span>
+         <span class="variable">misc2</span>   <span class="operator">=</span> <span class="variable">$user</span>               <span class="comment"># "t_space"</span>
+     <span class="operator">&lt;/</span><span class="variable">procs</span><span class="operator">&gt;</span>
+ <span class="operator">&lt;/</span><span class="variable">table</span><span class="operator">&gt;</span>
+</code></code></pre>
+
+<p>This will result in the following structure:</p>
+
+<pre><code><code> <span class="operator">{</span>
+     <span class="string">'basedir'</span> <span class="operator">=&gt;</span> <span class="string">'/opt/ora'</span><span class="operator">,</span>
+     <span class="string">'user'</span>    <span class="operator">=&gt;</span> <span class="string">'t_space'</span>
+     <span class="string">'sys'</span>     <span class="operator">=&gt;</span> <span class="string">'unix'</span><span class="operator">,</span>
+     <span class="string">'table'</span>   <span class="operator">=&gt;</span> <span class="operator">{</span>
+          <span class="string">'intern'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                <span class="string">'sys'</span>      <span class="operator">=&gt;</span> <span class="string">'macos'</span><span class="operator">,</span>
+                <span class="string">'logdir'</span>   <span class="operator">=&gt;</span> <span class="string">'/opt/ora/log'</span><span class="operator">,</span>
+                <span class="string">'instance'</span> <span class="operator">=&gt;</span> <span class="string">'INTERN'</span><span class="operator">,</span>
+                <span class="string">'owner'</span> <span class="operator">=&gt;</span> <span class="string">'t_space'</span><span class="operator">,</span>
+                <span class="string">'procs'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                     <span class="string">'misc1'</span> <span class="operator">=&gt;</span> <span class="string">'macos_INTERN'</span><span class="operator">,</span>
+                     <span class="string">'misc2'</span> <span class="operator">=&gt;</span> <span class="string">'t_space'</span>
+            <span class="operator">}</span>
+         <span class="operator">}</span>
+     <span class="operator">}</span>
+</code></code></pre>
+
+<p>As you can see, the variable <b>sys</b> has been defined twice. Inside the &lt;procs&gt; block a variable ${sys} has been used, which then were interpolated into the value of <b>sys</b> defined inside the &lt;table&gt; block, not the sys variable one level above. If sys were not defined inside the &lt;table&gt; block then the &quot;global&quot; variable <b>sys</b> would have been used instead with the value of &quot;unix&quot;.</p>
+
+<p>Variables inside double quotes will be interpolated, but variables inside single quotes will <b>not</b> interpolated. This is the same behavior as you know of Perl itself.</p>
+
+<p>In addition you can surround variable names with curly braces to avoid misinterpretation by the parser.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../../../public/home/fxing/.cpan/build/Config-General-2.58-YMbH9s/blib/lib/Config/General.html">Config::General</a></p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<pre><code><code> Thomas Linden &lt;tlinden |AT| cpan.org&gt;
+ Autrijus Tang &lt;autrijus@autrijus.org&gt;
+ Wei-Hon Chen &lt;plasmaball@pchome.com.tw&gt;</code></code></pre>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright 2001 by Wei-Hon Chen &lt;plasmaball@pchome.com.tw&gt;. Copyright 2002-2014 by Thomas Linden &lt;tlinden |AT| cpan.org&gt;.</p>
+
+<p>This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<p>See <a href="http://www.perl.com/perl/misc/Artistic.html">http://www.perl.com/perl/misc/Artistic.html</a></p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>2.15</p>
+
+
+</body>
+
+</html>
+
+

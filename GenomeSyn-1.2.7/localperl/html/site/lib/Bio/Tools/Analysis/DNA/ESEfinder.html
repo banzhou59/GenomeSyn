@@ -1,0 +1,140 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Analysis::DNA::ESEfinder - a wrapper around ESEfinder server</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tools::Analysis::DNA::ESEfinder</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$seq</span><span class="operator">;</span> <span class="comment"># a Bio::PrimarySeqI or Bio::SeqI object</span>
+  
+  <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">Bio::Seq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+       <span class="string">-primary_id</span> <span class="operator">=&gt;</span> <span class="string">'test'</span><span class="operator">,</span>
+       <span class="string">-seq</span><span class="operator">=&gt;</span><span class="string">'atgcatgctaggtgtgtgttttgtgggttgtactagctagtgat'</span><span class="operator">.</span>
+       <span class="string">-alphabet</span><span class="operator">=&gt;</span><span class="string">'dna'</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$ese_finder</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Analysis::DNA::ESEfinder</span><span class="operator">-&gt;</span>
+      <span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$seq</span><span class="operator">);</span>
+  
+  <span class="comment"># run ESEfinder prediction on a DNA sequence</span>
+  <span class="variable">$ese_finder</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">();</span>
+  
+  <span class="keyword">die</span> <span class="string">"Could not get a result"</span>
+      <span class="keyword">unless</span> <span class="variable">$ese_finder</span><span class="operator">-&gt;</span><span class="variable">status</span> <span class="operator">=~</span> <span class="regex">/^COMPLETED/</span><span class="operator">;</span>
+  
+  <span class="keyword">print</span> <span class="variable">$ese_finder</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">;</span>      <span class="comment"># print raw prediction to STDOUT</span>
+  
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$feat</span> <span class="operator">(</span> <span class="variable">$ese_finder</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">(</span><span class="string">'Bio::SeqFeatureI'</span><span class="operator">)</span> <span class="operator">)</span> <span class="operator">{</span>
+  
+      <span class="comment"># do something to SeqFeature</span>
+      <span class="comment"># e.g. print as GFF</span>
+      <span class="keyword">print</span> <span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">gff_string</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+      <span class="comment"># or store within the sequence - if it is a Bio::SeqI</span>
+      <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">add_SeqFeature</span><span class="operator">(</span><span class="variable">$feat</span><span class="operator">)</span>
+  
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This class is a wrapper around the ESEfinder web server which uses experimentally defined scoring matrices to identify possible exonic splicing enhancers in human transcripts.</p>
+
+<p>The results can be retrieved in 4 ways.</p>
+
+<ol>
+
+<li><p><code><code>$ese_finder-&gt;result(&#39;&#39;)</code></code> retrieves the raw text output of the program</p>
+
+</li>
+<li><p><code><code>$ese_finder-&gt;result(&#39;all&#39;)</code></code> returns a Bio::Seq::Meta::Array object with prediction scores for all residues in the sequence</p>
+
+</li>
+<li><p><code><code>$ese_finder-&gt;result(&#39;Bio::SeqFeatureI&#39;)</code></code> returns an array of Bio::SeqFeature objects for sequences with significant scores. Feature tags are score, motif, SR_protein and method</p>
+
+</li>
+<li><p><code><code>$ese_finder-&gt;result(&#39;raw&#39;)</code></code> returns an array of significant matches with each element being a reference to [SR_protein, position, motif, score]</p>
+
+</li>
+</ol>
+
+<p>See <a href="http://rulai.cshl.edu/tools/ESE2/">http://rulai.cshl.edu/tools/ESE2/</a></p>
+
+<p>This the second implentation of Bio::SimpleAnalysisI which hopefully will make it easier to write wrappers on various services. This class uses a web resource and therefore inherits from <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/WebAgent.html">Bio::WebAgent</a>.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SimpleAnalysisI.html">Bio::SimpleAnalysisI</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/WebAgent.html">Bio::WebAgent</a></p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Richard Adams, Richard.Adams@ed.ac.uk, Heikki Lehvaslaiho, heikki-at-bioperl-dot-org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+
+</body>
+
+</html>
+
+

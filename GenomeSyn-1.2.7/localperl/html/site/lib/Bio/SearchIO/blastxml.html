@@ -1,0 +1,198 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#DEPENDENCIES">DEPENDENCIES</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#initialize">_initialize</a></li>
+      <li><a href="#next_result">next_result</a></li>
+      <li><a href="#result_count">result_count</a></li>
+      <li><a href="#use_tempfile">use_tempfile</a></li>
+      <li><a href="#blasttype">blasttype</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SearchIO::blastxml - A SearchIO implementation of NCBI Blast XML parsing.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Bio::SearchIO</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$searchin</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'blastxml'</span><span class="operator">,</span>
+                                     <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'t/data/plague_yeast.bls.xml'</span><span class="operator">);</span>
+                     
+    <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$searchin</span><span class="operator">-&gt;</span><span class="variable">next_result</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="operator">....</span>
+    <span class="operator">}</span>
+    
+    <span class="comment"># one can also request that the parser NOT keep the XML data in memory</span>
+    <span class="comment"># by using the tempfile initialization flag.</span>
+    
+    <span class="variable">$searchin</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-tempfile</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                     <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'blastxml'</span><span class="operator">,</span>
+                                     <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'t/data/plague_yeast.bls.xml'</span><span class="operator">);</span>
+                     
+    <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$searchin</span><span class="operator">-&gt;</span><span class="variable">next_result</span> <span class="operator">)</span> <span class="operator">{</span>
+       <span class="operator">....</span>
+    <span class="operator">}</span>
+    
+    <span class="comment"># PSI-BLAST parsing (default is normal BLAST)</span>
+    <span class="variable">$searchin</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+                     <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'blastxml'</span><span class="operator">,</span>
+                     <span class="string">-blasttype</span> <span class="operator">=&gt;</span> <span class="string">'psiblast'</span><span class="operator">,</span>
+                                     <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'t/data/plague_yeast.bls.xml'</span><span class="operator">);</span>
+                     
+    <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$searchin</span><span class="operator">-&gt;</span><span class="variable">next_result</span> <span class="operator">)</span> <span class="operator">{</span>
+       <span class="operator">....</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object implements a NCBI Blast XML parser. It requires XML::SAX; it is also recommended (for faster parsing) that XML::SAX::ExpatXS or XML::LibXML be installed. Either &#39;XML::SAX::ExpatXS&#39; or &#39;XML::LibXML::SAX::Parser&#39; should be set as the default parser in ParserDetails.ini. This file is located in the SAX subdirectory of XML in your local perl library (normally in the &#39;site&#39; directory).</p>
+
+<p>Two different XML handlers currently exist to deal with logical differences between how normal BLAST reports and PSI-BLAST reports are logically parsed into BioPerl objects; this is explicitly settable using the <b>-blasttype</b> parameter. The default is for parsing a normal BLAST report (&#39;blast&#39;), but if one is expecting PSI-BLAST report parsing, -blasttype <b>must</b> be set explicitly to &#39;psiblast&#39;. This is due to a lack of any information in the XML output which tells the parser the report is derived from a PSI-BLAST run vs. a normal BLAST run.</p>
+
+<p>There is one additional initialization flag from the SearchIO defaults. That is the <b>-tempfile</b> flag. If specified as true, then the parser will write out each report to a temporary filehandle rather than holding the entire report as a string in memory. The reason this is done in the first place is NCBI reports have an uncessary &lt;?xml version=&quot;1.0&quot;?&gt; at the beginning of each report and RPS-BLAST reports have an additional unnecessary RPS-BLAST tag at the top of each report. So we currently have implemented the work around by preparsing the file (yes it makes the process slower, but it works). We are open to suggestions on how to optimize this in the future.</p>
+
+<h1 id="DEPENDENCIES">DEPENDENCIES</h1>
+
+<p>In addition to parts of the Bio:: hierarchy, this module uses:</p>
+
+<pre><code><code> XML::SAX</code></code></pre>
+
+<p>It is also recommended that XML::SAX::ExpatXS be installed and made the default XML::SAX parser using , along with the Expat library () for faster parsing. XML::SAX::Expat is not recommended; XML::SAX::ExpatXS is considered the current replacement for XML::SAX:Expat and is actively being considered to replace XML::SAX::Expat. XML::SAX::Expat will work, but only if you have local copies of the NCBI BLAST DTDs. This is due to issues with NCBI&#39;s BLAST XML format. The DTDs and the web address to obtain them are:</p>
+
+<pre><code><code>  NCBI_BlastOutput.dtd      
+  NCBI_BlastOutput.mod.dtd
+
+  http://www.ncbi.nlm.nih.gov/data_specs/dtd/</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</h1>
+
+<p>Email jason-at-bioperl.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$searchio</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'blastxml'</span><span class="operator">,</span>
+                                            <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'filename'</span><span class="operator">,</span>
+                                            <span class="string">-tempfile</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Initializes</span> <span class="variable">the</span> <span class="variable">object</span> <span class="operator">-</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">chained</span> <span class="variable">through</span> <span class="variable">new</span> <span class="variable">in</span> <span class="variable">SearchIO</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::SearchIO::blastxml</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">One</span> <span class="variable">additional</span> <span class="variable">argument</span> <span class="variable">from</span> <span class="variable">the</span> <span class="keyword">format</span> <span class="keyword">and</span> <span class="variable">file</span><span class="operator">/</span><span class="variable">fh</span> <span class="variable">parameters</span><span class="operator">.</span>
+           <span class="string">-tempfile</span>    <span class="operator">=&gt;</span> <span class="variable">boolean</span><span class="operator">.</span>  <span class="variable">Defaults</span> <span class="variable">to</span> <span class="variable">false</span><span class="operator">.</span>  <span class="variable">Write</span> <span class="variable">out</span> <span class="variable">XML</span> <span class="variable">data</span>
+                           <span class="variable">to</span> <span class="variable">a</span> <span class="variable">temporary</span> <span class="variable">filehandle</span> <span class="variable">to</span> <span class="keyword">send</span> <span class="variable">to</span> <span class="variable">PerlSAX</span> <span class="variable">parser</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="initialize">_initialize</h2>
+
+<pre><code><code> Title   : _initialize
+ Usage   : private
+ Function: Initializes the object - this is chained through new in SearchIO</code></code></pre>
+
+<h2 id="next_result">next_result</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_result</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$searchio</span><span class="operator">-&gt;</span><span class="variable">next_result</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">Result</span> <span class="variable">from</span> <span class="variable">a</span> <span class="variable">search</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Search::Result::ResultI</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="result_count">result_count</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">result_count</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$num</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">result_count</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">Blast</span> <span class="variable">results</span> <span class="variable">that</span> <span class="variable">have</span> <span class="variable">been</span> <span class="variable">successfully</span> <span class="variable">parsed</span>
+           <span class="variable">at</span> <span class="variable">the</span> <span class="variable">point</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">method</span> <span class="variable">call</span><span class="operator">.</span>  <span class="variable">This</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">the</span> <span class="variable">total</span> <span class="comment"># of results</span>
+           <span class="variable">in</span> <span class="variable">the</span> <span class="variable">file</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">integer</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="use_tempfile">use_tempfile</h2>
+
+<pre><code><code> Title   : use_tempfile
+ Usage   : $obj-&gt;use_tempfile($newval)
+ Function: Get/Set boolean flag on whether or not use a tempfile
+ Example : 
+ Returns : value of use_tempfile
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="blasttype">blasttype</h2>
+
+<pre><code><code> Title   : blasttype
+ Usage   : $obj-&gt;blasttype($newtype)
+ Function: Get/Set BLAST report type.
+ Returns : BLAST report type
+ Args    : case-insensitive string of types BLAST or PSIBLAST (default: BLAST)
+ Note    : this is used to determine how reports are &#39;chunked&#39; (in cases
+           where multiple queries are submitted) and which XML handler
+           to use when parsing the report(s)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

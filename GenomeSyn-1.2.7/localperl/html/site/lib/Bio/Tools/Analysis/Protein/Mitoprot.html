@@ -1,0 +1,182 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#result">result</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Analysis::Protein::Mitoprot - a wrapper around Mitoprot server</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tools::Analysis::Protein::Mitoprot</span><span class="operator">;</span>
+  
+  <span class="keyword">use</span> <span class="variable">Bio::PrimarySeq</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">Bio::PrimarySeq</span><span class="operator">-&gt;</span><span class="variable">new</span>
+    <span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="string">'IKLCVHHJHJHJHJHJHJHNLAILAKAHLIELALAL'</span><span class="operator">,</span>
+     <span class="string">-primary_id</span><span class="operator">=&gt;</span><span class="string">'test'</span><span class="operator">);</span> <span class="comment"># a Bio::PrimarySeqI object</span>
+  
+  <span class="keyword">my</span> <span class="variable">$mitoprot</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Analysis::Protein::Mitoprot</span><span class="operator">-&gt;</span><span class="variable">new</span>
+     <span class="operator">(</span> <span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$seq</span>
+     <span class="operator">);</span> <span class="comment"># sequence must be  &gt;!5aa long and start with an M.</span>
+  
+  <span class="comment"># run Mitoprot prediction on a DNA sequence</span>
+  <span class="keyword">my</span> <span class="variable">$mitoprot</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">();</span>
+  
+  
+  <span class="keyword">die</span> <span class="string">"Could not get a result"</span> <span class="keyword">unless</span> <span class="variable">$mitoprot</span><span class="operator">-&gt;</span><span class="variable">status</span> <span class="operator">=~</span> <span class="regex">/^COMPLETED/</span><span class="operator">;</span>
+  
+  <span class="keyword">print</span> <span class="variable">$mitoprot</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">;</span>     <span class="comment"># print raw prediction to STDOUT</span>
+  
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$feat</span> <span class="operator">(</span> <span class="variable">$mitoprot</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">(</span><span class="string">'Bio::SeqFeatureI'</span><span class="operator">)</span> <span class="operator">)</span> <span class="operator">{</span>
+  
+      <span class="comment"># do something to SeqFeature</span>
+      <span class="comment"># e.g. print as GFF</span>
+      <span class="keyword">print</span> <span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">gff_string</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+      <span class="comment"># or store within the sequence - if it is a Bio::RichSeqI</span>
+      <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">add_SeqFeature</span><span class="operator">(</span><span class="variable">$feat</span><span class="operator">);</span>
+  
+   <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This class is a wrapper around the Mitoprot web server which calculates the probability of a sequence containing a mitochondrial targetting peptide. See http://mips.gsf.de/cgi-bin/proj/medgen/mitofilter for more details.</p>
+
+<p>The results can be obtained in 3 formats:</p>
+
+<ol>
+
+<li><p>The raw text of the program output</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$rawdata</span> <span class="operator">=</span> <span class="variable">$analysis_object</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">;</span>
+</code></code></pre>
+
+</li>
+<li><p>An reference to a hash of scores :</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$data_ref</span> <span class="operator">=</span> <span class="variable">$analysis_object</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">(</span><span class="string">'parsed'</span><span class="operator">);</span> <span class="keyword">print</span> <span class="string">"predicted
+  export prob is </span><span class="variable">$data_ref</span><span class="string">-&gt;{'export_prob'}\n"</span><span class="operator">;</span> <span class="comment">#</span>
+</code></code></pre>
+
+<p>key values of returned hash are input_length, basic_aas, acidic_aas, export_prob, charge, cleavage_site.</p>
+
+</li>
+<li><p>A Bio::SeqFeature::Generic object</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$ft</span> <span class="operator">=</span> <span class="variable">$analysis_object</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">(</span><span class="variable">Bio::SeqFeatureI</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="string">"export prob is "</span><span class="operator">,</span> <span class="operator">(</span><span class="variable">$ft</span><span class="operator">-&gt;</span><span class="variable">each_tag_value</span><span class="operator">(</span><span class="string">'export_prob'</span><span class="operator">))</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span>  <span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This the second implentation of Bio::SimpleAnalysisI which hopefully will make it easier to write wrappers on various services. This class uses a web resource and therefore inherits from Bio::WebAgent.</p>
+
+</li>
+</ol>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SimpleAnalysisI.html">Bio::SimpleAnalysisI</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Tools/Analysis/SimpleAnalysisBase.html">Bio::Tools::Analysis::SimpleAnalysisBase</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/WebAgent.html">Bio::WebAgent</a></p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Richard Adams, Richard.Adams@ed.ac.uk,</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="result">result</h2>
+
+<pre><code><code> Usage   : $job-&gt;result (...)
+ Returns : a result created by running an analysis
+ Args    : various</code></code></pre>
+
+<p>The method returns a result of an executed job. If the job was terminated by an error the result may contain an error message instead of the real data.</p>
+
+<p>This implementation returns differently processed data depending on argument:</p>
+
+<dl>
+
+<dt id="undef">undef</dt>
+<dd>
+
+<p>Returns the raw ASCII data stream but without HTML tags</p>
+
+</dd>
+<dt id="Bio::SeqFeatureI">&#39;Bio::SeqFeatureI&#39;</dt>
+<dd>
+
+<p>The argument string defines the type of bioperl objects returned in an array. The objects are <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeature/Generic.html">Bio::SeqFeature::Generic</a>. Feature primary tag is &quot;SigSeq&quot;. Feature tags are input_length , basic_aas, acidic_aas, export_prob, charge, cleavage_site, method.</p>
+
+</dd>
+<dt id="parsed">&#39;parsed&#39;</dt>
+<dd>
+
+<p>hash references of parsed results { input_length =&gt;, basic_aas=&gt;, acidic_aas=&gt;, export_prob=&gt;, charge=&gt;, cleavage_site=&gt;}.</p>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#SUBROUTINES">SUBROUTINES</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Math::IntervalSearch - Search where an element lies in a list of sorted elements</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Math::IntervalSearch</span> <span class="string">qw(interval_search)</span><span class="operator">;</span>
+ <span class="keyword">my</span> <span class="variable">@array</span> <span class="operator">=</span> <span class="operator">(</span><span class="number">1</span><span class="operator">..</span><span class="number">5</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">$location</span> <span class="operator">=</span> <span class="variable">interval_search</span><span class="operator">(</span><span class="number">2.4</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@array</span><span class="operator">);</span>
+ 
+ <span class="comment"># Use your own comparison operators.</span>
+ <span class="keyword">sub</span><span class="variable"> ReverseLessThan </span><span class="operator">{</span>
+   <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span> <span class="operator">&lt;</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">;</span>
+ <span class="operator">}</span>
+ 
+ <span class="keyword">sub</span><span class="variable"> ReverseLessThanEqualTo </span><span class="operator">{</span>
+   <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span> <span class="operator">&lt;=</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">;</span>
+ <span class="operator">}</span>
+ 
+ <span class="variable">$location</span> <span class="operator">=</span> <span class="variable">interval_search</span><span class="operator">(</span><span class="number">2.4</span><span class="operator">,</span>
+                             <span class="operator">\</span><span class="variable">@array</span><span class="operator">,</span>
+                             <span class="operator">\&amp;</span><span class="variable">ReverseLessThan</span><span class="operator">,</span>
+                             <span class="operator">\&amp;</span><span class="variable">ReverseLessThanEqualTo</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This subroutine is used to locate a position in an array of values where a given value would fit. It has been designed to be efficient in the common situation that it is called repeatedly. The user can supply a different set of comparison operators to replace the standard &lt; and &lt;=.</p>
+
+<h1 id="SUBROUTINES">SUBROUTINES</h1>
+
+<dl>
+
+<dt id="interval_search-value-sequence-less_than-less_than_equal_to-"><b>interval_search</b> <i>value</i> <i>sequence</i> [<i>less_than</i> [<i>less_than_equal_to</i>]]</dt>
+<dd>
+
+<p>Given a <i>value</i> <i>interval_search</i> returns the location in the reference to an array <i>sequence</i> where the value would fit. The default &lt; operator to compare the elements in <i>sequence</i> can be replaced by the subroutine <i>less_than</i> which should return 1 if the first element passed to <i>less_than</i> is less than the second. The default &lt;= operator to compare the elements in <i>sequence</i> can be replaced by the subroutine <i>less_than</i> which should return 1 if the first element passed to <i>less_than</i> is less than the second.</p>
+
+<p>The values in <i>sequence</i> should already be sorted in numerically increasing order or in the order that would be produced by using the <i>less_than</i> subroutine.</p>
+
+<p>Let N be the number of elements in referenced array <i>sequence</i>, then <i>interval_search</i> returns these values: -1 if <i>value</i> &lt; <i>sequence</i>-&gt;[0] i if <i>sequence</i>-&gt;[i] &lt;= <i>value</i> &lt; <i>sequence</i>-&gt;[i+1] N-1 if <i>sequence</i>-&gt;[N-1] &lt;= <i>value</i></p>
+
+<p>If a reference is made to an empty array, then -1 is always returned.</p>
+
+<p>If there is illegal input to <i>interval_search</i>, such as an improper number of arguments, then an empty list in list context, an undefined value in scalar context, or nothing in a void context is returned.</p>
+
+<p>This subroutine is designed to be efficient in the common situation that it is called repeatedly, with <i>value</i> taken from an increasing or decreasing list of values. This will happen, e.g., when an irregular waveform is interpolated to create a sequence with constant separation. The first guess for the output is therefore taken to be the value returned at the previous call and stored in the variable ilo. A first check ascertains that ilo is less than the number of data points in <i>sequence</i>. This is necessary since the present call may have nothing to do with the previous call. Then, if <i>sequence</i>-&gt;[ilo] &lt;= <i>value</i> &lt; <i>sequence</i>-&gt;[ilo+1],</p>
+
+<p>we set left = ilo and are done after just three comparisons. Otherwise, we repeatedly double the difference istep = ihi - ilo</p>
+
+<p>while also moving ilo and ihi in the direction of x, until <i>sequence</i>-&gt;[ilo] &lt;= x &lt; <i>sequence</i>-&gt;[ihi],</p>
+
+<p>after which bisection is used to get, in addition, ilo+1 = ihi.</p>
+
+<p>Then left = ilo is returned.</p>
+
+</dd>
+</dl>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Blair Zajac &lt;bzajac@geostaff.com&gt;.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 1998 by Blair Zajac.</p>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt id="Around-line-243:">Around line 243:</dt>
+<dd>
+
+<p>=back doesn&#39;t take any parameters, but you said =back 4</p>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+

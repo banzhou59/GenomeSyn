@@ -1,0 +1,202 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#NOTES-ABOUT-TSearch2-SEARCHING">NOTES ABOUT TSearch2 SEARCHING</a></li>
+  <li><a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a></li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#search_notes">search_notes</a></li>
+      <li><a href="#make_features_by_name_where_part">make_features_by_name_where_part</a></li>
+      <li><a href="#install_TSearch2">install_TSearch2</a></li>
+      <li><a href="#update_TSearch2">update_TSearch2</a></li>
+      <li><a href="#remove_TSearch2">remove_TSearch2</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::GFF::Adaptor::dbi::pg_fts -- Database adaptor for a specific postgres schema with a TSearch2 implementation</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment">#create new GFF database connection</span>
+    <span class="keyword">my</span> <span class="variable">$db</span>      <span class="operator">=</span> <span class="variable">Bio::DB::GFF</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-adaptor</span> <span class="operator">=&gt;</span> <span class="string">'dbi::pg_fts'</span><span class="operator">,</span>
+                                     <span class="string">-dsn</span>     <span class="operator">=&gt;</span> <span class="string">'dbi:Pg:dbname=worm'</span><span class="operator">);</span>
+    
+    <span class="comment">#add full text indexing 'stuff'</span>
+    <span class="comment">#assumes that TSearch2 is available to PostgreSQL</span>
+    <span class="comment">#this will take a VERY long time for a reasonably large database</span>
+    <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">install_TSearch2</span><span class="operator">();</span>
+    
+    <span class="operator">...</span><span class="variable">some</span> <span class="keyword">time</span> <span class="variable">later</span><span class="operator">...</span>
+    <span class="comment">#we don't like full text searching...</span>
+    <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">remove_TSearch2</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This adaptor is based on Bio::DB::GFF::Adaptor::dbi::pg but it implements the TSearch2 PostgreSQL contrib module for fast full text searching. To use this module with your PostgreSQL GFF database, you need to make TSearch2 available in the database.</p>
+
+<p>To use this adaptor, follow these steps:</p>
+
+<dl>
+
+<dt id="Install-TSearch2-contrib-module-for-Pg">Install TSearch2 contrib module for Pg</dt>
+<dd>
+
+<p>Can be as easy as `sudo yum install postgresql-contrib`, or you may need to recompile PostgreSQL to include it. See <a href="http://www.sai.msu.su/~megera/postgres/gist/tsearch/V2/docs/tsearch-V2-intro.html">http://www.sai.msu.su/~megera/postgres/gist/tsearch/V2/docs/tsearch-V2-intro.html</a> for more details</p>
+
+</dd>
+<dt id="Load-the-TSearch2-functions-to-you-database">Load the TSearch2 functions to you database</dt>
+<dd>
+
+<pre><code><code>  % cat tsearch2.sql | psql &lt;your database&gt;</code></code></pre>
+
+</dd>
+<dt id="Load-your-data-using-the-pg-adaptor:">Load your data using the pg adaptor:</dt>
+<dd>
+
+<pre><code><code> % bp_pg_bulk_load_gff.pl -c -d yeast saccharomyces_cerevisiae.gff</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code> % bp_load_gff.pl -c -d yeast -a dbi::pg saccharomyces_cerevisiae.gff</code></code></pre>
+
+</dd>
+<dt id="Add-GFF-TSearch2-specific-modifications">Add GFF/TSearch2 specific modifications</dt>
+<dd>
+
+<p>Execute a perl script like this one:</p>
+
+<pre><code><code>  <span class="comment">#!/usr/bin/perl -w</span>
+  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  
+  <span class="keyword">use</span> <span class="variable">Bio::DB::GFF</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$db</span> <span class="operator">=</span> <span class="variable">Bio::DB::GFF</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+      <span class="string">-adaptor</span>   <span class="operator">=&gt;</span> <span class="string">'dbi::pg_fts'</span><span class="operator">,</span>
+      <span class="string">-dsn</span>       <span class="operator">=&gt;</span> <span class="string">'dbi:Pg:dbname=yeast'</span><span class="operator">,</span>
+      <span class="string">-user</span>      <span class="operator">=&gt;</span> <span class="string">'scott'</span><span class="operator">,</span>
+    <span class="operator">);</span>
+  
+  <span class="keyword">print</span> <span class="string">"Installing TSearch2 columns...\n"</span><span class="operator">;</span>
+  
+  <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">install_TSearch2</span><span class="operator">();</span>
+  
+  <span class="keyword">print</span> <span class="string">"Done\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<p>Note that this last step will take a long time. For a S. cerevisiae database with 15K rows, it took over an hour on my laptop, and with a C. elegans database (~10 million rows) it took well over a day.</p>
+
+<p>If at some point you add more data you your database, you need to run a similar script to the one above, only executing the update_TSearch2() method. Finally, if you want to remove the TSearch2 columns from your database and go back to using the pg adaptor, you can execute a script like the one above, only executing the remove_TSearch2() method.</p>
+
+<h1 id="NOTES-ABOUT-TSearch2-SEARCHING">NOTES ABOUT TSearch2 SEARCHING</h1>
+
+<p>You should know a few things about how searching with TSearch2 works in the GBrowse environment:</p>
+
+<ol>
+
+<li><p>TSearch2 does not do wild cards, so you should encourage your users not to use them. If wild cards are used, the adaptor will fall back on an ILIKE search, which will be much slower.</p>
+
+</li>
+<li><p>However, TSearch2 does do &#39;word stemming&#39;. That is, if you search for &#39;copy&#39;, it will find &#39;copy&#39;, &#39;copies&#39;, and &#39;copied&#39;.</p>
+
+</li>
+<li><p>TSearch2 does not do phrase searching; all of the terms in the search string are ANDed together.</p>
+
+</li>
+</ol>
+
+<h1 id="ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</h1>
+
+<p>Special thanks to Russell Smithies and Paul Smale at AgResearch in New Zealand for giving me their recipe for doing full text indexing in a GFF database.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Please report bugs to the BioPerl and/or GBrowse mailing lists (<a href="mailto:bioperl-l@lists.open-bio.org">mailto:bioperl-l@lists.open-bio.org</a> and <a href="mailto:gmod-gbrowse@lists.sourceforge.net">mailto:gmod-gbrowse@lists.sourceforge.net</a> respectively).</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>Please see <a href="../../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/GFF/Adaptor/dbi/pg.html">Bio::DB::GFF::Adaptor::dbi::pg</a> for more information about tuning your PostgreSQL server for GFF data, and for general information about GFF database access, see <a href="../../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/GFF.html">Bio::DB::GFF</a>.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Scott Cain, cain@cshl.edu</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<h2 id="search_notes">search_notes</h2>
+
+<pre><code><code> Title   : search_notes
+ Usage   : @search_results = $db-&gt;search_notes(&quot;full text string&quot;,$limit)
+ Function: Search the notes for a text string, using PostgreSQL TSearch2
+ Returns : array of results
+ Args    : full text search string, and an optional row limit
+ Status  : public</code></code></pre>
+
+<p>This is based on the mysql-specific method that makes use of the TSearch2 functionality in PosgreSQL&#39;s contrib directory. Given a search string, it performs a full-text search of the notes table and returns an array of results. Each row of the returned array is a arrayref containing the following fields:</p>
+
+<pre><code><code>  column 1   A Bio::DB::GFF::Featname object, for passing to segment()
+  column 2   The text of the note
+  column 3   A relevance score.</code></code></pre>
+
+<h2 id="make_features_by_name_where_part">make_features_by_name_where_part</h2>
+
+<pre><code><code> Title   : make_features_by_name_where_part
+ Function: constructs a TSearch2-compliant WHERE clause for a name search
+ Status  : protected</code></code></pre>
+
+<h2 id="install_TSearch2">install_TSearch2</h2>
+
+<pre><code><code> Title   : install_TSearch2
+ Function: installs schema modifications for use with TSearch2
+ Usage   : $db-&gt;install_TSearch2
+ Status  : public</code></code></pre>
+
+<h2 id="update_TSearch2">update_TSearch2</h2>
+
+<pre><code><code> Title   : update_TSearch2
+ Function: Updates TSearch2 columns
+ Usage   : $db-&gt;update_TSearch2
+ Status  : public</code></code></pre>
+
+<h2 id="remove_TSearch2">remove_TSearch2</h2>
+
+<pre><code><code> Title   : remove_TSearch2
+ Function: Removes TSearch2 columns
+ Usage   : $db-&gt;remove_TSearch2
+ Status  : public</code></code></pre>
+
+
+</body>
+
+</html>
+
+

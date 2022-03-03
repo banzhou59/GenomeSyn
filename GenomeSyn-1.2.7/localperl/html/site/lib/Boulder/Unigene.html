@@ -1,0 +1,288 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Boulder::Unigene-methods">Boulder::Unigene methods</a></li>
+    </ul>
+  </li>
+  <li><a href="#OUTPUT-TAGS">OUTPUT TAGS</a>
+    <ul>
+      <li><a href="#Top-Level-Tags">Top-Level Tags</a></li>
+      <li><a href="#STS-Multiple-records-in-the-form-STS-ACC-XXXXXX-NAME-YYYYYY">STS Multiple records in the form ^STS ACC=XXXXXX NAME=YYYYYY</a></li>
+      <li><a href="#TXMAP-Multiple-records-in-the-form-TXMAP-XXXXXXX-MARKER-YYYYY-RHPANEL-ZZZZ">TXMAP Multiple records in the form ^TXMAP XXXXXXX; MARKER=YYYYY; RHPANEL=ZZZZ</a></li>
+      <li><a href="#PROTSIM-Multiple-records-in-the-form-PROTSIM-ORG-XXX-PROTID-DBID:YYY-PCT-ZZZ-ALN-QQQQ-Where-DBID-is-PID-for-indicate-presence-of-GenPept-identifier-SP-to-indicate-SWISSPROT-identifier-PIR-to-indicate-PIR-identifier-PRF-to-indicate-">PROTSIM Multiple records in the form ^PROTSIM ORG=XXX; PROTID=DBID:YYY; PCT=ZZZ; ALN=QQQQ Where DBID is PID for indicate presence of GenPept identifier, SP to indicate SWISSPROT identifier, PIR to indicate PIR identifier, PRF to indicate ???</a></li>
+      <li><a href="#SEQUENCE-Multiple-records-in-the-form-SEQUENCE-ACC-XXX-NID-YYYY-PID-CLONE-END-LID-">SEQUENCE Multiple records in the form ^SEQUENCE ACC=XXX; NID=YYYY; PID = CLONE= END= LID=</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Boulder::Unigene - Fetch Unigene data records as parsed Boulder Stones</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># parse a file of Unigene records</span>
+  <span class="variable">$ug</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Boulder::Unigene</span><span class="operator">(</span><span class="string">-accessor</span><span class="operator">=&gt;</span><span class="string">'File'</span><span class="operator">,</span>
+                             <span class="string">-param</span> <span class="operator">=&gt;</span> <span class="string">'/data/unigene/Hs.dat'</span><span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$s</span> <span class="operator">=</span> <span class="variable">$ug</span><span class="operator">-&gt;</span><span class="variable">get</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">Identifier</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">Gene</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># parse flatfile records yourself</span>
+  <span class="keyword">open</span> <span class="operator">(</span><span class="variable">UG</span><span class="operator">,</span><span class="string">"/data/unigene/Hs.dat"</span><span class="operator">);</span>
+  <span class="keyword">local</span> <span class="variable">$/</span> <span class="operator">=</span> <span class="string">"*RECORD*"</span><span class="operator">;</span>
+  <span class="keyword">while</span> <span class="operator">(&lt;</span><span class="variable">UG</span><span class="operator">&gt;)</span> <span class="operator">{</span>
+     <span class="keyword">my</span> <span class="variable">$s</span> <span class="operator">=</span> <span class="variable">Boulder::Unigene</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span><span class="variable">$_</span><span class="operator">);</span>
+     <span class="comment"># etc.</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Boulder::Unigene provides retrieval and parsing services for UNIGENE records</p>
+
+<p>Boulder::Unigene provides retrieval and parsing services for NCBI Unigene records. It returns Unigene entries in <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Stone.html">Stone</a> format, allowing easy access to the various fields and values. Boulder::Unigene is a descendent of Boulder::Stream, and provides a stream-like interface to a series of Stone objects.</p>
+
+<p>Access to Unigene is provided by one <i>accessors</i>, which give access to local Unigene database. When you create a new Boulder::Unigene stream, you provide the accessors, along with accessor-specific parameters that control what entries to fetch. The accessors is:</p>
+
+<dl>
+
+<dt id="File">File</dt>
+<dd>
+
+<p>This provides access to local Unigene entries by reading from a flat file (typically Hs.dat file downloadable from NCBI&#39;s Ftp site). The stream will return a Stone corresponding to each of the entries in the file, starting from the top of the file and working downward. The parameter is the path to the local file.</p>
+
+</dd>
+</dl>
+
+<p>It is also possible to parse a single Unigene entry from a text string stored in a scalar variable, returning a Stone object.</p>
+
+<h2 id="Boulder::Unigene-methods">Boulder::Unigene methods</h2>
+
+<p>This section lists the public methods that the <i>Boulder::Unigene</i> class makes available.</p>
+
+<dl>
+
+<dt id="new-">new()</dt>
+<dd>
+
+<pre><code><code>   <span class="comment"># Local fetch via File</span>
+   <span class="variable">$ug</span><span class="operator">=</span><span class="variable">new</span> <span class="variable">Boulder::Unigene</span><span class="operator">(</span><span class="string">-accessor</span>  <span class="operator">=&gt;</span>  <span class="string">'File'</span><span class="operator">,</span>
+                            <span class="string">-param</span>     <span class="operator">=&gt;</span>  <span class="string">'/data/unigene/Hs.dat'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The new() method creates a new <i>Boulder::Unigene</i> stream on the accessor provided. The only possible accessors is <b>File</b>. If successful, the method returns the stream object. Otherwise it returns undef.</p>
+
+<p>new() takes the following arguments:</p>
+
+<pre><code><code>        -accessor       Name of the accessor to use
+        -param          Parameters to pass to the accessor</code></code></pre>
+
+<p>Specify the accessor to use with the <b>-accessor</b> argument. If not specified, it defaults to <b>File</b>.</p>
+
+<p><b>-param</b> is an accessor-specific argument. The possibilities is:</p>
+
+<p>For <b>File</b>, the <b>-param</b> argument must point to a string-valued scalar, which will be interpreted as the path to the file to read Unigene entries from.</p>
+
+</dd>
+<dt id="get-">get()</dt>
+<dd>
+
+<p>The get() method is inherited from <i>Boulder::Stream</i>, and simply returns the next parsed Unigene Stone, or undef if there is nothing more to fetch. It has the same semantics as the parent class, including the ability to restrict access to certain top-level tags.</p>
+
+</dd>
+<dt id="put-">put()</dt>
+<dd>
+
+<p>The put() method is inherited from the parent Boulder::Stream class, and will write the passed Stone to standard output in Boulder format. This means that it is currently not possible to write a Boulder::Unigene object back into Unigene flatfile form.</p>
+
+</dd>
+</dl>
+
+<h1 id="OUTPUT-TAGS">OUTPUT TAGS</h1>
+
+<p>The tags returned by the parsing operation are taken from the names shown in the Flat file Hs.dat since no better description of them is provided yet by the database source producer.</p>
+
+<h2 id="Top-Level-Tags">Top-Level Tags</h2>
+
+<p>These are tags that appear at the top level of the parsed Unigene entry.</p>
+
+<dl>
+
+<dt id="Identifier">Identifier</dt>
+<dd>
+
+<p>The Unigene identifier of this entry. Identifier is a single-value tag.</p>
+
+<p>Example:</p>
+
+<pre><code><code>      <span class="keyword">my</span> <span class="variable">$identifierNo</span> <span class="operator">=</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">Identifier</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="Title">Title</dt>
+<dd>
+
+<p>The Unigene title for this entry.</p>
+
+<p>Example: my $titledef=$s-&gt;Title;</p>
+
+</dd>
+<dt id="Gene-The-Gene-associated-with-this-Unigene-entry">Gene The Gene associated with this Unigene entry</dt>
+<dd>
+
+<p>Example: my $thegene=$s-&gt;Gene;</p>
+
+</dd>
+<dt id="Cytoband-The-cytological-band-position-of-this-entry">Cytoband The cytological band position of this entry</dt>
+<dd>
+
+<p>Example: my $thecytoband=$s-&gt;Cytoband;</p>
+
+</dd>
+<dt id="Counts-The-number-of-EST-in-this-record">Counts The number of EST in this record</dt>
+<dd>
+
+<p>Example: my $thecounts=$s-&gt;Counts;</p>
+
+</dd>
+<dt id="LocusLink-The-id-of-the-LocusLink-entry-associated-with-this-record">LocusLink The id of the LocusLink entry associated with this record</dt>
+<dd>
+
+<p>Example: my $thelocuslink=$s-&gt;LocusLink;</p>
+
+</dd>
+<dt id="Chromosome-This-field-contains-a-list-of-the-chromosomes-numbers-in-which-this-entry-has-been-linked">Chromosome This field contains a list, of the chromosomes numbers in which this entry has been linked</dt>
+<dd>
+
+<p>Example: my @theChromosome=$s-&gt;Chromosome;</p>
+
+</dd>
+</dl>
+
+<h2 id="STS-Multiple-records-in-the-form-STS-ACC-XXXXXX-NAME-YYYYYY">STS Multiple records in the form ^STS ACC=XXXXXX NAME=YYYYYY</h2>
+
+<dl>
+
+<dt id="ACC">ACC</dt>
+<dd>
+
+</dd>
+<dt id="NAME1">NAME</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="TXMAP-Multiple-records-in-the-form-TXMAP-XXXXXXX-MARKER-YYYYY-RHPANEL-ZZZZ">TXMAP Multiple records in the form ^TXMAP XXXXXXX; MARKER=YYYYY; RHPANEL=ZZZZ</h2>
+
+<p>The TXMAP tag points to a Stone record that contains multiple subtags. Each subtag is the name of a feature which points, in turn, to a Stone that describes the feature&#39;s location and other attributes.</p>
+
+<p>Each feature will contain one or more of the following subtags:</p>
+
+<dl>
+
+<dt id="MARKER">MARKER</dt>
+<dd>
+
+</dd>
+<dt id="RHPANEL">RHPANEL</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="PROTSIM-Multiple-records-in-the-form-PROTSIM-ORG-XXX-PROTID-DBID:YYY-PCT-ZZZ-ALN-QQQQ-Where-DBID-is-PID-for-indicate-presence-of-GenPept-identifier-SP-to-indicate-SWISSPROT-identifier-PIR-to-indicate-PIR-identifier-PRF-to-indicate-">PROTSIM Multiple records in the form ^PROTSIM ORG=XXX; PROTID=DBID:YYY; PCT=ZZZ; ALN=QQQQ Where DBID is PID for indicate presence of GenPept identifier, SP to indicate SWISSPROT identifier, PIR to indicate PIR identifier, PRF to indicate ???</h2>
+
+<dl>
+
+<dt id="ORG">ORG</dt>
+<dd>
+
+</dd>
+<dt id="PROTID">PROTID</dt>
+<dd>
+
+</dd>
+<dt id="PCT">PCT</dt>
+<dd>
+
+</dd>
+<dt id="ALN">ALN</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="SEQUENCE-Multiple-records-in-the-form-SEQUENCE-ACC-XXX-NID-YYYY-PID-CLONE-END-LID-">SEQUENCE Multiple records in the form ^SEQUENCE ACC=XXX; NID=YYYY; PID = CLONE= END= LID=</h2>
+
+<dl>
+
+<dt id="ACC1">ACC</dt>
+<dd>
+
+</dd>
+<dt id="NID">NID</dt>
+<dd>
+
+</dd>
+<dt id="PID">PID</dt>
+<dd>
+
+</dd>
+<dt id="CLONE">CLONE</dt>
+<dd>
+
+</dd>
+<dt id="END">END</dt>
+<dd>
+
+</dd>
+<dt id="LID">LID</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder.html">Boulder</a>, <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Blast.html">Boulder::Blast</a>, <a href="../../../../.cpan/build/Boulder-1.30-1cMFjf/blib/lib/Boulder/Genbank.html">Boulder::Genbank</a></p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Lincoln Stein &lt;lstein@cshl.org&gt;. Luca I.G. Toldo &lt;luca.toldo@merck.de&gt;</p>
+
+<p>Copyright (c) 1997 Lincoln D. Stein Copyright (c) 1999 Luca I.G. Toldo</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself. See DISCLAIMER.txt for disclaimers of warranty.</p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,1247 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#EXAMPLE">EXAMPLE</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Class-Methods">Class Methods</a></li>
+      <li><a href="#Private-MetaData-Methods">Private MetaData Methods</a></li>
+      <li><a href="#Server-Administration">Server Administration</a></li>
+    </ul>
+  </li>
+  <li><a href="#DATABASE-HANDLES">DATABASE HANDLES</a></li>
+  <li><a href="#STATEMENT-HANDLES">STATEMENT HANDLES</a></li>
+  <li><a href="#TRANSACTION-SUPPORT">TRANSACTION SUPPORT</a></li>
+  <li><a href="#MULTIPLE-RESULT-SETS">MULTIPLE RESULT SETS</a>
+    <ul>
+      <li><a href="#Issues-with-Multiple-result-sets">Issues with Multiple result sets</a></li>
+    </ul>
+  </li>
+  <li><a href="#MULTITHREADING">MULTITHREADING</a></li>
+  <li><a href="#ASYNCHRONOUS-QUERIES">ASYNCHRONOUS QUERIES</a></li>
+  <li><a href="#INSTALLATION">INSTALLATION</a>
+    <ul>
+      <li><a href="#Environment-Variables">Environment Variables</a></li>
+      <li><a href="#Installing-with-CPAN">Installing with CPAN</a></li>
+      <li><a href="#Manual-Installation">Manual Installation</a></li>
+    </ul>
+  </li>
+  <li><a href="#WIN32-INSTALLATION">WIN32 INSTALLATION</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#CONTRIBUTIONS">CONTRIBUTIONS</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#MAILING-LIST-SUPPORT">MAILING LIST SUPPORT</a></li>
+  <li><a href="#ADDITIONAL-DBI-INFORMATION">ADDITIONAL DBI INFORMATION</a></li>
+  <li><a href="#BUG-REPORTING-ENHANCEMENT-FEATURE-REQUESTS">BUG REPORTING, ENHANCEMENT/FEATURE REQUESTS</a></li>
+  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DBD::mysql - MySQL driver for the Perl5 Database Interface (DBI)</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">DBI</span><span class="operator">;</span>
+    
+    <span class="variable">$dsn</span> <span class="operator">=</span> <span class="string">"DBI:mysql:database=</span><span class="variable">$database</span><span class="string">;host=</span><span class="variable">$hostname</span><span class="string">;port=</span><span class="variable">$port</span><span class="string">"</span><span class="operator">;</span>
+    
+    <span class="variable">$dbh</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">connect</span><span class="operator">(</span><span class="variable">$dsn</span><span class="operator">,</span> <span class="variable">$user</span><span class="operator">,</span> <span class="variable">$password</span><span class="operator">);</span>
+    
+    
+    <span class="variable">$drh</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">install_driver</span><span class="operator">(</span><span class="string">"mysql"</span><span class="operator">);</span>
+    <span class="variable">@databases</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">data_sources</span><span class="operator">(</span><span class="string">"mysql"</span><span class="operator">);</span>
+       <span class="keyword">or</span>
+    <span class="variable">@databases</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">data_sources</span><span class="operator">(</span><span class="string">"mysql"</span><span class="operator">,</span>
+      <span class="operator">{</span><span class="string">"host"</span> <span class="operator">=&gt;</span> <span class="variable">$host</span><span class="operator">,</span> <span class="string">"port"</span> <span class="operator">=&gt;</span> <span class="variable">$port</span><span class="operator">,</span> <span class="string">"user"</span> <span class="operator">=&gt;</span> <span class="variable">$user</span><span class="operator">,</span> <span class="string">password</span> <span class="operator">=&gt;</span> <span class="variable">$pass</span><span class="operator">}</span><span class="operator">);</span>
+    
+    <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span><span class="string">"SELECT * FROM foo WHERE bla"</span><span class="operator">);</span>
+       <span class="keyword">or</span>
+    <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span><span class="string">"LISTFIELDS </span><span class="variable">$table</span><span class="string">"</span><span class="operator">);</span>
+       <span class="keyword">or</span>
+    <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span><span class="string">"LISTINDEX </span><span class="variable">$table</span><span class="string"> </span><span class="variable">$index</span><span class="string">"</span><span class="operator">);</span>
+    <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">execute</span><span class="operator">;</span>
+    <span class="variable">$numRows</span> <span class="operator">=</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">rows</span><span class="operator">;</span>
+    <span class="variable">$numFields</span> <span class="operator">=</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'NUM_OF_FIELDS'</span><span class="operator">}</span><span class="operator">;</span>
+    <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+    
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$drh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">'createdb'</span><span class="operator">,</span> <span class="variable">$database</span><span class="operator">,</span> <span class="variable">$host</span><span class="operator">,</span> <span class="variable">$user</span><span class="operator">,</span> <span class="variable">$password</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$drh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">'dropdb'</span><span class="operator">,</span> <span class="variable">$database</span><span class="operator">,</span> <span class="variable">$host</span><span class="operator">,</span> <span class="variable">$user</span><span class="operator">,</span> <span class="variable">$password</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$drh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">'shutdown'</span><span class="operator">,</span> <span class="variable">$host</span><span class="operator">,</span> <span class="variable">$user</span><span class="operator">,</span> <span class="variable">$password</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$drh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">'reload'</span><span class="operator">,</span> <span class="variable">$host</span><span class="operator">,</span> <span class="variable">$user</span><span class="operator">,</span> <span class="variable">$password</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">'createdb'</span><span class="operator">,</span> <span class="variable">$database</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">'dropdb'</span><span class="operator">,</span> <span class="variable">$database</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">'shutdown'</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">'reload'</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="EXAMPLE">EXAMPLE</h1>
+
+<pre><code><code>  <span class="comment">#!/usr/bin/perl</span>
+  
+  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">DBI</span><span class="operator">();</span>
+  
+  <span class="comment"># Connect to the database.</span>
+  <span class="keyword">my</span> <span class="variable">$dbh</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">connect</span><span class="operator">(</span><span class="string">"DBI:mysql:database=test;host=localhost"</span><span class="operator">,</span>
+                         <span class="string">"joe"</span><span class="operator">,</span> <span class="string">"joe's password"</span><span class="operator">,</span>
+                         <span class="operator">{</span><span class="string">'RaiseError'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">}</span><span class="operator">);</span>
+  
+  <span class="comment"># Drop table 'foo'. This may fail, if 'foo' doesn't exist.</span>
+  <span class="comment"># Thus we put an eval around it.</span>
+  <span class="keyword">eval</span> <span class="operator">{</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">do</span><span class="operator">(</span><span class="string">"DROP TABLE foo"</span><span class="operator">)</span> <span class="operator">};</span>
+  <span class="keyword">print</span> <span class="string">"Dropping foo failed: $@\n"</span> <span class="keyword">if</span> <span class="variable">$@</span><span class="operator">;</span>
+  
+  <span class="comment"># Create a new table 'foo'. This must not fail, thus we don't</span>
+  <span class="comment"># catch errors.</span>
+  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">do</span><span class="operator">(</span><span class="string">"CREATE TABLE foo (id INTEGER, name VARCHAR(20))"</span><span class="operator">);</span>
+  
+  <span class="comment"># INSERT some data into 'foo'. We are using $dbh-&gt;quote() for</span>
+  <span class="comment"># quoting the name.</span>
+  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">do</span><span class="operator">(</span><span class="string">"INSERT INTO foo VALUES (1, "</span> <span class="operator">.</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">quote</span><span class="operator">(</span><span class="string">"Tim"</span><span class="operator">)</span> <span class="operator">.</span> <span class="string">")"</span><span class="operator">);</span>
+  
+  <span class="comment"># Same thing, but using placeholders</span>
+  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">do</span><span class="operator">(</span><span class="string">"INSERT INTO foo VALUES (?, ?)"</span><span class="operator">,</span> <span class="keyword">undef</span><span class="operator">,</span> <span class="number">2</span><span class="operator">,</span> <span class="string">"Jochen"</span><span class="operator">);</span>
+  
+  <span class="comment"># Now retrieve data from the table.</span>
+  <span class="keyword">my</span> <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span><span class="string">"SELECT * FROM foo"</span><span class="operator">);</span>
+  <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">execute</span><span class="operator">();</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$ref</span> <span class="operator">=</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">fetchrow_hashref</span><span class="operator">())</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="string">"Found a row: id = </span><span class="variable">$ref</span><span class="string">-&gt;{'id'}, name = </span><span class="variable">$ref</span><span class="string">-&gt;{'name'}\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">();</span>
+  
+  <span class="comment"># Disconnect from the database.</span>
+  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">disconnect</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><b>DBD::mysql</b> is the Perl5 Database Interface driver for the MySQL database. In other words: DBD::mysql is an interface between the Perl programming language and the MySQL programming API that comes with the MySQL relational database management system. Most functions provided by this programming API are supported. Some rarely used functions are missing, mainly because noone ever requested them. :-)</p>
+
+<p>In what follows we first discuss the use of DBD::mysql, because this is what you will need the most. For installation, see the sections on <a>INSTALLATION</a>, and <a href="#WIN32-INSTALLATION">&quot;WIN32 INSTALLATION&quot;</a> below. See <a>EXAMPLE</a> for a simple example above.</p>
+
+<p>From perl you activate the interface with the statement</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">DBI</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>After that you can connect to multiple MySQL database servers and send multiple queries to any of them via a simple object oriented interface. Two types of objects are available: database handles and statement handles. Perl returns a database handle to the connect method like so:</p>
+
+<pre><code><code>  <span class="variable">$dbh</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">connect</span><span class="operator">(</span><span class="string">"DBI:mysql:database=</span><span class="variable">$db</span><span class="string">;host=</span><span class="variable">$host</span><span class="string">"</span><span class="operator">,</span>
+                      <span class="variable">$user</span><span class="operator">,</span> <span class="variable">$password</span><span class="operator">,</span> <span class="operator">{</span><span class="string">RaiseError</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">}</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Once you have connected to a database, you can can execute SQL statements with:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$query</span> <span class="operator">=</span> <span class="keyword">sprintf</span><span class="operator">(</span><span class="string">"INSERT INTO foo VALUES (%d, %s)"</span><span class="operator">,</span>
+                      <span class="variable">$number</span><span class="operator">,</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">quote</span><span class="operator">(</span><span class="string">"name"</span><span class="operator">));</span>
+  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">do</span><span class="operator">(</span><span class="variable">$query</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>See <a href="http://man.he.net/man3/DBI">DBI(3)</a> for details on the quote and do methods. An alternative approach is</p>
+
+<pre><code><code>  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">do</span><span class="operator">(</span><span class="string">"INSERT INTO foo VALUES (?, ?)"</span><span class="operator">,</span> <span class="keyword">undef</span><span class="operator">,</span>
+           <span class="variable">$number</span><span class="operator">,</span> <span class="variable">$name</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>in which case the quote method is executed automatically. See also the bind_param method in <a href="http://man.he.net/man3/DBI">DBI(3)</a>. See <a href="#DATABASE-HANDLES">&quot;DATABASE HANDLES&quot;</a> below for more details on database handles.</p>
+
+<p>If you want to retrieve results, you need to create a so-called statement handle with:</p>
+
+<pre><code><code>  <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span><span class="string">"SELECT * FROM </span><span class="variable">$table</span><span class="string">"</span><span class="operator">);</span>
+  <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">execute</span><span class="operator">();</span>
+</code></code></pre>
+
+<p>This statement handle can be used for multiple things. First of all you can retreive a row of data:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$row</span> <span class="operator">=</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">fetchrow_hashref</span><span class="operator">();</span>
+</code></code></pre>
+
+<p>If your table has columns ID and NAME, then $row will be hash ref with keys ID and NAME. See <a href="#STATEMENT-HANDLES">&quot;STATEMENT HANDLES&quot;</a> below for more details on statement handles.</p>
+
+<p>But now for a more formal approach:</p>
+
+<h2 id="Class-Methods">Class Methods</h2>
+
+<dl>
+
+<dt id="connect"><b>connect</b></dt>
+<dd>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">DBI</span><span class="operator">;</span>
+    
+    <span class="variable">$dsn</span> <span class="operator">=</span> <span class="string">"DBI:mysql:</span><span class="variable">$database</span><span class="string">"</span><span class="operator">;</span>
+    <span class="variable">$dsn</span> <span class="operator">=</span> <span class="string">"DBI:mysql:database=</span><span class="variable">$database</span><span class="string">;host=</span><span class="variable">$hostname</span><span class="string">"</span><span class="operator">;</span>
+    <span class="variable">$dsn</span> <span class="operator">=</span> <span class="string">"DBI:mysql:database=</span><span class="variable">$database</span><span class="string">;host=</span><span class="variable">$hostname</span><span class="string">;port=</span><span class="variable">$port</span><span class="string">"</span><span class="operator">;</span>
+    
+    <span class="variable">$dbh</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">connect</span><span class="operator">(</span><span class="variable">$dsn</span><span class="operator">,</span> <span class="variable">$user</span><span class="operator">,</span> <span class="variable">$password</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>A <code><code>database</code></code> must always be specified.</p>
+
+<dl>
+
+<dt id="host">host</dt>
+<dd>
+
+</dd>
+<dt id="port">port</dt>
+<dd>
+
+<p>The hostname, if not specified or specified as &#39;&#39; or &#39;localhost&#39;, will default to a MySQL server running on the local machine using the default for the UNIX socket. To connect to a MySQL server on the local machine via TCP, you must specify the loopback IP address (127.0.0.1) as the host.</p>
+
+<p>Should the MySQL server be running on a non-standard port number, you may explicitly state the port number to connect to in the <code><code>hostname</code></code> argument, by concatenating the <i>hostname</i> and <i>port number</i> together separated by a colon ( <code><code>:</code></code> ) character or by using the <code><code>port</code></code> argument.</p>
+
+<p>To connect to a MySQL server on localhost using TCP/IP, you must specify the hostname as 127.0.0.1 (with the optional port).</p>
+
+</dd>
+<dt id="mysql_client_found_rows">mysql_client_found_rows</dt>
+<dd>
+
+<p>Enables (TRUE value) or disables (FALSE value) the flag CLIENT_FOUND_ROWS while connecting to the MySQL server. This has a somewhat funny effect: Without mysql_client_found_rows, if you perform a query like</p>
+
+<pre><code><code>  UPDATE $table SET id = 1 WHERE id = 1</code></code></pre>
+
+<p>then the MySQL engine will always return 0, because no rows have changed. With mysql_client_found_rows however, it will return the number of rows that have an id 1, as some people are expecting. (At least for compatibility to other engines.)</p>
+
+</dd>
+<dt id="mysql_compression">mysql_compression</dt>
+<dd>
+
+<p>As of MySQL 3.22.3, a new feature is supported: If your DSN contains the option &quot;mysql_compression=1&quot;, then the communication between client and server will be compressed.</p>
+
+</dd>
+<dt id="mysql_connect_timeout">mysql_connect_timeout</dt>
+<dd>
+
+<p>If your DSN contains the option &quot;mysql_connect_timeout=##&quot;, the connect request to the server will timeout if it has not been successful after the given number of seconds.</p>
+
+</dd>
+<dt id="mysql_write_timeout">mysql_write_timeout</dt>
+<dd>
+
+<p>If your DSN contains the option &quot;mysql_write_timeout=##&quot;, the write operation to the server will timeout if it has not been successful after the given number of seconds.</p>
+
+</dd>
+<dt id="mysql_read_timeout">mysql_read_timeout</dt>
+<dd>
+
+<p>If your DSN contains the option &quot;mysql_read_timeout=##&quot;, the read operation to the server will timeout if it has not been successful after the given number of seconds.</p>
+
+</dd>
+<dt id="mysql_init_command">mysql_init_command</dt>
+<dd>
+
+<pre><code><code> If your DSN contains the option &quot;mysql_init_command_timeout=##&quot;, then
+ this SQL statement is executed when connecting to the MySQL server.
+ It is automatically re-executed if reconnection occurs.</code></code></pre>
+
+</dd>
+<dt id="mysql_read_default_file">mysql_read_default_file</dt>
+<dd>
+
+</dd>
+<dt id="mysql_read_default_group">mysql_read_default_group</dt>
+<dd>
+
+<p>These options can be used to read a config file like /etc/my.cnf or ~/.my.cnf. By default MySQL&#39;s C client library doesn&#39;t use any config files unlike the client programs (mysql, mysqladmin, ...) that do, but outside of the C client library. Thus you need to explicitly request reading a config file, as in</p>
+
+<pre><code><code>    <span class="variable">$dsn</span> <span class="operator">=</span> <span class="string">"DBI:mysql:test;mysql_read_default_file=/home/joe/my.cnf"</span><span class="operator">;</span>
+    <span class="variable">$dbh</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">connect</span><span class="operator">(</span><span class="variable">$dsn</span><span class="operator">,</span> <span class="variable">$user</span><span class="operator">,</span> <span class="variable">$password</span><span class="operator">)</span>
+</code></code></pre>
+
+<p>The option mysql_read_default_group can be used to specify the default group in the config file: Usually this is the <i>client</i> group, but see the following example:</p>
+
+<pre><code><code>    [client]
+    host=localhost
+
+    [perl]
+    host=perlhost</code></code></pre>
+
+<p>(Note the order of the entries! The example won&#39;t work, if you reverse the [client] and [perl] sections!)</p>
+
+<p>If you read this config file, then you&#39;ll be typically connected to <i>localhost</i>. However, by using</p>
+
+<pre><code><code>    <span class="variable">$dsn</span> <span class="operator">=</span> <span class="string">"DBI:mysql:test;mysql_read_default_group=perl;"</span>
+        <span class="operator">.</span> <span class="string">"mysql_read_default_file=/home/joe/my.cnf"</span><span class="operator">;</span>
+    <span class="variable">$dbh</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">connect</span><span class="operator">(</span><span class="variable">$dsn</span><span class="operator">,</span> <span class="variable">$user</span><span class="operator">,</span> <span class="variable">$password</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>you&#39;ll be connected to <i>perlhost</i>. Note that if you specify a default group and do not specify a file, then the default config files will all be read. See the documentation of the C function mysql_options() for details.</p>
+
+</dd>
+<dt id="mysql_socket">mysql_socket</dt>
+<dd>
+
+<p>As of MySQL 3.21.15, it is possible to choose the Unix socket that is used for connecting to the server. This is done, for example, with</p>
+
+<pre><code><code>    mysql_socket=/dev/mysql</code></code></pre>
+
+<p>Usually there&#39;s no need for this option, unless you are using another location for the socket than that built into the client.</p>
+
+</dd>
+<dt id="mysql_ssl">mysql_ssl</dt>
+<dd>
+
+<p>A true value turns on the CLIENT_SSL flag when connecting to the MySQL database:</p>
+
+<pre><code><code>  mysql_ssl=1</code></code></pre>
+
+<p>This means that your communication with the server will be encrypted.</p>
+
+<p>If you turn mysql_ssl on, you might also wish to use the following flags:</p>
+
+</dd>
+<dt id="mysql_ssl_client_key">mysql_ssl_client_key</dt>
+<dd>
+
+</dd>
+<dt id="mysql_ssl_client_cert">mysql_ssl_client_cert</dt>
+<dd>
+
+</dd>
+<dt id="mysql_ssl_ca_file">mysql_ssl_ca_file</dt>
+<dd>
+
+</dd>
+<dt id="mysql_ssl_ca_path">mysql_ssl_ca_path</dt>
+<dd>
+
+</dd>
+<dt id="mysql_ssl_cipher">mysql_ssl_cipher</dt>
+<dd>
+
+<p>These are used to specify the respective parameters of a call to mysql_ssl_set, if mysql_ssl is turned on.</p>
+
+</dd>
+<dt id="mysql_local_infile">mysql_local_infile</dt>
+<dd>
+
+<p>As of MySQL 3.23.49, the LOCAL capability for LOAD DATA may be disabled in the MySQL client library by default. If your DSN contains the option &quot;mysql_local_infile=1&quot;, LOAD DATA LOCAL will be enabled. (However, this option is *ineffective* if the server has also been configured to disallow LOCAL.)</p>
+
+</dd>
+<dt id="mysql_multi_statements">mysql_multi_statements</dt>
+<dd>
+
+<p>As of MySQL 4.1, support for multiple statements seperated by a semicolon (;) may be enabled by using this option. Enabling this option may cause problems if server-side prepared statements are also enabled.</p>
+
+</dd>
+<dt id="Prepared-statement-support-server-side-prepare-">Prepared statement support (server side prepare)</dt>
+<dd>
+
+<p>As of 3.0002_1, server side prepare statements were on by default (if your server was &gt;= 4.1.3). As of 3.0009, they were off by default again due to issues with the prepared statement API (all other mysql connectors are set this way until C API issues are resolved). The requirement to use prepared statements still remains that you have a server &gt;= 4.1.3</p>
+
+<p>To use server side prepared statements, all you need to do is set the variable mysql_server_prepare in the connect:</p>
+
+<p>$dbh = DBI-&gt;connect( &quot;DBI:mysql:database=test;host=localhost;mysql_server_prepare=1&quot;, &quot;&quot;, &quot;&quot;, { RaiseError =&gt; 1, AutoCommit =&gt; 1 } );</p>
+
+<p>* Note: delimiter for this param is &#39;;&#39;</p>
+
+<p>There are many benefits to using server side prepare statements, mostly if you are performing many inserts because of that fact that a single statement is prepared to accept multiple insert values.</p>
+
+<p>To make sure that the &#39;make test&#39; step tests whether server prepare works, you just need to export the env variable MYSQL_SERVER_PREPARE:</p>
+
+<p>export MYSQL_SERVER_PREPARE=1</p>
+
+</dd>
+<dt id="mysql_embedded_options">mysql_embedded_options</dt>
+<dd>
+
+<p>The option &lt;mysql_embedded_options&gt; can be used to pass &#39;command-line&#39; options to embedded server.</p>
+
+<p>Example:</p>
+
+<p>use DBI; $testdsn=&quot;DBI:mysqlEmb:database=test;mysql_embedded_options=--help,--verbose&quot;; $dbh = DBI-&gt;connect($testdsn,&quot;a&quot;,&quot;b&quot;);</p>
+
+<p>This would cause the command line help to the embedded MySQL server library to be printed.</p>
+
+</dd>
+<dt id="mysql_embedded_groups">mysql_embedded_groups</dt>
+<dd>
+
+<p>The option &lt;mysql_embedded_groups&gt; can be used to specify the groups in the config file(<i>my.cnf</i>) which will be used to get options for embedded server. If not specified [server] and [embedded] groups will be used.</p>
+
+<p>Example:</p>
+
+<p>$testdsn=&quot;DBI:mysqlEmb:database=test;mysql_embedded_groups=embedded_server,common&quot;;</p>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<h2 id="Private-MetaData-Methods">Private MetaData Methods</h2>
+
+<dl>
+
+<dt id="ListDBs"><b>ListDBs</b></dt>
+<dd>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$drh</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">install_driver</span><span class="operator">(</span><span class="string">"mysql"</span><span class="operator">);</span>
+    <span class="variable">@dbs</span> <span class="operator">=</span> <span class="variable">$drh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">"</span><span class="variable">$hostname</span><span class="string">:</span><span class="variable">$port</span><span class="string">"</span><span class="operator">,</span> <span class="string">'_ListDBs'</span><span class="operator">);</span>
+    <span class="variable">@dbs</span> <span class="operator">=</span> <span class="variable">$drh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="variable">$hostname</span><span class="operator">,</span> <span class="variable">$port</span><span class="operator">,</span> <span class="string">'_ListDBs'</span><span class="operator">);</span>
+    <span class="variable">@dbs</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">'_ListDBs'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Returns a list of all databases managed by the MySQL server running on <code><code>$hostname</code></code>, port <code><code>$port</code></code>. This is a legacy method. Instead, you should use the portable method</p>
+
+<pre><code><code>    <span class="variable">@dbs</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">data_sources</span><span class="operator">(</span><span class="string">"mysql"</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h2 id="Server-Administration">Server Administration</h2>
+
+<dl>
+
+<dt id="admin">admin</dt>
+<dd>
+
+<pre><code><code>    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$drh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">"createdb"</span><span class="operator">,</span> <span class="variable">$dbname</span><span class="operator">,</span> <span class="operator">[</span><span class="variable">host</span><span class="operator">,</span> <span class="variable">user</span><span class="operator">,</span> <span class="variable">password</span><span class="operator">,</span><span class="operator">]</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$drh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">"dropdb"</span><span class="operator">,</span> <span class="variable">$dbname</span><span class="operator">,</span> <span class="operator">[</span><span class="variable">host</span><span class="operator">,</span> <span class="variable">user</span><span class="operator">,</span> <span class="variable">password</span><span class="operator">,</span><span class="operator">]</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$drh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">"shutdown"</span><span class="operator">,</span> <span class="operator">[</span><span class="variable">host</span><span class="operator">,</span> <span class="variable">user</span><span class="operator">,</span> <span class="variable">password</span><span class="operator">,</span><span class="operator">]</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$drh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">"reload"</span><span class="operator">,</span> <span class="operator">[</span><span class="variable">host</span><span class="operator">,</span> <span class="variable">user</span><span class="operator">,</span> <span class="variable">password</span><span class="operator">,</span><span class="operator">]</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    
+      <span class="keyword">or</span>
+    
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">"createdb"</span><span class="operator">,</span> <span class="variable">$dbname</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">"dropdb"</span><span class="operator">,</span> <span class="variable">$dbname</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">"shutdown"</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+    <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">func</span><span class="operator">(</span><span class="string">"reload"</span><span class="operator">,</span> <span class="string">'admin'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>For server administration you need a server connection. For obtaining this connection you have two options: Either use a driver handle (drh) and supply the appropriate arguments (host, defaults localhost, user, defaults to &#39;&#39; and password, defaults to &#39;&#39;). A driver handle can be obtained with</p>
+
+<pre><code><code>    <span class="variable">$drh</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">install_driver</span><span class="operator">(</span><span class="string">'mysql'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Otherwise reuse the existing connection of a database handle (dbh).</p>
+
+<p>There&#39;s only one function available for administrative purposes, comparable to the m(y)sqladmin programs. The command being execute depends on the first argument:</p>
+
+<dl>
+
+<dt id="createdb">createdb</dt>
+<dd>
+
+<p>Creates the database $dbname. Equivalent to &quot;m(y)sqladmin create $dbname&quot;.</p>
+
+</dd>
+<dt id="dropdb">dropdb</dt>
+<dd>
+
+<p>Drops the database $dbname. Equivalent to &quot;m(y)sqladmin drop $dbname&quot;.</p>
+
+<p>It should be noted that database deletion is <i>not prompted for</i> in any way. Nor is it undo-able from DBI.</p>
+
+<pre><code><code>    Once you issue the dropDB() method, the database will be gone!</code></code></pre>
+
+<p>These method should be used at your own risk.</p>
+
+</dd>
+<dt id="shutdown">shutdown</dt>
+<dd>
+
+<p>Silently shuts down the database engine. (Without prompting!) Equivalent to &quot;m(y)sqladmin shutdown&quot;.</p>
+
+</dd>
+<dt id="reload">reload</dt>
+<dd>
+
+<p>Reloads the servers configuration files and/or tables. This can be particularly important if you modify access privileges or create new users.</p>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<h1 id="DATABASE-HANDLES">DATABASE HANDLES</h1>
+
+<p>The DBD::mysql driver supports the following attributes of database handles (read only):</p>
+
+<pre><code><code>  <span class="variable">$errno</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'mysql_errno'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="variable">$error</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'mysql_error'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="variable">$info</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'mysql_hostinfo'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="variable">$info</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'mysql_info'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="variable">$insertid</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'mysql_insertid'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="variable">$info</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'mysql_protoinfo'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="variable">$info</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'mysql_serverinfo'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="variable">$info</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'mysql_stat'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="variable">$threadId</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'mysql_thread_id'</span><span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>These correspond to mysql_errno(), mysql_error(), mysql_get_host_info(), mysql_info(), mysql_insert_id(), mysql_get_proto_info(), mysql_get_server_info(), mysql_stat() and mysql_thread_id(), respectively.</p>
+
+<pre><code><code> <span class="variable">$info_hashref</span> <span class="operator">=</span> <span class="variable">$dhb</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">mysql_dbd_stats</span><span class="operator">}</span>
+</code></code></pre>
+
+<p>DBD::mysql keeps track of some statistics in the mysql_dbd_stats attribute. The following stats are being maintained:</p>
+
+<dl>
+
+<dt id="auto_reconnects_ok">auto_reconnects_ok</dt>
+<dd>
+
+<p>The number of times that DBD::mysql successfully reconnected to the mysql server.</p>
+
+</dd>
+<dt id="auto_reconnects_failed">auto_reconnects_failed</dt>
+<dd>
+
+<p>The number of times that DBD::mysql tried to reconnect to mysql but failed.</p>
+
+</dd>
+</dl>
+
+<p>The DBD::mysql driver also supports the following attribute(s) of database handles (read/write):</p>
+
+<pre><code><code> <span class="variable">$bool_value</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">mysql_auto_reconnect</span><span class="operator">}</span><span class="operator">;</span>
+ <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">mysql_auto_reconnect</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">$AutoReconnect</span> <span class="operator">?</span> <span class="number">1</span> <span class="operator">:</span> <span class="number">0</span><span class="operator">;</span>
+</code></code></pre>
+
+<dl>
+
+<dt id="mysql_auto_reconnect">mysql_auto_reconnect</dt>
+<dd>
+
+<p>This attribute determines whether DBD::mysql will automatically reconnect to mysql if the connection be lost. This feature defaults to off; however, if either the GATEWAY_INTERFACE or MOD_PERL envionment variable is set, DBD::mysql will turn mysql_auto_reconnect on. Setting mysql_auto_reconnect to on is not advised if &#39;lock tables&#39; is used because if DBD::mysql reconnect to mysql all table locks will be lost. This attribute is ignored when AutoCommit is turned off, and when AutoCommit is turned off, DBD::mysql will not automatically reconnect to the server.</p>
+
+<p>It is also possible to set the default value of the <code><code>mysql_auto_reconnect</code></code> attribute for the $dbh by passing it in the <code><code>\%attr</code></code> hash for <code><code>DBI-</code></code>connect&gt;.</p>
+
+<p>Note that if you are using a module or framework that performs reconnections for you (for example <a>DBIx::Connector</a> in fixup mode), this value must be set to 0.</p>
+
+</dd>
+<dt id="mysql_use_result">mysql_use_result</dt>
+<dd>
+
+<p>This attribute forces the driver to use mysql_use_result rather than mysql_store_result. The former is faster and less memory consuming, but tends to block other processes. (That&#39;s why mysql_store_result is the default.)</p>
+
+<p>It is possible to set the default value of the <code><code>mysql_use_result</code></code> attribute for the $dbh using several ways:</p>
+
+<pre><code><code> <span class="operator">-</span> <span class="variable">through</span> <span class="variable">DSN</span>
+ 
+   <span class="variable">$dbh</span><span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">connect</span><span class="operator">(</span><span class="string">"DBI:mysql:test;mysql_use_result=1"</span><span class="operator">,</span> <span class="string">"root"</span><span class="operator">,</span> <span class="string">""</span><span class="operator">);</span>
+ 
+ <span class="operator">-</span> <span class="variable">after</span> <span class="variable">creation</span> <span class="variable">of</span> <span class="variable">database</span> <span class="variable">handle</span>
+ 
+   <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'mysql_use_result'</span><span class="operator">}</span><span class="operator">=</span><span class="number">0</span><span class="operator">;</span> <span class="comment">#disable</span>
+   <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'mysql_use_result'</span><span class="operator">}</span><span class="operator">=</span><span class="number">1</span><span class="operator">;</span> <span class="comment">#enable</span>
+</code></code></pre>
+
+<p>It is possible to set/unset the <code><code>mysql_use_result</code></code> attribute after creation of the statement handle. See below.</p>
+
+</dd>
+<dt id="mysql_enable_utf8">mysql_enable_utf8</dt>
+<dd>
+
+<p>This attribute determines whether DBD::mysql should assume strings stored in the database are utf8. This feature defaults to off.</p>
+
+<p>When set, a data retrieved from a textual column type (char, varchar, etc) will have the UTF-8 flag turned on if necessary. This enables character semantics on that string. You will also need to ensure that your database / table / column is configured to use UTF8. See Chapter 10 of the mysql manual for details.</p>
+
+<p>Additionally, turning on this flag tells MySQL that incoming data should be treated as UTF-8. This will only take effect if used as part of the call to connect(). If you turn the flag on after connecting, you will need to issue the command <code><code>SET NAMES utf8</code></code> to get the same effect.</p>
+
+<p>This option is experimental and may change in future versions.</p>
+
+</dd>
+<dt id="mysql_bind_type_guessing">mysql_bind_type_guessing</dt>
+<dd>
+
+<p>This attribute causes the driver (emulated prepare statements) to attempt to guess if a value being bound is a numeric value, and if so, doesn&#39;t quote the value. This was created by Dragonchild and is one way to deal with the performance issue of using quotes in a statement that is inserting or updating a large numeric value. This was previously called <code><code>unsafe_bind_type_guessing</code></code> because it is experimental. I have successfully run the full test suite with this option turned on, the name can now be simply <code><code>mysql_bind_type_guessing</code></code>.</p>
+
+<p>CAVEAT: Even though you can insert an integer value into a character column, if this column is indexed, if you query that column with the integer value not being quoted, it will not use the index:</p>
+
+<p>MariaDB [test]&gt; explain select * from test where value0 = &#39;3&#39; \G *************************** 1. row *************************** id: 1 select_type: SIMPLE table: test type: ref possible_keys: value0 key: value0 key_len: 13 ref: const rows: 1 Extra: Using index condition 1 row in set (0.00 sec)</p>
+
+<p>MariaDB [test]&gt; explain select * from test where value0 = 3 -&gt; \G *************************** 1. row *************************** id: 1 select_type: SIMPLE table: test type: ALL possible_keys: value0 key: NULL key_len: NULL ref: NULL rows: 6 Extra: Using where 1 row in set (0.00 sec)</p>
+
+<p>See bug: https://rt.cpan.org/Ticket/Display.html?id=43822</p>
+
+<p><code><code>mysql_bind_type_guessing</code></code> can be turned on via</p>
+
+<pre><code><code> <span class="operator">-</span> <span class="variable">through</span> <span class="variable">DSN</span>
+ 
+  <span class="keyword">my</span> <span class="variable">$dbh</span><span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">connect</span><span class="operator">(</span><span class="string">'DBI:mysql:test'</span><span class="operator">,</span> <span class="string">'username'</span><span class="operator">,</span> <span class="string">'pass'</span><span class="operator">,</span>
+  <span class="operator">{</span> <span class="string">mysql_bind_type_guessing</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">}</span><span class="operator">)</span>
+ 
+  <span class="operator">-</span> <span class="variable">OR</span> <span class="variable">after</span> <span class="variable">handle</span> <span class="variable">creation</span>
+ 
+  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">mysql_bind_type_guessing</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="mysql_bind_comment_placeholders">mysql_bind_comment_placeholders</dt>
+<dd>
+
+<p>This attribute causes the driver (emulated prepare statements) will cause any placeholders in comments to be bound. This is not correct prepared statement behavior, but some developers have come to depend on this behavior, so I have made it available in 4.015</p>
+
+</dd>
+<dt id="mysql_no_autocommit_cmd">mysql_no_autocommit_cmd</dt>
+<dd>
+
+<p>This attribute causes the driver to not issue &#39;set autocommit&#39; either through explicit or using mysql_autocommit(). This is particularly useful in the case of using MySQL Proxy.</p>
+
+<p>See the bug report:</p>
+
+<p>https://rt.cpan.org/Public/Bug/Display.html?id=46308</p>
+
+<p><code><code>mysql_no_autocommit_cmd</code></code> can be turned on via</p>
+
+<pre><code><code> <span class="operator">-</span> <span class="variable">through</span> <span class="variable">DSN</span>
+ 
+  <span class="keyword">my</span> <span class="variable">$dbh</span><span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">connect</span><span class="operator">(</span><span class="string">'DBI:mysql:test'</span><span class="operator">,</span> <span class="string">'username'</span><span class="operator">,</span> <span class="string">'pass'</span><span class="operator">,</span>
+  <span class="operator">{</span> <span class="string">mysql_no_autocommit_cmd</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">}</span><span class="operator">)</span>
+ 
+  <span class="operator">-</span> <span class="variable">OR</span> <span class="variable">after</span> <span class="variable">handle</span> <span class="variable">creation</span>
+ 
+  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">mysql_no_autocommit_cmd</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h1 id="STATEMENT-HANDLES">STATEMENT HANDLES</h1>
+
+<p>The statement handles of DBD::mysql support a number of attributes. You access these by using, for example,</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$numFields</span> <span class="operator">=</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'NUM_OF_FIELDS'</span><span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Note, that most attributes are valid only after a successfull <i>execute</i>. An <code><code>undef</code></code> value will returned in that case. The most important exception is the <code><code>mysql_use_result</code></code> attribute: This forces the driver to use mysql_use_result rather than mysql_store_result. The former is faster and less memory consuming, but tends to block other processes. (That&#39;s why mysql_store_result is the default.)</p>
+
+<p>To set the <code><code>mysql_use_result</code></code> attribute, use either of the following:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span><span class="string">"QUERY"</span><span class="operator">,</span> <span class="operator">{</span> <span class="string">"mysql_use_result"</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">}</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span><span class="string">"QUERY"</span><span class="operator">);</span>
+  <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">"mysql_use_result"</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Column dependent attributes, for example <i>NAME</i>, the column names, are returned as a reference to an array. The array indices are corresponding to the indices of the arrays returned by <i>fetchrow</i> and similar methods. For example the following code will print a header of table names together with all rows:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span><span class="string">"SELECT * FROM </span><span class="variable">$table</span><span class="string">"</span><span class="operator">);</span>
+  <span class="keyword">if</span> <span class="operator">(!</span><span class="variable">$sth</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">die</span> <span class="string">"Error:"</span> <span class="operator">.</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">errstr</span> <span class="operator">.</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  <span class="keyword">if</span> <span class="operator">(!</span><span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">execute</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">die</span> <span class="string">"Error:"</span> <span class="operator">.</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">errstr</span> <span class="operator">.</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  <span class="keyword">my</span> <span class="variable">$names</span> <span class="operator">=</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'NAME'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$numFields</span> <span class="operator">=</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'NUM_OF_FIELDS'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="keyword">for</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$i</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>  <span class="variable">$i</span> <span class="operator">&lt;</span> <span class="variable">$numFields</span><span class="operator">;</span>  <span class="variable">$i</span><span class="operator">++)</span> <span class="operator">{</span>
+      <span class="keyword">printf</span><span class="operator">(</span><span class="string">"%s%s"</span><span class="operator">,</span> <span class="variable">$i</span> <span class="operator">?</span> <span class="string">","</span> <span class="operator">:</span> <span class="string">""</span><span class="operator">,</span> <span class="variable">$$names</span><span class="operator">[</span><span class="variable">$i</span><span class="operator">]</span><span class="operator">);</span>
+  <span class="operator">}</span>
+  <span class="keyword">print</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$ref</span> <span class="operator">=</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">fetchrow_arrayref</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">for</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$i</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>  <span class="variable">$i</span> <span class="operator">&lt;</span> <span class="variable">$numFields</span><span class="operator">;</span>  <span class="variable">$i</span><span class="operator">++)</span> <span class="operator">{</span>
+          <span class="keyword">printf</span><span class="operator">(</span><span class="string">"%s%s"</span><span class="operator">,</span> <span class="variable">$i</span> <span class="operator">?</span> <span class="string">","</span> <span class="operator">:</span> <span class="string">""</span><span class="operator">,</span> <span class="variable">$$ref</span><span class="operator">[</span><span class="variable">$i</span><span class="operator">]</span><span class="operator">);</span>
+      <span class="operator">}</span>
+      <span class="keyword">print</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>For portable applications you should restrict yourself to attributes with capitalized or mixed case names. Lower case attribute names are private to DBD::mysql. The attribute list includes:</p>
+
+<dl>
+
+<dt id="ChopBlanks">ChopBlanks</dt>
+<dd>
+
+<p>this attribute determines whether a <i>fetchrow</i> will chop preceding and trailing blanks off the column values. Chopping blanks does not have impact on the <i>max_length</i> attribute.</p>
+
+</dd>
+<dt id="mysql_insertid">mysql_insertid</dt>
+<dd>
+
+<p>MySQL has the ability to choose unique key values automatically. If this happened, the new ID will be stored in this attribute. An alternative way for accessing this attribute is via $dbh-&gt;{&#39;mysql_insertid&#39;}. (Note we are using the $dbh in this case!)</p>
+
+</dd>
+<dt id="mysql_is_blob">mysql_is_blob</dt>
+<dd>
+
+<p>Reference to an array of boolean values; TRUE indicates, that the respective column is a blob. This attribute is valid for MySQL only.</p>
+
+</dd>
+<dt id="mysql_is_key">mysql_is_key</dt>
+<dd>
+
+<p>Reference to an array of boolean values; TRUE indicates, that the respective column is a key. This is valid for MySQL only.</p>
+
+</dd>
+<dt id="mysql_is_num">mysql_is_num</dt>
+<dd>
+
+<p>Reference to an array of boolean values; TRUE indicates, that the respective column contains numeric values.</p>
+
+</dd>
+<dt id="mysql_is_pri_key">mysql_is_pri_key</dt>
+<dd>
+
+<p>Reference to an array of boolean values; TRUE indicates, that the respective column is a primary key.</p>
+
+</dd>
+<dt id="mysql_is_auto_increment">mysql_is_auto_increment</dt>
+<dd>
+
+<p>Reference to an array of boolean values; TRUE indicates that the respective column is an AUTO_INCREMENT column. This is only valid for MySQL.</p>
+
+</dd>
+<dt id="mysql_length">mysql_length</dt>
+<dd>
+
+</dd>
+<dt id="mysql_max_length">mysql_max_length</dt>
+<dd>
+
+<p>A reference to an array of maximum column sizes. The <i>max_length</i> is the maximum physically present in the result table, <i>length</i> gives the theoretically possible maximum. <i>max_length</i> is valid for MySQL only.</p>
+
+</dd>
+<dt id="mysql_clientinfo">mysql_clientinfo</dt>
+<dd>
+
+<p>List information of the MySQL client library that DBD::mysql was built against:</p>
+
+<p>print &quot;$dbh-&gt;{mysql_clientinfo}\n&quot;;</p>
+
+<p>5.2.0-MariaDB</p>
+
+</dd>
+<dt id="mysql_clientversion">mysql_clientversion</dt>
+<dd>
+
+<p>print &quot;$dbh-&gt;{mysql_clientversion}\n&quot;;</p>
+
+<p>50200</p>
+
+</dd>
+<dt id="mysql_serverversion">mysql_serverversion</dt>
+<dd>
+
+<p>print &quot;$dbh-&gt;{mysql_serverversion}\n&quot;;</p>
+
+<p>50200</p>
+
+</dd>
+<dt id="NAME1">NAME</dt>
+<dd>
+
+<p>A reference to an array of column names.</p>
+
+</dd>
+<dt id="NULLABLE">NULLABLE</dt>
+<dd>
+
+<p>A reference to an array of boolean values; TRUE indicates that this column may contain NULL&#39;s.</p>
+
+</dd>
+<dt id="NUM_OF_FIELDS">NUM_OF_FIELDS</dt>
+<dd>
+
+<p>Number of fields returned by a <i>SELECT</i> or <i>LISTFIELDS</i> statement. You may use this for checking whether a statement returned a result: A zero value indicates a non-SELECT statement like <i>INSERT</i>, <i>DELETE</i> or <i>UPDATE</i>.</p>
+
+</dd>
+<dt id="mysql_table">mysql_table</dt>
+<dd>
+
+<p>A reference to an array of table names, useful in a <i>JOIN</i> result.</p>
+
+</dd>
+<dt id="TYPE">TYPE</dt>
+<dd>
+
+<p>A reference to an array of column types. The engine&#39;s native column types are mapped to portable types like DBI::SQL_INTEGER() or DBI::SQL_VARCHAR(), as good as possible. Not all native types have a meaningfull equivalent, for example DBD::mysql::FIELD_TYPE_INTERVAL is mapped to DBI::SQL_VARCHAR(). If you need the native column types, use <i>mysql_type</i>. See below.</p>
+
+</dd>
+<dt id="mysql_type">mysql_type</dt>
+<dd>
+
+<p>A reference to an array of MySQL&#39;s native column types, for example DBD::mysql::FIELD_TYPE_SHORT() or DBD::mysql::FIELD_TYPE_STRING(). Use the <i>TYPE</i> attribute, if you want portable types like DBI::SQL_SMALLINT() or DBI::SQL_VARCHAR().</p>
+
+</dd>
+<dt id="mysql_type_name">mysql_type_name</dt>
+<dd>
+
+<p>Similar to mysql, but type names and not numbers are returned. Whenever possible, the ANSI SQL name is preferred.</p>
+
+</dd>
+<dt id="mysql_warning_count">mysql_warning_count</dt>
+<dd>
+
+<p>The number of warnings generated during execution of the SQL statement.</p>
+
+</dd>
+</dl>
+
+<h1 id="TRANSACTION-SUPPORT">TRANSACTION SUPPORT</h1>
+
+<p>Beginning with DBD::mysql 2.0416, transactions are supported. The transaction support works as follows:</p>
+
+<ul>
+
+<li><p>By default AutoCommit mode is on, following the DBI specifications.</p>
+
+</li>
+<li><p>If you execute</p>
+
+<pre><code><code>    <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'AutoCommit'</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>    <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'AutoCommit'</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>then the driver will set the MySQL server variable autocommit to 0 or 1, respectively. Switching from 0 to 1 will also issue a COMMIT, following the DBI specifications.</p>
+
+</li>
+<li><p>The methods</p>
+
+<pre><code><code>    <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">rollback</span><span class="operator">();</span>
+    <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">commit</span><span class="operator">();</span>
+</code></code></pre>
+
+<p>will issue the commands COMMIT and ROLLBACK, respectively. A ROLLBACK will also be issued if AutoCommit mode is off and the database handles DESTROY method is called. Again, this is following the DBI specifications.</p>
+
+</li>
+</ul>
+
+<p>Given the above, you should note the following:</p>
+
+<ul>
+
+<li><p>You should never change the server variable autocommit manually, unless you are ignoring DBI&#39;s transaction support.</p>
+
+</li>
+<li><p>Switching AutoCommit mode from on to off or vice versa may fail. You should always check for errors, when changing AutoCommit mode. The suggested way of doing so is using the DBI flag RaiseError. If you don&#39;t like RaiseError, you have to use code like the following:</p>
+
+<pre><code><code>  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'AutoCommit'</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+  <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'AutoCommit'</span><span class="operator">}</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># An error occurred!</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+</li>
+<li><p>If you detect an error while changing the AutoCommit mode, you should no longer use the database handle. In other words, you should disconnect and reconnect again, because the transaction mode is unpredictable. Alternatively you may verify the transaction mode by checking the value of the server variable autocommit. However, such behaviour isn&#39;t portable.</p>
+
+</li>
+<li><p>DBD::mysql has a &quot;reconnect&quot; feature that handles the so-called MySQL &quot;morning bug&quot;: If the server has disconnected, most probably due to a timeout, then by default the driver will reconnect and attempt to execute the same SQL statement again. However, this behaviour is disabled when AutoCommit is off: Otherwise the transaction state would be completely unpredictable after a reconnect.</p>
+
+</li>
+<li><p>The &quot;reconnect&quot; feature of DBD::mysql can be toggled by using the <a>mysql_auto_reconnect</a> attribute. This behaviour should be turned off in code that uses LOCK TABLE because if the database server time out and DBD::mysql reconnect, table locks will be lost without any indication of such loss.</p>
+
+</li>
+</ul>
+
+<ul>
+
+</ul>
+
+<h1 id="MULTIPLE-RESULT-SETS">MULTIPLE RESULT SETS</h1>
+
+<p>As of version 3.0002_5, DBD::mysql supports multiple result sets (Thanks to Guy Harrison!). This is the first release of this functionality, so there may be issues. Please report bugs if you run into them!</p>
+
+<p>The basic usage of multiple result sets is</p>
+
+<pre><code><code>  <span class="keyword">do</span>
+  <span class="operator">{</span>
+    <span class="keyword">while</span> <span class="operator">(</span><span class="variable">@row</span><span class="operator">=</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">fetchrow_array</span><span class="operator">())</span>
+    <span class="operator">{</span>
+      <span class="keyword">do</span> <span class="variable">stuff</span><span class="operator">;</span>
+    <span class="operator">}</span>
+  <span class="operator">}</span> <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">more_results</span><span class="operator">)</span>
+</code></code></pre>
+
+<p>An example would be:</p>
+
+<pre><code><code>  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">do</span><span class="operator">(</span><span class="string">"drop procedure if exists someproc"</span><span class="operator">)</span> <span class="keyword">or</span> <span class="keyword">print</span> <span class="variable">$DBI::errstr</span><span class="operator">;</span>
+  
+  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">do</span><span class="operator">(</span><span class="string">"create procedure somproc() deterministic
+   begin
+   declare a,b,c,d int;
+   set a=1;
+   set b=2;
+   set c=3;
+   set d=4;
+   select a, b, c, d;
+   select d, c, b, a;
+   select b, a, c, d;
+   select c, b, d, a;
+  end"</span><span class="operator">)</span> <span class="keyword">or</span> <span class="keyword">print</span> <span class="variable">$DBI::errstr</span><span class="operator">;</span>
+  
+  <span class="variable">$sth</span><span class="operator">=</span><span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span><span class="string">'call someproc()'</span><span class="operator">)</span> <span class="operator">||</span>
+  <span class="keyword">die</span> <span class="variable">$DBI::err</span><span class="operator">.</span><span class="string">": "</span><span class="operator">.</span><span class="variable">$DBI::errstr</span><span class="operator">;</span>
+  
+  <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">execute</span> <span class="operator">||</span> <span class="keyword">die</span> <span class="variable">DBI::err</span><span class="operator">.</span><span class="string">": "</span><span class="operator">.</span><span class="variable">$DBI::errstr</span><span class="operator">;</span> <span class="variable">$rowset</span><span class="operator">=</span><span class="number">0</span><span class="operator">;</span>
+  <span class="keyword">do</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="string">"\nRowset "</span><span class="operator">.++</span><span class="variable">$i</span><span class="operator">.</span><span class="string">"\n---------------------------------------\n\n"</span><span class="operator">;</span>
+    <span class="keyword">foreach</span> <span class="variable">$colno</span> <span class="operator">(</span><span class="number">0</span><span class="operator">..</span><span class="variable">$sth</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">NUM_OF_FIELDS</span><span class="operator">}</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">NAME</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="variable">$colno</span><span class="operator">]</span><span class="operator">.</span><span class="string">"\t"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    <span class="keyword">print</span> <span class="string">"\n"</span><span class="operator">;</span>
+    <span class="keyword">while</span> <span class="operator">(</span><span class="variable">@row</span><span class="operator">=</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">fetchrow_array</span><span class="operator">())</span>  <span class="operator">{</span>
+      <span class="keyword">foreach</span> <span class="variable">$field</span> <span class="operator">(</span><span class="number">0</span><span class="operator">..</span><span class="variable">$#row</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">print</span> <span class="variable">$row</span><span class="operator">[</span><span class="variable">$field</span><span class="operator">]</span><span class="operator">.</span><span class="string">"\t"</span><span class="operator">;</span>
+      <span class="operator">}</span>
+      <span class="keyword">print</span> <span class="string">"\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+  <span class="operator">}</span> <span class="keyword">until</span> <span class="operator">(!</span><span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">more_results</span><span class="operator">)</span>
+</code></code></pre>
+
+<p>For more examples, please see the eg/ directory. This is where helpful DBD::mysql code snippits will be added in the future.</p>
+
+<h2 id="Issues-with-Multiple-result-sets">Issues with Multiple result sets</h2>
+
+<p>So far, the main issue is if your result sets are &quot;jagged&quot;, meaning, the number of columns of your results vary. Varying numbers of columns could result in your script crashing. This is something that will be fixed soon.</p>
+
+<h1 id="MULTITHREADING">MULTITHREADING</h1>
+
+<p>The multithreading capabilities of DBD::mysql depend completely on the underlying C libraries: The modules are working with handle data only, no global variables are accessed or (to the best of my knowledge) thread unsafe functions are called. Thus DBD::mysql is believed to be completely thread safe, if the C libraries are thread safe and you don&#39;t share handles among threads.</p>
+
+<p>The obvious question is: Are the C libraries thread safe? In the case of MySQL the answer is &quot;mostly&quot; and, in theory, you should be able to get a &quot;yes&quot;, if the C library is compiled for being thread safe (By default it isn&#39;t.) by passing the option -with-thread-safe-client to configure. See the section on <i>How to make a threadsafe client</i> in the manual.</p>
+
+<h1 id="ASYNCHRONOUS-QUERIES">ASYNCHRONOUS QUERIES</h1>
+
+<p>You can make a single asynchronous query per MySQL connection; this allows you to submit a long-running query to the server and have an event loop inform you when it&#39;s ready. An asynchronous query is started by either setting the &#39;async&#39; attribute to a truthy value in the <a href="../../../lib/DBI.html#do">&quot;do&quot; in DBI</a> method, or in the <a href="../../../lib/DBI.html#prepare">&quot;prepare&quot; in DBI</a> method. Statements created with &#39;async&#39; set to true in prepare always run their queries asynchronously when <a href="../../../lib/DBI.html#execute">&quot;execute&quot; in DBI</a> is called. The driver also offers three additional methods: <code><code>mysql_async_result</code></code>, <code><code>mysql_async_ready</code></code>, and <code><code>mysql_fd</code></code>. <code><code>mysql_async_result</code></code> returns what do or execute would have; that is, the number of rows affected. <code><code>mysql_async_ready</code></code> returns true if <code><code>mysql_async_result</code></code> will not block, and zero otherwise. They both return <code><code>undef</code></code> if that handle is not currently running an asynchronous query. <code><code>mysql_fd</code></code> returns the file descriptor number for the MySQL connection; you can use this in an event loop.</p>
+
+<p>Here&#39;s an example of how to use the asynchronous query interface:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">feature</span> <span class="string">'say'</span><span class="operator">;</span>
+  <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">do</span><span class="operator">(</span><span class="string">'SELECT SLEEP(10)'</span><span class="operator">,</span> <span class="operator">{</span> <span class="string">async</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">}</span><span class="operator">);</span>
+  <span class="keyword">until</span><span class="operator">(</span><span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">mysql_async_ready</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">say</span> <span class="string">'not ready yet!'</span><span class="operator">;</span>
+    <span class="keyword">sleep</span> <span class="number">1</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  <span class="keyword">my</span> <span class="variable">$rows</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">mysql_async_result</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="INSTALLATION">INSTALLATION</h1>
+
+<p>Windows users may skip this section and pass over to <a href="#WIN32-INSTALLATION">&quot;WIN32 INSTALLATION&quot;</a> below. Others, go on reading.</p>
+
+<h2 id="Environment-Variables">Environment Variables</h2>
+
+<p>For ease of use, you can now set environment variables for DBD::mysql installation. You can set any or all of the options, and export them by putting them in your .bashrc or the like:</p>
+
+<pre><code><code>    export DBD_MYSQL_CFLAGS=-I/usr/local/mysql/include/mysql
+    export DBD_MYSQL_LIBS=&quot;-L/usr/local/mysql/lib/mysql -lmysqlclient&quot;
+    export DBD_MYSQL_EMBEDDED=
+    export DBD_MYSQL_CONFIG=mysql_config
+    export DBD_MYSQL_NOCATCHSTDERR=0
+    export DBD_MYSQL_NOFOUNDROWS=0
+    export DBD_MYSQL_SSL=
+    export DBD_MYSQL_TESTDB=test
+    export DBD_MYSQL_TESTHOST=localhost
+    export DBD_MYSQL_TESTPASSWORD=s3kr1+
+    export DBD_MYSQL_TESTPORT=3306
+    export DBD_MYSQL_TESTUSER=me</code></code></pre>
+
+<p>The most useful may be the host, database, port, socket, user, and password.</p>
+
+<p>Installation will first look to your mysql_config, and then your environment variables, and then it will guess with intelligent defaults.</p>
+
+<h2 id="Installing-with-CPAN">Installing with CPAN</h2>
+
+<p>First of all, you do not need an installed MySQL server for installing DBD::mysql. However, you need at least the client libraries and possibly the header files, if you are compiling DBD::mysql from source. In the case of MySQL you can create a client-only version by using the configure option --without-server. If you are using precompiled binaries, then it may be possible to use just selected RPM&#39;s like MySQL-client and MySQL-devel or something similar, depending on the distribution.</p>
+
+<p>First you need to install the DBI module. For using <i>dbimon</i>, a simple DBI shell it is recommended to install Data::ShowTable another Perl module.</p>
+
+<p>I recommend trying automatic installation via the CPAN module. Try</p>
+
+<pre><code><code>  perl -MCPAN -e shell</code></code></pre>
+
+<p>If you are using the CPAN module for the first time, it will prompt you a lot of questions. If you finally receive the CPAN prompt, enter</p>
+
+<pre><code><code>  install Bundle::DBD::mysql</code></code></pre>
+
+<h2 id="Manual-Installation">Manual Installation</h2>
+
+<p>If this fails (which may be the case for a number of reasons, for example because you are behind a firewall or don&#39;t have network access), you need to do a manual installation. First of all you need to fetch the modules from CPAN search</p>
+
+<pre><code><code>   http://search.cpan.org/</code></code></pre>
+
+<p>The following modules are required</p>
+
+<pre><code><code>  DBI
+  Data::ShowTable
+  DBD::mysql</code></code></pre>
+
+<p>Then enter the following commands (note - versions are just examples):</p>
+
+<pre><code><code>  gzip -cd DBI-(version).tar.gz | tar xf -
+  cd DBI-(version)
+  perl Makefile.PL
+  make
+  make test
+  make install
+
+  cd ..
+  gzip -cd Data-ShowTable-(version).tar.gz | tar xf -
+  cd Data-ShowTable-3.3
+  perl Makefile.PL
+  make
+  make install
+
+  cd ..
+  gzip -cd DBD-mysql-(version)-tar.gz | tar xf -
+  cd DBD-mysql-(version)
+  perl Makefile.PL
+  make
+  make test
+  make install</code></code></pre>
+
+<p>During &quot;perl Makefile.PL&quot; you will be prompted some questions. Other questions are the directories with header files and libraries. For example, of your file <i>mysql.h</i> is in <i>/usr/include/mysql/mysql.h</i>, then enter the header directory <i>/usr</i>, likewise for <i>/usr/lib/mysql/libmysqlclient.a</i> or <i>/usr/lib/libmysqlclient.so</i>.</p>
+
+<h1 id="WIN32-INSTALLATION">WIN32 INSTALLATION</h1>
+
+<p>If you are using ActivePerl, you may use ppm to install DBD-mysql. For Perl 5.6, upgrade to Build 623 or later, then it is sufficient to run</p>
+
+<pre><code><code>  ppm install DBI
+  ppm install DBD::mysql</code></code></pre>
+
+<p>If you need an HTTP proxy, you might need to set the environment variable http_proxy, for example like this:</p>
+
+<pre><code><code>  set http_proxy=http://myproxy.com:8080/</code></code></pre>
+
+<p>As of this writing, DBD::mysql is missing in the ActivePerl 5.8.0 repository. However, Randy Kobes has kindly donated an own distribution and the following might succeed:</p>
+
+<pre><code><code>  ppm install http://theoryx5.uwinnipeg.ca/ppms/DBD-mysql.ppd</code></code></pre>
+
+<p>Otherwise you definitely *need* a C compiler. And it *must* be the same compiler that was being used for compiling Perl itself. If you don&#39;t have a C compiler, the file README.win32 from the Perl source distribution tells you where to obtain freely distributable C compilers like egcs or gcc. The Perl sources are available via CPAN search</p>
+
+<pre><code><code>  http://search.cpan.org</code></code></pre>
+
+<p>I recommend using the win32clients package for installing DBD::mysql under Win32, available for download on www.tcx.se. The following steps have been required for me:</p>
+
+<dl>
+
+<dt id="pod-">-</dt>
+<dd>
+
+<p>The current Perl versions (5.6, as of this writing) do have a problem with detecting the C libraries. I recommend to apply the following patch:</p>
+
+<pre><code><code>  <span class="operator">***</span> <span class="variable">c</span><span class="operator">:\</span><span class="variable">Perl</span><span class="operator">\</span><span class="variable">lib</span><span class="operator">\</span><span class="variable">ExtUtils</span><span class="operator">\</span><span class="variable">Liblist</span><span class="operator">.</span><span class="variable">pm</span><span class="operator">.</span><span class="variable">orig</span> <span class="variable">Sat</span> <span class="variable">Apr</span> <span class="number">15</span> <span class="number">20</span><span class="operator">:</span><span class="number">03</span><span class="operator">:</span><span class="number">40</span> <span class="number">2000</span>
+  <span class="operator">---</span> <span class="variable">c</span><span class="operator">:\</span><span class="variable">Perl</span><span class="operator">\</span><span class="variable">lib</span><span class="operator">\</span><span class="variable">ExtUtils</span><span class="operator">\</span><span class="variable">Liblist</span><span class="operator">.</span><span class="variable">pm</span>      <span class="variable">Sat</span> <span class="variable">Apr</span> <span class="number">15</span> <span class="number">20</span><span class="operator">:</span><span class="number">03</span><span class="operator">:</span><span class="number">45</span> <span class="number">2000</span>
+  <span class="operator">***************</span>
+  <span class="operator">***</span> <span class="number">230</span><span class="operator">,</span><span class="number">235</span> <span class="operator">****</span>
+  <span class="operator">---</span> <span class="number">230</span><span class="operator">,</span><span class="number">239</span> <span class="operator">----</span>
+      <span class="comment"># add "$Config{installarchlib}/CORE" to default search path</span>
+      <span class="keyword">push</span> <span class="variable">@libpath</span><span class="operator">,</span> <span class="string">"</span><span class="variable">$Config</span><span class="string">{installarchlib}/CORE"</span><span class="operator">;</span>
+  
+  <span class="operator">+</span>     <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$VC</span>  <span class="keyword">and</span>  <span class="keyword">exists</span><span class="operator">(</span><span class="variable">$ENV</span><span class="operator">{</span><span class="string">LIB</span><span class="operator">}</span><span class="operator">)</span>  <span class="keyword">and</span>  <span class="keyword">defined</span><span class="operator">(</span><span class="variable">$ENV</span><span class="operator">{</span><span class="string">LIB</span><span class="operator">}</span><span class="operator">))</span> <span class="operator">{</span>
+  <span class="operator">+</span>       <span class="keyword">push</span><span class="operator">(</span><span class="variable">@libpath</span><span class="operator">,</span> <span class="keyword">split</span><span class="operator">(</span><span class="regex">/;/</span><span class="operator">,</span> <span class="variable">$ENV</span><span class="operator">{</span><span class="string">LIB</span><span class="operator">}</span><span class="operator">));</span>
+  <span class="operator">+</span>     <span class="operator">}</span>
+  <span class="operator">+</span>
+      <span class="keyword">foreach</span> <span class="operator">(</span><span class="variable">Text::ParseWords::quotewords</span><span class="operator">(</span><span class="string">'\s+'</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="variable">$potential_libs</span><span class="operator">)){</span>
+  
+        <span class="variable">$thislib</span> <span class="operator">=</span> <span class="variable">$_</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="pod-1">-</dt>
+<dd>
+
+<p>Extract sources into <i>C:\</i>. This will create a directory <i>C:\mysql</i> with subdirectories include and lib.</p>
+
+<p>IMPORTANT: Make sure this subdirectory is not shared by other TCX files! In particular do *not* store the MySQL server in the same directory. If the server is already installed in <i>C:\mysql</i>, choose a location like <i>C:\tmp</i>, extract the win32clients there. Note that you can remove this directory entirely once you have installed DBD::mysql.</p>
+
+</dd>
+<dt id="pod-2">-</dt>
+<dd>
+
+<p>Extract the DBD::mysql sources into another directory, for example <i>C:\src\siteperl</i></p>
+
+</dd>
+<dt id="pod-3">-</dt>
+<dd>
+
+<p>Open a DOS shell and change directory to <i>C:\src\siteperl</i>.</p>
+
+</dd>
+<dt id="pod-4">-</dt>
+<dd>
+
+<p>The next step is only required if you repeat building the modules: Make sure that you have a clean build tree by running</p>
+
+<pre><code><code>  nmake realclean</code></code></pre>
+
+<p>If you don&#39;t have VC++, replace nmake with your flavour of make. If error messages are reported in this step, you may safely ignore them.</p>
+
+</dd>
+<dt id="pod-5">-</dt>
+<dd>
+
+<p>Run</p>
+
+<pre><code><code>  perl Makefile.PL</code></code></pre>
+
+<p>which will prompt you for some settings. The really important ones are:</p>
+
+<pre><code><code>  Which DBMS do you want to use?</code></code></pre>
+
+<p>enter a 1 here (MySQL only), and</p>
+
+<pre><code><code>  Where is your mysql installed? Please tell me the directory that
+  contains the subdir include.</code></code></pre>
+
+<p>where you have to enter the win32clients directory, for example <i>C:\mysql</i> or <i>C:\tmp\mysql</i>.</p>
+
+</dd>
+<dt id="pod-6">-</dt>
+<dd>
+
+<p>Continued in the usual way:</p>
+
+<pre><code><code>  nmake
+  nmake install</code></code></pre>
+
+</dd>
+</dl>
+
+<p>If you want to create a PPM package for the ActiveState Perl version, then modify the above steps as follows: Run</p>
+
+<pre><code><code>  perl Makefile.PL NAME=DBD-mysql BINARY_LOCATION=DBD-mysql.tar.gz
+  nmake ppd
+  nmake</code></code></pre>
+
+<p>Once that is done, use tar and gzip (for example those from the CygWin32 distribution) to create an archive:</p>
+
+<pre><code><code>  mkdir x86
+  tar cf x86/DBD-mysql.tar blib
+  gzip x86/DBD-mysql.tar</code></code></pre>
+
+<p>Put the files x86/DBD-mysql.tar.gz and DBD-mysql.ppd onto some WWW server and install them by typing</p>
+
+<pre><code><code>  install http://your.server.name/your/directory/DBD-mysql.ppd</code></code></pre>
+
+<p>in the PPM program.</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Originally, there was a non-DBI driver, Mysql, which was much like PHP drivers such as mysql and mysqli. The <b>Mysql</b> module was originally written by Andreas K&#xFFFD;nig &lt;koenig@kulturbox.de&gt; who still, to this day, contributes patches to DBD::mysql. An emulated version of Mysql was provided to DBD::mysql from Jochen Wiedmann, but eventually deprecated as it was another bundle of code to maintain.</p>
+
+<p>The first incarnation of DBD::mysql was developed by Alligator Descartes, who was also aided and abetted by Gary Shea, Andreas K&#xFFFD;nig and Tim Bunce.</p>
+
+<p>The current incarnation of <b>DBD::mysql</b> was written by Jochen Wiedmann, then numerous changes and bug-fixes were added by Rudy Lippan. Next, prepared statement support was added by Patrick Galbraith and Alexy Stroganov (who also soley added embedded server support).</p>
+
+<p>For the past seven years DBD::mysql has been maintained by Patrick Galbraith (<i>patg@patg.net</i>) along with the entire community of Perl developers who keep sending patches and making Patrick&#39;s job easier.</p>
+
+<h1 id="CONTRIBUTIONS">CONTRIBUTIONS</h1>
+
+<p>Anyone who desires to contribute to this project is encouraged to do so. Currently, the sourcecode for this project can be found at Github:</p>
+
+<p>git://github.com/CaptTofu/DBD-mysql.git</p>
+
+<p>Either fork this repository and produce a branch with your changeset that the maintainer can merge to his tree, or create a diff with git. The maintainer is more than glad to take contributions from the community as many features and fixes from DBD::mysql have come from the community.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>This module is Large Portions Copyright (c) 2004-2010 Patrick Galbraith Large Portions Copyright (c) 2004-2006 Alexey Stroganov Large Portions Copyright (c) 2003-2005 Rudolf Lippan Large Portions Copyright (c) 1997-2003 Jochen Wiedmann, with code portions Copyright (c)1994-1997 their original authors This module is released under the same license as Perl itself. See the Perl README for details.</p>
+
+<h1 id="MAILING-LIST-SUPPORT">MAILING LIST SUPPORT</h1>
+
+<p>This module is maintained and supported on a mailing list, dbi-users.</p>
+
+<p>To subscribe to this list, send and email to</p>
+
+<p>dbi-users-subscribe@perl.org</p>
+
+<p>Mailing list archives are at</p>
+
+<p>http://groups.google.com/group/perl.dbi.users?hl=en&amp;lr=</p>
+
+<p>Also, the main DBI site is at</p>
+
+<p>http://dbi.perl.org/</p>
+
+<p>And source:</p>
+
+<p>git://github.com/CaptTofu/DBD-mysql.git</p>
+
+<h1 id="ADDITIONAL-DBI-INFORMATION">ADDITIONAL DBI INFORMATION</h1>
+
+<p>Additional information on the DBI project can be found on the World Wide Web at the following URL:</p>
+
+<pre><code><code>    http://dbi.perl.org</code></code></pre>
+
+<p>where documentation, pointers to the mailing lists and mailing list archives and pointers to the most current versions of the modules can be used.</p>
+
+<p>Information on the DBI interface itself can be gained by typing:</p>
+
+<pre><code><code>    perldoc DBI</code></code></pre>
+
+<p>Information on the DBD::mysql specifically can be gained by typing:</p>
+
+<pre><code><code>    perldoc DBD::mysql </code></code></pre>
+
+<h1 id="BUG-REPORTING-ENHANCEMENT-FEATURE-REQUESTS">BUG REPORTING, ENHANCEMENT/FEATURE REQUESTS</h1>
+
+<p>Please report bugs, including all the information needed such as DBD::mysql version, MySQL version, OS type/version, etc to this link:</p>
+
+<p>http://rt.cpan.org</p>
+
+<p>Note: until recently, MySQL/Sun/Oracle responded to bugs and assisted in fixing bugs which many thanks should be given for their help! This driver is outside the realm of the numerous components they support, and the maintainer and community solely support DBD::mysql</p>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt id="Around-line-1315:">Around line 1315:</dt>
+<dd>
+
+<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
+
+</dd>
+<dt id="Around-line-1464:">Around line 1464:</dt>
+<dd>
+
+<p>You forgot a &#39;=back&#39; before &#39;=head1&#39;</p>
+
+</dd>
+<dt id="Around-line-1727:">Around line 1727:</dt>
+<dd>
+
+<p>You forgot a &#39;=back&#39; before &#39;=head1&#39;</p>
+
+</dd>
+<dt id="Around-line-2070:">Around line 2070:</dt>
+<dd>
+
+<p>Non-ASCII character seen before =encoding in &#39;K&#xFFFD;nig&#39;. Assuming UTF-8</p>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+

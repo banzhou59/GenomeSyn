@@ -1,0 +1,146 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#INSTANCE-VARIABLES">INSTANCE VARIABLES</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#PDF::API2::Basic::PDF::Objind-new-">PDF::API2::Basic::PDF::Objind-&gt;new()</a></li>
+      <li><a href="#uid">uid</a></li>
+      <li><a href="#r-release">$r-&gt;release</a></li>
+      <li><a href="#r-val">$r-&gt;val</a></li>
+      <li><a href="#r-realise">$r-&gt;realise</a></li>
+      <li><a href="#r-outobjdeep-fh-pdf-">$r-&gt;outobjdeep($fh, $pdf)</a></li>
+      <li><a href="#r-outobj-fh-">$r-&gt;outobj($fh)</a></li>
+      <li><a href="#r-elementsof">$r-&gt;elementsof</a></li>
+      <li><a href="#r-empty">$r-&gt;empty</a></li>
+      <li><a href="#r-merge-objind-">$r-&gt;merge($objind)</a></li>
+      <li><a href="#r-is_obj-pdf-">$r-&gt;is_obj($pdf)</a></li>
+      <li><a href="#r-copy-pdf-res-">$r-&gt;copy($pdf, $res)</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>PDF::API2::Basic::PDF::Objind - PDF indirect object reference. Also acts as an abstract superclass for all elements in a PDF file.</p>
+
+<h1 id="INSTANCE-VARIABLES">INSTANCE VARIABLES</h1>
+
+<p>Instance variables differ from content variables in that they all start with a space.</p>
+
+<dl>
+
+<dt id="parent">parent</dt>
+<dd>
+
+<p>For an object which is a reference to an object in some source, this holds the reference to the source object, so that should the reference have to be de-referenced, then we know where to go and get the info.</p>
+
+</dd>
+<dt id="objnum-R-">objnum (R)</dt>
+<dd>
+
+<p>The object number in the source (only for object references)</p>
+
+</dd>
+<dt id="objgen-R-">objgen (R)</dt>
+<dd>
+
+<p>The object generation in the source</p>
+
+<p>There are other instance variables which are used by the parent for file control.</p>
+
+</dd>
+<dt id="isfree">isfree</dt>
+<dd>
+
+<p>This marks whether the object is in the free list and available for re-use as another object elsewhere in the file.</p>
+
+</dd>
+<dt id="nextfree">nextfree</dt>
+<dd>
+
+<p>Holds a direct reference to the next free object in the free list.</p>
+
+</dd>
+</dl>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="PDF::API2::Basic::PDF::Objind-new-">PDF::API2::Basic::PDF::Objind-&gt;new()</h2>
+
+<p>Creates a new indirect object</p>
+
+<h2 id="uid">uid</h2>
+
+<p>Returns a Unique id for this object, creating one if it didn&#39;t have one before</p>
+
+<h2 id="r-release">$r-&gt;release</h2>
+
+<p>Releases ALL of the memory used by this indirect object, and all of its component/child objects. This method is called automatically by &#39;<code><code>PDF::API2::Basic::PDF::File-&gt;release</code></code>&#39; (so you don&#39;t have to call it yourself).</p>
+
+<p><b>Note:</b> it is important that this method get called at some point prior to the actual destruction of the object. Internally, PDF files have an enormous amount of cross-references and this causes circular references within our own internal data structures. Calling &#39;<code><code>release()</code></code>&#39; forces these circular references to be cleaned up and the entire internal data structure purged.</p>
+
+<h2 id="r-val">$r-&gt;val</h2>
+
+<p>Returns the value of this object or reads the object and then returns its value.</p>
+
+<p>Note that all direct subclasses *must* make their own versions of this subroutine otherwise we could be in for a very deep loop!</p>
+
+<h2 id="r-realise">$r-&gt;realise</h2>
+
+<p>Makes sure that the object is fully read in, etc.</p>
+
+<h2 id="r-outobjdeep-fh-pdf-">$r-&gt;outobjdeep($fh, $pdf)</h2>
+
+<p>If you really want to output this object, then you must need to read it first. This also means that all direct subclasses must subclass this method or loop forever!</p>
+
+<h2 id="r-outobj-fh-">$r-&gt;outobj($fh)</h2>
+
+<p>If this is a full object then outputs a reference to the object, otherwise calls outobjdeep to output the contents of the object at this point.</p>
+
+<h2 id="r-elementsof">$r-&gt;elementsof</h2>
+
+<p>Abstract superclass function filler. Returns self here but should return something more useful if an array.</p>
+
+<h2 id="r-empty">$r-&gt;empty</h2>
+
+<p>Empties all content from this object to free up memory or to be read to pass the object into the free list. Simplistically undefs all instance variables other than object number and generation.</p>
+
+<h2 id="r-merge-objind-">$r-&gt;merge($objind)</h2>
+
+<p>This merges content information into an object reference place-holder. This occurs when an object reference is read before the object definition and the information in the read data needs to be merged into the object place-holder</p>
+
+<h2 id="r-is_obj-pdf-">$r-&gt;is_obj($pdf)</h2>
+
+<p>Returns whether this object is a full object with its own object number or whether it is purely a sub-object. $pdf indicates which output file we are concerned that the object is an object in.</p>
+
+<h2 id="r-copy-pdf-res-">$r-&gt;copy($pdf, $res)</h2>
+
+<p>Returns a new copy of this object. The object is assumed to be some kind of associative array and the copy is a deep copy for elements which are not PDF objects, according to $pdf, and shallow copy for those that are. Notice that calling <code><code>copy</code></code> on an object forces at least a one level copy even if it is a PDF object. The returned object loses its PDF object status though.</p>
+
+<p>If $res is defined then the copy goes into that object rather than creating a new one. It is up to the caller to bless $res, etc. Notice that elements from $self are not copied into $res if there is already an entry for them existing in $res.</p>
+
+
+</body>
+
+</html>
+
+

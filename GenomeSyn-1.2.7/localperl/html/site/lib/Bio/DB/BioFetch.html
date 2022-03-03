@@ -1,0 +1,318 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Lincoln-Stein">AUTHOR - Lincoln Stein</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#new_from_registry">new_from_registry</a></li>
+      <li><a href="#get_Seq_by_id">get_Seq_by_id</a></li>
+      <li><a href="#get_Seq_by_acc">get_Seq_by_acc</a></li>
+      <li><a href="#get_Seq_by_gi">get_Seq_by_gi</a></li>
+      <li><a href="#get_Seq_by_version">get_Seq_by_version</a></li>
+      <li><a href="#get_Stream_by_id">get_Stream_by_id</a></li>
+      <li><a href="#get_Stream_by_gi">get_Stream_by_gi</a></li>
+      <li><a href="#get_Stream_by_batch">get_Stream_by_batch</a></li>
+    </ul>
+  </li>
+  <li><a href="#The-remainder-of-these-methods-are-for-internal-use">The remainder of these methods are for internal use</a>
+    <ul>
+      <li><a href="#get_request">get_request</a></li>
+      <li><a href="#default_format">default_format</a></li>
+      <li><a href="#default_db">default_db</a></li>
+      <li><a href="#db">db</a></li>
+      <li><a href="#postprocess_data">postprocess_data</a></li>
+      <li><a href="#request_format">request_format</a></li>
+      <li><a href="#Bio::DB::WebDBSeqI-methods">Bio::DB::WebDBSeqI methods</a></li>
+      <li><a href="#get_Stream_by_acc">get_Stream_by_acc</a></li>
+      <li><a href="#check_id">_check_id</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::BioFetch - Database object interface to BioFetch retrieval</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Bio::DB::BioFetch</span><span class="operator">;</span>
+ 
+ <span class="variable">$bf</span> <span class="operator">=</span> <span class="variable">Bio::DB::BioFetch</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ 
+ <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$bf</span><span class="operator">-&gt;</span><span class="variable">get_Seq_by_id</span><span class="operator">(</span><span class="string">'BUM'</span><span class="operator">);</span>  <span class="comment"># EMBL or SWALL ID</span>
+ 
+ <span class="comment"># change formats, storage procedures</span>
+ <span class="variable">$bf</span> <span class="operator">=</span> <span class="variable">Bio::DB::BioFetch</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span>        <span class="operator">=&gt;</span> <span class="string">'fasta'</span><span class="operator">,</span>
+                             <span class="string">-retrievaltype</span> <span class="operator">=&gt;</span> <span class="string">'tempfile'</span><span class="operator">,</span>
+                             <span class="string">-db</span>            <span class="operator">=&gt;</span> <span class="string">'EMBL'</span><span class="operator">);</span>
+ 
+ <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">$bf</span><span class="operator">-&gt;</span><span class="variable">get_Stream_by_id</span><span class="operator">(</span><span class="operator">[</span><span class="string">'BUM'</span><span class="operator">,</span><span class="string">'J00231'</span><span class="operator">]</span><span class="operator">);</span>
+ <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$s</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+ <span class="operator">}</span>
+ <span class="comment"># get a RefSeq entry</span>
+ <span class="variable">$bf</span><span class="operator">-&gt;</span><span class="variable">db</span><span class="operator">(</span><span class="string">'refseq'</span><span class="operator">);</span>
+ <span class="keyword">eval</span> <span class="operator">{</span>
+     <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$bf</span><span class="operator">-&gt;</span><span class="variable">get_Seq_by_version</span><span class="operator">(</span><span class="string">'NM_006732.1'</span><span class="operator">);</span> <span class="comment"># RefSeq VERSION</span>
+ <span class="operator">};</span>
+ <span class="keyword">print</span> <span class="string">"accession is "</span><span class="operator">,</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">accession_number</span><span class="operator">,</span> <span class="string">"\n"</span> <span class="keyword">unless</span> <span class="variable">$@</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::DB::BioFetch is a guaranteed best effort sequence entry fetching method. It goes to the Web-based dbfetch server located at the EBI (http://www.ebi.ac.uk/Tools/dbfetch/dbfetch) to retrieve sequences in the EMBL or GenBank sequence repositories.</p>
+
+<p>This module implements all the Bio::DB::RandomAccessI interface, plus the get_Stream_by_id() and get_Stream_by_acc() methods that are found in the Bio::DB::SwissProt interface.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Lincoln-Stein">AUTHOR - Lincoln Stein</h1>
+
+<p>Email Lincoln Stein &lt;lstein@cshl.org&lt;</p>
+
+<p>Also thanks to Heikki Lehvaslaiho &lt;heikki-at-bioperl-dot-org&gt; for the BioFetch server and interface specification.</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : $bf = Bio::DB::BioFetch-&gt;new(@args)
+ Function: Construct a new Bio::DB::BioFetch object
+ Returns : a Bio::DB::BioFetch object
+ Args    : see below
+ Throws  :</code></code></pre>
+
+<p>@args are standard -name=&gt;value options as listed in the following table. If you do not provide any options, the module assumes reasonable defaults.</p>
+
+<pre><code><code>  Option         Value                            Default
+  ------         -----                            -------
+
+  -baseaddress   location of dbfetch server       http://www.ebi.ac.uk/Tools/dbfetch/dbfetch
+  -retrievaltype &quot;tempfile&quot; or &quot;io_string&quot;        io_string
+  -format        &quot;embl&quot;, &quot;fasta&quot;, &quot;swissprot&quot;,    embl
+                  or &quot;genbank&quot;
+  -db            &quot;embl&quot;, &quot;genbank&quot; or &quot;swissprot&quot; embl</code></code></pre>
+
+<h2 id="new_from_registry">new_from_registry</h2>
+
+<pre><code><code> Title   : new_from_registry
+ Usage   : $biofetch = $db-&gt;new_from_registry(%config)
+ Function: Creates a BioFetch object from the registry config hash
+ Returns : itself
+ Args    : A configuration hash (see Registry.pm)
+ Throws  : </code></code></pre>
+
+<h2 id="get_Seq_by_id">get_Seq_by_id</h2>
+
+<pre><code><code> Title   : get_Seq_by_id
+ Usage   : $seq = $db-&gt;get_Seq_by_id(&#39;ROA1_HUMAN&#39;)
+ Function: Gets a Bio::Seq object by its name
+ Returns : a Bio::Seq object
+ Args    : the id (as a string) of a sequence
+ Throws  : &quot;id does not exist&quot; exception</code></code></pre>
+
+<h2 id="get_Seq_by_acc">get_Seq_by_acc</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Seq_by_acc</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Seq_by_acc</span><span class="operator">(</span><span class="string">'X77802'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">a</span> <span class="variable">Bio::Seq</span> <span class="variable">object</span> <span class="variable">by</span> <span class="variable">accession</span> <span class="variable">number</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Seq</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">accession</span> <span class="variable">number</span> <span class="operator">(</span><span class="variable">as</span> <span class="variable">a</span> <span class="variable">string</span><span class="operator">)</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="string">"acc does not exist"</span> <span class="variable">exception</span>
+</code></code></pre>
+
+<h2 id="get_Seq_by_gi">get_Seq_by_gi</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Seq_by_gi</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Seq_by_gi</span><span class="operator">(</span><span class="string">'405830'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">a</span> <span class="variable">Bio::Seq</span> <span class="variable">object</span> <span class="variable">by</span> <span class="variable">gi</span> <span class="variable">number</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Seq</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">gi</span> <span class="variable">number</span> <span class="operator">(</span><span class="variable">as</span> <span class="variable">a</span> <span class="variable">string</span><span class="operator">)</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="string">"gi does not exist"</span> <span class="variable">exception</span>
+</code></code></pre>
+
+<h2 id="get_Seq_by_version">get_Seq_by_version</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Seq_by_version</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Seq_by_version</span><span class="operator">(</span><span class="string">'X77802.1'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">a</span> <span class="variable">Bio::Seq</span> <span class="variable">object</span> <span class="variable">by</span> <span class="variable">sequence</span> <span class="variable">version</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Seq</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">accession</span><span class="operator">.</span><span class="variable">version</span> <span class="operator">(</span><span class="variable">as</span> <span class="variable">a</span> <span class="variable">string</span><span class="operator">)</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="string">"acc.version does not exist"</span> <span class="variable">exception</span>
+</code></code></pre>
+
+<h2 id="get_Stream_by_id">get_Stream_by_id</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Stream_by_id</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Stream_by_id</span><span class="operator">(</span> <span class="operator">[</span><span class="variable">$uid1</span><span class="operator">,</span> <span class="variable">$uid2</span><span class="operator">]</span> <span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">a</span> <span class="variable">series</span> <span class="variable">of</span> <span class="variable">Seq</span> <span class="variable">objects</span> <span class="variable">by</span> <span class="variable">unique</span> <span class="variable">identifiers</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span> <span class="variable">stream</span> <span class="variable">object</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$ref</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">unique</span> <span class="variable">identifiers</span> <span class="keyword">for</span>
+                   <span class="variable">the</span> <span class="variable">desired</span> <span class="variable">sequence</span> <span class="variable">entries</span>
+</code></code></pre>
+
+<h2 id="get_Stream_by_gi">get_Stream_by_gi</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Stream_by_gi</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Seq_by_gi</span><span class="operator">(</span><span class="operator">[</span><span class="variable">$gi1</span><span class="operator">,</span> <span class="variable">$gi2</span><span class="operator">]</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">a</span> <span class="variable">series</span> <span class="variable">of</span> <span class="variable">Seq</span> <span class="variable">objects</span> <span class="variable">by</span> <span class="variable">gi</span> <span class="variable">numbers</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span> <span class="variable">stream</span> <span class="variable">object</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$ref</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">gi</span> <span class="variable">numbers</span> <span class="keyword">for</span>
+                   <span class="variable">the</span> <span class="variable">desired</span> <span class="variable">sequence</span> <span class="variable">entries</span>
+  <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">For</span> <span class="variable">GenBank</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">just</span> <span class="variable">calls</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">code</span> <span class="keyword">for</span> <span class="variable">get_Stream_by_id</span><span class="operator">()</span>
+</code></code></pre>
+
+<h2 id="get_Stream_by_batch">get_Stream_by_batch</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Stream_by_batch</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Stream_by_batch</span><span class="operator">(</span><span class="variable">$ref</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">a</span> <span class="variable">series</span> <span class="variable">of</span> <span class="variable">Seq</span> <span class="variable">objects</span> <span class="variable">by</span> <span class="variable">their</span> <span class="variable">IDs</span>
+  <span class="variable">Example</span> <span class="operator">:</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span> <span class="variable">stream</span> <span class="variable">object</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$ref</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">reference</span> <span class="variable">containing</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">unique</span>
+            <span class="variable">ids</span><span class="operator">/</span><span class="variable">accession</span> <span class="variable">numbers</span><span class="operator">.</span>
+</code></code></pre>
+
+<p>In some of the Bio::DB::* moduels, get_Stream_by_id() is called get_Stream_by_batch(). Since there seems to be no consensus, this is provided as an alias.</p>
+
+<h1 id="The-remainder-of-these-methods-are-for-internal-use">The remainder of these methods are for internal use</h1>
+
+<h2 id="get_request">get_request</h2>
+
+<pre><code><code> Title   : get_request
+ Usage   : my $url = $self-&gt;get_request
+ Function: returns a HTTP::Request object
+ Returns : 
+ Args    : %qualifiers = a hash of qualifiers (ids, format, etc)</code></code></pre>
+
+<h2 id="default_format">default_format</h2>
+
+<pre><code><code> Title   : default_format
+ Usage   : $format = $self-&gt;default_format
+ Function: return the default format
+ Returns : a string
+ Args    : </code></code></pre>
+
+<h2 id="default_db">default_db</h2>
+
+<pre><code><code> Title   : default_db
+ Usage   : $db = $self-&gt;default_db
+ Function: return the default database
+ Returns : a string
+ Args    :</code></code></pre>
+
+<h2 id="db">db</h2>
+
+<pre><code><code> Title   : db
+ Usage   : $db = $self-&gt;db([$db])
+ Function: get/set the database
+ Returns : a string
+ Args    : new database</code></code></pre>
+
+<h2 id="postprocess_data">postprocess_data</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">postprocess_data</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">postprocess_data</span> <span class="operator">(</span> <span class="string">'type'</span> <span class="operator">=&gt;</span> <span class="string">'string'</span><span class="operator">,</span>
+                                     <span class="string">'location'</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">$datastr</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">process</span> <span class="variable">downloaded</span> <span class="variable">data</span> <span class="variable">before</span> <span class="variable">loading</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">void</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">hash</span> <span class="variable">with</span> <span class="variable">two</span> <span class="keyword">keys</span> <span class="operator">-</span> <span class="string">'type'</span> <span class="variable">can</span> <span class="variable">be</span> <span class="string">'string'</span> <span class="keyword">or</span> <span class="string">'file'</span>
+                              <span class="operator">-</span> <span class="string">'location'</span> <span class="variable">either</span> <span class="variable">file</span> <span class="variable">location</span> <span class="keyword">or</span> <span class="variable">string</span> 
+                                 <span class="variable">reference</span> <span class="variable">containing</span> <span class="variable">data</span>
+</code></code></pre>
+
+<h2 id="request_format">request_format</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">request_format</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$req_format</span><span class="operator">,</span> <span class="variable">$ioformat</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">request_format</span><span class="operator">;</span>
+           <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">request_format</span><span class="operator">(</span><span class="string">"genbank"</span><span class="operator">);</span>
+           <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">request_format</span><span class="operator">(</span><span class="string">"fasta"</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">sequence</span> <span class="keyword">format</span> <span class="variable">retrieval</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">get</span><span class="operator">-</span><span class="variable">form</span> <span class="variable">will</span> <span class="variable">normally</span> <span class="keyword">not</span>
+           <span class="variable">be</span> <span class="variable">used</span> <span class="variable">outside</span> <span class="variable">of</span> <span class="variable">this</span> <span class="keyword">and</span> <span class="variable">derived</span> <span class="variable">modules</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">of</span> <span class="variable">two</span> <span class="variable">strings</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">representing</span> <span class="variable">the</span> <span class="keyword">format</span> <span class="keyword">for</span>
+           <span class="variable">retrieval</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">the</span> <span class="variable">second</span> <span class="variable">specifying</span> <span class="variable">the</span> <span class="variable">corresponding</span> <span class="variable">SeqIO</span> <span class="keyword">format</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$format</span> <span class="operator">=</span> <span class="variable">sequence</span> <span class="keyword">format</span>
+</code></code></pre>
+
+<h2 id="Bio::DB::WebDBSeqI-methods">Bio::DB::WebDBSeqI methods</h2>
+
+<p>Overriding WebDBSeqI method to help newbies to retrieve sequences. EMBL database is all too often passed RefSeq accessions. This redirects those calls. See <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/RefSeq.html">Bio::DB::RefSeq</a>.</p>
+
+<h2 id="get_Stream_by_acc">get_Stream_by_acc</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Stream_by_acc</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Seq_by_acc</span><span class="operator">(</span><span class="operator">[</span><span class="variable">$acc1</span><span class="operator">,</span> <span class="variable">$acc2</span><span class="operator">]</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">a</span> <span class="variable">series</span> <span class="variable">of</span> <span class="variable">Seq</span> <span class="variable">objects</span> <span class="variable">by</span> <span class="variable">accession</span> <span class="variable">numbers</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span> <span class="variable">stream</span> <span class="variable">object</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$ref</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">accession</span> <span class="variable">numbers</span> <span class="keyword">for</span>
+                   <span class="variable">the</span> <span class="variable">desired</span> <span class="variable">sequence</span> <span class="variable">entries</span>
+</code></code></pre>
+
+<h2 id="check_id">_check_id</h2>
+
+<pre><code><code>  Title   : _check_id
+  Usage   : 
+  Function: Throw on whole chromosome NCBI sequences not in sequence databases
+            and redirect RefSeq accession requests sent to EMBL.
+  Returns : 
+  Args    : $id(s), $string
+  Throws  : if accessionn number indicates whole chromosome NCBI sequence</code></code></pre>
+
+
+</body>
+
+</html>
+
+

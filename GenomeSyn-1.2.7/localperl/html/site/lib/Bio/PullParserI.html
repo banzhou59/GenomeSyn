@@ -1,0 +1,323 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Sendu-Bala">AUTHOR - Sendu Bala</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#fields">_fields</a></li>
+      <li><a href="#has_field">has_field</a></li>
+      <li><a href="#get_field">get_field</a></li>
+      <li><a href="#parent">parent</a></li>
+      <li><a href="#chunk">chunk</a></li>
+      <li><a href="#sequential">_sequential</a></li>
+      <li><a href="#dependencies">_dependencies</a></li>
+      <li><a href="#chunk_true_start">_chunk_true_start</a></li>
+      <li><a href="#chunk_true_end">_chunk_true_end</a></li>
+      <li><a href="#line_ending">_line_ending</a></li>
+      <li><a href="#chunk_seek">_chunk_seek</a></li>
+      <li><a href="#chunk_tell">_chunk_tell</a></li>
+      <li><a href="#get_chunk_by_nol">_get_chunk_by_nol</a></li>
+      <li><a href="#get_chunk_by_end">_get_chunk_by_end</a></li>
+      <li><a href="#find_chunk_by_end">_find_chunk_by_end</a></li>
+      <li><a href="#AUTOLOAD">AUTOLOAD</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::PullParserI - A base module for fast &#39;pull&#39; parsing</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment"># do not use this class, it is intended for parser module</span>
+    <span class="comment"># writers only</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>If you are writing a module to parse some new format, you may wish to use a &#39;pull&#39; approach whereby you only do work (reading file data, parsing it, turning the parsed data in an object) when absolutely necessary.</p>
+
+<p>PullParserI provides a system for doing exactly that. As a PullParser you need a chunk. A chunk is just a Bio::Root::IO that contains all the raw data you would want to parse. You can use the chunk() method to create a chunk from a filename, existing filehandle or even a string. If you make a chunk from a large file, but actually only want your chunk to be some portion of the whole file, supply start and end amounts in bytes to chunk() at the same time. The methods _chunk_seek() and _chunk_tell() provide seeks and tells that are relative to the start and end of your chunk, not the whole file.</p>
+
+<p>The other thing you will need to decide when making a chunk is how to handle piped input. A PullParser typically needs seekable data to parse, so if your data is piped in and unseekable, you must decide between creating a temp file or reading the input into memory, which will be done before the chunk becomes usable and you can begin any parsing. Alternatively you can choose to force a sequential read, in which case you can make use of _dependencies() to define the linear order of methods that would result in the file being read sequentially. The return value of _sequential() is also useful here, if you would need to cache some data or otherwise behave differently during a sequential read.</p>
+
+<p>The main method in the system is get_field(). This method relies on the existance of a private hash reference accessible to it with the method _fields(). That hash ref should have as keys all the sorts of data you will want to parse (eg. &#39;score&#39;), and prior to parsing the values would be undefined. A user of your module can then call either $module-&gt;get_field(&#39;score&#39;) or $module-&gt;score and get_field will either return the answer from $self-&gt;_fields-&gt;{score} if it is defined, or call a method _discover_score() first if not. So for the system to work you need to define a _discover_*() method for every field in the fields hash, and ensure that the method stores an answer in the fields hash.</p>
+
+<p>How you implement your _discover_* methods is up to you, though you should never call a _discover_* method directly yourself; always use get_field(), since get_field() will deal with calling dependent methods for you if a forced sequenctial read is in progress due to piped input. You will almost certainly want to make use of the various chunk-related methods of this class (that are denoted private by the leading &#39;_&#39;; this means you can use them as the author of a parser class, but users of your parser should not).</p>
+
+<p>Primary amongst them is _*_chunk_by_end() to which you provide text that represents the end of your desired chunk and it does a readline with your argument as $/. The chunk knows about its line-endings, so if you want your end definition to include a new line, just always use &quot;\n&quot; and PullParserI will do any necessary conversion for you.</p>
+
+<p>If your input data is hierarchical (eg. report-&gt;many results-&gt;many hits-&gt;many hsps), and you want an object at the leaf of the hierarchy to have access to information that is shared amongst all of them (is parsed in the root), you don&#39;t have to copy the data to each leaf object; simply by defining parent(), when you call get_field() and the requested field isn&#39;t in your leaf&#39;s fields hash, the leaf&#39;s parent will be asked for the field instead, and so on till root.</p>
+
+<p>See Bio::SearchIO::hmmer_pull for an example of implementing a parser using PullParserI.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Sendu-Bala">AUTHOR - Sendu Bala</h1>
+
+<p>Email bix@sendu.me.uk</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Inspired by a posting by Aaron J. Mackey</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="fields">_fields</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_fields</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_fields</span><span class="operator">(</span> <span class="operator">{</span> <span class="string">field1</span> <span class="operator">=&gt;</span> <span class="keyword">undef</span> <span class="operator">}</span> <span class="operator">);</span>
+           <span class="keyword">my</span> <span class="variable">$fields_ref</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_fields</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">the</span> <span class="variable">hash</span> <span class="variable">reference</span> <span class="variable">containing</span> <span class="variable">all</span> <span class="variable">the</span> <span class="variable">fields</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">parser</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">hash</span> <span class="keyword">ref</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span> <span class="variable">to</span> <span class="variable">get</span><span class="operator">,</span> <span class="variable">OR</span> <span class="variable">hash</span> <span class="keyword">ref</span> <span class="variable">to</span> <span class="variable">set</span>
+</code></code></pre>
+
+<h2 id="has_field">has_field</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">has_field</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">has_field</span><span class="operator">(</span><span class="string">'field_name'</span><span class="operator">)</span> <span class="operator">{...}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Ask</span> <span class="keyword">if</span> <span class="variable">a</span> <span class="variable">particular</span> <span class="variable">object</span> <span class="variable">has</span> <span class="variable">a</span> <span class="keyword">given</span> <span class="variable">field</span> <span class="operator">(</span><span class="variable">doesn't</span> <span class="variable">ask</span> <span class="variable">ancestors</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">boolean</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">the</span> <span class="variable">field</span> <span class="variable">name</span> <span class="variable">to</span> <span class="variable">test</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="get_field">get_field</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_field</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$field_value</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">get_field</span><span class="operator">(</span><span class="string">'field_name'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">a</span> <span class="keyword">given</span> <span class="variable">field</span><span class="operator">.</span> <span class="variable">If</span> <span class="variable">this</span> <span class="variable">$obj</span> <span class="variable">doesn't</span> <span class="variable">have</span> <span class="variable">the</span> <span class="variable">field</span><span class="operator">,</span>
+           <span class="variable">it's</span> <span class="variable">parent</span><span class="operator">()</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">asked</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">so</span> <span class="variable">on</span> <span class="keyword">until</span> <span class="variable">there</span> <span class="variable">are</span> <span class="keyword">no</span> <span class="variable">more</span>
+           <span class="variable">parents</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">scalar</span><span class="operator">,</span> <span class="variable">warns</span> <span class="keyword">if</span> <span class="variable">a</span> <span class="variable">value</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">field</span> <span class="variable">couldn't</span> <span class="variable">be</span> <span class="variable">found</span> <span class="keyword">and</span> <span class="variable">returns</span>
+           <span class="keyword">undef</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">the</span> <span class="variable">field</span> <span class="variable">to</span> <span class="variable">get</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="parent">parent</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">parent</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">parent</span><span class="operator">(</span><span class="variable">$parent_obj</span><span class="operator">);</span>
+           <span class="keyword">my</span> <span class="variable">$parent_obj</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">parent</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">the</span> <span class="variable">parent</span> <span class="variable">object</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">one</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::PullParserI</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span> <span class="variable">to</span> <span class="variable">get</span><span class="operator">,</span> <span class="variable">OR</span> <span class="variable">Bio::PullParserI</span> <span class="variable">to</span> <span class="variable">set</span>
+</code></code></pre>
+
+<h2 id="chunk">chunk</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">chunk</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">chunk</span><span class="operator">(</span><span class="variable">$filename</span><span class="operator">);</span>
+           <span class="keyword">my</span> <span class="variable">$chunk</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">chunk</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">the</span> <span class="variable">chunk</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">parser</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio</span><span class="operator">:</span><span class="variable">Root::IO</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span> <span class="variable">to</span> <span class="variable">get</span><span class="operator">,</span> <span class="variable">OR</span>
+           <span class="variable">First</span> <span class="variable">argument</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">GLOB</span> <span class="variable">reference</span><span class="operator">,</span> <span class="variable">filename</span> <span class="variable">string</span><span class="operator">,</span> <span class="variable">string</span> <span class="variable">data</span> <span class="variable">to</span>
+           <span class="variable">treat</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">chunk</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">Bio::Root::IO</span><span class="operator">.</span>
+           <span class="variable">Optionally</span><span class="operator">,</span> <span class="variable">also</span> <span class="variable">provide</span><span class="operator">:</span>
+           <span class="string">-start</span> <span class="operator">=&gt;</span> <span class="keyword">int</span> <span class="operator">:</span> <span class="variable">the</span> <span class="variable">byte</span> <span class="variable">position</span> <span class="variable">within</span> <span class="variable">the</span> <span class="variable">thing</span> <span class="variable">described</span> <span class="variable">by</span> <span class="variable">the</span>
+                           <span class="variable">first</span> <span class="variable">argument</span> <span class="variable">to</span> <span class="variable">consider</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">of</span> <span class="variable">this</span>
+                           <span class="variable">chunk</span> <span class="operator">(</span><span class="keyword">default</span> <span class="number">0</span><span class="operator">)</span>
+           <span class="string">-end</span>   <span class="operator">=&gt;</span> <span class="keyword">int</span> <span class="operator">:</span> <span class="variable">the</span> <span class="variable">byte</span> <span class="variable">position</span> <span class="variable">to</span> <span class="variable">consider</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">end</span> <span class="operator">(</span><span class="keyword">default</span>
+                           <span class="variable">true</span> <span class="variable">end</span><span class="operator">)</span>
+           <span class="string">-piped_behaviour</span> <span class="operator">=&gt;</span> <span class="string">'memory'</span><span class="operator">|</span><span class="string">'temp_file'</span><span class="operator">|</span><span class="string">'sequential_read'</span>
+ 
+           <span class="variable">The</span> <span class="keyword">last</span> <span class="variable">option</span> <span class="variable">comes</span> <span class="variable">into</span> <span class="variable">effect</span> <span class="keyword">when</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">argument</span> <span class="variable">is</span>
+           <span class="variable">something</span> <span class="variable">that</span> <span class="variable">cannot</span> <span class="variable">be</span> <span class="variable">seeked</span> <span class="operator">(</span><span class="variable">eg</span><span class="operator">.</span> <span class="variable">piped</span> <span class="variable">input</span> <span class="variable">filehandle</span><span class="operator">).</span>
+            <span class="string">'memory'</span>          <span class="variable">means</span> <span class="keyword">read</span> <span class="variable">all</span> <span class="variable">the</span> <span class="variable">piped</span> <span class="variable">input</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">string</span>
+                              <span class="variable">first</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">chunk</span> <span class="variable">to</span> <span class="variable">that</span> <span class="variable">string</span><span class="operator">.</span>
+            <span class="string">'temp_file'</span>       <span class="variable">means</span> <span class="keyword">read</span> <span class="variable">all</span> <span class="variable">the</span> <span class="variable">piped</span> <span class="variable">input</span> <span class="keyword">and</span> <span class="variable">output</span> <span class="variable">it</span> <span class="variable">to</span>
+                              <span class="variable">a</span> <span class="variable">temp</span> <span class="variable">file</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">chunk</span> <span class="variable">to</span> <span class="variable">that</span> <span class="variable">temp</span> <span class="variable">file</span><span class="operator">.</span>
+            <span class="string">'sequential_read'</span> <span class="variable">means</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">piped</span> <span class="variable">input</span> <span class="variable">should</span> <span class="variable">be</span> <span class="keyword">read</span>
+                              <span class="variable">sequentially</span> <span class="keyword">and</span> <span class="variable">your</span> <span class="variable">parsing</span> <span class="variable">code</span> <span class="variable">must</span> <span class="variable">cope</span> <span class="variable">with</span>
+                              <span class="keyword">not</span> <span class="variable">being</span> <span class="variable">able</span> <span class="variable">to</span> <span class="keyword">seek</span><span class="operator">.</span>
+           <span class="string">'memory'</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">fastest</span> <span class="variable">but</span> <span class="variable">uses</span> <span class="variable">the</span> <span class="variable">most</span> <span class="variable">memory</span><span class="operator">.</span> <span class="string">'temp_file'</span> <span class="keyword">and</span>
+           <span class="string">'sequential_read'</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">slow</span><span class="operator">,</span> <span class="variable">with</span> <span class="string">'temp_file'</span> <span class="variable">being</span> <span class="variable">the</span> <span class="variable">most</span> <span class="variable">memory</span>
+           <span class="variable">efficient</span> <span class="variable">but</span> <span class="variable">requiring</span> <span class="variable">disc</span> <span class="variable">space</span><span class="operator">.</span> <span class="variable">The</span> <span class="keyword">default</span> <span class="variable">is</span> <span class="string">'sequential_read'</span><span class="operator">.</span>
+           <span class="variable">Note</span> <span class="variable">that</span> <span class="variable">in</span> <span class="variable">versions</span> <span class="variable">of</span> <span class="variable">perl</span> <span class="variable">earlier</span> <span class="variable">than</span> <span class="number">5.8</span> <span class="variable">only</span> <span class="variable">temp_file</span> <span class="variable">works</span>
+           <span class="keyword">and</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">used</span> <span class="variable">regardless</span> <span class="variable">of</span> <span class="variable">what</span> <span class="variable">value</span> <span class="variable">is</span> <span class="variable">supplied</span> <span class="variable">here</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="sequential">_sequential</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_sequential</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_sequential</span><span class="operator">)</span> <span class="operator">{...}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Ask</span> <span class="keyword">if</span> <span class="variable">we</span> <span class="variable">have</span> <span class="variable">to</span> <span class="keyword">do</span> <span class="variable">operations</span> <span class="variable">such</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">input</span> <span class="variable">is</span> <span class="keyword">read</span>
+           <span class="variable">sequentially</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">boolean</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span> <span class="variable">to</span> <span class="variable">get</span><span class="operator">,</span> <span class="variable">OR</span> <span class="variable">boolean</span> <span class="variable">to</span> <span class="variable">set</span> <span class="operator">(</span><span class="variable">typically</span><span class="operator">,</span> <span class="variable">you</span> <span class="variable">should</span> <span class="variable">never</span> <span class="variable">set</span> <span class="variable">this</span>
+           <span class="variable">yourself</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="dependencies">_dependencies</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_dependencies</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_dependencies</span><span class="operator">(</span> <span class="operator">{</span> <span class="string">field1</span> <span class="operator">=&gt;</span> <span class="variable">field2</span> <span class="operator">}</span> <span class="operator">);</span>
+           <span class="keyword">my</span> <span class="variable">$dependancy</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_dependencies</span><span class="operator">(</span><span class="string">'field_name'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span> <span class="variable">the</span> <span class="variable">fields</span> <span class="variable">that</span> <span class="variable">are</span> <span class="variable">dependent</span> <span class="variable">on</span> <span class="keyword">each</span> <span class="variable">other</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">field</span>
+           <span class="variable">than</span> <span class="variable">another</span> <span class="variable">is</span> <span class="variable">dependent</span> <span class="variable">upon</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">a</span> <span class="variable">field</span> <span class="variable">name</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">a</span> <span class="variable">field</span> <span class="variable">name</span><span class="operator">)</span> <span class="variable">to</span> <span class="variable">get</span><span class="operator">,</span> <span class="variable">OR</span> <span class="variable">hash</span> <span class="keyword">ref</span> <span class="variable">to</span> <span class="variable">initially</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">with</span>
+           <span class="variable">field</span> <span class="variable">names</span> <span class="variable">as</span> <span class="keyword">keys</span> <span class="keyword">and</span> <span class="keyword">values</span><span class="operator">,</span> <span class="variable">key</span> <span class="variable">field</span> <span class="variable">being</span> <span class="variable">dependent</span> <span class="variable">upon</span> <span class="variable">value</span>
+           <span class="variable">field</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="chunk_true_start">_chunk_true_start</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_chunk_true_start</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$true_start</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_chunk_true_start</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">set</span> <span class="variable">the</span> <span class="variable">true</span> <span class="variable">start</span> <span class="variable">position</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">chunk</span> <span class="variable">within</span> <span class="variable">the</span> <span class="variable">filehandle</span>
+           <span class="variable">it</span> <span class="variable">is</span> <span class="variable">part</span> <span class="variable">of</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">int</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span> <span class="variable">to</span> <span class="variable">get</span><span class="operator">,</span> <span class="variable">OR</span> <span class="keyword">int</span> <span class="variable">to</span> <span class="variable">set</span> <span class="operator">(</span><span class="variable">typically</span><span class="operator">,</span> <span class="variable">you</span> <span class="variable">won't</span> <span class="variable">set</span> <span class="variable">this</span> <span class="variable">yourself</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="chunk_true_end">_chunk_true_end</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_chunk_true_end</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$true_end</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_chunk_true_end</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">set</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">true</span> <span class="variable">end</span> <span class="variable">position</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">chunk</span> <span class="variable">within</span> <span class="variable">the</span> <span class="variable">filehandle</span>
+           <span class="variable">it</span> <span class="variable">is</span> <span class="variable">part</span> <span class="variable">of</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">int</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span> <span class="variable">to</span> <span class="variable">get</span><span class="operator">,</span> <span class="variable">OR</span> <span class="keyword">int</span> <span class="variable">to</span> <span class="variable">set</span> <span class="operator">(</span><span class="variable">typically</span><span class="operator">,</span> <span class="variable">you</span> <span class="variable">won't</span> <span class="variable">set</span> <span class="variable">this</span> <span class="variable">yourself</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="line_ending">_line_ending</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_line_ending</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$line_ending</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_line_ending</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">set</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">line</span> <span class="variable">ending</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">chunk</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span> <span class="variable">to</span> <span class="variable">get</span><span class="operator">,</span> <span class="variable">OR</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">set</span> <span class="operator">(</span><span class="variable">typically</span><span class="operator">,</span> <span class="variable">you</span> <span class="variable">won't</span> <span class="variable">set</span> <span class="variable">this</span>
+           <span class="variable">yourself</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="chunk_seek">_chunk_seek</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_chunk_seek</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_chunk_seek</span><span class="operator">(</span><span class="variable">$pos</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="keyword">seek</span><span class="operator">()</span> <span class="variable">the</span> <span class="variable">chunk</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">provided</span> <span class="variable">position</span> <span class="variable">in</span> <span class="variable">bytes</span><span class="operator">,</span> <span class="variable">relative</span> <span class="variable">to</span> <span class="variable">the</span>
+           <span class="keyword">defined</span> <span class="variable">start</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">chunk</span> <span class="variable">within</span> <span class="variable">its</span> <span class="variable">filehandle</span><span class="operator">.</span>
+ 
+           <span class="variable">In</span> <span class="variable">_sequential</span><span class="operator">()</span> <span class="variable">mode</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">function</span> <span class="variable">does</span> <span class="variable">nothing</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="keyword">int</span>
+</code></code></pre>
+
+<h2 id="chunk_tell">_chunk_tell</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_chunk_seek</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$pos</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_chunk_tell</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">current</span> <span class="keyword">tell</span><span class="operator">()</span> <span class="variable">position</span> <span class="variable">within</span> <span class="variable">the</span> <span class="variable">chunk</span><span class="operator">,</span> <span class="variable">relative</span> <span class="variable">to</span> <span class="variable">the</span>
+           <span class="keyword">defined</span> <span class="variable">start</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">chunk</span> <span class="variable">within</span> <span class="variable">its</span> <span class="variable">filehandle</span><span class="operator">.</span>
+ 
+           <span class="variable">In</span> <span class="variable">_sequential</span><span class="operator">()</span> <span class="variable">mode</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">function</span> <span class="variable">does</span> <span class="variable">nothing</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">int</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="get_chunk_by_nol">_get_chunk_by_nol</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_chunk_seek</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$string</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_get_chunk_by_nol</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">a</span> <span class="variable">chunk</span> <span class="variable">of</span> <span class="variable">chunk</span><span class="operator">()</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">position</span> <span class="variable">onward</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="keyword">given</span>
+           <span class="variable">number</span> <span class="variable">of</span> <span class="variable">lines</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="keyword">int</span> <span class="operator">(</span><span class="variable">number</span> <span class="variable">of</span> <span class="variable">lines</span> <span class="variable">you</span> <span class="variable">want</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="get_chunk_by_end">_get_chunk_by_end</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_get_chunk_by_end</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$string</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_get_chunk_by_end</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">a</span> <span class="variable">chunk</span> <span class="variable">of</span> <span class="variable">chunk</span><span class="operator">()</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">position</span> <span class="variable">onward</span> <span class="variable">till</span> <span class="variable">the</span> <span class="variable">end</span>
+           <span class="variable">of</span> <span class="variable">the</span> <span class="variable">line</span><span class="operator">,</span> <span class="variable">as</span> <span class="keyword">defined</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">supplied</span> <span class="variable">argument</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">line</span> <span class="variable">ending</span> <span class="operator">-</span> <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">want</span> <span class="variable">the</span> <span class="variable">line</span> <span class="variable">ending</span> <span class="variable">to</span> <span class="variable">include</span> <span class="variable">a</span> <span class="variable">new</span>
+           <span class="variable">line</span><span class="operator">,</span> <span class="variable">always</span> <span class="keyword">use</span> <span class="operator">\</span><span class="variable">n</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="find_chunk_by_end">_find_chunk_by_end</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_find_chunk_by_end</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$string</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_find_chunk_by_end</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">start</span> <span class="keyword">and</span> <span class="variable">end</span> <span class="variable">of</span> <span class="variable">what</span> <span class="variable">would</span> <span class="variable">be</span> <span class="variable">a</span> <span class="variable">chunk</span> <span class="variable">of</span> <span class="variable">chunk</span><span class="operator">()</span> <span class="variable">from</span> <span class="variable">the</span>
+           <span class="variable">current</span> <span class="variable">position</span> <span class="variable">onward</span> <span class="variable">till</span> <span class="variable">the</span> <span class="variable">end</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">line</span><span class="operator">,</span> <span class="variable">as</span> <span class="keyword">defined</span> <span class="variable">by</span> <span class="variable">the</span>
+           <span class="variable">supplied</span> <span class="variable">argument</span><span class="operator">.</span>
+ 
+           <span class="variable">In</span> <span class="variable">_sequential</span><span class="operator">()</span> <span class="variable">mode</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">function</span> <span class="variable">does</span> <span class="variable">nothing</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">_chunk_tell</span> <span class="keyword">values</span> <span class="keyword">for</span> <span class="variable">start</span> <span class="keyword">and</span> <span class="variable">end</span> <span class="variable">in</span> <span class="number">2</span> <span class="variable">element</span> <span class="variable">list</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">line</span> <span class="variable">ending</span> <span class="operator">-</span> <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">want</span> <span class="variable">the</span> <span class="variable">line</span> <span class="variable">ending</span> <span class="variable">to</span> <span class="variable">include</span> <span class="variable">a</span> <span class="variable">new</span>
+           <span class="variable">line</span><span class="operator">,</span> <span class="variable">always</span> <span class="keyword">use</span> <span class="operator">\</span><span class="variable">n</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="AUTOLOAD">AUTOLOAD</h2>
+
+<pre><code><code> Title   : AUTOLOAD
+ Usage   : n/a
+ Function: Assumes that any unknown method called should be treated as
+           get_field($method_name).
+ Returns : n/a
+ Args    : n/a</code></code></pre>
+
+
+</body>
+
+</html>
+
+

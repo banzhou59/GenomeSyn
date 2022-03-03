@@ -1,0 +1,190 @@
+#!/home/fxing/localperl/bin/perl -w
+
+eval 'exec /home/fxing/localperl/bin/perl -w -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+
+use strict;
+use ActiveState::RelocateTree qw(relocate spongedir rel2abs);
+use Config;
+use File::Basename qw(dirname);
+use Getopt::Std;
+use vars qw(
+    $opt_a $opt_b $opt_d $opt_e $opt_f $opt_i $opt_t $opt_r $opt_v
+    *OLDERR
+);
+
+my $logname;
+
+BEGIN {
+    # If we're being run via wperl, redirect the output streams to a log file.
+    if ($^O eq 'MSWin32' and $^X =~ /\bwperl(.exe)?\z/i) {
+	my $tmp = $ENV{TEMP} || $ENV{tmp} || "$ENV{SystemDrive}/" || "c:/temp";
+	$logname = "$tmp/ActivePerlInstall.log";
+	open(STDERR, ">> $logname");
+	open(STDOUT, ">&STDERR");
+    }
+}
+
+my $frompath_default = $Config{prefix};
+
+getopts('abde:f:itrv') or usage('');
+
+my $topath      = shift || usage('');
+my $frompath    = shift || $frompath_default;
+if ($topath eq "~") {
+    $topath = dirname(dirname($^X));
+}
+# MSI insists on handing us paths with backslashes at the end
+if ($^O eq 'MSWin32') {
+    $topath =~ s{\\\z}{};
+    $frompath =~ s{\\\z}{};
+}
+my $destpath    = $opt_e || $topath;
+my $filelist    = $opt_f || '';
+
+usage("$destpath is longer than $frompath")
+    if length($destpath) > length($frompath) and ! $opt_a;
+usage("$destpath is longer than " . spongedir('thisperl'))
+    if length($destpath) > length(spongedir('thisperl')) and ! $opt_t;
+
+if (-d $topath) {
+    if (not -d $frompath) {
+	#warn "Will do inplace edit of `$topath'\n";
+	$opt_i++;
+    }
+}
+elsif ($opt_i) {
+    usage("Directory `$topath' doesn't exist, can't do inplace edit");
+}
+
+sub usage {
+    (my $progname = $0) =~ s,.*[\\/],,;
+    my $msg = shift || "";
+    print STDERR <<EOT;
+$msg
+Usage: $progname [options] topath [frompath]
+
+Recognized options:
+
+    -a          allow topath to be longer than frompath
+    -b          don't delete backups after edit
+    -d          delete source tree after relocation
+    -e path     edit files to contain this path instead of topath
+    -f logfile  write log of the modified files
+    -i          edit perl installation at topath in-place
+    -t          only edit text files
+    -r          do not run ranlib on *.a files that were edited
+    -v          turn on verbosity
+
+The frompath defaults to '$frompath_default'.
+Run 'perldoc $progname' for further information.
+
+EOT
+    exit(1);
+}
+
+relocate(
+    to		=> $topath,
+    from	=> $frompath,
+    replace	=> $destpath,
+    verbose	=> $opt_v,
+    filelist	=> $filelist,
+    ranlib	=> (not $opt_r),
+    textonly	=> $opt_t,
+    savebaks	=> $opt_b,
+    inplace	=> $opt_i,
+    killorig	=> $opt_d,
+    usenlink	=> 0, # don't use nlink: broken on HP-UX.
+);
+
+__END__
+
+=head1 NAME
+
+reloc_perl - copy a perl installation to a new location
+
+=head1 SYNOPSIS
+
+  reloc_perl [-a] [-b] [-d] [-e path] [-f file] [-i] [-t] [-r] [-v]
+             topath [frompath]
+
+=head1 DESCRIPTION
+
+The B<reloc_perl> program will copy a perl installation wholesale to a
+new location.  During the copy it edits path names in the copied files
+to reflect the new location.
+
+The I<topath> is the file system location where the perl installation
+should be copied to.  This location should normally not already
+exists.  A directory will be created at I<topath> and then populated
+with the F<bin>, F<lib>, F<html> and F<man> directories of the perl
+installation.
+
+The perl installation copied is the one where B<reloc_perl> itself
+resides, but this can be overridden by providing a I<frompath>.
+Running B<reloc_perl> without arguments will show what this path is,
+as well as a short usage message.
+
+=head1 OPTIONS
+
+The following options are recognized by the C<reloc_perl> program:
+
+=over 5
+
+=item B<-a>
+
+The B<reloc_perl> program will refuse to copy if I<topath> is longer
+than I<frompath>.  This option overrides this restriction.  The
+I<topath> must still be shorter than the path built into the perl
+binary.
+
+=item B<-b>
+
+Don't delete the backups created during the edits performed in I<topath>.
+
+=item B<-d>
+
+Delete the perl installation that was copied.  Use with care!
+
+=item B<-e> I<path>
+
+Edit files to contain this path instead of the I<topath>.  This allow
+relocation to a different location than where the files themselves are
+copied.
+
+=item B<-f> I<logfile>
+
+Creates I<logfile> and writes the full path name of
+each file that was modified (one line per file).
+
+=item B<-i>
+
+Edit perl installation at I<topath> in-place.  Makes no attempt to
+move tree and the B<-d> is ignored.  This option is assumed if
+I<topath> exists, is a directory, and I<frompath> doesn't exist.
+
+=item B<-t>
+
+Only edit the text files.  When this option is used, the restriction
+that I<topath> must not be longer than I<frompath> is relaxed.
+
+=item B<-r>
+
+Do not run F<ranlib> any F<*.a> files that were edited.
+
+=item B<-v>
+
+Print a trace of what's going on.
+
+=back
+
+=head1 SEE ALSO
+
+L<ActiveState::RelocateTree>
+
+=head1 COPYRIGHT
+
+Copyright 1999-2001 ActiveState Software Inc.  All rights reserved.
+
+=cut
+

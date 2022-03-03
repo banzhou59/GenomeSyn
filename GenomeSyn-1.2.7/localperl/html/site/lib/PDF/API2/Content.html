@@ -1,0 +1,709 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#Coordinate-Transformations">Coordinate Transformations</a></li>
+      <li><a href="#Graphics-State-Parameters">Graphics State Parameters</a></li>
+      <li><a href="#Path-Construction-Drawing-">Path Construction (Drawing)</a></li>
+      <li><a href="#Path-Painting-Drawing-">Path Painting (Drawing)</a></li>
+      <li><a href="#Colors">Colors</a></li>
+      <li><a href="#External-Objects">External Objects</a></li>
+      <li><a href="#Text-State-Parameters">Text State Parameters</a></li>
+      <li><a href="#Text-Positioning">Text-Positioning</a></li>
+      <li><a href="#Text-Showing">Text-Showing</a></li>
+      <li><a href="#Advanced-Methods">Advanced Methods</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>PDF::API2::Content - Methods for adding graphics and text to a PDF</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment"># Start with a PDF page (new or opened)</span>
+    <span class="keyword">my</span> <span class="variable">$pdf</span> <span class="operator">=</span> <span class="variable">PDF::API2</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+    <span class="keyword">my</span> <span class="variable">$page</span> <span class="operator">=</span> <span class="variable">$pdf</span><span class="operator">-&gt;</span><span class="variable">page</span><span class="operator">();</span>
+    
+    <span class="comment"># Add a new content object</span>
+    <span class="keyword">my</span> <span class="variable">$content</span> <span class="operator">=</span> <span class="variable">$page</span><span class="operator">-&gt;</span><span class="variable">gfx</span><span class="operator">();</span>
+    <span class="keyword">my</span> <span class="variable">$content</span> <span class="operator">=</span> <span class="variable">$page</span><span class="operator">-&gt;</span><span class="variable">text</span><span class="operator">();</span>
+    
+    <span class="comment"># Then call the methods below add graphics and text to the page.</span>
+</code></code></pre>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="Coordinate-Transformations">Coordinate Transformations</h2>
+
+<p>The methods in this section change the coordinate system for the current content object relative to the rest of the document.</p>
+
+<p>If you call more than one of these methods, the PDF specification recommends calling them in the following order: translate, rotate, scale, skew. Each change builds on the last, and you can get unexpected results when calling them in a different order.</p>
+
+<dl>
+
+<dt id="content-translate-x-y-">$content-&gt;translate($x, $y)</dt>
+<dd>
+
+<p>Moves the origin along the x and y axes.</p>
+
+</dd>
+<dt id="content-rotate-degrees-">$content-&gt;rotate($degrees)</dt>
+<dd>
+
+<p>Rotates the coordinate system counter-clockwise.</p>
+
+<p>Use a negative argument to rotate clockwise.</p>
+
+</dd>
+<dt id="content-scale-sx-sy-">$content-&gt;scale($sx, $sy)</dt>
+<dd>
+
+<p>Scales (stretches) the coordinate systems along the x and y axes.</p>
+
+</dd>
+<dt id="content-skew-sa-sb-">$content-&gt;skew($sa, $sb)</dt>
+<dd>
+
+<p>Skews the coordinate system by <code><code>$sa</code></code> degrees (counter-clockwise) from the x axis and <code><code>$sb</code></code> degrees (clockwise) from the y axis.</p>
+
+</dd>
+<dt id="content-transform-options-">$content-&gt;transform(%options)</dt>
+<dd>
+
+<pre><code><code>    $content-&gt;transform(
+        -translate =&gt; [$x, $y],
+        -rotate    =&gt; $degrees,
+        -scale     =&gt; [$sx, $sy],
+        -skew      =&gt; [$sa, $sb],
+    )</code></code></pre>
+
+<p>Performs multiple coordinate transformations at once, in the order recommended by the PDF specification (translate, rotate, scale, then skew).</p>
+
+<p>This is equivalent to making each transformation separately.</p>
+
+</dd>
+<dt id="content-transform_rel-options-">$content-&gt;transform_rel(%options)</dt>
+<dd>
+
+<p>Makes transformations similarly to <code><code>transform</code></code>, except that it adds to the previously set values.</p>
+
+</dd>
+<dt id="content-matrix-a-b-c-d-e-f-">$content-&gt;matrix($a, $b, $c, $d, $e, $f)</dt>
+<dd>
+
+<p>(Advanced) Sets the current transformation matrix manually. Unless you have a particular need to enter transformations manually, you should use the <code><code>transform</code></code> method instead.</p>
+
+</dd>
+</dl>
+
+<h2 id="Graphics-State-Parameters">Graphics State Parameters</h2>
+
+<dl>
+
+<dt id="content-save">$content-&gt;save</dt>
+<dd>
+
+<p>Saves the current graphics state and text state on a stack.</p>
+
+</dd>
+<dt id="content-restore">$content-&gt;restore</dt>
+<dd>
+
+<p>Restores the most recently saved graphics state and text state, removing it from the stack.</p>
+
+</dd>
+<dt id="content-linewidth-width-">$content-&gt;linewidth($width)</dt>
+<dd>
+
+<p>Sets the width of the stroke.</p>
+
+</dd>
+<dt id="content-linecap-style-">$content-&gt;linecap($style)</dt>
+<dd>
+
+<p>Sets the style to be used at the end of a stroke.</p>
+
+<dl>
+
+<dt id="Butt-Cap">0 = Butt Cap</dt>
+<dd>
+
+<p>The stroke ends at the end of the path, with no projection.</p>
+
+</dd>
+<dt id="Round-Cap">1 = Round Cap</dt>
+<dd>
+
+<p>An arc is drawn around the end of the path with a diameter equal to the line width, and is filled in.</p>
+
+</dd>
+<dt id="Projecting-Square-Cap">2 = Projecting Square Cap</dt>
+<dd>
+
+<p>The stroke continues past the end of the path for half the line width.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="content-linejoin-style-">$content-&gt;linejoin($style)</dt>
+<dd>
+
+<p>Sets the style of join to be used at corners of a path.</p>
+
+<dl>
+
+<dt id="Miter-Join">0 = Miter Join</dt>
+<dd>
+
+<p>The outer edges of the stroke extend until they meet, up to the limit specified below. If the limit would be surpassed, a bevel join is used instead.</p>
+
+</dd>
+<dt id="Round-Join">1 = Round Join</dt>
+<dd>
+
+<p>A circle with a diameter equal to the linewidth is drawn around the corner point, producing a rounded corner.</p>
+
+</dd>
+<dt id="Bevel-Join">2 = Bevel Join</dt>
+<dd>
+
+<p>A triangle is drawn to fill in the notch between the two strokes.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="content-meterlimit-ratio-">$content-&gt;meterlimit($ratio)</dt>
+<dd>
+
+<p>Note: This method is named incorrectly, and will be renamed in a future release.</p>
+
+<p>Sets the miter (not meter) limit when the line join style is a miter join.</p>
+
+<p>The ratio is the maximum length of the miter divided by the line width. Any miter above this ratio will be converted to a bevel join.</p>
+
+</dd>
+<dt id="content-linedash-">$content-&gt;linedash()</dt>
+<dd>
+
+</dd>
+<dt id="content-linedash-length-">$content-&gt;linedash($length)</dt>
+<dd>
+
+</dd>
+<dt id="content-linedash-on-off-">$content-&gt;linedash($on, $off)</dt>
+<dd>
+
+<p>Sets the line dash pattern.</p>
+
+<p>If passed without any arguments, a solid line will be drawn.</p>
+
+<p>If passed with one argument, the strokes and spaces will have equal lengths.</p>
+
+<p>If passed with two arguments, the strokes will have length <code><code>$on</code></code>, and the spaces will have length <code><code>$off</code></code>.</p>
+
+</dd>
+<dt id="content-flatness-tolerance-">$content-&gt;flatness($tolerance)</dt>
+<dd>
+
+<p>(Advanced) Sets the maximum variation in output pixels when drawing curves.</p>
+
+</dd>
+<dt id="content-egstate-object-">$content-&gt;egstate($object)</dt>
+<dd>
+
+<p>(Advanced) Adds an Extended Graphic State object containing additional state parameters.</p>
+
+</dd>
+</dl>
+
+<h2 id="Path-Construction-Drawing-">Path Construction (Drawing)</h2>
+
+<dl>
+
+<dt id="content-move-x-y-">$content-&gt;move($x, $y)</dt>
+<dd>
+
+<p>Starts a new path at the specified coordinates.</p>
+
+</dd>
+<dt id="content-line-x-y-">$content-&gt;line($x, $y)</dt>
+<dd>
+
+<p>Extends the path in a line from the current coordinates to the specified coordinates, and updates the current position to be the new coordinates.</p>
+
+<p>Note: The line will not appear until you call <code><code>stroke</code></code>.</p>
+
+</dd>
+<dt id="content-hline-x-">$content-&gt;hline($x)</dt>
+<dd>
+
+</dd>
+<dt id="content-vline-y-">$content-&gt;vline($y)</dt>
+<dd>
+
+<p>Shortcut for drawing horizontal and vertical lines from the current position.</p>
+
+</dd>
+<dt id="content-poly-x1-y1-...-xn-yn-">$content-&gt;poly($x1, $y1, ..., $xn, $yn)</dt>
+<dd>
+
+<p>Shortcut for creating a polyline path. Moves to <code><code>[$x1, $y1]</code></code>, and then extends the path in lines along the specified coordinates.</p>
+
+</dd>
+<dt id="content-curve-cx1-cy1-cx2-cy2-x-y-">$content-&gt;curve($cx1, $cy1, $cx2, $cy2, $x, $y)</dt>
+<dd>
+
+<p>Extends the path in a curve from the current point to <code><code>($x, $y)</code></code>, using the two specified points to create a cubic Bezier curve, and updates the current position to be the new point.</p>
+
+<p>Note: The curve will not appear until you call <code><code>stroke</code></code>.</p>
+
+</dd>
+<dt id="content-spline-cx1-cy1-x-y-">$content-&gt;spline($cx1, $cy1, $x, $y)</dt>
+<dd>
+
+<p>Extends the path in a curve from the current point to <code><code>($x, $y)</code></code>, using the two specified points to create a spline, and updates the current position to be the new point.</p>
+
+<p>Note: The curve will not appear until you call <code><code>stroke</code></code>.</p>
+
+</dd>
+<dt id="content-arc-x-y-a-b-alpha-beta-move-">$content-&gt;arc($x, $y, $a, $b, $alpha, $beta, $move)</dt>
+<dd>
+
+<p>Extends the path along an arc of an ellipse centered at <code><code>[x, y]</code></code>. The major and minor axes of the ellipse are <code><code>$a</code></code> and <code><code>$b</code></code>, respectively, and the arc moves from <code><code>$alpha</code></code> degrees to <code><code>$beta</code></code> degrees. The current position is then set to the endpoint of the arc.</p>
+
+<p>Set <code><code>$move</code></code> to a true value if this arc is the beginning of a new path instead of the continuation of an existing path.</p>
+
+</dd>
+<dt id="content-bogen-x1-y1-x2-y2-radius-move-outer-reverse-">$content-&gt;bogen($x1, $y1, $x2, $y2, $radius, $move, $outer, $reverse)</dt>
+<dd>
+
+<p>Extends the path along an arc of a circle of the specified radius between <code><code>[x1, y1]</code></code> to <code><code>[x2, y2]</code></code>. The current position is then set to the endpoint of the arc.</p>
+
+<p>Set <code><code>$move</code></code> to a true value if this arc is the beginning of a new path instead of the continuation of an existing path.</p>
+
+<p>Set <code><code>$outer</code></code> to a true value to draw the larger arc between the two points instead of the smaller one.</p>
+
+<p>Set <code><code>$reverse</code></code> to a true value to draw the mirror image of the specified arc.</p>
+
+<p><code><code>$radius * 2</code></code> cannot be smaller than the distance from <code><code>[x1, y1]</code></code> to <code><code>[x2, y2]</code></code>.</p>
+
+<p>Note: The curve will not appear until you call <code><code>stroke</code></code>.</p>
+
+</dd>
+<dt id="content-close">$content-&gt;close</dt>
+<dd>
+
+<p>Closes and ends the current path by extending a line from the current position to the starting position.</p>
+
+</dd>
+<dt id="content-endpath">$content-&gt;endpath</dt>
+<dd>
+
+<p>Ends the current path without explicitly enclosing it.</p>
+
+</dd>
+<dt id="content-ellipse-x-y-a-b-">$content-&gt;ellipse($x, $y, $a, $b)</dt>
+<dd>
+
+<p>Creates an elliptical path centered on <code><code>[$x, $y]</code></code>, with major and minor axes specified by <code><code>$a</code></code> and <code><code>$b</code></code>, respectively.</p>
+
+<p>Note: The ellipse will not appear until you call <code><code>stroke</code></code> or <code><code>fill</code></code>.</p>
+
+</dd>
+<dt id="content-circle-x-y-radius-">$content-&gt;circle($x, $y, $radius)</dt>
+<dd>
+
+<p>Creates a circular path centered on <code><code>[$x, $y]</code></code> with the specified radius.</p>
+
+<p>Note: The circle will not appear until you call <code><code>stroke</code></code> or <code><code>fill</code></code>.</p>
+
+</dd>
+<dt id="content-pie-x-y-a-b-alpha-beta-">$content-&gt;pie($x, $y, $a, $b, $alpha, $beta)</dt>
+<dd>
+
+<p>Creates a pie-shaped path from an ellipse centered on <code><code>[$x, $y]</code></code>. The major and minor axes of the ellipse are <code><code>$a</code></code> and <code><code>$b</code></code>, respectively, and the arc moves from <code><code>$alpha</code></code> degrees to <code><code>$beta</code></code> degrees.</p>
+
+<p>Note: The pie will not appear until you call <code><code>stroke</code></code> or <code><code>fill</code></code>.</p>
+
+</dd>
+<dt id="content-rect-x1-y1-w1-h1-...-xn-yn-wn-hn-">$content-&gt;rect($x1, $y1, $w1, $h1, ..., $xn, $yn, $wn, $hn)</dt>
+<dd>
+
+<p>Creates paths for one or more rectangles, with their lower left points at <code><code>[$x, $y]</code></code> and with the specified widths and heights.</p>
+
+<p>Note: The rectangle will not appear until you call <code><code>stroke</code></code> or <code><code>fill</code></code>.</p>
+
+</dd>
+<dt id="content-rectxy-x1-y1-x2-y2-">$content-&gt;rectxy($x1, $y1, $x2, $y2)</dt>
+<dd>
+
+<p>Creates a rectangular path, with <code><code>[$x1, $y1]</code></code> and and <code><code>[$x2, $y2]</code></code> specifying opposite corners.</p>
+
+<p>Note: The rectangle will not appear until you call <code><code>stroke</code></code> or <code><code>fill</code></code>.</p>
+
+</dd>
+</dl>
+
+<h2 id="Path-Painting-Drawing-">Path Painting (Drawing)</h2>
+
+<dl>
+
+<dt id="content-stroke">$content-&gt;stroke</dt>
+<dd>
+
+<p>Strokes the current path.</p>
+
+</dd>
+<dt id="content-fill-use_even_odd_fill-">$content-&gt;fill($use_even_odd_fill)</dt>
+<dd>
+
+<p>Fills the current path.</p>
+
+<p>If the path intersects with itself, the nonzero winding rule will be used to determine which part of the path is filled in. If you would prefer to use the even-odd rule, pass a true argument.</p>
+
+<p>See the PDF Specification, section 8.5.3.3, for more details on filling.</p>
+
+</dd>
+<dt id="content-fillstroke-use_even_odd_fill-">$content-&gt;fillstroke($use_even_odd_fill)</dt>
+<dd>
+
+<p>Fills and then strokes the current path.</p>
+
+</dd>
+<dt id="content-clip-use_even_odd_fill-">$content-&gt;clip($use_even_odd_fill)</dt>
+<dd>
+
+<p>Modifies the current clipping path by intersecting it with the current path.</p>
+
+</dd>
+</dl>
+
+<h2 id="Colors">Colors</h2>
+
+<dl>
+
+<dt id="content-fillcolor-color-">$content-&gt;fillcolor($color)</dt>
+<dd>
+
+</dd>
+<dt id="content-strokecolor-color-">$content-&gt;strokecolor($color)</dt>
+<dd>
+
+<p>Sets the fill or stroke color.</p>
+
+<pre><code><code>    <span class="comment"># Use a named color</span>
+    <span class="variable">$content</span><span class="operator">-&gt;</span><span class="variable">fillcolor</span><span class="operator">(</span><span class="string">'blue'</span><span class="operator">);</span>
+    
+    <span class="comment"># Use an RGB color (start with '#')</span>
+    <span class="variable">$content</span><span class="operator">-&gt;</span><span class="variable">fillcolor</span><span class="operator">(</span><span class="string">'#FF0000'</span><span class="operator">);</span>
+    
+    <span class="comment"># Use a CMYK color (start with '%')</span>
+    <span class="variable">$content</span><span class="operator">-&gt;</span><span class="variable">fillcolor</span><span class="operator">(</span><span class="string">'%FF000000'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>RGB and CMYK colors can have one-byte, two-byte, three-byte, or four-byte values for each color. For instance, cyan can be given as <code><code>%F000</code></code> or <code><code>%FFFF000000000000</code></code>.</p>
+
+</dd>
+</dl>
+
+<h2 id="External-Objects">External Objects</h2>
+
+<dl>
+
+<dt id="content-image-image_object-x-y-width-height-">$content-&gt;image($image_object, $x, $y, $width, $height)</dt>
+<dd>
+
+</dd>
+<dt id="content-image-image_object-x-y-scale-">$content-&gt;image($image_object, $x, $y, $scale)</dt>
+<dd>
+
+</dd>
+<dt id="content-image-image_object-x-y-">$content-&gt;image($image_object, $x, $y)</dt>
+<dd>
+
+<pre><code><code>    <span class="comment"># Example</span>
+    <span class="keyword">my</span> <span class="variable">$image_object</span> <span class="operator">=</span> <span class="variable">$pdf</span><span class="operator">-&gt;</span><span class="variable">image_jpeg</span><span class="operator">(</span><span class="variable">$my_image_file</span><span class="operator">);</span>
+    <span class="variable">$content</span><span class="operator">-&gt;</span><span class="variable">image</span><span class="operator">(</span><span class="variable">$image_object</span><span class="operator">,</span> <span class="number">100</span><span class="operator">,</span> <span class="number">200</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Places an image on the page in the specified location.</p>
+
+<p>If coordinate transformations have been made (see Coordinate Transformations above), the position and scale will be relative to the updated coordinates. Otherwise, [0,0] will represent the bottom left corner of the page, and <code><code>$width</code></code> and <code><code>$height</code></code> will be measured at 72dpi.</p>
+
+<p>For example, if you have a 600x600 image that you would like to be shown at 600dpi (i.e. one inch square), set the width and height to 72.</p>
+
+</dd>
+<dt id="content-formimage-form_object-x-y-scale-">$content-&gt;formimage($form_object, $x, $y, $scale)</dt>
+<dd>
+
+</dd>
+<dt id="content-formimage-form_object-x-y-">$content-&gt;formimage($form_object, $x, $y)</dt>
+<dd>
+
+<p>Places an XObject on the page in the specified location.</p>
+
+</dd>
+</dl>
+
+<h2 id="Text-State-Parameters">Text State Parameters</h2>
+
+<p>All of the following parameters that take a size are applied before any scaling takes place, so you don&#39;t need to adjust values to counteract scaling.</p>
+
+<dl>
+
+<dt id="spacing-content-charspace-spacing-">$spacing = $content-&gt;charspace($spacing)</dt>
+<dd>
+
+<p>Sets the spacing between characters. This is initially zero.</p>
+
+</dd>
+<dt id="spacing-content-wordspace-spacing-">$spacing = $content-&gt;wordspace($spacing)</dt>
+<dd>
+
+<p>Sets the spacing between words. This is initially zero (or, in other words, just the width of the space).</p>
+
+</dd>
+<dt id="scale-content-hspace-scale-">$scale = $content-&gt;hspace($scale)</dt>
+<dd>
+
+<p>Note: This method is named incorrectly, and will be renamed in a future release.</p>
+
+<p>Sets the percentage of horizontal text scaling (not spacing). This is initially 100 (i.e. no scaling), and must be passed as an integer.</p>
+
+</dd>
+<dt id="leading-content-lead-leading-">$leading = $content-&gt;lead($leading)</dt>
+<dd>
+
+<p>Sets the text leading, which is the distance between baselines. This is initially zero (i.e. the lines will be printed on top of each other).</p>
+
+</dd>
+<dt id="mode-content-render-mode-">$mode = $content-&gt;render($mode)</dt>
+<dd>
+
+<p>Sets the text rendering mode.</p>
+
+<dl>
+
+<dt id="Fill-text">0 = Fill text</dt>
+<dd>
+
+</dd>
+<dt id="Stroke-text-outline-">1 = Stroke text (outline)</dt>
+<dd>
+
+</dd>
+<dt id="Fill-then-stroke-text">2 = Fill, then stroke text</dt>
+<dd>
+
+</dd>
+<dt id="Neither-fill-nor-stroke-text-invisible-">3 = Neither fill nor stroke text (invisible)</dt>
+<dd>
+
+</dd>
+<dt id="Fill-text-and-add-to-path-for-clipping">4 = Fill text and add to path for clipping</dt>
+<dd>
+
+</dd>
+<dt id="Stroke-text-and-add-to-path-for-clipping">5 = Stroke text and add to path for clipping</dt>
+<dd>
+
+</dd>
+<dt id="Fill-then-stroke-text-and-add-to-path-for-clipping">6 = Fill, then stroke text and add to path for clipping</dt>
+<dd>
+
+</dd>
+<dt id="Add-text-to-path-for-clipping">7 = Add text to path for clipping</dt>
+<dd>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="distance-content-rise-distance-">$distance = $content-&gt;rise($distance)</dt>
+<dd>
+
+<p>Adjusts the baseline up or down from its current location. This is initially zero.</p>
+
+<p>Use this for creating superscripts or subscripts (usually with an adjustment to the font size as well).</p>
+
+</dd>
+<dt id="state-content-textstate-charspace-value-wordspace-value-...-">%state = $content-&gt;textstate(charspace =&gt; $value, wordspace =&gt; $value, ...)</dt>
+<dd>
+
+<p>Shortcut for setting multiple text state parameters at once.</p>
+
+<p>This can also be used without arguments to retrieve the current text state settings.</p>
+
+<p>Note: This does not currently work with the <code><code>save</code></code> and <code><code>restore</code></code> commands.</p>
+
+</dd>
+<dt id="content-font-font_object-size-">$content-&gt;font($font_object, $size)</dt>
+<dd>
+
+<pre><code><code>    <span class="comment"># Example</span>
+    <span class="keyword">my</span> <span class="variable">$pdf</span> <span class="operator">=</span> <span class="variable">PDF::API2</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+    <span class="keyword">my</span> <span class="variable">$font</span> <span class="operator">=</span> <span class="variable">$pdf</span><span class="operator">-&gt;</span><span class="variable">corefont</span><span class="operator">(</span><span class="string">'Helvetica'</span><span class="operator">);</span>
+    <span class="variable">$content</span><span class="operator">-&gt;</span><span class="variable">font</span><span class="operator">(</span><span class="variable">$font</span><span class="operator">,</span> <span class="number">12</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Sets the font and font size.</p>
+
+</dd>
+</dl>
+
+<h2 id="Text-Positioning">Text-Positioning</h2>
+
+<p>Note: There is a very good chance that these commands will be replaced in a future release.</p>
+
+<dl>
+
+<dt id="content-distance-dx-dy-">$content-&gt;distance($dx, $dy)</dt>
+<dd>
+
+<p>Moves to the start of the next line, offset by the given amounts, which are both required.</p>
+
+</dd>
+<dt id="content-cr-vertical_offset-">$content-&gt;cr($vertical_offset)</dt>
+<dd>
+
+<p>If passed with an argument, moves to the start of the next line, offset by the given value.</p>
+
+<p>If passed without an argument, moves to the start of the next line.</p>
+
+<p>Note that this is equivalent to a carriage return plus line feed. To get just a carriage return, pass zero as the argument.</p>
+
+</dd>
+<dt id="content-nl">$content-&gt;nl</dt>
+<dd>
+
+<p>Moves to the start of the next line.</p>
+
+</dd>
+<dt id="tx-ty-content-textpos-">($tx, $ty) = $content-&gt;textpos()</dt>
+<dd>
+
+<p>Gets the current estimated text position.</p>
+
+<p>Note: This does not affect the PDF in any way.</p>
+
+</dd>
+</dl>
+
+<h2 id="Text-Showing">Text-Showing</h2>
+
+<dl>
+
+<dt id="width-content-text-text-options-">$width = $content-&gt;text($text, %options)</dt>
+<dd>
+
+<p>Adds text to the page.</p>
+
+<p>Options:</p>
+
+<dl>
+
+<dt id="indent">-indent</dt>
+<dd>
+
+<p>Indents the text by the number of points.</p>
+
+</dd>
+<dt id="underline-auto">-underline =&gt; &#39;auto&#39;</dt>
+<dd>
+
+</dd>
+<dt id="underline-distance">-underline =&gt; $distance</dt>
+<dd>
+
+</dd>
+<dt id="underline-distance-thickness-...-">-underline =&gt; [$distance, $thickness, ...]</dt>
+<dd>
+
+<p>Underlines the text. <code><code>$distance</code></code> is the number of units beneath the baseline, and <code><code>$thickness</code></code> is the width of the line.</p>
+
+<p>Multiple underlines can be made by passing several distances and thicknesses.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="content-text_center-text-">$content-&gt;text_center($text)</dt>
+<dd>
+
+<p>As <code><code>text</code></code>, but centered on the current point.</p>
+
+</dd>
+<dt id="txt-text_right-text-options">$txt-&gt;text_right $text, %options</dt>
+<dd>
+
+<p>As <code><code>text</code></code>, but right-aligned to the current point.</p>
+
+</dd>
+<dt id="width-txt-advancewidth-string-text_state-">$width = $txt-&gt;advancewidth($string, %text_state)</dt>
+<dd>
+
+<p>Returns the width of the string based on all currently set text-state attributes. These can optionally be overridden.</p>
+
+</dd>
+</dl>
+
+<h2 id="Advanced-Methods">Advanced Methods</h2>
+
+<dl>
+
+<dt id="content-add-content">$content-&gt;add @content</dt>
+<dd>
+
+<p>Add raw content to the PDF stream. You will generally want to use the other methods in this class instead.</p>
+
+</dd>
+<dt id="content-compressFlate">$content-&gt;compressFlate</dt>
+<dd>
+
+<p>Marks content for compression on output. This is done automatically in nearly all cases, so you shouldn&#39;t need to call this yourself.</p>
+
+</dd>
+<dt id="content-textstart">$content-&gt;textstart</dt>
+<dd>
+
+<p>Starts a text object. You will likely want to use the <code><code>text</code></code> method instead.</p>
+
+</dd>
+<dt id="content-textend">$content-&gt;textend</dt>
+<dd>
+
+<p>Ends a text object.</p>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+

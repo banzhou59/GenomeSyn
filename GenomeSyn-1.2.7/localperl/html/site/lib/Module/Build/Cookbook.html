@@ -1,0 +1,453 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#BASIC-RECIPES">BASIC RECIPES</a>
+    <ul>
+      <li><a href="#Installing-modules-that-use-Module::Build">Installing modules that use Module::Build</a></li>
+      <li><a href="#Modifying-Config.pm-values">Modifying Config.pm values</a></li>
+      <li><a href="#Installing-modules-using-the-programmatic-interface">Installing modules using the programmatic interface</a></li>
+      <li><a href="#Installing-to-a-temporary-directory">Installing to a temporary directory</a></li>
+      <li><a href="#Installing-to-a-non-standard-directory">Installing to a non-standard directory</a></li>
+      <li><a href="#Installing-in-the-same-location-as-ExtUtils::MakeMaker">Installing in the same location as ExtUtils::MakeMaker</a>
+        <ul>
+          <li><a href="#vs"> vs </a></li>
+        </ul>
+      </li>
+      <li><a href="#Running-a-single-test-file">Running a single test file</a></li>
+    </ul>
+  </li>
+  <li><a href="#ADVANCED-RECIPES">ADVANCED RECIPES</a>
+    <ul>
+      <li><a href="#Making-a-CPAN.pm-compatible-distribution">Making a CPAN.pm-compatible distribution</a></li>
+      <li><a href="#Changing-the-order-of-the-build-process">Changing the order of the build process</a></li>
+      <li><a href="#Adding-new-file-types-to-the-build-process">Adding new file types to the build process</a></li>
+      <li><a href="#Adding-new-elements-to-the-install-process">Adding new elements to the install process</a></li>
+    </ul>
+  </li>
+  <li><a href="#EXAMPLES-ON-CPAN">EXAMPLES ON CPAN</a>
+    <ul>
+      <li><a href="#SVN-Notify-Mirror">SVN-Notify-Mirror</a></li>
+      <li><a href="#Modifying-an-action">Modifying an action</a></li>
+      <li><a href="#Adding-an-action">Adding an action</a></li>
+      <li><a href="#Bundling-Module::Build">Bundling Module::Build</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Module::Build::Cookbook - Examples of Module::Build Usage</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><code><code>Module::Build</code></code> isn&#39;t conceptually very complicated, but examples are always helpful. The following recipes should help developers and/or installers put together the pieces from the other parts of the documentation.</p>
+
+<h1 id="BASIC-RECIPES">BASIC RECIPES</h1>
+
+<h2 id="Installing-modules-that-use-Module::Build">Installing modules that use Module::Build</h2>
+
+<p>In most cases, you can just issue the following commands:</p>
+
+<pre><code><code>  perl Build.PL
+  ./Build
+  ./Build test
+  ./Build install</code></code></pre>
+
+<p>There&#39;s nothing complicated here - first you&#39;re running a script called <i>Build.PL</i>, then you&#39;re running a (newly-generated) script called <i>Build</i> and passing it various arguments.</p>
+
+<p>The exact commands may vary a bit depending on how you invoke perl scripts on your system. For instance, if you have multiple versions of perl installed, you can install to one particular perl&#39;s library directories like so:</p>
+
+<pre><code><code>  /usr/bin/perl5.8.1 Build.PL
+  ./Build
+  ./Build test
+  ./Build install</code></code></pre>
+
+<p>If you&#39;re on Windows where the current directory is always searched first for scripts, you&#39;ll probably do something like this:</p>
+
+<pre><code><code>  perl Build.PL
+  Build
+  Build test
+  Build install</code></code></pre>
+
+<p>On the old Mac OS (version 9 or lower) using MacPerl, you can double-click on the <i>Build.PL</i> script to create the <i>Build</i> script, then double-click on the <i>Build</i> script to run its <code><code>build</code></code>, <code><code>test</code></code>, and <code><code>install</code></code> actions.</p>
+
+<p>The <i>Build</i> script knows what perl was used to run <i>Build.PL</i>, so you don&#39;t need to re-invoke the <i>Build</i> script with the complete perl path each time. If you invoke it with the <i>wrong</i> perl path, you&#39;ll get a warning or a fatal error.</p>
+
+<h2 id="Modifying-Config.pm-values">Modifying Config.pm values</h2>
+
+<p><code><code>Module::Build</code></code> relies heavily on various values from perl&#39;s <code><code>Config.pm</code></code> to do its work. For example, default installation paths are given by <code><code>installsitelib</code></code> and <code><code>installvendorman3dir</code></code> and friends, C linker &amp; compiler settings are given by <code><code>ld</code></code>, <code><code>lddlflags</code></code>, <code><code>cc</code></code>, <code><code>ccflags</code></code>, and so on. <i>If you&#39;re pretty sure you know what you&#39;re doing</i>, you can tell <code><code>Module::Build</code></code> to pretend there are different values in <i>Config.pm</i> than what&#39;s really there, by passing arguments for the <code><code>--config</code></code> parameter on the command line:</p>
+
+<pre><code><code>  perl Build.PL --config cc=gcc --config ld=gcc</code></code></pre>
+
+<p>Inside the <code><code>Build.PL</code></code> script the same thing can be accomplished by passing values for the <code><code>config</code></code> parameter to <code><code>new()</code></code>:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$build</span> <span class="operator">=</span> <span class="variable">Module::Build</span><span class="operator">-&gt;</span><span class="variable">new</span>
+   <span class="operator">(</span>
+    <span class="operator">...</span>
+    <span class="string">config</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">cc</span> <span class="operator">=&gt;</span> <span class="string">'gcc'</span><span class="operator">,</span> <span class="string">ld</span> <span class="operator">=&gt;</span> <span class="string">'gcc'</span> <span class="operator">}</span><span class="operator">,</span>
+    <span class="operator">...</span>
+   <span class="operator">);</span>
+</code></code></pre>
+
+<p>In custom build code, the same thing can be accomplished by calling the <a href="../../../../lib/Module/Build.html#config">&quot;config&quot; in Module::Build</a> method:</p>
+
+<pre><code><code> <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">config</span><span class="operator">(</span> <span class="string">cc</span> <span class="operator">=&gt;</span> <span class="string">'gcc'</span> <span class="operator">);</span>     <span class="comment"># Set</span>
+ <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">config</span><span class="operator">(</span> <span class="string">ld</span> <span class="operator">=&gt;</span> <span class="string">'gcc'</span> <span class="operator">);</span>     <span class="comment"># Set</span>
+ <span class="operator">...</span>
+ <span class="keyword">my</span> <span class="variable">$linker</span> <span class="operator">=</span> <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">config</span><span class="operator">(</span><span class="string">'ld'</span><span class="operator">);</span> <span class="comment"># Get</span>
+</code></code></pre>
+
+<h2 id="Installing-modules-using-the-programmatic-interface">Installing modules using the programmatic interface</h2>
+
+<p>If you need to build, test, and/or install modules from within some other perl code (as opposed to having the user type installation commands at the shell), you can use the programmatic interface. Create a Module::Build object (or an object of a custom Module::Build subclass) and then invoke its <code><code>dispatch()</code></code> method to run various actions.</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$build</span> <span class="operator">=</span> <span class="variable">Module::Build</span><span class="operator">-&gt;</span><span class="variable">new</span>
+    <span class="operator">(</span>
+     <span class="string">module_name</span> <span class="operator">=&gt;</span> <span class="string">'Foo::Bar'</span><span class="operator">,</span>
+     <span class="string">license</span>     <span class="operator">=&gt;</span> <span class="string">'perl'</span><span class="operator">,</span>
+     <span class="string">requires</span>    <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'Some::Module'</span>   <span class="operator">=&gt;</span> <span class="string">'1.23'</span> <span class="operator">}</span><span class="operator">,</span>
+    <span class="operator">);</span>
+  <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">dispatch</span><span class="operator">(</span><span class="string">'build'</span><span class="operator">);</span>
+  <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">dispatch</span><span class="operator">(</span><span class="string">'test'</span><span class="operator">,</span> <span class="string">verbose</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+  <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">dispatch</span><span class="operator">(</span><span class="string">'install'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The first argument to <code><code>dispatch()</code></code> is the name of the action, and any following arguments are named parameters.</p>
+
+<p>This is the interface we use to test Module::Build itself in the regression tests.</p>
+
+<h2 id="Installing-to-a-temporary-directory">Installing to a temporary directory</h2>
+
+<p>To create packages for package managers like RedHat&#39;s <code><code>rpm</code></code> or Debian&#39;s <code><code>deb</code></code>, you may need to install to a temporary directory first and then create the package from that temporary installation. To do this, specify the <code><code>destdir</code></code> parameter to the <code><code>install</code></code> action:</p>
+
+<pre><code><code>  ./Build install --destdir /tmp/my-package-1.003</code></code></pre>
+
+<p>This essentially just prepends all the installation paths with the <i>/tmp/my-package-1.003</i> directory.</p>
+
+<h2 id="Installing-to-a-non-standard-directory">Installing to a non-standard directory</h2>
+
+<p>To install to a non-standard directory (for example, if you don&#39;t have permission to install in the system-wide directories), you can use the <code><code>install_base</code></code> or <code><code>prefix</code></code> parameters:</p>
+
+<pre><code><code>  ./Build install --install_base /foo/bar</code></code></pre>
+
+<p>See <a href="../../../../lib/Module/Build.html#INSTALL-PATHS">&quot;INSTALL PATHS&quot; in Module::Build</a> for a much more complete discussion of how installation paths are determined.</p>
+
+<h2 id="Installing-in-the-same-location-as-ExtUtils::MakeMaker">Installing in the same location as ExtUtils::MakeMaker</h2>
+
+<p>With the introduction of <code><code>--prefix</code></code> in Module::Build 0.28 and <code><code>INSTALL_BASE</code></code> in <code><code>ExtUtils::MakeMaker</code></code> 6.31 its easy to get them both to install to the same locations.</p>
+
+<p>First, ensure you have at least version 0.28 of Module::Build installed and 6.31 of <code><code>ExtUtils::MakeMaker</code></code>. Prior versions have differing (and in some cases quite strange) installation behaviors.</p>
+
+<p>The following installation flags are equivalent between <code><code>ExtUtils::MakeMaker</code></code> and <code><code>Module::Build</code></code>.</p>
+
+<pre><code><code>    MakeMaker             Module::Build
+    PREFIX=...            --prefix ...
+    INSTALL_BASE=...      --install_base ...
+    DESTDIR=...           --destdir ...
+    LIB=...               --install_path lib=...
+    INSTALLDIRS=...       --installdirs ...
+    INSTALLDIRS=perl      --installdirs core
+    UNINST=...            --uninst ...
+    INC=...               --extra_compiler_flags ...
+    POLLUTE=1             --extra_compiler_flags -DPERL_POLLUTE</code></code></pre>
+
+<p>For example, if you are currently installing <code><code>MakeMaker</code></code> modules with this command:</p>
+
+<pre><code><code>    perl Makefile.PL PREFIX=~
+    make test
+    make install UNINST=1</code></code></pre>
+
+<p>You can install into the same location with Module::Build using this:</p>
+
+<pre><code><code>    perl Build.PL --prefix ~
+    ./Build test
+    ./Build install --uninst 1</code></code></pre>
+
+<h3 id="vs"><code><code>prefix</code></code> vs <code><code>install_base</code></code></h3>
+
+<p>The behavior of <code><code>prefix</code></code> is complicated and depends on how your Perl is configured. The resulting installation locations will vary from machine to machine and even different installations of Perl on the same machine. Because of this, it&#39;s difficult to document where <code><code>prefix</code></code> will place your modules.</p>
+
+<p>In contrast, <code><code>install_base</code></code> has predictable, easy to explain installation locations. Now that <code><code>Module::Build</code></code> and <code><code>MakeMaker</code></code> both have <code><code>install_base</code></code> there is little reason to use <code><code>prefix</code></code> other than to preserve your existing installation locations. If you are starting a fresh Perl installation we encourage you to use <code><code>install_base</code></code>. If you have an existing installation installed via <code><code>prefix</code></code>, consider moving it to an installation structure matching <code><code>install_base</code></code> and using that instead.</p>
+
+<h2 id="Running-a-single-test-file">Running a single test file</h2>
+
+<p><code><code>Module::Build</code></code> supports running a single test, which enables you to track down errors more quickly. Use the following format:</p>
+
+<pre><code><code>  ./Build test --test_files t/mytest.t</code></code></pre>
+
+<p>In addition, you may want to run the test in verbose mode to get more informative output:</p>
+
+<pre><code><code>  ./Build test --test_files t/mytest.t --verbose 1</code></code></pre>
+
+<p>I run this so frequently that I define the following shell alias:</p>
+
+<pre><code><code>  alias t &#39;./Build test --verbose 1 --test_files&#39;</code></code></pre>
+
+<p>So then I can just execute <code><code>t t/mytest.t</code></code> to run a single test.</p>
+
+<h1 id="ADVANCED-RECIPES">ADVANCED RECIPES</h1>
+
+<h2 id="Making-a-CPAN.pm-compatible-distribution">Making a CPAN.pm-compatible distribution</h2>
+
+<p>New versions of CPAN.pm understand how to use a <i>Build.PL</i> script, but old versions don&#39;t. If authors want to help users who have old versions, some form of <i>Makefile.PL</i> should be supplied. The easiest way to accomplish this is to use the <code><code>create_makefile_pl</code></code> parameter to <code><code>Module::Build-&gt;new()</code></code> in the <code><code>Build.PL</code></code> script, which can create various flavors of <i>Makefile.PL</i> during the <code><code>dist</code></code> action.</p>
+
+<p>As a best practice, we recommend using the &quot;traditional&quot; style of <i>Makefile.PL</i> unless your distribution has needs that can&#39;t be accomplished that way.</p>
+
+<p>The <code><code>Module::Build::Compat</code></code> module, which is part of <code><code>Module::Build</code></code>&#39;s distribution, is responsible for creating these <i>Makefile.PL</i>s. Please see <a href="../../../../lib/Module/Build/Compat.html">Module::Build::Compat</a> for the details.</p>
+
+<h2 id="Changing-the-order-of-the-build-process">Changing the order of the build process</h2>
+
+<p>The <code><code>build_elements</code></code> property specifies the steps <code><code>Module::Build</code></code> will take when building a distribution. To change the build order, change the order of the entries in that property:</p>
+
+<pre><code><code>  <span class="comment"># Process pod files first</span>
+  <span class="keyword">my</span> <span class="variable">@e</span> <span class="operator">=</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">build_elements</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$i</span><span class="operator">)</span> <span class="operator">=</span> <span class="keyword">grep</span> <span class="operator">{</span><span class="variable">$e</span><span class="operator">[</span><span class="variable">$_</span><span class="operator">]</span> <span class="keyword">eq</span> <span class="string">'pod'</span><span class="operator">}</span> <span class="number">0</span><span class="operator">..</span><span class="variable">$#e</span><span class="operator">;</span>
+  <span class="keyword">unshift</span> <span class="variable">@e</span><span class="operator">,</span> <span class="keyword">splice</span> <span class="variable">@e</span><span class="operator">,</span> <span class="variable">$i</span><span class="operator">,</span> <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Currently, <code><code>build_elements</code></code> has the following default value:</p>
+
+<pre><code><code>  [qw( PL support pm xs pod script )]</code></code></pre>
+
+<p>Do take care when altering this property, since there may be non-obvious (and non-documented!) ordering dependencies in the <code><code>Module::Build</code></code> code.</p>
+
+<h2 id="Adding-new-file-types-to-the-build-process">Adding new file types to the build process</h2>
+
+<p>Sometimes you might have extra types of files that you want to install alongside the standard types like <i>.pm</i> and <i>.pod</i> files. For instance, you might have a <i>Bar.dat</i> file containing some data related to the <code><code>Foo::Bar</code></code> module and you&#39;d like for it to end up as <i>Foo/Bar.dat</i> somewhere in perl&#39;s <code><code>@INC</code></code> path so <code><code>Foo::Bar</code></code> can access it easily at runtime. The following code from a sample <code><code>Build.PL</code></code> file demonstrates how to accomplish this:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Module::Build</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$build</span> <span class="operator">=</span> <span class="variable">Module::Build</span><span class="operator">-&gt;</span><span class="variable">new</span>
+    <span class="operator">(</span>
+     <span class="string">module_name</span> <span class="operator">=&gt;</span> <span class="string">'Foo::Bar'</span><span class="operator">,</span>
+     <span class="operator">...</span><span class="variable">other</span> <span class="variable">stuff</span> <span class="variable">here</span><span class="operator">...</span>
+    <span class="operator">);</span>
+  <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">add_build_element</span><span class="operator">(</span><span class="string">'dat'</span><span class="operator">);</span>
+  <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">create_build_script</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This will find all <i>.dat</i> files in the <i>lib/</i> directory, copy them to the <i>blib/lib/</i> directory during the <code><code>build</code></code> action, and install them during the <code><code>install</code></code> action.</p>
+
+<p>If your extra files aren&#39;t located in the <code><code>lib/</code></code> directory in your distribution, you can explicitly say where they are, just as you&#39;d do with <i>.pm</i> or <i>.pod</i> files:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Module::Build</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$build</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Module::Build</span>
+    <span class="operator">(</span>
+     <span class="string">module_name</span> <span class="operator">=&gt;</span> <span class="string">'Foo::Bar'</span><span class="operator">,</span>
+     <span class="string">dat_files</span> <span class="operator">=&gt;</span> <span class="operator">{</span><span class="string">'some/dir/Bar.dat'</span> <span class="operator">=&gt;</span> <span class="string">'lib/Foo/Bar.dat'</span><span class="operator">}</span><span class="operator">,</span>
+     <span class="operator">...</span><span class="variable">other</span> <span class="variable">stuff</span> <span class="variable">here</span><span class="operator">...</span>
+    <span class="operator">);</span>
+  <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">add_build_element</span><span class="operator">(</span><span class="string">'dat'</span><span class="operator">);</span>
+  <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">create_build_script</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>If your extra files actually need to be created on the user&#39;s machine, or if they need some other kind of special processing, you&#39;ll probably want to subclass <code><code>Module::Build</code></code> and create a special method to process them, named <code><code><span class="variable">process_</span><span class="variable">$</span><span class="operator">{</span><span class="string">kind</span><span class="operator">}</span><span class="variable">_files</span><span class="operator">()</span>
+</code></code>:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Module::Build</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$class</span> <span class="operator">=</span> <span class="variable">Module::Build</span><span class="operator">-&gt;</span><span class="variable">subclass</span><span class="operator">(</span><span class="string">code</span> <span class="operator">=&gt;</span> <span class="operator">&lt;&lt;</span><span class="default">'EOF'</span><span class="operator">);</span><span class="string">
+    sub process_dat_files {
+      my $self = shift;
+      ... locate and process *.dat files,
+      ... and create something in blib/lib/
+    }
+  </span><span class="default">EOF</span>
+  <span class="keyword">my</span> <span class="variable">$build</span> <span class="operator">=</span> <span class="variable">$class</span><span class="operator">-&gt;</span><span class="variable">new</span>
+    <span class="operator">(</span>
+     <span class="string">module_name</span> <span class="operator">=&gt;</span> <span class="string">'Foo::Bar'</span><span class="operator">,</span>
+     <span class="operator">...</span><span class="variable">other</span> <span class="variable">stuff</span> <span class="variable">here</span><span class="operator">...</span>
+    <span class="operator">);</span>
+  <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">add_build_element</span><span class="operator">(</span><span class="string">'dat'</span><span class="operator">);</span>
+  <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">create_build_script</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>If your extra files don&#39;t go in <i>lib/</i> but in some other place, see <a href="#Adding-new-elements-to-the-install-process">&quot;Adding new elements to the install process&quot;</a> for how to actually get them installed.</p>
+
+<p>Please note that these examples use some capabilities of Module::Build that first appeared in version 0.26. Before that it could still be done, but the simple cases took a bit more work.</p>
+
+<h2 id="Adding-new-elements-to-the-install-process">Adding new elements to the install process</h2>
+
+<p>By default, Module::Build creates seven subdirectories of the <i>blib</i> directory during the build process: <i>lib</i>, <i>arch</i>, <i>bin</i>, <i>script</i>, <i>bindoc</i>, <i>libdoc</i>, and <i>html</i> (some of these may be missing or empty if there&#39;s nothing to go in them). Anything copied to these directories during the build will eventually be installed during the <code><code>install</code></code> action (see <a href="../../../../lib/Module/Build.html#INSTALL-PATHS">&quot;INSTALL PATHS&quot; in Module::Build</a>.</p>
+
+<p>If you need to create a new custom type of installable element, e.g. <code><code>conf</code></code>, then you need to tell Module::Build where things in <i>blib/conf/</i> should be installed. To do this, use the <code><code>install_path</code></code> parameter to the <code><code>new()</code></code> method:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$build</span> <span class="operator">=</span> <span class="variable">Module::Build</span><span class="operator">-&gt;</span><span class="variable">new</span>
+    <span class="operator">(</span>
+     <span class="operator">...</span><span class="variable">other</span> <span class="variable">stuff</span> <span class="variable">here</span><span class="operator">...</span>
+     <span class="string">install_path</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">conf</span> <span class="operator">=&gt;</span> <span class="variable">$installation_path</span> <span class="operator">}</span>
+    <span class="operator">);</span>
+</code></code></pre>
+
+<p>Or you can call the <code><code>install_path()</code></code> method later:</p>
+
+<pre><code><code>  <span class="variable">$build</span><span class="operator">-&gt;</span><span class="variable">install_path</span><span class="operator">(</span><span class="string">conf</span> <span class="operator">=&gt;</span> <span class="variable">$installation_path</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The user may also specify the path on the command line:</p>
+
+<pre><code><code>  perl Build.PL --install_path conf=/foo/path/etc</code></code></pre>
+
+<p>The important part, though, is that <i>somehow</i> the install path needs to be set, or else nothing in the <i>blib/conf/</i> directory will get installed, and a runtime error during the <code><code>install</code></code> action will result.</p>
+
+<p>See also <a href="#Adding-new-file-types-to-the-build-process">&quot;Adding new file types to the build process&quot;</a> for how to create the stuff in <i>blib/conf/</i> in the first place.</p>
+
+<h1 id="EXAMPLES-ON-CPAN">EXAMPLES ON CPAN</h1>
+
+<p>Several distributions on CPAN are making good use of various features of Module::Build. They can serve as real-world examples for others.</p>
+
+<h2 id="SVN-Notify-Mirror">SVN-Notify-Mirror</h2>
+
+<p><a href="http://search.cpan.org/~jpeacock/SVN-Notify-Mirror/">http://search.cpan.org/~jpeacock/SVN-Notify-Mirror/</a></p>
+
+<p>John Peacock, author of the <code><code>SVN-Notify-Mirror</code></code> distribution, says:</p>
+
+<dl>
+
+<dt id="Using-auto_features-I-check-to-see-whether-two-optional-modules-are-available---SVN::Notify::Config-and-Net::SSH-">1. Using <code><code>auto_features</code></code>, I check to see whether two optional modules are available - SVN::Notify::Config and Net::SSH;</dt>
+<dd>
+
+</dd>
+<dt id="If-the-S::N::Config-module-is-loaded-I-automatically-generate-test-files-for-it-during-Build-using-the-PL_files-property-.">2. If the S::N::Config module is loaded, I automatically generate test files for it during Build (using the <code><code>PL_files</code></code> property).</dt>
+<dd>
+
+</dd>
+<dt id="If-the-ssh_feature-is-available-I-ask-if-the-user-wishes-to-perform-the-ssh-tests-since-it-requires-a-little-preliminary-setup-">3. If the <code><code>ssh_feature</code></code> is available, I ask if the user wishes to perform the ssh tests (since it requires a little preliminary setup);</dt>
+<dd>
+
+</dd>
+<dt id="Only-if-the-user-has-ssh_feature-and-answers-yes-to-the-testing-do-I-generate-a-test-file.">4. Only if the user has <code><code>ssh_feature</code></code> and answers yes to the testing, do I generate a test file.</dt>
+<dd>
+
+<p>I&#39;m sure I could not have handled this complexity with EU::MM, but it was very easy to do with M::B.</p>
+
+</dd>
+</dl>
+
+<h2 id="Modifying-an-action">Modifying an action</h2>
+
+<p>Sometimes you might need an to have an action, say <code><code>./Build install</code></code>, do something unusual. For instance, you might need to change the ownership of a file or do something else peculiar to your application.</p>
+
+<p>You can subclass <code><code>Module::Build</code></code> on the fly using the <code><code>subclass()</code></code> method and override the methods that perform the actions. You may need to read through <code><code>Module::Build::Authoring</code></code> and <code><code>Module::Build::API</code></code> to find the methods you want to override. All &quot;action&quot; methods are implemented by a method called &quot;ACTION_&quot; followed by the action&#39;s name, so here&#39;s an example of how it would work for the <code><code>install</code></code> action:</p>
+
+<pre><code><code>  <span class="comment"># Build.PL</span>
+  <span class="keyword">use</span> <span class="variable">Module::Build</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$class</span> <span class="operator">=</span> <span class="variable">Module::Build</span><span class="operator">-&gt;</span><span class="variable">subclass</span><span class="operator">(</span>
+      <span class="string">class</span> <span class="operator">=&gt;</span> <span class="string">"Module::Build::Custom"</span><span class="operator">,</span>
+      <span class="string">code</span> <span class="operator">=&gt;</span> <span class="operator">&lt;&lt;</span><span class="default">'SUBCLASS'</span> <span class="operator">);</span><span class="string">
+  
+  sub ACTION_install {
+      my $self = shift;
+      # YOUR CODE HERE
+      $self-&gt;SUPER::ACTION_install;
+  }
+  </span><span class="default">SUBCLASS</span>
+  
+  <span class="variable">$class</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+      <span class="string">module_name</span> <span class="operator">=&gt;</span> <span class="string">'Your::Module'</span><span class="operator">,</span>
+      <span class="comment"># rest of the usual Module::Build parameters</span>
+  <span class="operator">)-&gt;</span><span class="variable">create_build_script</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="Adding-an-action">Adding an action</h2>
+
+<p>You can add a new <code><code>./Build</code></code> action simply by writing the method for it in your subclass. Use <code><code>depends_on</code></code> to declare that another action must have been run before your action.</p>
+
+<p>For example, let&#39;s say you wanted to be able to write <code><code>./Build commit</code></code> to test your code and commit it to Subversion.</p>
+
+<pre><code><code>  <span class="comment"># Build.PL</span>
+  <span class="keyword">use</span> <span class="variable">Module::Build</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$class</span> <span class="operator">=</span> <span class="variable">Module::Build</span><span class="operator">-&gt;</span><span class="variable">subclass</span><span class="operator">(</span>
+      <span class="string">class</span> <span class="operator">=&gt;</span> <span class="string">"Module::Build::Custom"</span><span class="operator">,</span>
+      <span class="string">code</span> <span class="operator">=&gt;</span> <span class="operator">&lt;&lt;</span><span class="default">'SUBCLASS'</span> <span class="operator">);</span><span class="string">
+  
+  sub ACTION_commit {
+      my $self = shift;
+  
+      $self-&gt;depends_on("test");
+      $self-&gt;do_system(qw(svn commit));
+  }
+  </span><span class="default">SUBCLASS</span>
+</code></code></pre>
+
+<h2 id="Bundling-Module::Build">Bundling Module::Build</h2>
+
+<p>Note: This section probably needs an update as the technology improves (see contrib/bundle.pl in the distribution).</p>
+
+<p>Suppose you want to use some new-ish features of Module::Build, e.g. newer than the version of Module::Build your users are likely to already have installed on their systems. The first thing you should do is set <code><code>configure_requires</code></code> to your minimum version of Module::Build. See <a href="../../../../lib/Module/Build/Authoring.html">Module::Build::Authoring</a>.</p>
+
+<p>But not every build system honors <code><code>configure_requires</code></code> yet. Here&#39;s how you can ship a copy of Module::Build, but still use a newer installed version to take advantage of any bug fixes and upgrades.</p>
+
+<p>First, install Module::Build into <i>Your-Project/inc/Module-Build</i>. CPAN will not index anything in the <i>inc</i> directory so this copy will not show up in CPAN searches.</p>
+
+<pre><code><code>    cd Module-Build
+    perl Build.PL --install_base /path/to/Your-Project/inc/Module-Build
+    ./Build test
+    ./Build install</code></code></pre>
+
+<p>You should now have all the Module::Build .pm files in <i>Your-Project/inc/Module-Build/lib/perl5</i>.</p>
+
+<p>Next, add this to the top of your <i>Build.PL</i>.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$Bundled_MB</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">.</span><span class="number">30</span><span class="operator">;</span>  <span class="comment"># or whatever version it was.</span>
+    
+    <span class="comment"># Find out what version of Module::Build is installed or fail quietly.</span>
+    <span class="comment"># This should be cross-platform.</span>
+    <span class="keyword">my</span> <span class="variable">$Installed_MB</span> <span class="operator">=</span>
+        <span class="string">`$^X -e "eval q{require Module::Build; print Module::Build-&gt;VERSION} or exit 1"`</span><span class="operator">;</span>
+    
+    <span class="comment"># some operating systems put a newline at the end of every print.</span>
+    <span class="keyword">chomp</span> <span class="variable">$Installed_MB</span><span class="operator">;</span>
+    
+    <span class="variable">$Installed_MB</span> <span class="operator">=</span> <span class="number">0</span> <span class="keyword">if</span> <span class="variable">$?</span><span class="operator">;</span>
+    
+    <span class="comment"># Use our bundled copy of Module::Build if it's newer than the installed.</span>
+    <span class="keyword">unshift</span> <span class="variable">@INC</span><span class="operator">,</span> <span class="string">"inc/Module-Build/lib/perl5"</span> <span class="keyword">if</span> <span class="variable">$Bundled_MB</span> <span class="operator">&gt;</span> <span class="variable">$Installed_MB</span><span class="operator">;</span>
+    
+    <span class="keyword">require</span> <span class="variable">Module::Build</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>And write the rest of your <i>Build.PL</i> normally. Module::Build will remember your change to <code><code>@INC</code></code> and use it when you run <i>./Build</i>.</p>
+
+<p>In the future, we hope to provide a more automated solution for this scenario; see <code><code>inc/latest.pm</code></code> in the Module::Build distribution for one indication of the direction we&#39;re moving.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Ken Williams &lt;kwilliams@cpan.org&gt;</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2001-2008 Ken Williams. All rights reserved.</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>perl(1), <a href="../../../../lib/Module/Build.html">Module::Build</a>(3), <a href="../../../../lib/Module/Build/Authoring.html">Module::Build::Authoring</a>(3), <a href="../../../../lib/Module/Build/API.html">Module::Build::API</a>(3)</p>
+
+
+</body>
+
+</html>
+
+

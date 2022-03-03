@@ -1,0 +1,284 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../displayToc.js"></script>
+<script language="JavaScript" src="../tocParas.js"></script>
+<script language="JavaScript" src="../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Defining-location-and-access-method">Defining location and access method</a></li>
+      <li><a href="#Available-analyses">Available analyses</a></li>
+      <li><a href="#Service">Service</a></li>
+      <li><a href="#Input-data">Input data</a></li>
+      <li><a href="#Job">Job</a></li>
+      <li><a href="#Results">Results</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#DISCLAIMER">DISCLAIMER</a></li>
+  <li><a href="#BUGS-AND-LIMITATIONS">BUGS AND LIMITATIONS</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>panalysis.PLS - An example/tutorial script how to access analysis tools</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> # run an analysis with your sequence in a local file
+   ./panalysis.PLS -n &#39;edit.seqret&#39;-w -r \
+                   sequence_direct_data=@/home/testdata/my.seq
+
+ See more examples in the text below.</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>A client showing how to use <code><code>Bio::Tools::Run::Analysis</code></code> module, a module for executing and controlling local or remote analysis tools. It also calls methods from the <code><code>Bio::Tools::Run::AnalysisFactory</code></code> module, a module providing lists of available analyses.</p>
+
+<p>Primarily, this client is meant as an example how to use analysis modules, and also to test them. However, because it has a lot of options in order to cover as many methods as possible, it can be also used as a fully functional command-line client for accessing various analysis tools.</p>
+
+<h2 id="Defining-location-and-access-method">Defining location and access method</h2>
+
+<p><code><code>panalysis.PLS</code></code> is independent on the access method to the remote analyses (the analyses running on a different machines). The method used to communicate with the analyses is defined by the <code><code>-A</code></code> option, with the default value <i>soap</i>. The other possible values (not yet supported, but coming soon) are <i>corba</i> and <i>local</i>.</p>
+
+<p>Each access method may have different meaning for parameter <code><code>-l</code></code> defining a location of services giving access to the analysis tools. For example, the <i>soap</i> access expects a URL of a Web Service in the <code><code>-l</code></code> option, while the <i>corba</i> access may find here a stringified Interoperable Object Reference (IOR).</p>
+
+<p>A default location for the <i>soap</i> access is <code><code>http://www.ebi.ac.uk/soaplab/services</code></code> which represents services running at European Bioinformatics Institute on top of over hundred EMBOSS analyses (and on top of few others).</p>
+
+<h2 id="Available-analyses">Available analyses</h2>
+
+<p><code><code>panalysis.PLS</code></code> can show a list of available analyses (from the given location using given access method). The <code><code>-L</code></code> option shows all analyses, the <code><code>-c</code></code> option lists all available categories (a category is a group of analyses with similar functionality or processing similar type of data), and finally the <code><code>-C</code></code> option shows only analyses available within the given category.</p>
+
+<p>Note, that all these functions are provided by module <code><code>Bio::Tools::Run::AnalysisFactory</code></code> (respectively, by one of its access-dependent sub-classes). The module has also a <i>factory</i> method <code><code>create_analysis</code></code> which is not used by this script.</p>
+
+<h2 id="Service">Service</h2>
+
+<p>A <code><code>service</code></code> is a higher level of abstraction of an analysis tool. It understands a well defined interface (module <code><code>Bio::AnalysisI</code></code>, a fact which allows this script to be independent on the access protocol to various services.</p>
+
+<p>The service name must be given by the <code><code>-n</code></code> option. This option can be omitted only if you invoked just the <code><code>factory</code></code> methods (described above).</p>
+
+<p>Each service (representing an analysis tool, a program, or an application) has its description, available by using options <code><code>-a</code></code> (analysis name, type, etc.), <code><code>-i</code></code>, <code><code>-I</code></code> (specification of analysis input data, most important are their names), and <code><code>-o</code></code>, <code><code>-O</code></code> (result names and their types). The option <code><code>-d</code></code> gives the most detailed description in the XML format.</p>
+
+<p>The service description is nice but the most important is to use the service for invoking an underlying analysis tool. For each invocation, the service creates a <code><code>job</code></code> and feeds it with input data. There are three stages: (a) create a job, (b) run the job, and (c) wait for its completion. Correspondingly. there are three options: the <code><code>-b</code></code> which just creates (builds) a job, the <code><code>-x</code></code> which creates a job and executes it, and finally <code><code>-w</code></code> which creates a job, runs it and blocks the client until the job is finished. Always only one of these options is used (so it does not make sense to use more of them, the <code><code>panalysis.PLS</code></code> priorities them in the order <code><code>-x</code></code>, <code><code>-w</code></code>, and <code><code>-b</code></code>).</p>
+
+<p>All of these options take input data from the command-line (see next section about it) and all of them return (internally) an object representing a job. There are many methods (options) dealing with the job objects (see one after next section about them).</p>
+
+<p>Last note in this section: the <code><code>-b</code></code> option is actually optional - a job is created even without this option when there are some input data found on the command-line. You <i>have</i> to use it, however, if you do not pass any data to an analysis tool (an example would be the famous <code><code>Classic::HelloWorld</code></code> service).</p>
+
+<h2 id="Input-data">Input data</h2>
+
+<p>Input data are given as name/value pairs, put on the command-line with equal sign between name and value. If the <i>value</i> part starts with an un-escaped character <code><code>@</code></code>, it is used as a local file name and the <code><code>panalysis.PLS</code></code> reads the file and uses its contents instead. Examples:</p>
+
+<pre><code><code>   panalysis.PLS -n edit.seqret -w -r
+                 sequence_direct_data=&#39;tatatctcccc&#39; osformat=embl
+
+   panalysis.PLS ...
+               sequence_direct_data=@/my/data/my.seq</code></code></pre>
+
+<p>The names of input data come from the <code><code>input specification</code></code> that can be shown by the <code><code>-i</code></code> or <code><code>-I</code></code> options. The input specification (when using option <code><code>-I</code></code>) shows also - for some inputs - a list of allowed values. The specification, however, does not tell what input data are mutually exclusive, or what other constrains apply. If there is a conflict, an error message is produced later (before the job starts).</p>
+
+<p>Input data are used when any of the options <code><code>-b</code></code>, <code><code>-x</code></code>, or <code><code>-w</code></code> is present, but option <code><code>-j</code></code> is not present (see next section about this job option).</p>
+
+<h2 id="Job">Job</h2>
+
+<p>Each service (defined by a name given in the <code><code>-n</code></code> option) can be executed one or more times, with the same, but usually with different input data. Each execution creates a <i>job object</i>. Actually, the job is created even before execution (remember that option <code><code>-b</code></code> builds a job but does not execute it yet).</p>
+
+<p>Any job, executed or not, is persistent and can be used again later from another invocation of the <code><code>panalysis.PLS</code></code> script. Unless you explicitly destroy the job using option <code><code>-z</code></code>.</p>
+
+<p>A job created by options <code><code>-b</code></code>, <code><code>-x</code></code> and <code><code>-w</code></code> (and by input data) can be accessed in the same <code><code>panalysis.PLS</code></code> invocation using various job-related options, the most important are <code><code>-r</code></code> and <code><code>-R</code></code> for retrieving results from the finished job.</p>
+
+<p>However, you can also re-create a job created by a previous invocation. Assuming that you know the job ID (the <code><code>panalysis.PLS</code></code> prints it always on the standard error when a new job is created), use option <code><code>-j</code></code> to re-create the job.</p>
+
+<p>Example:</p>
+
+<pre><code><code>   ./panalysis.PLS -n &#39;edit.seqret&#39;
+                 sequence_direct_data=@/home/testdata/my.seq</code></code></pre>
+
+<p>It prints:</p>
+
+<pre><code><code>   JOB ID: edit.seqret/bb494b:ef55e47c99:-8000</code></code></pre>
+
+<p>Next invocation (asking to run the job, to wait for its completion and to show job status) can be:</p>
+
+<pre><code><code>   ./panalysis.PLS -n &#39;edit.seqret&#39;
+                 -j edit.seqret/bb494b:ef55e47c99:-800
+                 -w -s</code></code></pre>
+
+<p>And again later another invocation can ask for results:</p>
+
+<pre><code><code>   ./panalysis.PLS -n &#39;edit.seqret&#39;
+                 -j edit.seqret/bb494b:ef55e47c99:-800
+                 -r</code></code></pre>
+
+<p>Here is a list of all job options (except for results, they are in the next section):</p>
+
+<dl>
+
+<dt id="Job-execution-and-termination">Job execution and termination</dt>
+<dd>
+
+<p>There are the same options <code><code>-x</code></code> and <code><code>-w</code></code> for executing a job and for executing it and waiting for its completion, as they were described above. But now, the options act on a job given by the <code><code>-j</code></code> option, now they do not use any input data from the command-line (the input data had to be used when the job was created).</p>
+
+<p>Additionally, there is a <code><code>-k</code></code> option to kill a running job.</p>
+
+</dd>
+<dt id="Job-characteristics">Job characteristics</dt>
+<dd>
+
+<p>Other options tell about the job status (<code><code>-s</code></code>, about the job execution times (<code><code>-t</code></code> and <code><code>-T</code></code>, and about the last available event what happened with the job (<code><code>-e</code></code>). Note that the event notification is not yet fully implemented, so this option will change in the future to reflect more notification capabilities.</p>
+
+</dd>
+</dl>
+
+<h2 id="Results">Results</h2>
+
+<p>Of course, the most important on the analysis tools are their results. The results are named (in the similar way as the input data) and they can be retrieved all in one go using option <code><code>-r</code></code> (so you do not need to know their names actually), or by specifying (all or some) result names using the <code><code>-R</code></code> option.</p>
+
+<p>If a result does not exist (either not yet, or the name is wrong) an undef value is returned (no error message produced).</p>
+
+<p>Some results are better to save directly into files instead to show them in the terminal window (this applies to the <i>binary</i> results, mostly containing images). The <code><code>panalysis.PLS</code></code> helps to deal with binary results by saving them automatically to local files (actually it is the module <code><code>Bio::Tools::Run::Analysis</code></code> and its submodules who do help with the binary data).</p>
+
+<p>So why not to use a traditional shell re-direction to a file? There are two reasons. First, a job can produce more than one result, so they would be mixed together. But mainly, because each result can consist of several parts whose number is not known in advance and which cannot be mixed together in one file. Again, this is typical for the binary data returning images - an invocation can produce many images.</p>
+
+<p>The <code><code>-r</code></code> option retrieves all available results and treat them as described by the <code><code>&#39;?&#39;</code></code> format below.</p>
+
+<p>The <code><code>-R</code></code> option has a comma-separated list of result names, each of the names can be either a simple name (as specified by the <code><code>result specification</code></code> obtainable using the <code><code>-o</code></code> or <code><code>-O</code></code> options), or a equal-sign-separated name/format construct suggesting what to do with the result. The possibilities are:</p>
+
+<dl>
+
+<dt id="result-name">result-name</dt>
+<dd>
+
+<p>It prints given result on the standard output.</p>
+
+</dd>
+<dt id="result-name-filename">result-name=filename</dt>
+<dd>
+
+<p>It saves the given result into given file.</p>
+
+</dd>
+<dt id="result-name-">result-name=@</dt>
+<dd>
+
+<p>It saves the given result into a file whose name is automatically invented, and it guarantees that the same name will not be used in the next invocation.</p>
+
+</dd>
+<dt id="result-name-template">result=name=@template</dt>
+<dd>
+
+<p>It saves the given result into a file whose name is given by the <code><code>template</code></code>. The template can contain several strings which are substituted before using it as the filename:</p>
+
+<dl>
+
+<dt id="Any-">Any &#39;*&#39;</dt>
+<dd>
+
+<p>Will be replaced by a unique number</p>
+
+</dd>
+<dt id="ANALYSIS-or-ANALYSIS-">$ANALYSIS or ${ANALYSIS}</dt>
+<dd>
+
+<p>Will be replaced by the current analysis name</p>
+
+</dd>
+<dt id="RESULT-or-RESULT-">$RESULT or ${RESULT}</dt>
+<dd>
+
+<p>Will be replaced by the current result name</p>
+
+<p>How to tell what to do with results? Each result name</p>
+
+</dd>
+</dl>
+
+<p>Additionally, a template can be given as an environment variable <code><code>RESULT_FILENAME_TEMPLATE</code></code>. Such variable is used for any result having in its format a simple <code><code>?</code></code> or <code><code>@</code></code> character.</p>
+
+</dd>
+<dt id="result-name-1">result-name=?</dt>
+<dd>
+
+<p>It first decides whether the given result is binary or not. Then, the binary results are saved into local files whose names are automatically invented, the other results are sent to the standard output.</p>
+
+</dd>
+<dt id="result-name-template1">result-name=?template</dt>
+<dd>
+
+<p>The same as above but the filenames for binary files are deduced from the given template (using the same rules as described above).</p>
+
+</dd>
+</dl>
+
+<p>Examples:</p>
+
+<pre><code><code>   -r
+   -R report
+   -R report,outseq
+   -R Graphics_in_PNG=@
+   -R Graphics_in_PNG=@$ANALYSIS-*-$RESULT</code></code></pre>
+
+<p>Note that the result formatting will be enriched in the future by using existing data type parsers in bioperl.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Martin Senger (martin.senger@gmail.com)</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2003, Martin Senger and EMBL-EBI. All Rights Reserved.</p>
+
+<p>This script is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="DISCLAIMER">DISCLAIMER</h1>
+
+<p>This software is provided &quot;as is&quot; without warranty of any kind.</p>
+
+<h1 id="BUGS-AND-LIMITATIONS">BUGS AND LIMITATIONS</h1>
+
+<p>None known at the time of writing this.</p>
+
+
+</body>
+
+</html>
+
+

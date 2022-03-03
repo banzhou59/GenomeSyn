@@ -1,0 +1,715 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#STRAND-FRAME-CONTEXTS">STRAND/FRAME CONTEXTS</a></li>
+    </ul>
+  </li>
+  <li><a href="#TILED-ALIGNMENTS">TILED ALIGNMENTS</a></li>
+  <li><a href="#DESIGN-NOTE">DESIGN NOTE</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+  <li><a href="#CONSTRUCTOR">CONSTRUCTOR</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+    </ul>
+  </li>
+  <li><a href="#TILING-ITERATORS">TILING ITERATORS</a>
+    <ul>
+      <li><a href="#next_tiling">next_tiling</a></li>
+      <li><a href="#rewind_tilings">rewind_tilings</a></li>
+    </ul>
+  </li>
+  <li><a href="#ALIGNMENTS">ALIGNMENTS</a>
+    <ul>
+      <li><a href="#get_tiled_alns-">get_tiled_alns()</a></li>
+    </ul>
+  </li>
+  <li><a href="#STATISTICS">STATISTICS</a>
+    <ul>
+      <li><a href="#identities">identities</a></li>
+      <li><a href="#conserved">conserved</a></li>
+      <li><a href="#length">length</a></li>
+      <li><a href="#frac">frac</a></li>
+      <li><a href="#frac_identical">frac_identical</a></li>
+      <li><a href="#frac_conserved">frac_conserved</a></li>
+      <li><a href="#frac_aligned">frac_aligned</a></li>
+      <li><a href="#num_aligned">num_aligned</a></li>
+      <li><a href="#num_unaligned">num_unaligned</a></li>
+      <li><a href="#range">range</a></li>
+    </ul>
+  </li>
+  <li><a href="#ACCESSORS">ACCESSORS</a>
+    <ul>
+      <li><a href="#coverage_map">coverage_map</a></li>
+      <li><a href="#coverage_map_as_text">coverage_map_as_text</a></li>
+      <li><a href="#hit">hit</a></li>
+      <li><a href="#hsps">hsps</a></li>
+      <li><a href="#contexts">contexts</a></li>
+      <li><a href="#mapping">mapping</a></li>
+      <li><a href="#default_context">default_context</a></li>
+      <li><a href="#algorithm">algorithm</a></li>
+    </ul>
+  </li>
+  <li><a href="#PRIVATE-METHODS">&quot;PRIVATE&quot; METHODS</a>
+    <ul>
+      <li><a href="#Calculators">Calculators</a></li>
+      <li><a href="#calc_coverage_map">_calc_coverage_map</a></li>
+      <li><a href="#calc_stats">_calc_stats</a></li>
+      <li><a href="#Tiling-Helper-Methods">Tiling Helper Methods</a></li>
+      <li><a href="#make_tiling_iterator">_make_tiling_iterator</a></li>
+      <li><a href="#tiling_iterator">_tiling_iterator</a></li>
+      <li><a href="#Construction-Helper-Methods">Construction Helper Methods</a></li>
+      <li><a href="#make_context_key">_make_context_key</a></li>
+      <li><a href="#context">_context</a></li>
+      <li><a href="#Predicates">Predicates</a></li>
+    </ul>
+  </li>
+  <li><a href="#Private-Accessors">Private Accessors</a>
+    <ul>
+      <li><a href="#contig_intersection">_contig_intersection</a></li>
+      <li><a href="#reported_length">_reported_length</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Search::Tiling::MapTiling - An implementation of an HSP tiling algorithm, with methods to obtain frequently-requested statistics</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="comment"># get a BLAST $hit from somewhere, then</span>
+ <span class="variable">$tiling</span> <span class="operator">=</span> <span class="variable">Bio::Search::Tiling::MapTiling</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">$hit</span><span class="operator">);</span>
+ 
+ <span class="comment"># stats</span>
+ <span class="variable">$numID</span> <span class="operator">=</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">identities</span><span class="operator">();</span>
+ <span class="variable">$numCons</span> <span class="operator">=</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">conserved</span><span class="operator">();</span>
+ <span class="variable">$query_length</span> <span class="operator">=</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">(</span><span class="string">'query'</span><span class="operator">);</span>
+ <span class="variable">$subject_length</span> <span class="operator">=</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">(</span><span class="string">'subject'</span><span class="operator">);</span> <span class="comment"># or...</span>
+ <span class="variable">$subject_length</span> <span class="operator">=</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">(</span><span class="string">'hit'</span><span class="operator">);</span>
+ 
+ <span class="comment"># get a visual on the coverage map</span>
+ <span class="keyword">print</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">coverage_map_as_text</span><span class="operator">(</span><span class="string">'query'</span><span class="operator">,</span><span class="variable">$context</span><span class="operator">,</span><span class="string">'LEGEND'</span><span class="operator">);</span>
+ 
+ <span class="comment"># tilings</span>
+ <span class="variable">$context</span> <span class="operator">=</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">_context</span><span class="operator">(</span> <span class="string">-type</span> <span class="operator">=&gt;</span> <span class="string">'subject'</span><span class="operator">,</span> <span class="string">-strand</span><span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span> <span class="string">-frame</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span>
+ <span class="variable">@covering_hsps_for_subject</span> <span class="operator">=</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">next_tiling</span><span class="operator">(</span><span class="string">'subject'</span><span class="operator">,</span><span class="variable">$context</span><span class="operator">);</span>
+ <span class="variable">$context</span> <span class="operator">=</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">_context</span><span class="operator">(</span> <span class="string">-type</span> <span class="operator">=&gt;</span> <span class="string">'query'</span><span class="operator">,</span> <span class="string">-strand</span><span class="operator">=&gt;</span> <span class="operator">-</span><span class="number">1</span><span class="operator">,</span> <span class="string">-frame</span><span class="operator">=&gt;</span><span class="number">0</span><span class="operator">);</span>
+ <span class="variable">@covering_hsps_for_query</span>   <span class="operator">=</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">next_tiling</span><span class="operator">(</span><span class="string">'query'</span><span class="operator">,</span> <span class="variable">$context</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Frequently, users want to use a set of high-scoring pairs (HSPs) obtained from a BLAST or other search to assess the overall level of identity, conservation, or coverage represented by matches between a subject and a query sequence. Because a set of HSPs frequently describes multiple overlapping sequence fragments, a simple summation of statistics over the HSPs will generally overestimate those statistics. To obtain an accurate estimate of global hit statistics, a &#39;tiling&#39; of HSPs onto either the subject or the query sequence must be performed, in order to properly correct for this.</p>
+
+<p>This module will execute a tiling algorithm on a given hit based on an interval decomposition I&#39;m calling the &quot;coverage map&quot;. Internal object methods compute the various statistics, which are then stored in appropriately-named public object attributes. See <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Search/Tiling/MapTileUtils.html">Bio::Search::Tiling::MapTileUtils</a> for more info on the algorithm.</p>
+
+<h2 id="STRAND-FRAME-CONTEXTS">STRAND/FRAME CONTEXTS</h2>
+
+<p>In BLASTX, TBLASTN, and TBLASTX reports, strand and frame information are reported for the query, subject, or query and subject, respectively, for each HSP. Tilings for these sequence types are only meaningful when they include HSPs in the same strand and frame, or &quot;context&quot;. So, in these situations, the context must be specified in the method calls or the methods will throw.</p>
+
+<p>Contexts are specified as strings: <code><code>[ &#39;all&#39; | [m|p][_|0|1|2] ]</code></code>, where <code><code>all</code></code> = all HSPs (will throw if context must be specified), <code><code>m</code></code> = minus strand, <code><code>p</code></code> = plus strand, and <code><code>_</code></code> = no frame info, <code><code>0,1,2</code></code> = respective (absolute) frame. The <a href="#make_context_key">&quot;_make_context_key&quot;</a> method will convert a (strand, frame) specification to a context string, e.g.:</p>
+
+<pre><code><code>    <span class="variable">$context</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_context</span><span class="operator">(</span><span class="string">-type</span><span class="operator">=&gt;</span><span class="string">'query'</span><span class="operator">,</span> <span class="string">-strand</span><span class="operator">=&gt;-</span><span class="number">1</span><span class="operator">,</span> <span class="string">-frame</span><span class="operator">=&gt;-</span><span class="number">2</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>returns <code><code>m2</code></code>.</p>
+
+<p>The contexts present among the HSPs in a hit are identified and stored for convenience upon object construction. These are accessed off the object with the <a href="#contexts">&quot;contexts&quot;</a> method. If contexts don&#39;t apply for the given report, this returns <code><code>(&#39;all&#39;)</code></code>.</p>
+
+<h1 id="TILED-ALIGNMENTS">TILED ALIGNMENTS</h1>
+
+<p>The experimental method <a>&quot;get_tiled_alns&quot; in ALIGNMENTS</a> will use a tiling to concatenate tiled hsps into a series of <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SimpleAlign.html">Bio::SimpleAlign</a> objects:</p>
+
+<pre><code><code> <span class="variable">@alns</span> <span class="operator">=</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">get_tiled_alns</span><span class="operator">(</span><span class="variable">$type</span><span class="operator">,</span> <span class="variable">$context</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Each alignment contains two sequences with ids &#39;query&#39; and &#39;subject&#39;, and consists of a concatenation of tiling HSPs which overlap or are directly adjacent. The alignment are returned in <code><code>$type</code></code> sequence order. When HSPs overlap, the alignment sequence is taken from the HSP which comes first in the coverage map array.</p>
+
+<p>The sequences in each alignment contain features (even though they are <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/LocatableSeq.html">Bio::LocatableSeq</a> objects) which map the original query/subject coordinates to the new alignment sequence coordinates. You can determine the original BLAST fragments this way:</p>
+
+<pre><code><code> <span class="variable">$aln</span> <span class="operator">=</span> <span class="operator">(</span><span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">get_tiled_alns</span><span class="operator">)</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+ <span class="variable">$qseq</span> <span class="operator">=</span> <span class="variable">$aln</span><span class="operator">-&gt;</span><span class="variable">get_seq_by_id</span><span class="operator">(</span><span class="string">'query'</span><span class="operator">);</span>
+ <span class="variable">$hseq</span> <span class="operator">=</span> <span class="variable">$aln</span><span class="operator">-&gt;</span><span class="variable">get_seq_by_id</span><span class="operator">(</span><span class="string">'subject'</span><span class="operator">);</span>
+ <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$feat</span> <span class="operator">(</span><span class="variable">$qseq</span><span class="operator">-&gt;</span><span class="variable">get_SeqFeatures</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">$org_start</span> <span class="operator">=</span> <span class="operator">(</span><span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">get_tag_values</span><span class="operator">(</span><span class="string">'query_start'</span><span class="operator">))</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+    <span class="variable">$org_end</span> <span class="operator">=</span> <span class="operator">(</span><span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">get_tag_values</span><span class="operator">(</span><span class="string">'query_end'</span><span class="operator">))</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+    <span class="comment"># original fragment as represented in the tiled alignment:</span>
+    <span class="variable">$org_fragment</span> <span class="operator">=</span> <span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">;</span>
+ <span class="operator">}</span>
+ <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$feat</span> <span class="operator">(</span><span class="variable">$hseq</span><span class="operator">-&gt;</span><span class="variable">get_SeqFeatures</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">$org_start</span> <span class="operator">=</span> <span class="operator">(</span><span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">get_tag_values</span><span class="operator">(</span><span class="string">'subject_start'</span><span class="operator">))</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+    <span class="variable">$org_end</span> <span class="operator">=</span> <span class="operator">(</span><span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">get_tag_values</span><span class="operator">(</span><span class="string">'subject_end'</span><span class="operator">))</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+    <span class="comment"># original fragment as represented in the tiled alignment:</span>
+    <span class="variable">$org_fragment</span> <span class="operator">=</span> <span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESIGN-NOTE">DESIGN NOTE</h1>
+
+<p>The major calculations are made just-in-time, and then memoized. So, for example, for a given MapTiling object, a coverage map would usually be calculated only once (for the query), and at most twice (if the subject perspective is also desired), and then only when a statistic is first accessed. Afterward, the map and/or any statistic is read from storage. So feel free to call the statistic methods frequently if it suits you.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<p>Email maj -at- fortinbras -dot- us</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h1 id="CONSTRUCTOR">CONSTRUCTOR</h1>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::Search::Tiling::GenericTiling</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Search::Tiling::GenericTiling</span> <span class="variable">object</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">of</span> <span class="variable">Bio::Search::Tiling::GenericTiling</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-hit</span>    <span class="operator">=&gt;</span> <span class="variable">$a_Bio_Search_Hit_HitI_object</span>
+           <span class="variable">general</span> <span class="variable">filter</span> <span class="variable">function</span><span class="operator">:</span>
+           <span class="string">-hsp_filter</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">my</span> <span class="variable">$this_hsp</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span> 
+                                <span class="operator">...;</span>
+                                <span class="keyword">return</span> <span class="number">1</span> <span class="keyword">if</span> <span class="variable">$wanted</span><span class="operator">;</span>
+                                <span class="keyword">return</span> <span class="number">0</span><span class="operator">;</span> <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="TILING-ITERATORS">TILING ITERATORS</h1>
+
+<h2 id="next_tiling">next_tiling</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_tiling</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@hsps</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">next_tiling</span><span class="operator">(</span><span class="variable">$type</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Obtain</span> <span class="variable">a</span> <span class="variable">tiling</span><span class="operator">:</span> <span class="variable">a</span> <span class="variable">minimal</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">HSPs</span> <span class="variable">covering</span> <span class="variable">the</span> <span class="variable">$type</span>
+           <span class="operator">(</span><span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span><span class="operator">,</span> <span class="string">'query'</span><span class="operator">)</span> <span class="variable">sequence</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">HSPI</span> <span class="variable">objects</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">$type</span><span class="operator">:</span> <span class="variable">one</span> <span class="variable">of</span> <span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span><span class="operator">,</span> <span class="string">'query'</span><span class="operator">,</span> <span class="variable">with</span>
+           <span class="string">'subject'</span> <span class="variable">an</span> <span class="variable">alias</span> <span class="keyword">for</span> <span class="string">'hit'</span>
+</code></code></pre>
+
+<h2 id="rewind_tilings">rewind_tilings</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">rewind_tilings</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">rewind_tilings</span><span class="operator">(</span><span class="variable">$type</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Reset</span> <span class="variable">the</span> <span class="variable">next_tilings</span><span class="operator">(</span><span class="variable">$type</span><span class="operator">)</span> <span class="variable">iterator</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">True</span> <span class="variable">on</span> <span class="variable">success</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">$type</span><span class="operator">:</span> <span class="variable">one</span> <span class="variable">of</span> <span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span><span class="operator">,</span> <span class="string">'query'</span><span class="operator">;</span>
+           <span class="keyword">default</span> <span class="variable">is</span> <span class="string">'query'</span>
+</code></code></pre>
+
+<h1 id="ALIGNMENTS">ALIGNMENTS</h1>
+
+<h2 id="get_tiled_alns-">get_tiled_alns()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_tiled_alns</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@alns</span> <span class="operator">=</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">get_tiled_alns</span><span class="operator">(</span><span class="variable">$type</span><span class="operator">,</span> <span class="variable">$context</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Use</span> <span class="variable">a</span> <span class="variable">tiling</span> <span class="variable">to</span> <span class="variable">construct</span> <span class="variable">a</span> <span class="variable">minimal</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">alignment</span> 
+           <span class="variable">objects</span> <span class="variable">covering</span> <span class="variable">the</span> <span class="variable">region</span> <span class="variable">specified</span> <span class="variable">by</span> <span class="variable">$type</span><span class="operator">/</span><span class="variable">$context</span>
+           <span class="variable">by</span> <span class="variable">splicing</span> <span class="variable">adjacent</span> <span class="variable">HSP</span> <span class="variable">tiles</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">Bio::SimpleAlign</span> <span class="variable">objects</span><span class="operator">;</span> <span class="variable">see</span> <span class="variable">Note</span> <span class="variable">below</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">$type</span><span class="operator">:</span> <span class="variable">one</span> <span class="variable">of</span> <span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span><span class="operator">,</span> <span class="string">'query'</span>
+           <span class="keyword">default</span> <span class="variable">is</span> <span class="string">'query'</span>
+           <span class="keyword">scalar</span> <span class="variable">$context</span><span class="operator">:</span> <span class="variable">strand</span><span class="operator">/</span><span class="variable">frame</span> <span class="variable">context</span> <span class="variable">string</span>
+           <span class="variable">Following</span> <span class="variable">$type</span> <span class="keyword">and</span> <span class="variable">$context</span><span class="operator">,</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> 
+           <span class="variable">ordered</span><span class="operator">,</span> <span class="variable">tiled</span> <span class="variable">HSP</span> <span class="variable">objects</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">specified</span><span class="operator">;</span> <span class="variable">this</span> <span class="variable">is</span> 
+           <span class="variable">the</span> <span class="variable">tiling</span> <span class="variable">that</span> <span class="variable">will</span> <span class="variable">directly</span> <span class="variable">the</span> <span class="variable">alignment</span> <span class="variable">construction</span>
+           <span class="keyword">default</span> <span class="operator">--</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">tiling</span> <span class="variable">provided</span> <span class="variable">by</span> <span class="variable">a</span> <span class="variable">tiling</span> <span class="variable">iterator</span>
+ <span class="variable">Notes</span>   <span class="operator">:</span> <span class="variable">Each</span> <span class="variable">returned</span> <span class="variable">alignment</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">concatenation</span> <span class="variable">of</span> <span class="variable">adjacent</span> <span class="variable">tiles</span><span class="operator">.</span>
+           <span class="variable">The</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">alignments</span> <span class="variable">will</span> <span class="variable">cover</span> <span class="variable">all</span> <span class="variable">regions</span> <span class="variable">described</span> <span class="variable">by</span> <span class="variable">the</span> 
+           <span class="variable">$type</span><span class="operator">/</span><span class="variable">$context</span> <span class="variable">pair</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">hit</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">pair</span> <span class="variable">of</span> <span class="variable">sequences</span> <span class="variable">in</span> <span class="keyword">each</span> 
+           <span class="variable">alignment</span> <span class="variable">have</span> <span class="variable">ids</span> <span class="string">'query'</span> <span class="keyword">and</span> <span class="string">'subject'</span><span class="operator">,</span> <span class="keyword">and</span> <span class="keyword">each</span> <span class="variable">sequence</span> 
+           <span class="variable">possesses</span> <span class="variable">SeqFeatures</span> <span class="variable">that</span> <span class="keyword">map</span> <span class="variable">the</span> <span class="variable">original</span> <span class="variable">query</span> <span class="keyword">or</span> <span class="variable">subject</span> 
+           <span class="variable">coordinates</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">coordinates</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">tiled</span> <span class="variable">alignment</span><span class="operator">.</span>
+           
+</code></code></pre>
+
+<h1 id="STATISTICS">STATISTICS</h1>
+
+<h2 id="identities">identities</h2>
+
+<pre><code><code> Title   : identities
+ Usage   : $tiling-&gt;identities($type, $action, $context)
+ Function: Retrieve the calculated number of identities for the invocant
+ Example : 
+ Returns : value of identities (a scalar)
+ Args    : scalar $type: one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           default is &#39;query&#39;
+           option scalar $action: one of &#39;exact&#39;, &#39;est&#39;, &#39;fast&#39;, &#39;max&#39;
+           default is &#39;exact&#39;
+           option scalar $context: strand/frame context string
+ Note    : getter only</code></code></pre>
+
+<h2 id="conserved">conserved</h2>
+
+<pre><code><code> Title   : conserved
+ Usage   : $tiling-&gt;conserved($type, $action)
+ Function: Retrieve the calculated number of conserved sites for the invocant
+ Example : 
+ Returns : value of conserved (a scalar)
+ Args    : scalar $type: one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           default is &#39;query&#39;
+           option scalar $action: one of &#39;exact&#39;, &#39;est&#39;, &#39;fast&#39;, &#39;max&#39;
+           default is &#39;exact&#39;
+           option scalar $context: strand/frame context string
+ Note    : getter only </code></code></pre>
+
+<h2 id="length">length</h2>
+
+<pre><code><code> Title   : length
+ Usage   : $tiling-&gt;length($type, $action, $context)
+ Function: Retrieve the total length of aligned residues for 
+           the seq $type
+ Example : 
+ Returns : value of length (a scalar)
+ Args    : scalar $type: one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           default is &#39;query&#39;
+           option scalar $action: one of &#39;exact&#39;, &#39;est&#39;, &#39;fast&#39;, &#39;max&#39;
+           default is &#39;exact&#39;
+           option scalar $context: strand/frame context string
+ Note    : getter only </code></code></pre>
+
+<h2 id="frac">frac</h2>
+
+<pre><code><code> Title   : frac
+ Usage   : $tiling-&gt;frac($type, $denom, $action, $context, $method)
+ Function: Return the fraction of sequence length consisting
+           of desired kinds of pairs (given by $method), 
+           with respect to $denom
+ Returns : scalar float
+ Args    : -type =&gt; one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           -denom =&gt; one of &#39;total&#39;, &#39;aligned&#39;
+           -action =&gt; one of &#39;exact&#39;, &#39;est&#39;, &#39;fast&#39;, &#39;max&#39;
+           -context =&gt; strand/frame context string
+           -method =&gt; one of &#39;identical&#39;, &#39;conserved&#39;
+ Note    : $denom == &#39;aligned&#39;, return desired_stat/num_aligned
+           $denom == &#39;total&#39;, return desired_stat/_reported_length
+             (i.e., length of the original input sequences)
+ Note    : In keeping with the spirit of Bio::Search::HSP::HSPI, 
+           reported lengths of translated dna are reduced by 
+           a factor of 3, to provide fractions relative to 
+           amino acid coordinates. </code></code></pre>
+
+<h2 id="frac_identical">frac_identical</h2>
+
+<pre><code><code> Title   : frac_identical
+ Usage   : $tiling-&gt;frac_identical($type, $denom, $action, $context)
+ Function: Return the fraction of sequence length consisting
+           of identical pairs, with respect to $denom
+ Returns : scalar float
+ Args    : -type =&gt; one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           -denom =&gt; one of &#39;total&#39;, &#39;aligned&#39;
+           -action =&gt; one of &#39;exact&#39;, &#39;est&#39;, &#39;fast&#39;, &#39;max&#39;
+           -context =&gt; strand/frame context string
+ Note    : $denom == &#39;aligned&#39;, return conserved/num_aligned
+           $denom == &#39;total&#39;, return conserved/_reported_length
+             (i.e., length of the original input sequences)
+ Note    : In keeping with the spirit of Bio::Search::HSP::HSPI, 
+           reported lengths of translated dna are reduced by 
+           a factor of 3, to provide fractions relative to 
+           amino acid coordinates. 
+ Note    : This an alias that calls frac()</code></code></pre>
+
+<h2 id="frac_conserved">frac_conserved</h2>
+
+<pre><code><code> Title   : frac_conserved
+ Usage   : $tiling-&gt;frac_conserved($type, $denom, $action, $context)
+ Function: Return the fraction of sequence length consisting
+           of conserved pairs, with respect to $denom
+ Returns : scalar float
+ Args    : -type =&gt; one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           -denom =&gt; one of &#39;total&#39;, &#39;aligned&#39;
+           -action =&gt; one of &#39;exact&#39;, &#39;est&#39;, &#39;fast&#39;, &#39;max&#39;
+           -context =&gt; strand/frame context string
+ Note    : $denom == &#39;aligned&#39;, return conserved/num_aligned
+           $denom == &#39;total&#39;, return conserved/_reported_length
+             (i.e., length of the original input sequences)
+ Note    : In keeping with the spirit of Bio::Search::HSP::HSPI, 
+           reported lengths of translated dna are reduced by 
+           a factor of 3, to provide fractions relative to 
+           amino acid coordinates. 
+ Note    : This an alias that calls frac()</code></code></pre>
+
+<h2 id="frac_aligned">frac_aligned</h2>
+
+<pre><code><code> Title   : frac_aligned
+ Aliases : frac_aligned_query - frac_aligned(-type=&gt;&#39;query&#39;,...)
+           frac_aligned_hit   - frac_aligned(-type=&gt;&#39;hit&#39;,...)
+ Usage   : $tiling-&gt;frac_aligned(-type=&gt;$type,
+                                 -action=&gt;$action,
+                                 -context=&gt;$context)
+ Function: Return the fraction of input sequence length
+           that was aligned by the algorithm
+ Returns : scalar float
+ Args    : -type =&gt; one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           -action =&gt; one of &#39;exact&#39;, &#39;est&#39;, &#39;fast&#39;, &#39;max&#39;
+           -context =&gt; strand/frame context string</code></code></pre>
+
+<h2 id="num_aligned">num_aligned</h2>
+
+<pre><code><code> Title   : num_aligned
+ Usage   : $tiling-&gt;num_aligned(-type=&gt;$type)
+ Function: Return the number of residues of sequence $type
+           that were aligned by the algorithm
+ Returns : scalar int
+ Args    : -type =&gt; one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           -action =&gt; one of &#39;exact&#39;, &#39;est&#39;, &#39;fast&#39;, &#39;max&#39;
+           -context =&gt; strand/frame context string
+ Note    : Since this is calculated from reported coordinates,
+           not symbol string counts, it is already in terms of
+           &quot;logical length&quot;
+ Note    : Aliases length()</code></code></pre>
+
+<h2 id="num_unaligned">num_unaligned</h2>
+
+<pre><code><code> Title   : num_unaligned
+ Usage   : $tiling-&gt;num_unaligned(-type=&gt;$type)
+ Function: Return the number of residues of sequence $type
+           that were left unaligned by the algorithm
+ Returns : scalar int
+ Args    : -type =&gt; one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           -action =&gt; one of &#39;exact&#39;, &#39;est&#39;, &#39;fast&#39;, &#39;max&#39;
+           -context =&gt; strand/frame context string
+ Note    : Since this is calculated from reported coordinates,
+           not symbol string counts, it is already in terms of
+           &quot;logical length&quot;</code></code></pre>
+
+<h2 id="range">range</h2>
+
+<pre><code><code> Title   : range
+ Usage   : $tiling-&gt;range(-type=&gt;$type)
+ Function: Returns the extent of the longest tiling
+           as ($min_coord, $max_coord)
+ Returns : array of two scalar integers
+ Args    : -type =&gt; one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           -context =&gt; strand/frame context string</code></code></pre>
+
+<h1 id="ACCESSORS">ACCESSORS</h1>
+
+<h2 id="coverage_map">coverage_map</h2>
+
+<pre><code><code> Title   : coverage_map
+ Usage   : $map = $tiling-&gt;coverage_map($type)
+ Function: Property to contain the coverage map calculated
+           by _calc_coverage_map() - see that for 
+           details
+ Example : 
+ Returns : value of coverage_map_$type as an array
+ Args    : scalar $type: one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           default is &#39;query&#39;
+ Note    : getter </code></code></pre>
+
+<h2 id="coverage_map_as_text">coverage_map_as_text</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">coverage_map_as_text</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">coverage_map_as_text</span><span class="operator">(</span><span class="variable">$type</span><span class="operator">,</span> <span class="variable">$legend_flag</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Format</span> <span class="variable">a</span> <span class="variable">text</span><span class="operator">-</span><span class="variable">graphic</span> <span class="variable">representation</span> <span class="variable">of</span> <span class="variable">the</span>
+           <span class="variable">coverage</span> <span class="keyword">map</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="keyword">scalar</span> <span class="variable">strings</span><span class="operator">,</span> <span class="variable">suitable</span> <span class="keyword">for</span> <span class="variable">printing</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$type</span><span class="operator">:</span> <span class="variable">one</span> <span class="variable">of</span> <span class="string">'query'</span><span class="operator">,</span> <span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span>
+           <span class="variable">$context</span><span class="operator">:</span> <span class="variable">strand</span><span class="operator">/</span><span class="variable">frame</span> <span class="variable">context</span> <span class="variable">string</span>
+           <span class="variable">$legend_flag</span><span class="operator">:</span> <span class="variable">boolean</span><span class="operator">;</span> <span class="variable">add</span> <span class="variable">a</span> <span class="variable">legend</span> <span class="variable">indicating</span>
+            <span class="variable">the</span> <span class="variable">actual</span> <span class="variable">interval</span> <span class="variable">coordinates</span> <span class="keyword">for</span> <span class="keyword">each</span> <span class="variable">component</span>
+            <span class="variable">interval</span> <span class="keyword">and</span> <span class="variable">hsp</span> <span class="operator">(</span><span class="variable">in</span> <span class="variable">the</span> <span class="variable">$type</span> <span class="variable">sequence</span> <span class="variable">context</span><span class="operator">)</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="keyword">print</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">coverage_map_as_text</span><span class="operator">(</span><span class="string">'query'</span><span class="operator">,</span><span class="number">1</span><span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="hit">hit</h2>
+
+<pre><code><code> Title   : hit
+ Usage   : $tiling-&gt;hit
+ Function: 
+ Example : 
+ Returns : The HitI object associated with the invocant
+ Args    : none
+ Note    : getter only </code></code></pre>
+
+<h2 id="hsps">hsps</h2>
+
+<pre><code><code> Title   : hsps
+ Usage   : $tiling-&gt;hsps()
+ Function: Container for the HSP objects associated with invocant
+ Example : 
+ Returns : an array of hsps associated with the hit
+ Args    : on set, new value (an arrayref or undef, optional)</code></code></pre>
+
+<h2 id="contexts">contexts</h2>
+
+<pre><code><code> Title   : contexts
+ Usage   : @contexts = $tiling-&gt;context($type) or
+           @indices = $tiling-&gt;context($type, $context)
+ Function: Retrieve the set of available contexts in the hit,
+           or the indices of hsps having the given context
+           (integer indices for the array returned by $self-&gt;hsps)
+ Returns : array of scalar context strings or 
+           array of scalar positive integers
+           undef if no hsps in given context
+ Args    : $type: one of &#39;query&#39;, &#39;hit&#39;, &#39;subject&#39;
+           optional $context: context string</code></code></pre>
+
+<h2 id="mapping">mapping</h2>
+
+<pre><code><code> Title   : mapping
+ Usage   : $tiling-&gt;mapping($type)
+ Function: Retrieve the mapping coefficient for the sequence type
+           based on the underlying algorithm
+ Returns : scalar integer (mapping coefficient)
+ Args    : $type: one of &#39;query&#39;, &#39;hit&#39;, &#39;subject&#39;
+ Note    : getter only (set in constructor)</code></code></pre>
+
+<h2 id="default_context">default_context</h2>
+
+<pre><code><code> Title   : default_context
+ Usage   : $tiling-&gt;default_context($type)
+ Function: Retrieve the default strand/frame context string
+           for the sequence type based on the underlying algorithm
+ Returns : scalar string (context string)
+ Args    : $type: one of &#39;query&#39;, &#39;hit&#39;, &#39;subject&#39;
+ Note    : getter only (set in constructor)</code></code></pre>
+
+<h2 id="algorithm">algorithm</h2>
+
+<pre><code><code> Title   : algorithm
+ Usage   : $tiling-&gt;algorithm
+ Function: Retrieve the algorithm name associated with the 
+           invocant&#39;s hit object
+ Returns : scalar string 
+ Args    : none
+ Note    : getter only (set in constructor)</code></code></pre>
+
+<h1 id="PRIVATE-METHODS">&quot;PRIVATE&quot; METHODS</h1>
+
+<h2 id="Calculators">Calculators</h2>
+
+<p>See <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Search/Tiling/MapTileUtils.html">Bio::Search::Tiling::MapTileUtils</a> for lower level calculation methods.</p>
+
+<h2 id="calc_coverage_map">_calc_coverage_map</h2>
+
+<pre><code><code> Title   : _calc_coverage_map
+ Usage   : $tiling-&gt;_calc_coverage_map($type)
+ Function: Calculates the coverage map for the object&#39;s associated
+           hit from the perspective of the desired $type (see Args:) 
+           and sets the coverage_map() property
+ Returns : True on success
+ Args    : optional scalar $type: one of &#39;hit&#39;|&#39;subject&#39;|&#39;query&#39;
+           default is &#39;query&#39;
+ Note    : The &quot;coverage map&quot; is an array with the following format:
+           ( [ $component_interval =&gt; [ @containing_hsps ] ], ... ),
+           where $component_interval is a closed interval (see 
+           DESCRIPTION) of the form [$a0, $a1] with $a0 &lt;= $a1, and
+           @containing_hsps is an array of all HspI objects in the hit 
+           which completely contain the $component_interval.
+           The set of $component_interval&#39;s is a disjoint decomposition
+           of the minimum set of minimal intervals that completely
+           cover the hit&#39;s HSPs (from the perspective of the $type)
+ Note    : This calculates the map for all strand/frame contexts available
+           in the hit</code></code></pre>
+
+<h2 id="calc_stats">_calc_stats</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_calc_stats</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">_calc_stats</span><span class="operator">(</span><span class="variable">$type</span><span class="operator">,</span> <span class="variable">$action</span><span class="operator">,</span> <span class="variable">$context</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Calculates</span> <span class="operator">[</span><span class="variable">estimated</span><span class="operator">]</span> <span class="variable">tiling</span> <span class="variable">statistics</span> <span class="operator">(</span><span class="variable">identities</span><span class="operator">,</span> <span class="variable">conserved</span> <span class="variable">sites</span>
+           <span class="keyword">length</span><span class="operator">)</span> <span class="keyword">and</span> <span class="variable">sets</span> <span class="variable">the</span> <span class="variable">public</span> <span class="variable">accessors</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">True</span> <span class="variable">on</span> <span class="variable">success</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">$type</span><span class="operator">:</span> <span class="variable">one</span> <span class="variable">of</span> <span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span><span class="operator">,</span> <span class="string">'query'</span>
+           <span class="keyword">default</span> <span class="variable">is</span> <span class="string">'query'</span>
+           <span class="variable">optional</span> <span class="keyword">scalar</span> <span class="variable">$action</span><span class="operator">:</span> <span class="variable">requests</span> <span class="variable">calculation</span> <span class="variable">method</span>
+            <span class="variable">currently</span> <span class="variable">one</span> <span class="variable">of</span> <span class="string">'exact'</span><span class="operator">,</span> <span class="string">'est'</span><span class="operator">,</span> <span class="string">'fast'</span><span class="operator">,</span> <span class="string">'max'</span>
+           <span class="variable">option</span> <span class="keyword">scalar</span> <span class="variable">$context</span><span class="operator">:</span> <span class="variable">strand</span><span class="operator">/</span><span class="variable">frame</span> <span class="variable">context</span> <span class="variable">string</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">Action</span><span class="operator">:</span> <span class="variable">The</span> <span class="variable">statistics</span> <span class="variable">are</span> <span class="variable">calculated</span> <span class="variable">by</span> <span class="variable">summing</span> <span class="variable">quantities</span>
+           <span class="variable">over</span> <span class="variable">the</span> <span class="variable">disjoint</span> <span class="variable">component</span> <span class="variable">intervals</span><span class="operator">,</span> <span class="variable">taking</span> <span class="variable">into</span> <span class="variable">account</span>
+           <span class="variable">coverage</span> <span class="variable">of</span> <span class="variable">those</span> <span class="variable">intervals</span> <span class="variable">by</span> <span class="variable">multiple</span> <span class="variable">HSPs</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">action</span>
+           <span class="variable">tells</span> <span class="variable">the</span> <span class="variable">algorithm</span> <span class="variable">how</span> <span class="variable">to</span> <span class="variable">obtain</span> <span class="variable">those</span> <span class="variable">quantities</span><span class="operator">--</span>
+           <span class="string">'exact'</span> <span class="variable">will</span> <span class="keyword">use</span> <span class="variable">Bio::Search::HSP::HSPI::matches</span>
+            <span class="variable">to</span> <span class="variable">count</span> <span class="variable">the</span> <span class="variable">appropriate</span> <span class="variable">segment</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">homology</span> <span class="variable">string</span><span class="operator">;</span>
+           <span class="string">'est'</span> <span class="variable">will</span> <span class="variable">estimate</span> <span class="variable">the</span> <span class="variable">statistics</span> <span class="variable">by</span> <span class="variable">multiplying</span> <span class="variable">the</span> 
+            <span class="variable">fraction</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">HSP</span> <span class="variable">overlapped</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">component</span> <span class="variable">interval</span>
+            <span class="operator">(</span><span class="variable">see</span> <span class="variable">MapTileUtils</span><span class="operator">)</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">BLAST</span><span class="operator">-</span><span class="variable">reported</span> <span class="variable">identities</span><span class="operator">/</span><span class="variable">postives</span>
+            <span class="operator">(</span><span class="variable">this</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">convenient</span> <span class="keyword">for</span> <span class="variable">BLAST</span> <span class="variable">summary</span> <span class="variable">report</span> <span class="variable">formats</span><span class="operator">)</span>
+           <span class="operator">*</span> <span class="variable">Both</span> <span class="variable">exact</span> <span class="keyword">and</span> <span class="variable">est</span> <span class="variable">take</span> <span class="variable">the</span> <span class="variable">average</span> <span class="variable">over</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">HSPs</span>
+             <span class="variable">that</span> <span class="variable">overlap</span> <span class="variable">the</span> <span class="variable">component</span> <span class="variable">interval</span><span class="operator">.</span>
+           <span class="string">'max'</span> <span class="variable">uses</span> <span class="variable">the</span> <span class="variable">exact</span> <span class="variable">method</span> <span class="variable">to</span> <span class="variable">calculate</span> <span class="variable">the</span> <span class="variable">statistics</span><span class="operator">,</span> 
+            <span class="keyword">and</span> <span class="variable">returns</span> <span class="variable">only</span> <span class="variable">the</span> <span class="variable">maximum</span> <span class="variable">identites</span><span class="operator">/</span><span class="variable">positives</span> <span class="variable">over</span> 
+            <span class="variable">overlapping</span> <span class="variable">HSP</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">component</span> <span class="variable">interval</span><span class="operator">.</span> <span class="variable">No</span> <span class="variable">averaging</span>
+            <span class="variable">is</span> <span class="variable">involved</span> <span class="variable">here</span><span class="operator">.</span>
+           <span class="string">'fast'</span> <span class="variable">doesn't</span> <span class="variable">involve</span> <span class="variable">tiling</span> <span class="variable">at</span> <span class="variable">all</span> <span class="operator">(</span><span class="variable">hence</span> <span class="variable">the</span> <span class="variable">name</span><span class="operator">),</span>
+            <span class="variable">but</span> <span class="variable">it</span> <span class="variable">seems</span> <span class="variable">like</span> <span class="variable">a</span> <span class="variable">very</span> <span class="variable">good</span> <span class="variable">estimate</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">uses</span> <span class="variable">only</span>
+            <span class="variable">reported</span> <span class="keyword">values</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">so</span> <span class="variable">does</span> <span class="keyword">not</span> <span class="keyword">require</span> <span class="variable">sequence</span> <span class="variable">data</span><span class="operator">.</span> <span class="variable">It</span>
+            <span class="variable">calculates</span> <span class="variable">an</span> <span class="variable">average</span> <span class="variable">of</span> <span class="variable">reported</span> <span class="variable">identities</span><span class="operator">,</span> <span class="variable">conserved</span>
+            <span class="variable">sites</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">lengths</span><span class="operator">,</span> <span class="variable">over</span> <span class="variable">unmodified</span> <span class="variable">hsps</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">hit</span><span class="operator">,</span>
+            <span class="variable">weighted</span> <span class="variable">by</span> <span class="variable">the</span> <span class="keyword">length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">hsps</span><span class="operator">.</span>  
+</code></code></pre>
+
+<h2 id="Tiling-Helper-Methods">Tiling Helper Methods</h2>
+
+<h2 id="make_tiling_iterator">_make_tiling_iterator</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_make_tiling_iterator</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_make_tiling_iterator</span><span class="operator">(</span><span class="variable">$type</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Create</span> <span class="variable">an</span> <span class="variable">iterator</span> <span class="variable">code</span> <span class="keyword">ref</span> <span class="variable">that</span> <span class="variable">will</span> <span class="variable">step</span> <span class="variable">through</span> <span class="variable">all</span> 
+           <span class="variable">minimal</span> <span class="variable">combinations</span> <span class="variable">of</span> <span class="variable">HSPs</span> <span class="variable">that</span> <span class="variable">produce</span> <span class="variable">complete</span> <span class="variable">coverage</span>
+           <span class="variable">of</span> <span class="variable">the</span> <span class="variable">$type</span> <span class="operator">(</span><span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span><span class="operator">,</span> <span class="string">'query'</span><span class="operator">)</span> <span class="variable">sequence</span><span class="operator">,</span> 
+           <span class="keyword">and</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">correct</span> <span class="variable">iterator</span> <span class="variable">property</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">invocant</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">iterator</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">$type</span><span class="operator">,</span> <span class="variable">one</span> <span class="variable">of</span> <span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span><span class="operator">,</span> <span class="string">'query'</span><span class="operator">;</span>
+           <span class="keyword">default</span> <span class="variable">is</span> <span class="string">'query'</span>
+</code></code></pre>
+
+<h2 id="tiling_iterator">_tiling_iterator</h2>
+
+<pre><code><code> Title   : _tiling_iterator
+ Usage   : $tiling-&gt;_tiling_iterator($type,$context)
+ Function: Retrieve the tiling iterator coderef for the requested 
+           $type (&#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;)
+ Example : 
+ Returns : coderef to the desired iterator
+ Args    : scalar $type, one of &#39;hit&#39;, &#39;subject&#39;, &#39;query&#39;
+           default is &#39;query&#39;
+           option scalar $context: strand/frame context string
+ Note    : getter only</code></code></pre>
+
+<h2 id="Construction-Helper-Methods">Construction Helper Methods</h2>
+
+<p>See also <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Search/Tiling/MapTileUtils.html">Bio::Search::Tiling::MapTileUtils</a>.</p>
+
+<h2 id="make_context_key">_make_context_key</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_make_context_key</span>
+ <span class="variable">Alias</span>   <span class="operator">:</span> <span class="variable">_context</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">_make_context_key</span><span class="operator">(</span><span class="string">-strand</span> <span class="operator">=&gt;</span> <span class="variable">$strand</span><span class="operator">,</span> <span class="string">-frame</span> <span class="operator">=&gt;</span> <span class="variable">$frame</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">create</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">indicating</span> <span class="variable">strand</span><span class="operator">/</span><span class="variable">frame</span> <span class="variable">context</span><span class="operator">;</span> <span class="variable">serves</span> <span class="variable">as</span> 
+           <span class="variable">component</span> <span class="variable">of</span> <span class="variable">memoizing</span> <span class="variable">hash</span> <span class="keyword">keys</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-type</span> <span class="operator">=&gt;</span> <span class="variable">one</span> <span class="variable">of</span> <span class="operator">(</span><span class="string">'query'</span><span class="operator">,</span> <span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span><span class="operator">)</span>
+           <span class="string">-strand</span> <span class="operator">=&gt;</span> <span class="variable">one</span> <span class="variable">of</span> <span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">0</span><span class="operator">,-</span><span class="number">1</span><span class="operator">)</span>
+           <span class="string">-frame</span>  <span class="operator">=&gt;</span> <span class="variable">one</span> <span class="variable">of</span> <span class="operator">(-</span><span class="number">2</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="operator">-</span><span class="number">2</span><span class="operator">)</span>
+           <span class="variable">called</span> <span class="variable">w</span><span class="operator">/</span><span class="variable">o</span> <span class="variable">args</span><span class="operator">:</span> <span class="variable">returns</span> <span class="string">'all'</span>
+</code></code></pre>
+
+<h2 id="context">_context</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_context</span>
+ <span class="variable">Alias</span>   <span class="operator">:</span> <span class="variable">_make_context_key</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">_make_context_key</span><span class="operator">(</span><span class="string">-strand</span> <span class="operator">=&gt;</span> <span class="variable">$strand</span><span class="operator">,</span> <span class="string">-frame</span> <span class="operator">=&gt;</span> <span class="variable">$frame</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">create</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">indicating</span> <span class="variable">strand</span><span class="operator">/</span><span class="variable">frame</span> <span class="variable">context</span><span class="operator">;</span> <span class="variable">serves</span> <span class="variable">as</span> 
+           <span class="variable">component</span> <span class="variable">of</span> <span class="variable">memoizing</span> <span class="variable">hash</span> <span class="keyword">keys</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-type</span> <span class="operator">=&gt;</span> <span class="variable">one</span> <span class="variable">of</span> <span class="operator">(</span><span class="string">'query'</span><span class="operator">,</span> <span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span><span class="operator">)</span>
+           <span class="string">-strand</span> <span class="operator">=&gt;</span> <span class="variable">one</span> <span class="variable">of</span> <span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">0</span><span class="operator">,-</span><span class="number">1</span><span class="operator">)</span>
+           <span class="string">-frame</span>  <span class="operator">=&gt;</span> <span class="variable">one</span> <span class="variable">of</span> <span class="operator">(-</span><span class="number">2</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="operator">-</span><span class="number">2</span><span class="operator">)</span>
+           <span class="variable">called</span> <span class="variable">w</span><span class="operator">/</span><span class="variable">o</span> <span class="variable">args</span><span class="operator">:</span> <span class="variable">returns</span> <span class="string">'all'</span>
+</code></code></pre>
+
+<h2 id="Predicates">Predicates</h2>
+
+<p>Most based on a reading of the algorithm name with a configuration lookup.</p>
+
+<dl>
+
+<dt id="has_sequence_data-">_has_sequence_data()</dt>
+<dd>
+
+</dd>
+<dt id="has_logical_length-">_has_logical_length()</dt>
+<dd>
+
+</dd>
+<dt id="has_strand-">_has_strand()</dt>
+<dd>
+
+</dd>
+<dt id="has_frame-">_has_frame()</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="Private-Accessors">Private Accessors</h1>
+
+<h2 id="contig_intersection">_contig_intersection</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_contig_intersection</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">_contig_intersection</span><span class="operator">(</span><span class="variable">$type</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Return</span> <span class="variable">the</span> <span class="variable">minimal</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">$type</span> <span class="variable">coordinate</span> <span class="variable">intervals</span>
+           <span class="variable">covered</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">invocant's</span> <span class="variable">HSPs</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">intervals</span> <span class="operator">(</span><span class="number">2</span><span class="operator">-</span><span class="variable">member</span> <span class="variable">arrayrefs</span><span class="operator">;</span> <span class="variable">see</span> <span class="variable">MapTileUtils</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">$type</span><span class="operator">:</span> <span class="variable">one</span> <span class="variable">of</span> <span class="string">'query'</span><span class="operator">,</span> <span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span>
+</code></code></pre>
+
+<h2 id="reported_length">_reported_length</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_reported_length</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$tiling</span><span class="operator">-&gt;</span><span class="variable">_reported_length</span><span class="operator">(</span><span class="variable">$type</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">the</span> <span class="variable">total</span> <span class="keyword">length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">seq</span> <span class="variable">$type</span>
+           <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">invocant's</span> <span class="variable">hit</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">as</span> <span class="variable">reported</span>
+           <span class="variable">by</span> <span class="operator">(</span><span class="keyword">not</span> <span class="variable">calculated</span> <span class="variable">from</span><span class="operator">)</span> <span class="variable">the</span> <span class="variable">input</span> <span class="variable">data</span> <span class="variable">file</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">scalar</span> <span class="keyword">int</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="keyword">scalar</span> <span class="variable">$type</span><span class="operator">:</span> <span class="variable">one</span> <span class="variable">of</span> <span class="string">'query'</span><span class="operator">,</span> <span class="string">'hit'</span><span class="operator">,</span> <span class="string">'subject'</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">This</span> <span class="variable">is</span> <span class="variable">kludgy</span><span class="operator">;</span> <span class="variable">the</span> <span class="variable">hit</span> <span class="variable">object</span> <span class="variable">does</span> <span class="keyword">not</span> <span class="variable">currently</span>
+           <span class="variable">maintain</span> <span class="variable">accessors</span> <span class="keyword">for</span> <span class="variable">these</span> <span class="keyword">values</span><span class="operator">,</span> <span class="variable">but</span> <span class="variable">the</span> 
+           <span class="variable">hsps</span> <span class="variable">possess</span> <span class="variable">these</span> <span class="variable">attributes</span><span class="operator">.</span> <span class="variable">This</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">wrapper</span>
+           <span class="variable">that</span> <span class="variable">allows</span> <span class="variable">a</span> <span class="variable">consistent</span> <span class="variable">access</span> <span class="variable">method</span> <span class="variable">in</span> <span class="variable">the</span> 
+           <span class="variable">MapTiling</span> <span class="variable">code</span><span class="operator">.</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">Since</span> <span class="variable">this</span> <span class="variable">number</span> <span class="variable">is</span> <span class="variable">based</span> <span class="variable">on</span> <span class="variable">a</span> <span class="variable">reported</span> <span class="keyword">length</span><span class="operator">,</span>
+           <span class="variable">it</span> <span class="variable">is</span> <span class="variable">already</span> <span class="variable">a</span> <span class="string">"logical length"</span><span class="operator">.</span> 
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

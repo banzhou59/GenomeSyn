@@ -1,0 +1,390 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#DISCLAIMER">DISCLAIMER</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#VERSION-and-Revision">VERSION and Revision</a></li>
+    </ul>
+  </li>
+  <li><a href="#Module-Bio::Tools::Run::Analysis::Job">Module Bio::Tools::Run::Analysis::Job</a>
+    <ul>
+      <li><a href="#new1">new</a></li>
+    </ul>
+  </li>
+  <li><a href="#Module-Bio::Tools::Run::Analysis::Utils">Module Bio::Tools::Run::Analysis::Utils</a>
+    <ul>
+      <li><a href="#format_time">format_time</a></li>
+      <li><a href="#load_access_module">_load_access_module</a></li>
+      <li><a href="#guess_access">_guess_access</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::Analysis - Module representing any (remote or local) analysis tool</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># run analysis 'seqret' using a default location and a default</span>
+  <span class="comment"># access method (which means using a Web Service at EBI)</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="variable">new</span> <span class="variable">Bio::Tools::Run::Analysis</span> <span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'edit::seqret'</span><span class="operator">)</span>
+       <span class="operator">-&gt;</span><span class="variable">wait_for</span> <span class="operator">(</span><span class="operator">{</span> <span class="string">sequence_direct_data</span> <span class="operator">=&gt;</span> <span class="string">'tatatacgtatacga'</span><span class="operator">,</span>
+                     <span class="string">osformat</span> <span class="operator">=&gt;</span> <span class="string">'embl'</span>
+                     <span class="operator">}</span><span class="operator">)</span>
+       <span class="operator">-&gt;</span><span class="variable">result</span> <span class="operator">(</span><span class="string">'outseq'</span><span class="operator">);</span>
+  
+  <span class="comment"># run a longer job without waiting for its completion</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$job</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'edit::seqret'</span><span class="operator">)</span>
+                 <span class="operator">-&gt;</span><span class="variable">run</span> <span class="operator">(</span><span class="operator">{</span> <span class="string">sequence_direct_data</span> <span class="operator">=&gt;</span> <span class="string">'tatatacgtatacga'</span><span class="operator">,</span>
+                          <span class="string">osformat</span> <span class="operator">=&gt;</span> <span class="string">'embl'</span>
+                          <span class="operator">}</span><span class="operator">);</span>
+  <span class="comment"># ...and after a while</span>
+  <span class="variable">$job</span><span class="operator">-&gt;</span><span class="variable">result</span> <span class="operator">(</span><span class="string">'outseq'</span><span class="operator">);</span>
+  
+  <span class="comment"># get all results in the same invocation (as a hash reference</span>
+  <span class="comment"># with result names as keys) - let the module decide which</span>
+  <span class="comment"># results are binary (images in this examples) and save those</span>
+  <span class="comment"># in file (or files); it also shows how to tell that the module</span>
+  <span class="comment"># should read input data from a local file first</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$results</span> <span class="operator">=</span>
+    <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'alignment_multiple::prettyplot'</span><span class="operator">)</span>
+       <span class="operator">-&gt;</span><span class="variable">wait_for</span> <span class="operator">(</span> <span class="operator">{</span> <span class="string">msf_direct_data</span> <span class="operator">=&gt;</span> <span class="string">'@/home/testdata/my.seq'</span> <span class="operator">}</span> <span class="operator">)</span>
+       <span class="operator">-&gt;</span><span class="variable">results</span> <span class="operator">(</span><span class="string">'?'</span><span class="operator">);</span>
+  <span class="keyword">use</span> <span class="variable">Data::Dumper</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="variable">Dumper</span> <span class="operator">(</span><span class="variable">$results</span><span class="operator">);</span>
+  
+  <span class="comment"># get names, types of all inputs and results,</span>
+  <span class="comment"># get short and detailed (in XML) service description</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$service</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'edit::seqret'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$hash1</span> <span class="operator">=</span> <span class="variable">$service</span><span class="operator">-&gt;</span><span class="variable">input_spec</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$hash2</span> <span class="operator">=</span> <span class="variable">$service</span><span class="operator">-&gt;</span><span class="variable">result_spec</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$hash3</span> <span class="operator">=</span> <span class="variable">$service</span><span class="operator">-&gt;</span><span class="variable">analysis_spec</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$xml</span> <span class="operator">=</span> <span class="variable">$service</span><span class="operator">-&gt;</span><span class="variable">describe</span><span class="operator">;</span>
+  
+  <span class="comment"># get current job status</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="variable">new</span> <span class="variable">Bio::Tools::Run::Analysis</span> <span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'edit::seqret'</span><span class="operator">)</span>
+    <span class="operator">-&gt;</span><span class="variable">run</span> <span class="operator">(</span> <span class="operator">{</span> <span class="comment">#...input data...</span>
+            <span class="operator">}</span> <span class="operator">)</span>
+    <span class="operator">-&gt;</span><span class="variable">status</span><span class="operator">;</span>
+  
+  <span class="comment"># run a job and print its job ID, keep the job un-destroyed</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$job</span> <span class="operator">=</span>
+    <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'edit::seqret'</span><span class="operator">,</span>
+                                   <span class="string">-destroy_on_exit</span> <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">)</span>
+    <span class="operator">-&gt;</span><span class="variable">run</span> <span class="operator">(</span> <span class="operator">{</span> <span class="string">sequence_direct_data</span> <span class="operator">=&gt;</span> <span class="string">'@/home/testdata/mzef.seq'</span> <span class="operator">}</span> <span class="operator">);</span>
+  <span class="keyword">print</span> <span class="variable">$job</span><span class="operator">-&gt;</span><span class="variable">id</span> <span class="operator">.</span> <span class="string">"\n"</span><span class="operator">;</span>
+  <span class="comment"># ...it prints (for example):</span>
+  <span class="comment">#    edit::seqret/c8ef56:ef535489ac:-7ff4</span>
+  
+  <span class="comment"># ...in another time, on another planet, you may say</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$job</span> <span class="operator">=</span>
+    <span class="variable">Bio::Tools::Run::Analysis::Job</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'edit::seqret'</span><span class="operator">,</span>
+                                        <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="string">'edit::seqret/c8ef56:ef535489ac:-7ff4'</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="keyword">join</span> <span class="operator">(</span><span class="string">"\n"</span><span class="operator">,</span>
+            <span class="variable">$job</span><span class="operator">-&gt;</span><span class="variable">status</span><span class="operator">,</span>
+            <span class="string">'Finished: '</span> <span class="operator">.</span> <span class="variable">$job</span><span class="operator">-&gt;</span><span class="variable">ended</span> <span class="operator">(</span><span class="number">1</span><span class="operator">),</span>   <span class="comment"># (1) means 'formatted'</span>
+            <span class="string">'Elapsed time: '</span> <span class="operator">.</span> <span class="variable">$job</span><span class="operator">-&gt;</span><span class="variable">elapsed</span><span class="operator">,</span>
+            <span class="variable">$job</span><span class="operator">-&gt;</span><span class="variable">last_event</span><span class="operator">,</span>
+            <span class="variable">$job</span><span class="operator">-&gt;</span><span class="variable">result</span> <span class="operator">(</span><span class="string">'outseq'</span><span class="operator">)</span>
+            <span class="operator">);</span>
+  
+  <span class="comment"># ...or you may achieve the same keeping module</span>
+  <span class="comment"># Bio::Tools::Run::Analysis::Job invisible</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$job</span> <span class="operator">=</span>
+    <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'edit::seqret'</span><span class="operator">)</span>
+        <span class="operator">-&gt;</span><span class="variable">create_job</span> <span class="operator">(</span><span class="string">'edit::seqret/c8ef56:ef535489ac:-7ff4'</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="keyword">join</span> <span class="operator">(</span><span class="string">"\n"</span><span class="operator">,</span>
+            <span class="variable">$job</span><span class="operator">-&gt;</span><span class="variable">status</span><span class="operator">,</span>
+            <span class="comment"># ...</span>
+            <span class="operator">);</span>
+  
+  <span class="comment"># ...and later you may free this job resources</span>
+  <span class="variable">$job</span><span class="operator">-&gt;</span><span class="variable">remove</span><span class="operator">;</span>
+  
+  <span class="comment">#</span>
+  <span class="comment"># --- See DESCRIPTION for using generator 'applmaker.pl':</span>
+  <span class="comment">#</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>The module represents an access to the local and/or remote analysis tools in a unified way that allows adding new access methods (protocols) seamlessly.</p>
+
+<p>At the moment of writing, there is available a <i>SOAP</i> access to almost all EMBOSS applications, running at the European Bioinformatics Institute.</p>
+
+<p>The documentation of all <code><code>public</code></code> methods are to be found in <code><code>Bio::AnalysisI</code></code>. A tutorial (and examples how to call almost all public methods) is in the script <code><code>panalysis.PLS</code></code> (go to the <code><code>scripts</code></code> directory and type <code><code>perldoc panalysis.PLS</code></code>).</p>
+
+<p>The module <code><code>Bio::Tools::Run::Analysis</code></code> uses general approach allowing to set arbitrary input data and to retrieve results by naming them. However, sometimes is more convenient to use a specific module, representing one analysis tool, that already knows about available input and result names. Such analyses-specific Perl modules can be generated by <code><code>papplmaker.PLS</code></code> generator. Its features and usage are documented in the generator (go to the <code><code>scripts</code></code> directory and type <code><code>perldoc papplmaker.PLS</code></code>).</p>
+
+<pre><code><code>  <span class="comment"># this will generate module Seqret.pm</span>
+  <span class="variable">perl</span> <span class="variable">papplmaker</span><span class="operator">.</span><span class="variable">PLS</span> <span class="operator">-</span><span class="variable">n</span> <span class="variable">edit</span><span class="operator">.</span><span class="variable">seqret</span> <span class="operator">-</span><span class="regex">m Seqret
+  
+  # ...which can be used with data-specific methods
+  use Seqret</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$outseq</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Seqret</span>
+    <span class="operator">-&gt;</span><span class="variable">sequence_direct_data</span> <span class="operator">(</span><span class="string">'@/home/testdata/my.seq'</span><span class="operator">)</span>
+    <span class="operator">-&gt;</span><span class="variable">osformat</span> <span class="operator">(</span><span class="string">'embl'</span><span class="operator">)</span>
+    <span class="operator">-&gt;</span><span class="variable">wait_for</span>
+    <span class="operator">-&gt;</span><span class="variable">outseq</span>
+    <span class="operator">;</span>
+  <span class="keyword">print</span> <span class="variable">$outseq</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Martin Senger (martin.senger@gmail.com)</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2003, Martin Senger and EMBL-EBI. All Rights Reserved.</p>
+
+<p>This module is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="DISCLAIMER">DISCLAIMER</h1>
+
+<p>This software is provided &quot;as is&quot; without warranty of any kind.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<ul>
+
+<li><p>http://www.ebi.ac.uk/soaplab/Perl_Client.html</p>
+
+</li>
+</ul>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>Here is the rest of the object methods. Internal methods are preceded with an underscore _.</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$tool</span> <span class="operator">=</span>
+             <span class="variable">Bio::Tools::Run::Analysis</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-access</span> <span class="operator">=&gt;</span> <span class="string">'soap'</span><span class="operator">,</span>
+                                            <span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'edit.seqret'</span><span class="operator">,</span>
+                                            <span class="operator">...</span>
+                                            <span class="operator">);</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Tools::Run::Analysis</span> <span class="variable">object</span> <span class="variable">representing</span> <span class="variable">the</span> <span class="keyword">given</span> <span class="variable">tool</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">There</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">additional</span> <span class="variable">arguments</span> <span class="variable">which</span> <span class="variable">are</span> <span class="variable">specific</span>
+           <span class="variable">to</span> <span class="variable">the</span> <span class="variable">access</span> <span class="variable">method</span> <span class="operator">(</span><span class="variable">see</span> <span class="variable">methods</span> <span class="string">'new'</span> <span class="keyword">or</span> <span class="string">'_initialize'</span>
+           <span class="variable">of</span> <span class="variable">the</span> <span class="variable">access</span><span class="operator">-</span><span class="variable">specific</span> <span class="variable">implementations</span> <span class="operator">(</span><span class="variable">such</span> <span class="variable">as</span> <span class="variable">module</span>
+           <span class="variable">Bio::Tools::Run::Analysis::soap</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">SOAP</span><span class="operator">-</span><span class="variable">based</span> <span class="variable">access</span><span class="operator">).</span>
+ 
+           <span class="variable">The</span> <span class="variable">recognised</span> <span class="keyword">and</span> <span class="variable">used</span> <span class="variable">arguments</span> <span class="variable">are</span><span class="operator">:</span>
+             <span class="operator">-</span><span class="variable">access</span>
+             <span class="operator">-</span><span class="variable">location</span>
+             <span class="operator">-</span><span class="variable">name</span>
+             <span class="operator">-</span><span class="variable">httpproxy</span>
+             <span class="operator">-</span><span class="variable">timeout</span>
+</code></code></pre>
+
+<p>It builds, populates and returns a new <code><code>Bio::Tools::Run::Analysis</code></code> object. This is how it is seen from the outside. But in fact, it builds, populates and returns a more specific lower-level object, for example <code><code>Bio::Tools::Run::Analysis::soap</code></code> object - which one it depends on the <code><code>-access</code></code> parameter.</p>
+
+<dl>
+
+<dt id="access">-access</dt>
+<dd>
+
+<p>It indicates what lower-level module to load. Default is &#39;soap&#39;. Other (but future) possibilities may be:</p>
+
+<pre><code><code>   -access =&gt; &#39;novella&#39;
+   -access =&gt; &#39;local&#39;</code></code></pre>
+
+</dd>
+<dt id="location">-location</dt>
+<dd>
+
+<p>A location of the service. The contents is access-specific (see details in the lower-level implementation modules).</p>
+
+<p>Default is <code><code>http://www.ebi.ac.uk/soaplab/services</code></code> ( services running at European Bioinformatics Institute on top of most of EMBOSS analyses, and on few others).</p>
+
+</dd>
+<dt id="name">-name</dt>
+<dd>
+
+<p>A name of an analysis tool, or a name of its higher-level abstraction, possibly including a category where the analysis belong to. There is no default value (which usually means that this parameter is mandatory unless your <i>-location</i> parameter includes also the name (but it is then access-dependent).</p>
+
+</dd>
+<dt id="destroy_on_exit-0">-destroy_on_exit =&gt; &#39;0&#39;</dt>
+<dd>
+
+<p>Default value is &#39;1&#39; which means that all Bio::Tools::Run::Analysis::Job objects - when being finalised - will send a request to the remote site to forget the results of these jobs.</p>
+
+<p>If you change it to &#39;0&#39; make sure that you know the job identification - otherwise you will not be able to re-established connection with it (later, when you use your program again). This can be done by calling method <code><code>id</code></code> on the job object (such object is returned by any of these methods: <code><code>create_job</code></code>, <code><code>run</code></code>, <code><code>wait_for</code></code>).</p>
+
+</dd>
+<dt id="httpproxy">-httpproxy</dt>
+<dd>
+
+<p>In addition to the <i>location</i> parameter, you may need to specify also a location/URL of an HTTP proxy server (if your site requires one). The expected format is <code><code>http://server:port</code></code>. There is no default value. It is also an access-specific parameter which may not be used by all access methods.</p>
+
+</dd>
+<dt id="timeout">-timeout</dt>
+<dd>
+
+<p>For long(er) running jobs the HTTP connection may be time-outed. In order to avoid it (or, vice-versa, to call timeout sooner) you may specify <code><code>timeout</code></code> with the number of seconds the connection will be kept alive. Zero means to keep it alive forever. The default value is two minutes.</p>
+
+</dd>
+</dl>
+
+<h2 id="VERSION-and-Revision">VERSION and Revision</h2>
+
+<pre><code><code> <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">print</span> <span class="variable">$Bio::Tools::Run::Analysis::VERSION</span><span class="operator">;</span>
+           <span class="keyword">print</span> <span class="variable">$Bio::Tools::Run::Analysis::Revision</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="Module-Bio::Tools::Run::Analysis::Job">Module Bio::Tools::Run::Analysis::Job</h1>
+
+<p>It represents a job, a single execution of an analysis tool. Usually you do not instantiate these objects - they are returned by methods <code><code>create_job</code></code>, <code><code>run</code></code>, and <code><code>wait_for</code></code> of <code><code>Bio::Tools::Run::Analysis</code></code> object.</p>
+
+<p>However, if you wish to re-create a job you need to know its ID (method <code><code>id</code></code> gives it to you). The ID can be passed directly to the <code><code>new</code></code> method, or again you may use <code><code>create_job</code></code> of a <code><code>Bio::Tools::Run::Analysis</code></code> object with the ID as parameter. See SYNOPSIS above for an example.</p>
+
+<p>Remember that all public methods of this module are described in details in interface module <code><code>Bio::AnalysisI</code></code> and in the tutorial in the <code><code>analysis.pl</code></code> script.</p>
+
+<h2 id="new1">new</h2>
+
+<pre><code><code> <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$job</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Analysis::Job</span><span class="operator">-&gt;</span><span class="variable">new</span>
+                       <span class="operator">(</span><span class="string">-access</span> <span class="operator">=&gt;</span> <span class="string">'soap'</span><span class="operator">,</span>
+                        <span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'edit.seqret'</span><span class="operator">,</span>
+                        <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="string">'xxxyyy111222333'</span>
+                        <span class="operator">);</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">re</span><span class="operator">-</span><span class="variable">created</span> <span class="variable">object</span> <span class="variable">representing</span> <span class="variable">a</span> <span class="variable">job</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">The</span> <span class="variable">same</span> <span class="variable">arguments</span> <span class="variable">as</span> <span class="keyword">for</span> <span class="variable">Bio::Tools::Run::Analysis</span> <span class="variable">object</span><span class="operator">:</span>
+             <span class="operator">-</span><span class="variable">access</span>
+             <span class="operator">-</span><span class="variable">location</span>
+             <span class="operator">-</span><span class="variable">name</span>
+             <span class="operator">-</span><span class="variable">httpproxy</span>
+             <span class="operator">-</span><span class="variable">timeout</span>
+             <span class="operator">(</span><span class="keyword">and</span> <span class="variable">perhaps</span> <span class="variable">others</span><span class="operator">)</span>
+           <span class="variable">Additionally</span> <span class="keyword">and</span> <span class="variable">specifically</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">object</span><span class="operator">:</span>
+             <span class="operator">-</span><span class="variable">id</span>
+             <span class="operator">-</span><span class="variable">analysis</span>
+</code></code></pre>
+
+<dl>
+
+<dt id="id">-id</dt>
+<dd>
+
+<p>A job ID created some previous time and now used to re-create the same job (in order to re-gain access to this job results, for example).</p>
+
+</dd>
+<dt id="analysis">-analysis</dt>
+<dd>
+
+<p>A <code><code>Bio::Tools::Run::Analysis</code></code> object whose properties (such as <code><code>-access</code></code> and <code><code>-location</code></code> are used to re-create this job object.</p>
+
+</dd>
+</dl>
+
+<h1 id="Module-Bio::Tools::Run::Analysis::Utils">Module Bio::Tools::Run::Analysis::Utils</h1>
+
+<p>It contains several general utilities. These are <code><code>functions</code></code>, not methods. Therefore call them like, for example:</p>
+
+<pre><code><code>    <span class="operator">&amp;</span><span class="variable">Bio::Tools::Run::Analysis::Utils::format_time</span> <span class="operator">(...);</span>
+</code></code></pre>
+
+<h2 id="format_time">format_time</h2>
+
+<pre><code><code> <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">Bio::Tools::Run::Analysis::Utils::format_time</span> <span class="operator">(</span><span class="variable">$time</span><span class="operator">);</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Slightly</span> <span class="variable">formatted</span> <span class="variable">$time</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$time</span> <span class="variable">is</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">seconds</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">beginning</span> <span class="variable">of</span> <span class="variable">Epoch</span>
+</code></code></pre>
+
+<p>It returns what <code><code>localtime</code></code> returns which means that return value is different in the array and scalar context (see localtime). If <code><code>$time</code></code> is ``-1&#39;&#39; it returns &#39;n/a&#39; (in the scalar context) or an empty array (in the array context). If <code><code>$time</code></code> is too small to represent the distance from the beginning of the Epoch, it returns it unchanged (the same in any contex) - this is reasonable for <code><code>$time</code></code> representing an elapsed time.</p>
+
+<p>The function is used to format times coming back from various job time methods.</p>
+
+<h2 id="load_access_module">_load_access_module</h2>
+
+<pre><code><code> Usage   : $class-&gt;_load_access_module ($access)
+ Returns : 1 on success, undef on failure
+ Args    : &#39;access&#39; should contain the last part of the
+           name of a module who does the real implementation</code></code></pre>
+
+<p>It does (in the run-time) a similar thing as</p>
+
+<pre><code><code>   require Bio::Tools::Run::Analysis::$access</code></code></pre>
+
+<p>It prints an error on STDERR if it fails to find and load the module (for example, because of the compilation errors in the module).</p>
+
+<h2 id="guess_access">_guess_access</h2>
+
+<pre><code><code> Usage   : Bio::Tools::Run::Analysis::Utils::guess_access ($rh_params)
+ Returns : string with a guessed access protocol (e.g. &#39;soap&#39;),
+           or undef if the guessing failed
+ Args    : &#39;rh_params&#39; is a hash reference containing parameters given
+           to the &#39;new&#39; method.</code></code></pre>
+
+<p>It makes an expert guess what kind of access/transport protocol should be used to access the underlying analysis. The guess is based on the parameters in <i>rh_params</i>. Rememeber that this method is called only if there was no <i>-access</i> parameter which could tell directly what access method to use.</p>
+
+
+</body>
+
+</html>
+
+

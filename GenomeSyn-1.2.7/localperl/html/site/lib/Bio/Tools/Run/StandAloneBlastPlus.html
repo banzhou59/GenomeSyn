@@ -1,0 +1,582 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#USAGE">USAGE</a>
+    <ul>
+      <li><a href="#Factory-construction-initialization">Factory construction/initialization</a></li>
+      <li><a href="#Creating-a-BLAST-database">Creating a BLAST database</a></li>
+      <li><a href="#Creating-and-using-mask-data">Creating and using mask data</a></li>
+      <li><a href="#Getting-database-information">Getting database information</a></li>
+      <li><a href="#Accessing-the-Bio::Tools::Run::BlastPlus-factory">Accessing the Bio::Tools::Run::BlastPlus factory</a></li>
+      <li><a href="#Cleaning-up-temp-files">Cleaning up temp files</a></li>
+      <li><a href="#Other-Goodies">Other Goodies</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#db-">db()</a></li>
+      <li><a href="#factory-">factory()</a></li>
+      <li><a href="#program_version-">program_version()</a></li>
+      <li><a href="#package_version-">package_version()</a></li>
+    </ul>
+  </li>
+  <li><a href="#DB-methods">DB methods</a>
+    <ul>
+      <li><a href="#make_db-">make_db()</a></li>
+      <li><a href="#make_mask-">make_mask()</a></li>
+      <li><a href="#db_info-">db_info()</a></li>
+      <li><a href="#set_db_make_args-">set_db_make_args()</a></li>
+      <li><a href="#set_mask_make_args-">set_mask_make_args()</a></li>
+      <li><a href="#check_db-">check_db()</a></li>
+      <li><a href="#no_throw_on_crash-">no_throw_on_crash()</a></li>
+    </ul>
+  </li>
+  <li><a href="#Internals">Internals</a>
+    <ul>
+      <li><a href="#fastize-">_fastize()</a></li>
+      <li><a href="#register_temp_for_cleanup-">_register_temp_for_cleanup()</a></li>
+      <li><a href="#cleanup-">cleanup()</a></li>
+      <li><a href="#AUTOLOAD">AUTOLOAD</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::StandAloneBlastPlus - Compute with NCBI&#39;s blast+ suite *ALPHA*</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p><b>NOTE</b>: This module is related to the <a href="../../../../../lib/perl5/Bio/Tools/Run/StandAloneBlast.html">Bio::Tools::Run::StandAloneBlast</a> system in name (and inspiration) only. You must use this module directly.</p>
+
+<pre><code><code> <span class="comment"># existing blastdb:</span>
+ <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_name</span> <span class="operator">=&gt;</span> <span class="string">'mydb'</span>
+ <span class="operator">);</span>
+ 
+ <span class="comment"># create blastdb from fasta file and attach</span>
+ <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_name</span> <span class="operator">=&gt;</span> <span class="string">'mydb'</span><span class="operator">,</span>
+   <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="string">'myseqs.fas'</span><span class="operator">,</span>
+   <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+ 
+ <span class="comment"># create blastdb from BioPerl sequence collection objects</span>
+ <span class="variable">$alnio</span> <span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'alignment.msf'</span> <span class="operator">);</span>
+ <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_name</span> <span class="operator">=&gt;</span> <span class="string">'mydb'</span><span class="operator">,</span>
+   <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="variable">$alnio</span><span class="operator">,</span>
+   <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+ 
+ <span class="variable">@seqs</span> <span class="operator">=</span> <span class="variable">$alnio</span><span class="operator">-&gt;</span><span class="variable">next_aln</span><span class="operator">-&gt;</span><span class="variable">each_seq</span><span class="operator">;</span>
+ <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_name</span> <span class="operator">=&gt;</span> <span class="string">'mydb'</span><span class="operator">,</span>
+   <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@seqs</span><span class="operator">,</span>
+   <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+ 
+ <span class="comment"># create database with masks</span>
+ 
+ <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+  <span class="string">-db_name</span> <span class="operator">=&gt;</span> <span class="string">'my_masked_db'</span><span class="operator">,</span>
+  <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="string">'myseqs.fas'</span><span class="operator">,</span>
+  <span class="string">-masker</span> <span class="operator">=&gt;</span> <span class="string">'dustmasker'</span><span class="operator">,</span>
+  <span class="string">-mask_data</span> <span class="operator">=&gt;</span> <span class="string">'maskseqs.fas'</span><span class="operator">,</span>
+  <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+ 
+ <span class="comment"># create a mask datafile separately</span>
+ <span class="variable">$mask_file</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">make_mask</span><span class="operator">(</span>
+   <span class="string">-data</span> <span class="operator">=&gt;</span> <span class="string">'maskseqs.fas'</span><span class="operator">,</span>
+   <span class="string">-masker</span> <span class="operator">=&gt;</span> <span class="string">'dustmasker'</span>
+ <span class="operator">);</span>
+ 
+ <span class="comment"># query database for metadata</span>
+ <span class="variable">$info_hash</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">db_info</span><span class="operator">;</span>
+ <span class="variable">$num_seq</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">db_num_sequences</span><span class="operator">;</span>
+ <span class="variable">@mask_metadata</span> <span class="operator">=</span> <span class="variable">@</span><span class="operator">{</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">db_filter_algorithms</span> <span class="operator">}</span><span class="operator">;</span>
+ 
+ <span class="comment"># perform blast methods</span>
+ <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">tblastn</span><span class="operator">(</span> <span class="string">-query</span> <span class="operator">=&gt;</span> <span class="variable">$seqio</span> <span class="operator">);</span>
+ <span class="comment"># see Bio::Tools::Run::StandAloneBlastPlus::BlastMethods </span>
+ <span class="comment"># for many more details</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><b>NOTE:</b> This module requires BLAST+ v. 2.2.24+ and higher. Until the API stabilizes for BLAST+, consider this module highly experimental.</p>
+
+<p>This module along with <a href="../../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/Tools/Run/StandAloneBlastPlus/BlastMethods.html">Bio::Tools::Run::StandAloneBlastPlus::BlastMethods</a> allows the user to perform BLAST functions using the external program suite <code><code>blast+</code></code> (available at <a href="ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/">ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/</a>), using BioPerl objects and <a href="../../../../../lib/perl5/Bio/SearchIO.html">Bio::SearchIO</a> facilities. This wrapper can prepare BLAST databases as well as run BLAST searches. It can also be used to run <code><code>blast+</code></code> programs independently.</p>
+
+<p>This module encapsulates object construction and production of databases and masks. Blast analysis methods (<code><code>blastp, psiblast</code></code>, etc&gt;) are contained in <a href="../../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/Tools/Run/StandAloneBlastPlus/BlastMethods.html">Bio::Tools::Run::StandAloneBlastPlus::BlastMethods</a>.</p>
+
+<h1 id="USAGE">USAGE</h1>
+
+<p>The basic mantra is to (1) create a BlastPlus factory using the <code><code>new()</code></code> constructor, and (2) perform BLAST analyses by calling the desired BLAST program by name off the factory object. The blast database itself and any masking data are attached to the factory object (step 1). Query sequences and any parameters associated with particular programs are provided to the blast method call (step 2), and are run against the attached database.</p>
+
+<h2 id="Factory-construction-initialization">Factory construction/initialization</h2>
+
+<p>The factory needs to be told where the blast+ programs live. The <code><code>BLASTPLUSDIR</code></code> environment variable will be checked for the default executable directory. The program directory can be set for individual factory instances with the <code><code>PROG_DIR</code></code> parameter. All the blast+ programs must be accessible from that directory (i.e., as executable files or symlinks).</p>
+
+<p>Either the database or BLAST subject data must be specified at object construction. Databases can be pre-existing formatted BLAST dbs, or can be built directly from fasta sequence files or BioPerl sequence object collections of several kinds. The key constructor parameters are <code><code>DB_NAME</code></code>, <code><code>DB_DATA</code></code>, <code><code>DB_DIR</code></code>.</p>
+
+<p>To specify a pre-existing BLAST database, use <code><code>DB_NAME</code></code> alone:</p>
+
+<pre><code><code> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+     <span class="string">-DB_NAME</span> <span class="operator">=&gt;</span> <span class="string">'mydb'</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<p>The directory can be specified along with the basename, or separately with <code><code>DB_DIR</code></code>:</p>
+
+<pre><code><code> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+     <span class="string">-DB_NAME</span> <span class="operator">=&gt;</span> <span class="string">'~/home/blast/mydb'</span>
+ <span class="operator">);</span>
+ 
+ <span class="comment">#same as</span>
+ 
+ <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+     <span class="string">-DB_NAME</span> <span class="operator">=&gt;</span> <span class="string">'mydb'</span><span class="operator">,</span> <span class="string">-DB_DIR</span> <span class="operator">=&gt;</span> <span class="string">'~/home/blast'</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<p>To create a BLAST database de novo, see <a href="#Creating-a-BLAST-database">&quot;Creating a BLAST database&quot;</a>.</p>
+
+<p>If you wish to apply pre-existing mask data (i.e., the final ASN1 output from one of the blast+ masker programs), to the database before querying, specify it with <code><code>MASK_FILE</code></code>:</p>
+
+<pre><code><code> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+     <span class="string">-DB_NAME</span> <span class="operator">=&gt;</span> <span class="string">'mydb'</span><span class="operator">,</span> <span class="string">-MASK_FILE</span> <span class="operator">=&gt;</span> <span class="string">'mymaskdata.asn'</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="Creating-a-BLAST-database">Creating a BLAST database</h2>
+
+<p>There are several options for creating the database de novo using attached data, both before and after factory construction. If a temporary database (one that can be deleted by the <code><code>cleanup()</code></code> method) is desired, leave out the <code><code>-db_name</code></code> parameter. If <code><code>-db_name</code></code> is specified, the database will be preserved with the basename specified.</p>
+
+<p>Use <code><code>-create =</code></code> 1&gt; to create a new database (otherwise the factory will look for an existing database). Use <code><code>-overwrite =</code></code> 1&gt; to create and overwrite an existing database.</p>
+
+<p>Note that the database is not created immediately on factory construction. It will be created if necessary on the first use of a factory BLAST method, or you can force database creation by executing</p>
+
+<pre><code><code> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">make_db</span><span class="operator">();</span>
+</code></code></pre>
+
+<ul>
+
+<li><p>Specify data during construction</p>
+
+<p>With a FASTA file:</p>
+
+<pre><code><code> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_name</span> <span class="operator">=&gt;</span> <span class="string">'mydb'</span><span class="operator">,</span>
+   <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="string">'myseqs.fas'</span><span class="operator">,</span>
+   <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<p>With another BioPerl object collection:</p>
+
+<pre><code><code> <span class="variable">$alnio</span> <span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'alignment.msf'</span> <span class="operator">);</span>
+ <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_name</span> <span class="operator">=&gt;</span> <span class="string">'mydb'</span><span class="operator">,</span>
+   <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="variable">$alnio</span><span class="operator">,</span>
+   <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+ <span class="variable">@seqs</span> <span class="operator">=</span> <span class="variable">$alnio</span><span class="operator">-&gt;</span><span class="variable">next_aln</span><span class="operator">-&gt;</span><span class="variable">each_seq</span><span class="operator">;</span>
+ <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_name</span> <span class="operator">=&gt;</span> <span class="string">'mydb'</span><span class="operator">,</span>
+   <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@seqs</span><span class="operator">,</span>
+   <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<p>Other collections (e.g., <a href="../../../../../lib/perl5/Bio/SeqIO.html">Bio::SeqIO</a>) are valid. If a certain type does not work, please submit an enhancement request.</p>
+
+<p>To create temporary databases, leave out the <code><code>-db_name</code></code>, e.g.</p>
+
+<pre><code><code> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="string">'myseqs.fas'</span><span class="operator">,</span>
+   <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<p>To get the tempfile basename, do:</p>
+
+<pre><code><code> <span class="variable">$dbname</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">db</span><span class="operator">;</span>
+</code></code></pre>
+
+</li>
+<li><p>Specify data post-construction</p>
+
+<p>Use the explict attribute setters:</p>
+
+<pre><code><code> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+ 
+ <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">set_db_data</span><span class="operator">(</span><span class="string">'myseqs.fas'</span><span class="operator">);</span>
+ <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">make_db</span><span class="operator">;</span>
+</code></code></pre>
+
+</li>
+</ul>
+
+<h2 id="Creating-and-using-mask-data">Creating and using mask data</h2>
+
+<p>The blast+ mask utilities <code><code>windowmasker</code></code>, <code><code>segmasker</code></code>, and <code><code>dustmasker</code></code> are available. Masking can be rolled into database creation, or can be executed later. If your mask data is already created and in ASN1 format, set the <code><code>-mask_file</code></code> attribute on construction (see <a href="#Factory-constuction-initialization">&quot;Factory constuction/initialization&quot;</a>).</p>
+
+<p>To create a mask from raw data or an existing database and apply the mask upon database creation, construct the factory like so:</p>
+
+<pre><code><code> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_name</span> <span class="operator">=&gt;</span> <span class="string">'my_masked_db'</span><span class="operator">,</span>
+   <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="string">'myseqs.fas'</span><span class="operator">,</span>
+   <span class="string">-masker</span> <span class="operator">=&gt;</span> <span class="string">'dustmasker'</span><span class="operator">,</span>
+   <span class="string">-mask_data</span> <span class="operator">=&gt;</span> <span class="string">'maskseqs.fas'</span><span class="operator">,</span>
+   <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<p>The masked database will be created during <code><code>make_db</code></code>.</p>
+
+<p>The <code><code>-mask_data</code></code> parameter can be a FASTA filename or any BioPerl sequence object collection. If the datatype (&#39;nucl&#39; or &#39;prot&#39;) of the mask data is not compatible with the selected masker, an exception will be thrown with a message to that effect.</p>
+
+<p>To create a mask ASN1 file that can be used in the <code><code>-mask_file</code></code> parameter separately from the attached database, use the <code><code>make_mask()</code></code> method directly:</p>
+
+<pre><code><code> <span class="variable">$mask_file</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">make_mask</span><span class="operator">(</span><span class="string">-data</span> <span class="operator">=&gt;</span> <span class="string">'maskseqs.fas'</span><span class="operator">,</span>
+                              <span class="string">-masker</span> <span class="operator">=&gt;</span> <span class="string">'dustmasker'</span><span class="operator">);</span>
+ <span class="comment"># segmasker can use a blastdb as input</span>
+ <span class="variable">$mask_file</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">make_mask</span><span class="operator">(</span><span class="string">-mask_db</span> <span class="operator">=&gt;</span> <span class="string">'mydb'</span><span class="operator">,</span>
+                              <span class="string">-masker</span> <span class="operator">=&gt;</span> <span class="string">'segmasker'</span><span class="operator">)</span>
+ 
+ <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_name</span> <span class="operator">=&gt;</span> <span class="string">'my_masked_db'</span><span class="operator">,</span>
+   <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="string">'myseqs.fas'</span><span class="operator">,</span>
+   <span class="string">-mask_file</span> <span class="operator">=&gt;</span> <span class="variable">$mask_file</span>
+   <span class="operator">-</span><span class="string">create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>   
+</code></code></pre>
+
+<h2 id="Getting-database-information">Getting database information</h2>
+
+<p>To get a hash containing useful metadata on an existing database (obtained by running <code><code>blastdbcmd -info</code></code>, use <code><code>db_info()</code></code>:</p>
+
+<pre><code><code> <span class="comment"># get info on the attached database..</span>
+ <span class="variable">$info</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">db_info</span><span class="operator">;</span>
+ <span class="comment"># get info on another database</span>
+ <span class="variable">$info</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">db_info</span><span class="operator">(</span><span class="string">'~/home/blastdbs/another'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>To get a particular info element for the attached database, just call the element name off the factory:</p>
+
+<pre><code><code> <span class="variable">$num_seqs</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">db_num_sequences</span><span class="operator">;</span>
+ <span class="comment"># info on all the masks applied to the db, if any:</span>
+ <span class="variable">@masking_info</span> <span class="operator">=</span> <span class="variable">@</span><span class="operator">{</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">db_filter_algorithms</span> <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="Accessing-the-Bio::Tools::Run::BlastPlus-factory">Accessing the <a href="../../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/Tools/Run/BlastPlus.html">Bio::Tools::Run::BlastPlus</a> factory</h2>
+
+<p>The blast+ programs are actually executed by a <a href="../../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/Tools/Run/BlastPlus.html">Bio::Tools::Run::BlastPlus</a> wrapper instance. This instance is available for peeking and poking in the <a href="../../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/Tools/Run/StandAloneBlastPlus.html">StandAloneBlastPlus</a> <code><code>factory()</code></code> attribute. For convenience, <code><code>BlastPlus</code></code> methods can be run from the <code><code>StandAloneBlastPlus</code></code> object, and are delegated to the <code><code>factory()</code></code> attribute. For example, to get the blast+ program to be executed, examine either</p>
+
+<pre><code><code> $fac-&gt;factory-&gt;command</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code> $fac-&gt;command</code></code></pre>
+
+<p>Similarly, the current parameters for the <code><code>BlastPlus</code></code> factory are</p>
+
+<pre><code><code> @parameters = $fac-&gt;get_parameters</code></code></pre>
+
+<h2 id="Cleaning-up-temp-files">Cleaning up temp files</h2>
+
+<p>Temporary analysis files produced under a single factory instances can be unlinked by running</p>
+
+<pre><code><code> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">cleanup</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Tempfiles are generally not removed unless this method is explicitly called. <code><code>cleanup()</code></code> only unlinks &quot;registered&quot; files and databases. All temporary files are automatically registered; in particular, &quot;anonymous&quot; databases (such as</p>
+
+<pre><code><code> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="string">'myseqs.fas'</span><span class="operator">,</span> 
+   <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+<p>without a <code><code>-db_name</code></code> specification) are registered for cleanup. Any file or database can be registered with an internal method:</p>
+
+<pre><code><code> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">_register_temp_for_cleanup</span><span class="operator">(</span><span class="string">'testdb'</span><span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="Other-Goodies">Other Goodies</h2>
+
+<ul>
+
+<li><p>You can check whether a given basename points to a properly formatted BLAST database by doing</p>
+
+<pre><code><code> <span class="variable">$is_good</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">check_db</span><span class="operator">(</span><span class="string">'putative_db'</span><span class="operator">);</span>
+</code></code></pre>
+
+</li>
+<li><p>User parameters can be passed to the underlying blast+ programs (if you know what you&#39;re doing) with <code><code>db_make_args</code></code> and <code><code>mask_make_args</code></code>:</p>
+
+<pre><code><code> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+   <span class="string">-db_name</span> <span class="operator">=&gt;</span> <span class="string">'customdb'</span><span class="operator">,</span>
+   <span class="string">-db_data</span> <span class="operator">=&gt;</span> <span class="string">'myseqs.fas'</span><span class="operator">,</span> 
+   <span class="string">-db_make_args</span> <span class="operator">=&gt;</span> <span class="operator">[</span> <span class="string">'-taxid_map'</span> <span class="operator">=&gt;</span> <span class="string">'seq_to_taxa.txt'</span> <span class="operator">]</span><span class="operator">,</span>
+   <span class="string">-masker</span> <span class="operator">=&gt;</span> <span class="string">'windowmasker'</span><span class="operator">,</span>
+   <span class="string">-mask_data</span> <span class="operator">=&gt;</span> <span class="string">'myseqs.fas'</span><span class="operator">,</span>
+   <span class="string">-mask_make_args</span> <span class="operator">=&gt;</span> <span class="operator">[</span> <span class="string">'-dust'</span> <span class="operator">=&gt;</span> <span class="string">'T'</span> <span class="operator">]</span><span class="operator">,</span>
+   <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+ <span class="operator">);</span>
+</code></code></pre>
+
+</li>
+<li><p>You can prevent exceptions from being thrown by failed blast+ program executions by setting <code><code>no_throw_on_crash</code></code>. Examine the error with <code><code>stderr()</code></code>:</p>
+
+<pre><code><code> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">no_throw_on_crash</span><span class="operator">(</span><span class="number">1</span><span class="operator">);</span>
+ <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">make_db</span><span class="operator">;</span>
+ <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">stderr</span> <span class="operator">=~</span> <span class="regex">/Error:/</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment">#handle error</span>
+    <span class="operator">...</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+</li>
+</ul>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/Tools/Run/StandAloneBlastPlus/BlastMethods.html">Bio::Tools::Run::StandAloneBlastPlus::BlastMethods</a>, <a href="../../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/Tools/Run/BlastPlus.html">Bio::Tools::Run::BlastPlus</a></p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><a>bioperl-l@bioperl.org</a></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<p>Email maj -at- fortinbras -dot- us</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">of</span> <span class="variable">Bio::Tools::Run::StandAloneBlastPlus</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">named</span> <span class="variable">argument</span> <span class="operator">(</span><span class="string">key</span> <span class="operator">=&gt;</span> <span class="variable">value</span><span class="operator">)</span> <span class="variable">pairs</span><span class="operator">:</span>
+           <span class="operator">-</span><span class="variable">db</span> <span class="operator">:</span> <span class="variable">blastdb</span> <span class="variable">name</span>
+</code></code></pre>
+
+<h2 id="db-">db()</h2>
+
+<pre><code><code> Title   : db
+ Usage   : $obj-&gt;db($newval)
+ Function: contains the basename of the local blast database
+ Example : 
+ Returns : value of db (a scalar string)
+ Args    : readonly</code></code></pre>
+
+<h2 id="factory-">factory()</h2>
+
+<pre><code><code> Title   : factory
+ Usage   : $obj-&gt;factory($newval)
+ Function: attribute containing the Bio::Tools::Run::BlastPlus 
+           factory
+ Example : 
+ Returns : value of factory (Bio::Tools::Run::BlastPlus object)
+ Args    : readonly</code></code></pre>
+
+<h2 id="program_version-">program_version()</h2>
+
+<pre><code><code> Title   : program_version
+ Usage   : $version = $bedtools_fac-&gt;program_version()
+ Function: Returns the program version (if available)
+ Returns : string representing location and version of the program
+ Note    : this works around the WrapperBase::version() method conflicting with
+           the -version parameter for SABlast (good argument for not having
+           getter/setters for these)</code></code></pre>
+
+<h2 id="package_version-">package_version()</h2>
+
+<pre><code><code> Title   : package_version
+ Usage   : $version = $bedtools_fac-&gt;package_version()
+ Function: Returns the BLAST+ package version (if available)
+ Returns : string representing BLAST+ package version (may differ from version())</code></code></pre>
+
+<h1 id="DB-methods">DB methods</h1>
+
+<h2 id="make_db-">make_db()</h2>
+
+<pre><code><code> Title   : make_db
+ Usage   : 
+ Function: create the blast database (if necessary), 
+           imposing masking if specified
+ Returns : true on success
+ Args    : </code></code></pre>
+
+<h2 id="make_mask-">make_mask()</h2>
+
+<pre><code><code> Title   : make_mask
+ Usage   : 
+ Function: create masking data based on specified parameters
+ Returns : mask data filename (scalar string)
+ Args    : </code></code></pre>
+
+<h2 id="db_info-">db_info()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">db_info</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span> <span class="variable">info</span> <span class="keyword">for</span> <span class="variable">database</span> 
+           <span class="operator">(</span><span class="variable">via</span> <span class="variable">blastdbcmd</span> <span class="operator">-</span><span class="variable">info</span><span class="operator">);</span> <span class="variable">add</span> <span class="variable">factory</span> <span class="variable">attributes</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">hash</span> <span class="variable">of</span> <span class="variable">database</span> <span class="variable">attributes</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">db</span> <span class="variable">name</span> <span class="operator">(</span><span class="keyword">scalar</span> <span class="variable">string</span><span class="operator">)</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">:</span> <span class="variable">currently</span> <span class="variable">attached</span> <span class="variable">db</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="set_db_make_args-">set_db_make_args()</h2>
+
+<pre><code><code> Title   : set_db_make_args
+ Usage   : 
+ Function: set the DB make arguments attribute 
+           with checking
+ Returns : true on success
+ Args    : arrayref or hashref of named arguments</code></code></pre>
+
+<h2 id="set_mask_make_args-">set_mask_make_args()</h2>
+
+<pre><code><code> Title   : set_mask_make_args
+ Usage   : 
+ Function: set the masker make arguments attribute
+           with checking
+ Returns : true on success
+ Args    : arrayref or hasref of named arguments</code></code></pre>
+
+<h2 id="check_db-">check_db()</h2>
+
+<pre><code><code> Title   : check_db
+ Usage   : 
+ Function: determine if database with registered name and dir
+           exists
+ Returns : 1 if db present, 0 if not present, undef if name/dir not
+           set
+ Args    : [optional] db name (default is &#39;registered&#39; name in $self-&gt;db)
+           [optional] db directory (default is &#39;registered&#39; dir in 
+                                    $self-&gt;db_dir)</code></code></pre>
+
+<h2 id="no_throw_on_crash-">no_throw_on_crash()</h2>
+
+<pre><code><code> Title   : no_throw_on_crash
+ Usage   : $fac-&gt;no_throw_on_crash($newval)
+ Function: set to prevent an exeception throw on a failed 
+           blast program execution
+ Example : 
+ Returns : value of no_throw_on_crash (boolean)
+ Args    : on set, new value (boolean)</code></code></pre>
+
+<h1 id="Internals">Internals</h1>
+
+<h2 id="fastize-">_fastize()</h2>
+
+<pre><code><code> Title   : _fastize
+ Usage   : 
+ Function: convert a sequence collection to a temporary
+           fasta file (sans gaps)
+ Returns : fasta filename (scalar string)
+ Args    : sequence collection </code></code></pre>
+
+<h2 id="register_temp_for_cleanup-">_register_temp_for_cleanup()</h2>
+
+<pre><code><code> Title   : _register_temp_for_cleanup
+ Usage   : 
+ Function: register a file for cleanup with 
+           cleanup() method
+ Returns : true on success
+ Args    : a file name or a blastdb basename
+           (scalar string)</code></code></pre>
+
+<h2 id="cleanup-">cleanup()</h2>
+
+<pre><code><code> Title   : cleanup
+ Usage   : 
+ Function: unlink files registered for cleanup
+ Returns : true on success
+ Args    : </code></code></pre>
+
+<h2 id="AUTOLOAD">AUTOLOAD</h2>
+
+<p>In this module, <code><code>AUTOLOAD()</code></code> delegates <a href="../../../../../lib/perl5/Bio/Tools/Run/WrapperBase.html">Bio::Tools::Run::WrapperBase</a> and <a href="../../../../../lib/perl5/Bio/Tools/Run/WrapperBase/CommandExts.html">Bio::Tools::Run::WrapperBase::CommandExts</a> methods (including those of <a>Bio::ParamterBaseI</a>) to the <code><code>factory()</code></code> attribute:</p>
+
+<pre><code><code> $fac-&gt;stderr</code></code></pre>
+
+<p>gives you</p>
+
+<pre><code><code> $fac-&gt;factory-&gt;stderr</code></code></pre>
+
+<p>If $AUTOLOAD isn&#39;t pointing to a WrapperBase method, then AUTOLOAD attempts to return a <code><code>db_info</code></code> attribute: e.g.</p>
+
+<pre><code><code> $fac-&gt;db_num_sequences</code></code></pre>
+
+<p>works by looking in the $fac-&gt;db_info() hash.</p>
+
+<p>Finally, if $AUTOLOAD is pointing to a blast query method, AUTOLOAD runs <code><code>run</code></code> with the <code><code>-method</code></code> parameter appropriately set.</p>
+
+
+</body>
+
+</html>
+
+

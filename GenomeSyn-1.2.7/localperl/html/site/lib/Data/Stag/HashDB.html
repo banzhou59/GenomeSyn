@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#PUBLIC-METHODS--">PUBLIC METHODS -</a>
+    <ul>
+      <li><a href="#record_type">record_type</a></li>
+      <li><a href="#unique_key">unique_key</a></li>
+      <li><a href="#index_hash">index_hash</a></li>
+    </ul>
+  </li>
+  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<pre><code><code>  Data::Stag::HashDB</code></code></pre>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># parsing a file into a hash</span>
+  <span class="keyword">my</span> <span class="variable">$hdb</span> <span class="operator">=</span> <span class="variable">Data::Stag::HashDB</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+  <span class="variable">$hdb</span><span class="operator">-&gt;</span><span class="variable">unique_key</span><span class="operator">(</span><span class="string">"ss_details/social_security_no"</span><span class="operator">);</span>
+  <span class="variable">$hdb</span><span class="operator">-&gt;</span><span class="variable">record_type</span><span class="operator">(</span><span class="string">"person"</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="operator">{}</span><span class="operator">;</span>
+  <span class="variable">$hdb</span><span class="operator">-&gt;</span><span class="variable">index_hash</span><span class="operator">(</span><span class="variable">$obj</span><span class="operator">);</span>
+  <span class="variable">Data::Stag</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$fn</span><span class="operator">,</span> <span class="string">-handler</span><span class="operator">=&gt;</span><span class="variable">$hdb</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$person</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'999-9999-9999'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="variable">$person</span><span class="operator">-&gt;</span><span class="variable">xml</span><span class="operator">;</span>
+  
+  <span class="comment"># indexing an existing stag tree into a hash</span>
+  <span class="keyword">my</span> <span class="variable">$personset</span> <span class="operator">=</span> <span class="variable">Data::Stag</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span><span class="variable">$fn</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$hdb</span> <span class="operator">=</span> <span class="variable">Data::Stag::HashDB</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+  <span class="variable">$hdb</span><span class="operator">-&gt;</span><span class="variable">unique_key</span><span class="operator">(</span><span class="string">"ss_details/social_security_no"</span><span class="operator">);</span>
+  <span class="variable">$hdb</span><span class="operator">-&gt;</span><span class="variable">record_type</span><span class="operator">(</span><span class="string">"person"</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="operator">{}</span><span class="operator">;</span>
+  <span class="variable">$hdb</span><span class="operator">-&gt;</span><span class="variable">index_hash</span><span class="operator">(</span><span class="variable">$obj</span><span class="operator">);</span>
+  <span class="variable">$personset</span><span class="operator">-&gt;</span><span class="variable">sax</span><span class="operator">(</span><span class="variable">$hdb</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$person</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'999-9999-9999'</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="variable">$person</span><span class="operator">-&gt;</span><span class="variable">xml</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Used for building indexes over Stag files or objects</p>
+
+<p>You need to provide a <b>record_type</b> - this is the type of element that will be indexed</p>
+
+<p>You need to provide a unique_key - this is a single value used to index the <b>record_type</b>s</p>
+
+<p>For example, if we have data in the stag structure below, and if ss_no is unique (we assume it is) then we can index all the people in the database using the code above</p>
+
+<pre><code><code>  publicinfo:
+    persondata:
+      person:
+        ss_details:
+          social_security_no:
+        name:
+        address: </code></code></pre>
+
+<p>There is a subclass of this method callsed Data::Stag::StagDB, which makes the hash persistent</p>
+
+<h1 id="PUBLIC-METHODS--">PUBLIC METHODS -</h1>
+
+<h2 id="record_type">record_type</h2>
+
+<pre><code><code>  Usage   -
+  Returns -
+  Args    -</code></code></pre>
+
+<h2 id="unique_key">unique_key</h2>
+
+<pre><code><code>  Usage   -
+  Returns -
+  Args    -</code></code></pre>
+
+<h2 id="index_hash">index_hash</h2>
+
+<pre><code><code>  Usage   -
+  Returns -
+  Args    -</code></code></pre>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt id="Around-line-40:">Around line 40:</dt>
+<dd>
+
+<p>Deleting unknown formatting code N&lt;&gt;</p>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+

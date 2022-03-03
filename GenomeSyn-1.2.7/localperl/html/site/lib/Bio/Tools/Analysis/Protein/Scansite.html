@@ -1,0 +1,220 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Return-formats">Return formats</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#result">result</a></li>
+      <li><a href="#stringency">stringency</a></li>
+      <li><a href="#protein_id">protein_id</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Analysis::Protein::Scansite - a wrapper around the Scansite server</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tools::Analysis::Protein::Scansite</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$seq</span><span class="operator">;</span> <span class="comment"># a Bio::PrimarySeqI object</span>
+  
+  <span class="keyword">my</span> <span class="variable">$tool</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Analysis::Protein::Scansite</span><span class="operator">-&gt;</span><span class="variable">new</span>
+     <span class="operator">(</span> <span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">primary_seq</span> <span class="operator">);</span> 
+  
+  <span class="comment"># run Scansite prediction on a sequence</span>
+  <span class="variable">$tool</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">();</span>
+  
+  <span class="comment"># alternatively you can say</span>
+  <span class="variable">$tool</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">primary_seq</span><span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">;</span>
+  
+  <span class="keyword">die</span> <span class="string">"Could not get a result"</span> <span class="keyword">unless</span> <span class="variable">$tool</span><span class="operator">-&gt;</span><span class="variable">status</span> <span class="operator">=~</span> <span class="regex">/^COMPLETED/</span><span class="operator">;</span>
+  
+  <span class="keyword">print</span> <span class="variable">$tool</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">;</span>     <span class="comment"># print raw prediction to STDOUT</span>
+  
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$feat</span> <span class="operator">(</span> <span class="variable">$tool</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">(</span><span class="string">'Bio::SeqFeatureI'</span><span class="operator">)</span> <span class="operator">)</span> <span class="operator">{</span>
+  
+      <span class="comment"># do something to SeqFeature</span>
+      <span class="comment"># e.g. print as GFF</span>
+      <span class="keyword">print</span> <span class="variable">$feat</span><span class="operator">-&gt;</span><span class="variable">gff_string</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+      <span class="comment"># or store within the sequence - if it is a Bio::RichSeqI</span>
+      <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">add_SeqFeature</span><span class="operator">(</span><span class="variable">$feat</span><span class="operator">);</span>
+  
+   <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This class is a wrapper around the Scansite 2.0 server which produces predictions for serine, threonine and tyrosine phosphorylation sites in eukaryotic proteins. At present this is a basic wrapper for the &quot;Scan protein by input sequence&quot; functionality, which takes a sequence and searches for motifs, with the option to select the search stringency. At present, searches for specific phosphorylation sites are not supported; all predicted sites are returned.</p>
+
+<h2 id="Return-formats">Return formats</h2>
+
+<p>The Scansite results can be obtained in several formats:</p>
+
+<ol>
+
+<li><p>By calling</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$res</span> <span class="operator">=</span> <span class="variable">$tool</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">(</span><span class="string">''</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>$res holds a string of the predicted sites in tabular format.</p>
+
+</li>
+<li><p>By calling</p>
+
+<pre><code><code>  my $data_ref = $tool-&gt;result(&#39;value&#39;)</code></code></pre>
+
+<p>$data_ref is a reference to an array of hashes. Each element in the array represents a predicted phosphorylation site. The hash keys are the names of the data fields,i.e.,</p>
+
+<pre><code><code>    &#39;motif&#39;      =&gt; &#39;Casn_Kin1&#39;       # name of kinase
+    &#39;percentile&#39; =&gt; 0.155             # see Scansite docs
+    &#39;position&#39;   =&gt; 9                 # position in protein
+    &#39;protein&#39;    =&gt; &#39;A1&#39;              # protein id
+    &#39;score&#39;      =&gt; 0.3696            # see Scansite docs
+    &#39;sequence&#39;   =&gt; &#39;ASYFDTASYFSADAT&#39; # sequence surrounding site
+    &#39;site&#39;       =&gt; &#39;S9&#39;              # phosphorylated residue
+    &#39;zscore&#39;     =&gt; &#39;-3.110&#39;          # see Scansite docs</code></code></pre>
+
+</li>
+<li><p>By calling</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">@fts</span> <span class="operator">=</span> <span class="variable">$tool</span><span class="operator">-&gt;</span><span class="variable">Result</span><span class="operator">(</span><span class="string">'Bio::SeqFeatureI'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>which returns an array of <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeatureI.html">Bio::SeqFeatureI</a> compliant objects with primary tag value &#39;Site&#39; and tag names of &#39;motif&#39;, &#39;score&#39;, &#39;sequence&#39;, &#39;zscore&#39; as above.</p>
+
+</li>
+</ol>
+
+<p>See <a href="http://scansite.mit.edu/">http://scansite.mit.edu/</a>.</p>
+
+<p>This inherits Bio::SimpleAnalysisI which hopefully makes it easier to write wrappers on various services. This class uses a web resource and therefore inherits from <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/WebAgent.html">Bio::WebAgent</a>.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SimpleAnalysisI.html">Bio::SimpleAnalysisI</a>, <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/WebAgent.html">Bio::WebAgent</a></p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Richard Adams, Richard.Adams@ed.ac.uk,</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="result">result</h2>
+
+<pre><code><code> Name    : result
+ Usage   : $job-&gt;result (...)
+ Returns : a result created by running an analysis
+ Args    : none (but an implementation may choose
+           to add arguments for instructions how to process
+           the raw result)</code></code></pre>
+
+<p>The method returns a scalar representing a result of an executed job. If the job was terminated by an error, the result may contain an error message instead of the real data.</p>
+
+<p>This implementation returns differently processed data depending on argument:</p>
+
+<dl>
+
+<dt id="undef">undef</dt>
+<dd>
+
+<p>Returns the raw ASCII data stream but without HTML tags</p>
+
+</dd>
+<dt id="Bio::SeqFeatureI">&#39;Bio::SeqFeatureI&#39;</dt>
+<dd>
+
+<p>The argument string defined the type of bioperl objects returned in an array. The objects are <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeature/Generic.html">Bio::SeqFeature::Generic</a>.</p>
+
+</dd>
+<dt id="parsed">&#39;parsed&#39;</dt>
+<dd>
+
+<p>Returns a reference to an array of hashes containing the data of one phosphorylation site prediction. Key values are:</p>
+
+<p>motif, percentile, position, protein, score, site, zscore, sequence.</p>
+
+</dd>
+</dl>
+
+<h2 id="stringency">stringency</h2>
+
+<pre><code><code> Usage    : $job-&gt;stringency(...)
+ Returns  : The significance stringency of a prediction
+ Args     : None (retrieves value) or &#39;High&#39;, &#39;Medium&#39; or &#39;Low&#39;.
+ Purpose  : Get/setter of the stringency to be sumitted for analysis.</code></code></pre>
+
+<h2 id="protein_id">protein_id</h2>
+
+<pre><code><code> Usage    : $job-&gt;protein_id(...)
+ Returns  : The sequence id of the protein or &#39;unnamed&#39; if not set. 
+ Args     : None  
+ Purpose  : Getter of the seq_id. Returns the display_id of the sequence
+            object. </code></code></pre>
+
+
+</body>
+
+</html>
+
+

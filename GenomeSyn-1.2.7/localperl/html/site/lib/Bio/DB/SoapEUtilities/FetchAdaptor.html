@@ -1,0 +1,186 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#initialize-">_initialize()</a></li>
+      <li><a href="#load_adaptor-">_load_adaptor()</a></li>
+      <li><a href="#obj_class-">obj_class()</a></li>
+      <li><a href="#next_obj-">next_obj()</a></li>
+      <li><a href="#rewind-">rewind()</a></li>
+      <li><a href="#result-">result()</a></li>
+      <li><a href="#type-">type()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::SoapEUtilities::FetchAdaptor - Conversion of Entrez SOAP messages to BioPerl objects</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::DB::SoapEUtilities</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">$soap_result</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">(</span> <span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'protein'</span><span class="operator">,</span> <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="number">2597988</span> <span class="operator">);</span>
+ <span class="variable">$adp</span> <span class="operator">=</span> <span class="variable">Bio::DB::SoapEUtilities::FetchAdaptor</span><span class="operator">(</span>
+         <span class="string">-result</span> <span class="operator">=&gt;</span> <span class="variable">$soap_result</span><span class="operator">,</span>
+         <span class="string">-type</span> <span class="operator">=&gt;</span> <span class="string">'seq'</span>
+        <span class="operator">);</span>
+ <span class="keyword">while</span> <span class="operator">(</span> <span class="variable">$gb_seq</span> <span class="operator">=</span> <span class="variable">$adp</span><span class="operator">-&gt;</span><span class="variable">next_obj</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># do stuff</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><code><code>FetchAdaptor</code></code> is the base class of a system, modeled after <a href="../../../../../lib/perl5/Bio/SeqIO.html">Bio::SeqIO</a>, to parse SOAP responses from the NCBI Entrez <code><code>efetch</code></code> utility into germane BioPerl objects.</p>
+
+<p>The user will rarely need to instantiate a <code><code>FetchAdaptor</code></code> with <a href="../../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/DB/SoapEUtilities/Result.html">Bio::DB::SoapEUtilities::Result</a> object as in the <a href="#SYNOPSIS">&quot;SYNOPSIS&quot;</a>. It usually suffices to use the <code><code>-auto_adapt</code></code> parameter in the factory <code><code>run()</code></code> method:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$fac</span> <span class="operator">=</span> <span class="variable">Bio::DB::SoapEUtilities</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="keyword">my</span> <span class="variable">$taxio</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">(</span><span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'taxonomy'</span><span class="operator">,</span> <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="number">1394</span><span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">-auto_adapt</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">$sp</span> <span class="operator">=</span> <span class="variable">$taxio</span><span class="operator">-&gt;</span><span class="variable">next_species</span><span class="operator">;</span> <span class="comment"># Bio::Species objects</span>
+ <span class="keyword">my</span> <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">efetch</span><span class="operator">(</span><span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'protein'</span><span class="operator">,</span> <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="number">730439</span><span class="operator">)-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">-auto_adapt</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">;</span> <span class="comment"># Bio::Seq::RichSeq objects</span>
+</code></code></pre>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../../../../public/home/fxing/.cpan/build/BioPerl-Run-1.006900-_NTLno/blib/lib/Bio/DB/SoapEUtilities.html">Bio::DB::SoapEUtilities</a>, <code><code>FetchAdaptor</code></code> subclasses</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><a>bioperl-l@bioperl.org</a></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<p>Email maj -at- fortinbras -dot- us</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::SoapEUtilities::FetchAdaptor</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::DB::SoapEUtilities::FetchAdaptor</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">of</span> <span class="variable">Bio::DB::SoapEUtilities::FetchAdaptor</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">named</span> <span class="variable">arguments</span>
+           <span class="operator">-</span><span class="string">som</span> <span class="operator">=&gt;</span> <span class="variable">$soap_som_object</span> <span class="operator">(</span><span class="variable">soap</span> <span class="variable">message</span><span class="operator">)</span>
+           <span class="string">-type</span> <span class="operator">=&gt;</span> <span class="variable">$type</span> <span class="operator">(</span> <span class="variable">optional</span><span class="operator">,</span> <span class="variable">forces</span> <span class="variable">loading</span> <span class="variable">of</span> <span class="variable">$type</span> <span class="variable">adaptor</span> <span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="initialize-">_initialize()</h2>
+
+<pre><code><code> Title   : _initialize
+ Usage   : 
+ Function: 
+ Returns : 
+ Args    : </code></code></pre>
+
+<h2 id="load_adaptor-">_load_adaptor()</h2>
+
+<pre><code><code> Title   : _load_adaptor
+ Usage   : 
+ Function: loads a FetchAdaptor subclass
+ Returns : 
+ Args    : adaptor type (subclass name)</code></code></pre>
+
+<h2 id="obj_class-">obj_class()</h2>
+
+<pre><code><code> Title   : obj_class
+ Usage   : $adaptor-&gt;obj_class
+ Function: Returns the fully qualified BioPerl classname
+           of the objects returned by next_obj()
+ Returns : scalar string (class name)
+ Args    : none</code></code></pre>
+
+<h2 id="next_obj-">next_obj()</h2>
+
+<pre><code><code> Title   : next_obj
+ Usage   : $obj = $adaptor-&gt;next_obj
+ Function: Returns the next parsed BioPerl object from the 
+           adaptor
+ Returns : object of class obj_class()
+ Args    : none</code></code></pre>
+
+<h2 id="rewind-">rewind()</h2>
+
+<pre><code><code> Title   : rewind
+ Usage   : 
+ Function: Rewind the adaptor&#39;s iterator
+ Returns : 
+ Args    : none</code></code></pre>
+
+<h2 id="result-">result()</h2>
+
+<pre><code><code> Title   : result
+ Usage   : 
+ Function: contains the SoapEUtilities::Result object
+ Returns : Bio::DB::SoapEUtilities::Result object
+ Args    : none</code></code></pre>
+
+<h2 id="type-">type()</h2>
+
+<pre><code><code> Title   : type
+ Usage   : 
+ Function: contains the fetch type of this adaptor
+ Returns : 
+ Args    : </code></code></pre>
+
+
+</body>
+
+</html>
+
+

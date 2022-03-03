@@ -1,0 +1,255 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Short-circuiting-and-long-circuiting-return-values">Short-circuiting and long-circuiting return values</a></li>
+      <li><a href="#Lexically-scoped-wrappers">Lexically scoped wrappers</a></li>
+      <li><a href="#Anonymous-wrappers">Anonymous wrappers</a></li>
+    </ul>
+  </li>
+  <li><a href="#DIAGNOSTICS">DIAGNOSTICS</a></li>
+  <li><a href="#BLAME">BLAME</a></li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Hook::LexWrap - Lexically scoped subroutine wrappers</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>version 0.25</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>        <span class="keyword">use</span> <span class="variable">Hook::LexWrap</span><span class="operator">;</span>
+        
+        <span class="keyword">sub</span><span class="variable"> doit </span><span class="operator">{</span> <span class="keyword">print</span> <span class="string">"[doit:"</span><span class="operator">,</span> <span class="keyword">caller</span><span class="operator">,</span> <span class="string">"]"</span><span class="operator">;</span> <span class="keyword">return</span> <span class="operator">{</span><span class="string">my</span><span class="operator">=&gt;</span><span class="string">"data"</span><span class="operator">}</span> <span class="operator">}</span>
+        
+        <span class="variable">SCOPED</span><span class="operator">:</span> <span class="operator">{</span>
+                <span class="variable">wrap</span> <span class="string">doit</span> <span class="operator">=&gt;</span>
+                        <span class="string">pre</span>  <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">print</span> <span class="string">"[pre1: </span><span class="variable">@_</span><span class="string">]\n"</span> <span class="operator">},</span>
+                        <span class="string">post</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">print</span> <span class="string">"[post1:</span><span class="variable">@_</span><span class="string">]\n"</span><span class="operator">;</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">=</span><span class="number">9</span><span class="operator">;</span> <span class="operator">};</span>
+        
+                <span class="keyword">my</span> <span class="variable">$temporarily</span> <span class="operator">=</span> <span class="variable">wrap</span> <span class="string">doit</span> <span class="operator">=&gt;</span>
+                        <span class="string">post</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">print</span> <span class="string">"[post2:</span><span class="variable">@_</span><span class="string">]\n"</span> <span class="operator">},</span>
+                        <span class="string">pre</span>  <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">print</span> <span class="string">"[pre2: </span><span class="variable">@_</span><span class="string">]\n  "</span><span class="operator">};</span>
+        
+                <span class="variable">@args</span> <span class="operator">=</span> <span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+                <span class="variable">doit</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">);</span>    <span class="comment"># pre2-&gt;pre1-&gt;doit-&gt;post1-&gt;post2</span>
+        <span class="operator">}</span>
+        
+        <span class="variable">@args</span> <span class="operator">=</span> <span class="operator">(</span><span class="number">4</span><span class="operator">,</span><span class="number">5</span><span class="operator">,</span><span class="number">6</span><span class="operator">);</span>
+        <span class="variable">doit</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">);</span>            <span class="comment"># pre1-&gt;doit-&gt;post1</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Hook::LexWrap allows you to install a pre- or post-wrapper (or both) around an existing subroutine. Unlike other modules that provide this capacity (e.g. Hook::PreAndPost and Hook::WrapSub), Hook::LexWrap implements wrappers in such a way that the standard <code><code>caller</code></code> function works correctly within the wrapped subroutine.</p>
+
+<p>To install a prewrappers, you write:</p>
+
+<pre><code><code>        <span class="keyword">use</span> <span class="variable">Hook::LexWrap</span><span class="operator">;</span>
+        
+        <span class="variable">wrap</span> <span class="string">'subroutine_name'</span><span class="operator">,</span> <span class="string">pre</span> <span class="operator">=&gt;</span> <span class="operator">\&amp;</span><span class="variable">some_other_sub</span><span class="operator">;</span>
+        
+           <span class="comment">#or: wrap *subroutine_name,  pre =&gt; \&amp;some_other_sub;</span>
+</code></code></pre>
+
+<p>The first argument to <code><code>wrap</code></code> is a string containing the name of the subroutine to be wrapped (or the typeglob containing it, or a reference to it). The subroutine name may be qualified, and the subroutine must already be defined. The second argument indicates the type of wrapper being applied and must be either <code><code>&#39;pre&#39;</code></code> or <code><code>&#39;post&#39;</code></code>. The third argument must be a reference to a subroutine that implements the wrapper.</p>
+
+<p>To install a post-wrapper, you write:</p>
+
+<pre><code><code>        <span class="variable">wrap</span> <span class="string">'subroutine_name'</span><span class="operator">,</span> <span class="string">post</span> <span class="operator">=&gt;</span> <span class="operator">\&amp;</span><span class="variable">yet_another_sub</span><span class="operator">;</span>
+        
+           <span class="comment">#or: wrap *subroutine_name,  post =&gt; \&amp;yet_another_sub;</span>
+</code></code></pre>
+
+<p>To install both at once:</p>
+
+<pre><code><code>        <span class="variable">wrap</span> <span class="string">'subroutine_name'</span><span class="operator">,</span>
+             <span class="string">pre</span>  <span class="operator">=&gt;</span> <span class="operator">\&amp;</span><span class="variable">some_other_sub</span><span class="operator">,</span>
+             <span class="string">post</span> <span class="operator">=&gt;</span> <span class="operator">\&amp;</span><span class="variable">yet_another_sub</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>or:</p>
+
+<pre><code><code>        <span class="variable">wrap</span> <span class="variable">*subroutine_name</span><span class="operator">,</span>
+             <span class="string">post</span> <span class="operator">=&gt;</span> <span class="operator">\&amp;</span><span class="variable">yet_another_sub</span><span class="operator">,</span>  <span class="comment"># order in which wrappers are</span>
+             <span class="string">pre</span>  <span class="operator">=&gt;</span> <span class="operator">\&amp;</span><span class="variable">some_other_sub</span><span class="operator">;</span>   <span class="comment"># specified doesn't matter</span>
+</code></code></pre>
+
+<p>Once they are installed, the pre- and post-wrappers will be called before and after the subroutine itself, and will be passed the same argument list.</p>
+
+<p>The pre- and post-wrappers and the original subroutine also all see the same (correct!) values from <code><code>caller</code></code> and <code><code>wantarray</code></code>.</p>
+
+<h2 id="Short-circuiting-and-long-circuiting-return-values">Short-circuiting and long-circuiting return values</h2>
+
+<p>The pre- and post-wrappers both receive an extra argument in their @_ arrays. That extra argument is appended to the original argument list (i.e. is can always be accessed as $_[-1]) and acts as a place-holder for the original subroutine&#39;s return value.</p>
+
+<p>In a pre-wrapper, $_[-1] is -- for obvious reasons -- <code><code>undef</code></code>. However, $_[-1] may be assigned to in a pre-wrapper, in which case Hook::LexWrap assumes that the original subroutine has been &quot;pre-empted&quot;, and that neither it, nor the corresponding post-wrapper, nor any wrappers that were applied <i>before</i> the pre-empting pre-wrapper was installed, need be run. Note that any post-wrappers that were installed after the pre-empting pre-wrapper was installed <i>will</i> still be called before the original subroutine call returns.</p>
+
+<p>In a post-wrapper, $_[-1] contains the return value produced by the wrapped subroutine. In a scalar return context, this value is the scalar return value. In an list return context, this value is a reference to the array of return values. $_[-1] may be assigned to in a post-wrapper, and this changes the return value accordingly.</p>
+
+<p>Access to the arguments and return value is useful for implementing techniques such as memoization:</p>
+
+<pre><code><code>        <span class="keyword">my</span> <span class="variable">%cache</span><span class="operator">;</span>
+        <span class="variable">wrap</span> <span class="string">fibonacci</span> <span class="operator">=&gt;</span>
+                <span class="string">pre</span>  <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$_</span><span class="operator">[</span><span class="operator">-</span><span class="number">1</span><span class="operator">]</span> <span class="operator">=</span> <span class="variable">$cache</span><span class="operator">{</span><span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]}</span> <span class="keyword">if</span> <span class="variable">$cache</span><span class="operator">{</span><span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]}</span> <span class="operator">},</span>
+                <span class="string">post</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$cache</span><span class="operator">{</span><span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]}</span> <span class="operator">=</span> <span class="variable">$_</span><span class="operator">[</span><span class="operator">-</span><span class="number">1</span><span class="operator">]</span> <span class="operator">};</span>
+</code></code></pre>
+
+<p>or for converting arguments and return values in a consistent manner:</p>
+
+<pre><code><code>        <span class="comment"># set_temp expects and returns degrees Fahrenheit,</span>
+        <span class="comment"># but we want to use Celsius</span>
+        <span class="variable">wrap</span> <span class="string">set_temp</span> <span class="operator">=&gt;</span>
+                <span class="string">pre</span>   <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">splice</span> <span class="variable">@_</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span> <span class="operator">*</span> <span class="number">1.8</span> <span class="operator">+</span> <span class="number">32</span> <span class="operator">},</span>
+                <span class="string">post</span>  <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$_</span><span class="operator">[</span><span class="operator">-</span><span class="number">1</span><span class="operator">]</span> <span class="operator">=</span> <span class="operator">(</span><span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span> <span class="operator">-</span> <span class="number">32</span><span class="operator">)</span> <span class="operator">/</span> <span class="number">1.8</span> <span class="operator">};</span>
+</code></code></pre>
+
+<h2 id="Lexically-scoped-wrappers">Lexically scoped wrappers</h2>
+
+<p>Normally, any wrappers installed by <code><code>wrap</code></code> remain attached to the subroutine until it is undefined. However, it is possible to make specific wrappers lexically bound, so that they operate only until the end of the scope in which they&#39;re created (or until some other specific point in the code).</p>
+
+<p>If <code><code>wrap</code></code> is called in a <i>non-void</i> context:</p>
+
+<pre><code><code>        <span class="keyword">my</span> <span class="variable">$lexical</span> <span class="operator">=</span> <span class="variable">wrap</span> <span class="string">'sub_name'</span><span class="operator">,</span> <span class="string">pre</span> <span class="operator">=&gt;</span> <span class="operator">\&amp;</span><span class="variable">wrapper</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>it returns a special object corresponding to the particular wrapper being placed around the original subroutine. When that object is destroyed -- when its container variable goes out of scope, or when its reference count otherwise falls to zero (e.g. <code><code>undef $lexical</code></code>), or when it is explicitly destroyed (<code><code>$lexical-&gt;DESTROY</code></code>) -- the corresponding wrapper is removed from around the original subroutine. Note, however, that all other wrappers around the subroutine are preserved.</p>
+
+<h2 id="Anonymous-wrappers">Anonymous wrappers</h2>
+
+<p>If the subroutine to be wrapped is passed as a reference (rather than by name or by typeglob), <code><code>wrap</code></code> does not install the wrappers around the original subroutine. Instead it generates a new subroutine which acts as if it were the original with those wrappers around it. It then returns a reference to that new subroutine. Only calls to the original through that wrapped reference invoke the wrappers. Direct by-name calls to the original, or calls through another reference, do not.</p>
+
+<p>If the original is subsequently wrapped by name, the anonymously wrapped subroutine reference does not see those wrappers. In other words, wrappers installed via a subroutine reference are completely independent of those installed via the subroutine&#39;s name (or typeglob).</p>
+
+<p>For example:</p>
+
+<pre><code><code>        <span class="keyword">sub</span><span class="variable"> original </span><span class="operator">{</span> <span class="keyword">print</span> <span class="string">"ray"</span> <span class="operator">}</span>
+        
+        <span class="comment"># Wrap anonymously...</span>
+        <span class="keyword">my</span> <span class="variable">$anon_wrapped</span> <span class="operator">=</span> <span class="variable">wrap</span> <span class="operator">\&amp;</span><span class="variable">original</span><span class="operator">,</span> <span class="string">pre</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">print</span> <span class="string">"do..."</span> <span class="operator">};</span>
+        
+        <span class="comment"># Show effects...</span>
+        <span class="variable">original</span><span class="operator">();</span>             <span class="comment"># prints "ray"</span>
+        <span class="variable">$anon_wrapped</span><span class="operator">-&gt;();</span>      <span class="comment"># prints "do..ray"</span>
+        
+        <span class="comment"># Wrap nonymously...</span>
+        <span class="variable">wrap</span> <span class="variable">*original</span><span class="operator">,</span>
+                <span class="string">pre</span>  <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">print</span> <span class="string">"fa.."</span> <span class="operator">},</span>
+                <span class="string">post</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">print</span> <span class="string">"..mi"</span> <span class="operator">};</span>
+        
+        <span class="comment"># Show effects...</span>
+        <span class="variable">original</span><span class="operator">();</span>             <span class="comment">#   now prints "fa..ray..mi"</span>
+        <span class="variable">$anon_wrapped</span><span class="operator">-&gt;();</span>      <span class="comment"># still prints "do...ray"</span>
+</code></code></pre>
+
+<h1 id="DIAGNOSTICS">DIAGNOSTICS</h1>
+
+<dl>
+
+<dt id="Cant-wrap-non-existent-subroutine-s"><code><code>Can&#39;t wrap non-existent subroutine %s</code></code></dt>
+<dd>
+
+<p>An attempt was made to wrap a subroutine that was not defined at the point of wrapping.</p>
+
+</dd>
+<dt id="pre-value-is-not-a-subroutine-reference"><code><code>&#39;pre&#39; value is not a subroutine reference</code></code></dt>
+<dd>
+
+<p>The value passed to <code><code>wrap</code></code> after the <code><code>&#39;pre&#39;</code></code> flag was not a subroutine reference. Typically, someone forgot the <code><code>sub</code></code> on the anonymous subroutine:</p>
+
+<pre><code><code>        <span class="variable">wrap</span> <span class="string">'subname'</span><span class="operator">,</span> <span class="string">pre</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="variable">your_code_here</span><span class="operator">()</span> <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>and Perl interpreted the last argument as a hash constructor.</p>
+
+</dd>
+<dt id="post-value-is-not-a-subroutine-reference"><code><code>&#39;post&#39; value is not a subroutine reference</code></code></dt>
+<dd>
+
+<p>The value passed to <code><code>wrap</code></code> after the <code><code>&#39;post&#39;</code></code> flag was not a subroutine reference.</p>
+
+</dd>
+<dt id="Uselessly-wrapped-subroutine-reference-in-void-context-warning-only-"><code><code>Uselessly wrapped subroutine reference in void context</code></code> (warning only)</dt>
+<dd>
+
+<p>When the subroutine to be wrapped is passed as a subroutine reference, <code><code>wrap</code></code> does not install the wrapper around the original, but instead returns a reference to a subroutine which wraps the original (see <a href="#Anonymous-wrappers">&quot;Anonymous wrappers&quot;</a>).</p>
+
+<p>However, there&#39;s no point in doing this if you don&#39;t catch the resulting subroutine reference.</p>
+
+</dd>
+</dl>
+
+<h1 id="BLAME">BLAME</h1>
+
+<p>Schwern made me do this (by implying it wasn&#39;t possible ;-)</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>There are undoubtedly serious bugs lurking somewhere in code this funky :-)</p>
+
+<p>Bug reports and other feedback are most welcome.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>Sub::Prepend</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Damian Conway &lt;damian@conway.org&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>This software is copyright (c) 2001 by Damian Conway.</p>
+
+<p>This is free software; you can redistribute it and/or modify it under the same terms as the Perl 5 programming language system itself.</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<ul>
+
+<li><p>Alexandr Ciornii &lt;alexchorny@gmail.com&gt;</p>
+
+</li>
+<li><p>Karen Etheridge &lt;ether@cpan.org&gt;</p>
+
+</li>
+<li><p>Father Chrysostomos &lt;sprout@cpan.org&gt;</p>
+
+</li>
+</ul>
+
+
+</body>
+
+</html>
+
+

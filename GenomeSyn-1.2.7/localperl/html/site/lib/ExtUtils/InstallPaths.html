@@ -1,0 +1,304 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#ATTRIBUTES">ATTRIBUTES</a>
+    <ul>
+      <li><a href="#installdirs">installdirs</a></li>
+      <li><a href="#install_base">install_base</a></li>
+      <li><a href="#prefix">prefix</a></li>
+      <li><a href="#config-">config()</a></li>
+      <li><a href="#verbose">verbose</a></li>
+      <li><a href="#blib">blib</a></li>
+      <li><a href="#create_packlist">create_packlist</a></li>
+      <li><a href="#dist_name">dist_name</a></li>
+      <li><a href="#module_name">module_name</a></li>
+      <li><a href="#destdir">destdir</a></li>
+    </ul>
+  </li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#install_map-">install_map()</a></li>
+      <li><a href="#install_destination-type-">install_destination($type)</a></li>
+      <li><a href="#install_types-">install_types()</a></li>
+      <li><a href="#is_default_installable-type-">is_default_installable($type)</a></li>
+      <li><a href="#install_path-type-">install_path($type)</a></li>
+      <li><a href="#install_sets-installdirs-type-">install_sets($installdirs, $type)</a></li>
+      <li><a href="#install_base_relpaths-type-relpath-">install_base_relpaths($type, $relpath)</a></li>
+      <li><a href="#prefix_relative-installdirs-type-">prefix_relative($installdirs, $type)</a></li>
+      <li><a href="#prefix_relpaths-install_dirs-type-">prefix_relpaths($install_dirs, $type)</a></li>
+      <li><a href="#original_prefix-installdirs-">original_prefix($installdirs)</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>ExtUtils::InstallPaths - Build.PL install path logic made easy</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>version 0.011</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">ExtUtils::InstallPaths</span><span class="operator">;</span>
+ <span class="keyword">use</span> <span class="variable">ExtUtils::Install</span> <span class="string">'install'</span><span class="operator">;</span>
+ <span class="variable">GetOptions</span><span class="operator">(\</span><span class="keyword">my</span> <span class="variable">%opt</span><span class="operator">,</span> <span class="string">'install_base=s'</span><span class="operator">,</span> <span class="string">'install_path=s%'</span><span class="operator">,</span> <span class="string">'installdirs=s'</span><span class="operator">,</span> <span class="string">'destdir=s'</span><span class="operator">,</span> <span class="string">'prefix=s'</span><span class="operator">,</span> <span class="string">'uninst:1'</span><span class="operator">,</span> <span class="string">'verbose:1'</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">$paths</span> <span class="operator">=</span> <span class="variable">ExtUtils::InstallPaths</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">%opt</span><span class="operator">,</span> <span class="string">dist_name</span> <span class="operator">=&gt;</span> <span class="variable">$dist_name</span><span class="operator">);</span>
+ <span class="variable">install</span><span class="operator">(</span><span class="variable">$paths</span><span class="operator">-&gt;</span><span class="variable">install_map</span><span class="operator">,</span> <span class="variable">$opt</span><span class="operator">{</span><span class="string">verbose</span><span class="operator">}</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="variable">$opt</span><span class="operator">{</span><span class="string">uninst</span><span class="operator">}</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module tries to make install path resolution as easy as possible.</p>
+
+<p>When you want to install a module, it needs to figure out where to install things. The nutshell version of how this works is that default installation locations are determined from <a href="../../../lib/perl5/ExtUtils/Config.html">ExtUtils::Config</a>, and they may be individually overridden by using the <code><code>install_path</code></code> attribute. An <code><code>install_base</code></code> attribute lets you specify an alternative installation root like <i>/home/foo</i> and <code><code>prefix</code></code> does something similar in a rather different (and more complicated) way. <code><code>destdir</code></code> lets you specify a temporary installation directory like <i>/tmp/install</i> in case you want to create bundled-up installable packages.</p>
+
+<p>The following types are supported by default.</p>
+
+<ul>
+
+<li><p>lib</p>
+
+<p>Usually pure-Perl module files ending in <i>.pm</i> or <i>.pod</i>.</p>
+
+</li>
+<li><p>arch</p>
+
+<p>&quot;Architecture-dependent&quot; module files, usually produced by compiling XS, <a href="../../../lib/perl5/Inline.html">Inline</a>, or similar code.</p>
+
+</li>
+<li><p>script</p>
+
+<p>Programs written in pure Perl. In order to improve reuse, you may want to make these as small as possible - put the code into modules whenever possible.</p>
+
+</li>
+<li><p>bin</p>
+
+<p>&quot;Architecture-dependent&quot; executable programs, i.e. compiled C code or something. Pretty rare to see this in a perl distribution, but it happens.</p>
+
+</li>
+<li><p>bindoc</p>
+
+<p>Documentation for the stuff in <code><code>script</code></code> and <code><code>bin</code></code>. Usually generated from the POD in those files. Under Unix, these are manual pages belonging to the &#39;man1&#39; category. Unless explicitly set, this is only available on platforms supporting manpages.</p>
+
+</li>
+<li><p>libdoc</p>
+
+<p>Documentation for the stuff in <code><code>lib</code></code> and <code><code>arch</code></code>. This is usually generated from the POD in <i>.pm</i> and <i>.pod</i> files. Under Unix, these are manual pages belonging to the &#39;man3&#39; category. Unless explicitly set, this is only available on platforms supporting manpages.</p>
+
+</li>
+<li><p>binhtml</p>
+
+<p>This is the same as <code><code>bindoc</code></code> above, but applies to HTML documents. Unless explicitly set, this is only available when perl was configured to do so.</p>
+
+</li>
+<li><p>libhtml</p>
+
+<p>This is the same as <code><code>libdoc</code></code> above, but applies to HTML documents. Unless explicitly set, this is only available when perl was configured to do so.</p>
+
+</li>
+</ul>
+
+<h1 id="ATTRIBUTES">ATTRIBUTES</h1>
+
+<h2 id="installdirs">installdirs</h2>
+
+<p>The default destinations for these installable things come from entries in your system&#39;s configuration. You can select from three different sets of default locations by setting the <code><code>installdirs</code></code> parameter as follows:</p>
+
+<pre><code><code>                          &#39;installdirs&#39; set to:
+                   core          site                vendor
+
+              uses the following defaults from ExtUtils::Config:
+
+  lib     =&gt; installprivlib  installsitelib      installvendorlib
+  arch    =&gt; installarchlib  installsitearch     installvendorarch
+  script  =&gt; installscript   installsitescript   installvendorscript
+  bin     =&gt; installbin      installsitebin      installvendorbin
+  bindoc  =&gt; installman1dir  installsiteman1dir  installvendorman1dir
+  libdoc  =&gt; installman3dir  installsiteman3dir  installvendorman3dir
+  binhtml =&gt; installhtml1dir installsitehtml1dir installvendorhtml1dir [*]
+  libhtml =&gt; installhtml3dir installsitehtml3dir installvendorhtml3dir [*]
+
+  * Under some OS (eg. MSWin32) the destination for HTML documents is determined by the C&lt;Config.pm&gt; entry C&lt;installhtmldir&gt;.</code></code></pre>
+
+<p>The default value of <code><code>installdirs</code></code> is &quot;site&quot;.</p>
+
+<h2 id="install_base">install_base</h2>
+
+<p>You can also set the whole bunch of installation paths by supplying the <code><code>install_base</code></code> parameter to point to a directory on your system. For instance, if you set <code><code>install_base</code></code> to &quot;/home/ken&quot; on a Linux system, you&#39;ll install as follows:</p>
+
+<pre><code><code>  lib     =&gt; /home/ken/lib/perl5
+  arch    =&gt; /home/ken/lib/perl5/i386-linux
+  script  =&gt; /home/ken/bin
+  bin     =&gt; /home/ken/bin
+  bindoc  =&gt; /home/ken/man/man1
+  libdoc  =&gt; /home/ken/man/man3
+  binhtml =&gt; /home/ken/html
+  libhtml =&gt; /home/ken/html</code></code></pre>
+
+<h2 id="prefix">prefix</h2>
+
+<p>This sets a prefix, identical to ExtUtils::MakeMaker&#39;s PREFIX option. This does something similar to <code><code>install_base</code></code> in a much more complicated way.</p>
+
+<h2 id="config-">config()</h2>
+
+<p>The <a href="../../../lib/perl5/ExtUtils/Config.html">ExtUtils::Config</a> object used for this object.</p>
+
+<h2 id="verbose">verbose</h2>
+
+<p>The verbosity of ExtUtils::InstallPaths. It defaults to 0</p>
+
+<h2 id="blib">blib</h2>
+
+<p>The location of the blib directory, it defaults to &#39;blib&#39;.</p>
+
+<h2 id="create_packlist">create_packlist</h2>
+
+<p>Together with <code><code>module_name</code></code> this controls whether a packlist will be added; it defaults to 1.</p>
+
+<h2 id="dist_name">dist_name</h2>
+
+<p>The name of the current module.</p>
+
+<h2 id="module_name">module_name</h2>
+
+<p>The name of the main module of the package. This is required for packlist creation, but in the future it may be replaced by dist_name. It defaults to <code><code>dist_name =~ s/-/::/gr</code></code> if dist_name is set.</p>
+
+<h2 id="destdir">destdir</h2>
+
+<p>If you want to install everything into a temporary directory first (for instance, if you want to create a directory tree that a package manager like <code><code>rpm</code></code> or <code><code>dpkg</code></code> could create a package from), you can use the <code><code>destdir</code></code> parameter. E.g. Setting <code><code>destdir</code></code> to <code><code>&quot;/tmp/foo&quot;</code></code> will effectively install to &quot;/tmp/foo/$sitelib&quot;, &quot;/tmp/foo/$sitearch&quot;, and the like, except that it will use <code><code>File::Spec</code></code> to make the pathnames work correctly on whatever platform you&#39;re installing on.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="new">new</h2>
+
+<p>Create a new ExtUtils::InstallPaths object. <b>All attributes are valid arguments</b> to the constructor, as well as this:</p>
+
+<ul>
+
+<li><p>install_path</p>
+
+<p>This must be a hashref with the type as keys and the destination as values.</p>
+
+</li>
+<li><p>install_base_relpaths</p>
+
+<p>This must be a hashref with types as keys and a path relative to the install_base as value.</p>
+
+</li>
+<li><p>prefix_relpaths</p>
+
+<p>This must be a hashref any of these three keys: core, vendor, site. Each of the values mush be a hashref with types as keys and a path relative to the prefix as value. You probably want to make these three hashrefs identical.</p>
+
+</li>
+<li><p>original_prefix</p>
+
+<p>This must be a hashref with the legal installdirs values as keys and the prefix directories as values.</p>
+
+</li>
+<li><p>install_sets</p>
+
+<p>This mush be a hashref with the legal installdirs are keys, and the values being hashrefs with types as keys and locations as values.</p>
+
+</li>
+</ul>
+
+<h2 id="install_map-">install_map()</h2>
+
+<p>Return a map suitable for use with <a href="../../../lib/ExtUtils/Install.html">ExtUtils::Install</a>. <b>In most cases, this is the only method you&#39;ll need</b>.</p>
+
+<h2 id="install_destination-type-">install_destination($type)</h2>
+
+<p>Returns the destination of a certain type.</p>
+
+<h2 id="install_types-">install_types()</h2>
+
+<p>Return a list of all supported install types in the current configuration.</p>
+
+<h2 id="is_default_installable-type-">is_default_installable($type)</h2>
+
+<p>Given a file type, will return true if the file type would normally be installed when neither install-base nor prefix has been set. I.e. it will be true only if the path is set from the configuration object or set explicitly by the user via install_path.</p>
+
+<h2 id="install_path-type-">install_path($type)</h2>
+
+<p>Gets the install path for a certain type.</p>
+
+<h2 id="install_sets-installdirs-type-">install_sets($installdirs, $type)</h2>
+
+<p>Get the path for a certain <code><code>$type</code></code> with a certain <code><code>$installdirs</code></code>.</p>
+
+<h2 id="install_base_relpaths-type-relpath-">install_base_relpaths($type, $relpath)</h2>
+
+<p>Get the relative paths for use with install_base for a certain type.</p>
+
+<h2 id="prefix_relative-installdirs-type-">prefix_relative($installdirs, $type)</h2>
+
+<p>Gets the path of a certain <code><code>$type</code></code> and <code><code>$installdirs</code></code> relative to the prefix.</p>
+
+<h2 id="prefix_relpaths-install_dirs-type-">prefix_relpaths($install_dirs, $type)</h2>
+
+<p>Get the default relative path to use in case the config install paths cannot be prefixified. You do not want to use this to get any relative path, but may require it to set it for custom types.</p>
+
+<h2 id="original_prefix-installdirs-">original_prefix($installdirs)</h2>
+
+<p>Get the original prefix for a certain type of $installdirs.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<ul>
+
+<li><p><a href="http://github.com/dagolden/cpan-api-buildpl/blob/master/lib/CPAN/API/BuildPL.pm">Build.PL spec</a></p>
+
+</li>
+</ul>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<ul>
+
+<li><p>Ken Williams &lt;kwilliams@cpan.org&gt;</p>
+
+</li>
+<li><p>Leon Timmermans &lt;leont@cpan.org&gt;</p>
+
+</li>
+</ul>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>This software is copyright (c) 2011 by Ken Williams, Leon Timmermans.</p>
+
+<p>This is free software; you can redistribute it and/or modify it under the same terms as the Perl 5 programming language system itself.</p>
+
+
+</body>
+
+</html>
+
+

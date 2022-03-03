@@ -1,0 +1,252 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#BUILT-IN-BEHAVIORS">BUILT-IN BEHAVIORS</a></li>
+  <li><a href="#CAVEATS">CAVEATS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Hash::Merge - Merges arbitrarily deep hashes into a single hash</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Hash::Merge</span> <span class="string">qw( merge )</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">%a</span> <span class="operator">=</span> <span class="operator">(</span> 
+                <span class="string">'foo'</span>    <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+            <span class="string">'bar'</span>    <span class="operator">=&gt;</span> <span class="operator">[</span> <span class="string">qw( a b e )</span> <span class="operator">]</span><span class="operator">,</span>
+            <span class="string">'querty'</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'bob'</span> <span class="operator">=&gt;</span> <span class="string">'alice'</span> <span class="operator">}</span><span class="operator">,</span>
+        <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">%b</span> <span class="operator">=</span> <span class="operator">(</span> 
+                <span class="string">'foo'</span>     <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">,</span> 
+                <span class="string">'bar'</span>    <span class="operator">=&gt;</span> <span class="operator">[</span> <span class="string">qw(c d)</span> <span class="operator">]</span><span class="operator">,</span>
+                <span class="string">'querty'</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'ted'</span> <span class="operator">=&gt;</span> <span class="string">'margeret'</span> <span class="operator">}</span><span class="operator">,</span> 
+        <span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">%c</span> <span class="operator">=</span> <span class="variable">%</span><span class="operator">{</span> <span class="variable">merge</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">%a</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%b</span> <span class="operator">)</span> <span class="operator">}</span><span class="operator">;</span>
+    
+    <span class="variable">Hash::Merge::set_behavior</span><span class="operator">(</span> <span class="string">'RIGHT_PRECEDENT'</span> <span class="operator">);</span>
+    
+    <span class="comment"># This is the same as above</span>
+    
+        <span class="variable">Hash::Merge::specify_behavior</span><span class="operator">(</span>
+            <span class="operator">{</span>
+                        <span class="string">'SCALAR'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                                <span class="string">'SCALAR'</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span> <span class="operator">},</span>
+                                <span class="string">'ARRAY'</span>  <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="operator">[</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">,</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$_</span><span class="operator">[</span><span class="number">1</span><span class="operator">]}</span> <span class="operator">]</span> <span class="operator">},</span>
+                                <span class="string">'HASH'</span>   <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span> <span class="operator">},</span>
+                        <span class="operator">}</span><span class="operator">,</span>
+                        <span class="string">'ARRAY =&gt; {
+                                '</span><span class="variable">SCALAR</span><span class="string">' =&gt; sub { $_[1] },
+                                '</span><span class="variable">ARRAY</span><span class="string">'  =&gt; sub { [ @{$_[0]}, @{$_[1]} ] },
+                                '</span><span class="variable">HASH</span><span class="string">'   =&gt; sub { $_[1] }, 
+                        },
+                        '</span><span class="variable">HASH</span><span class="string">' =&gt; {
+                                '</span><span class="variable">SCALAR</span><span class="string">' =&gt; sub { $_[1] },
+                                '</span><span class="variable">ARRAY</span><span class="string">'  =&gt; sub { [ values %{$_[0]}, @{$_[1]} ] },
+                                '</span><span class="variable">HASH</span><span class="string">'   =&gt; sub { Hash::Merge::_merge_hashes( $_[0], $_[1] ) }, 
+                        },
+                }, 
+                '</span><span class="variable">My</span> <span class="variable">Behavior</span><span class="string">', 
+        );
+        
+        # Also there is OO interface.
+        
+        my $merge = Hash::Merge-&gt;new( '</span><span class="variable">LEFT_PRECEDENT</span><span class="string">' );
+        my %c = %{ $merge-&gt;merge( \%a, \%b ) };
+        
+        # All behavioral changes (e.g. $merge-&gt;set_behavior(...)), called on an object remain specific to that object
+        # The legacy "Global Setting" behavior is respected only when new called as a non-OO function.
+    </span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Hash::Merge merges two arbitrarily deep hashes into a single hash. That is, at any level, it will add non-conflicting key-value pairs from one hash to the other, and follows a set of specific rules when there are key value conflicts (as outlined below). The hash is followed recursively, so that deeply nested hashes that are at the same level will be merged when the parent hashes are merged. <b>Please note that self-referencing hashes, or recursive references, are not handled well by this method.</b></p>
+
+<p>Values in hashes are considered to be either ARRAY references, HASH references, or otherwise are treated as SCALARs. By default, the data passed to the merge function will be cloned using the Clone module; however, if necessary, this behavior can be changed to use as many of the original values as possible. (See <code><code>set_clone_behavior</code></code>).</p>
+
+<p>Because there are a number of possible ways that one may want to merge values when keys are conflicting, Hash::Merge provides several preset methods for your convenience, as well as a way to define you own. These are (currently):</p>
+
+<dl>
+
+<dt id="Left-Precedence">Left Precedence</dt>
+<dd>
+
+<p>This is the default behavior.</p>
+
+<p>The values buried in the left hash will never be lost; any values that can be added from the right hash will be attempted.</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$merge</span> <span class="operator">=</span> <span class="variable">Hash::Merge</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+   <span class="keyword">my</span> <span class="variable">$merge</span> <span class="operator">=</span> <span class="variable">Hash::Merge</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'LEFT_PRECEDENT'</span><span class="operator">);</span>
+   <span class="variable">$merge</span><span class="operator">-&gt;</span><span class="variable">set_set_behavior</span><span class="operator">(</span><span class="string">'LEFT_PRECEDENT'</span><span class="operator">)</span>
+   <span class="variable">Hash::Merge::set_set_behavior</span><span class="operator">(</span><span class="string">'LEFT_PRECEDENT'</span><span class="operator">)</span>
+</code></code></pre>
+
+</dd>
+<dt id="Right-Precedence">Right Precedence</dt>
+<dd>
+
+<p>Same as Left Precedence, but with the right hash values never being lost</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$merge</span> <span class="operator">=</span> <span class="variable">Hash::Merge</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'RIGHT_PRECEDENT'</span><span class="operator">);</span>
+   <span class="variable">$merge</span><span class="operator">-&gt;</span><span class="variable">set_set_behavior</span><span class="operator">(</span><span class="string">'RIGHT_PRECEDENT'</span><span class="operator">)</span>
+   <span class="variable">Hash::Merge::set_set_behavior</span><span class="operator">(</span><span class="string">'RIGHT_PRECEDENT'</span><span class="operator">)</span>
+</code></code></pre>
+
+</dd>
+<dt id="Storage-Precedence">Storage Precedence</dt>
+<dd>
+
+<p>If conflicting keys have two different storage mediums, the &#39;bigger&#39; medium will win; arrays are preferred over scalars, hashes over either. The other medium will try to be fitted in the other, but if this isn&#39;t possible, the data is dropped.</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$merge</span> <span class="operator">=</span> <span class="variable">Hash::Merge</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'STORAGE_PRECEDENT'</span><span class="operator">);</span>
+   <span class="variable">$merge</span><span class="operator">-&gt;</span><span class="variable">set_set_behavior</span><span class="operator">(</span><span class="string">'STORAGE_PRECEDENT'</span><span class="operator">)</span>
+   <span class="variable">Hash::Merge::set_set_behavior</span><span class="operator">(</span><span class="string">'STORAGE_PRECEDENT'</span><span class="operator">)</span>
+</code></code></pre>
+
+</dd>
+<dt id="Retainment-Precedence">Retainment Precedence</dt>
+<dd>
+
+<p>No data will be lost; scalars will be joined with arrays, and scalars and arrays will be &#39;hashified&#39; to fit them into a hash.</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$merge</span> <span class="operator">=</span> <span class="variable">Hash::Merge</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'RETAINMENT_PRECEDENT'</span><span class="operator">);</span>
+   <span class="variable">$merge</span><span class="operator">-&gt;</span><span class="variable">set_set_behavior</span><span class="operator">(</span><span class="string">'RETAINMENT_PRECEDENT'</span><span class="operator">)</span>
+   <span class="variable">Hash::Merge::set_set_behavior</span><span class="operator">(</span><span class="string">'RETAINMENT_PRECEDENT'</span><span class="operator">)</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<p>Specific descriptions of how these work are detailed below.</p>
+
+<dl>
+
+<dt id="merge-hashref-hashref-">merge ( &lt;hashref&gt;, &lt;hashref&gt; )</dt>
+<dd>
+
+<p>Merges two hashes given the rules specified. Returns a reference to the new hash.</p>
+
+</dd>
+<dt id="hashify-scalar-arrayref----INTERNAL-FUNCTION">_hashify( &lt;scalar&gt;|&lt;arrayref&gt; ) -- INTERNAL FUNCTION</dt>
+<dd>
+
+<p>Returns a reference to a hash created from the scalar or array reference, where, for the scalar value, or each item in the array, there is a key and it&#39;s value equal to that specific value. Example, if you pass scalar &#39;3&#39;, the hash will be { 3 =&gt; 3 }.</p>
+
+</dd>
+<dt id="merge_hashes-hashref-hashref----INTERNAL-FUNCTION">_merge_hashes( &lt;hashref&gt;, &lt;hashref&gt; ) -- INTERNAL FUNCTION</dt>
+<dd>
+
+<p>Actually does the key-by-key evaluation of two hashes and returns the new merged hash. Note that this recursively calls <code><code>merge</code></code>.</p>
+
+</dd>
+<dt id="set_clone_behavior-scalar-">set_clone_behavior( &lt;scalar&gt; )</dt>
+<dd>
+
+<p>Sets how the data cloning is handled by Hash::Merge. If this is true, then data will be cloned; if false, then original data will be used whenever possible. By default, cloning is on (set to true).</p>
+
+</dd>
+<dt id="get_clone_behavior-">get_clone_behavior( )</dt>
+<dd>
+
+<p>Returns the current behavior for data cloning.</p>
+
+</dd>
+<dt id="set_behavior-scalar-">set_behavior( &lt;scalar&gt; )</dt>
+<dd>
+
+<p>Specify which built-in behavior for merging that is desired. The scalar must be one of those given below.</p>
+
+</dd>
+<dt id="get_behavior-">get_behavior( )</dt>
+<dd>
+
+<p>Returns the behavior that is currently in use by Hash::Merge.</p>
+
+</dd>
+<dt id="specify_behavior-hashref-name-">specify_behavior( &lt;hashref&gt;, [&lt;name&gt;] )</dt>
+<dd>
+
+<p>Specify a custom merge behavior for Hash::Merge. This must be a hashref defined with (at least) 3 keys, SCALAR, ARRAY, and HASH; each of those keys must have another hashref with (at least) the same 3 keys defined. Furthermore, the values in those hashes must be coderefs. These will be called with two arguments, the left and right values for the merge. Your coderef should return either a scalar or an array or hash reference as per your planned behavior. If necessary, use the functions _hashify and _merge_hashes as helper functions for these. For example, if you want to add the left SCALAR to the right ARRAY, you can have your behavior specification include:</p>
+
+<pre><code><code>   <span class="variable">%spec</span> <span class="operator">=</span> <span class="operator">(</span> <span class="operator">...</span><span class="string">SCALAR</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">ARRAY</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="operator">[</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">,</span> <span class="variable">@$_</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span> <span class="operator">]</span> <span class="operator">},</span> <span class="operator">...</span> <span class="operator">}</span> <span class="operator">}</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Note that you can import _hashify and _merge_hashes into your program&#39;s namespace with the &#39;custom&#39; tag.</p>
+
+</dd>
+</dl>
+
+<h1 id="BUILT-IN-BEHAVIORS">BUILT-IN BEHAVIORS</h1>
+
+<p>Here is the specifics on how the current internal behaviors are called, and what each does. Assume that the left value is given as $a, and the right as $b (these are either scalars or appropriate references)</p>
+
+<pre><code><code>        LEFT TYPE   RIGHT TYPE      LEFT_PRECEDENT       RIGHT_PRECEDENT
+         SCALAR      SCALAR            $a                   $b
+         SCALAR      ARRAY             $a                   ( $a, @$b )
+         SCALAR      HASH              $a                   %$b
+         ARRAY       SCALAR            ( @$a, $b )          $b
+         ARRAY       ARRAY             ( @$a, @$b )         ( @$a, @$b )
+         ARRAY       HASH              ( @$a, values %$b )  %$b 
+         HASH        SCALAR            %$a                  $b
+         HASH        ARRAY             %$a                  ( values %$a, @$b )
+         HASH        HASH              merge( %$a, %$b )    merge( %$a, %$b )
+
+        LEFT TYPE   RIGHT TYPE  STORAGE_PRECEDENT   RETAINMENT_PRECEDENT
+         SCALAR      SCALAR     $a                  ( $a ,$b )
+         SCALAR      ARRAY      ( $a, @$b )         ( $a, @$b )
+         SCALAR      HASH       %$b                 merge( hashify( $a ), %$b )
+         ARRAY       SCALAR     ( @$a, $b )         ( @$a, $b )
+         ARRAY       ARRAY      ( @$a, @$b )        ( @$a, @$b )
+         ARRAY       HASH       %$b                 merge( hashify( @$a ), %$b )
+         HASH        SCALAR     %$a                 merge( %$a, hashify( $b ) )
+         HASH        ARRAY      %$a                 merge( %$a, hashify( @$b ) )
+         HASH        HASH       merge( %$a, %$b )   merge( %$a, %$b )</code></code></pre>
+
+<p>(*) note that merge calls _merge_hashes, hashify calls _hashify.</p>
+
+<h1 id="CAVEATS">CAVEATS</h1>
+
+<p>This will not handle self-referencing/recursion within hashes well. Plans for a future version include incorporate deep recursion protection.</p>
+
+<p>As of Feb 16, 2002, ActiveState Perl&#39;s PPM of Clone.pm is only at 0.09. This version does not support the cloning of scalars if passed to the function. This is fixed by 0.10 (and currently, Clone.pm is at 0.13). So while most other users can upgrade their Clone.pm appropriately (and I could put this as a requirement into the Makefile.PL), those using ActiveState would lose out on the ability to use this module. (Clone.pm is not pure perl, so it&#39;s not simply a matter of moving the newer file into place). Thus, for the time being, a check is done at the start of loading of this module to see if a newer version of clone is around. Then, all cloning calls have been wrapped in the internal _my_clone function to block any scalar clones if Clone.pm is too old. However, this also prevents the cloning of anything that isn&#39;t a hash or array under the same conditions. Once ActiveState updates their Clone, I&#39;ll remove this wrapper.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Michael K. Neylon &lt;mneylon-pm@masemware.com&gt;</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2001,2002 Michael K. Neylon. All rights reserved.</p>
+
+<p>This library is free software. You can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

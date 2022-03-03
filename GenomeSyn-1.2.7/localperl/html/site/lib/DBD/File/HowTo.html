@@ -1,0 +1,210 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#CREATING-DRIVER-CLASSES">CREATING DRIVER CLASSES</a>
+    <ul>
+      <li><a href="#Sample-Skeleton">Sample Skeleton</a></li>
+      <li><a href="#Start-over">Start over</a></li>
+      <li><a href="#User-comfort">User comfort</a></li>
+      <li><a href="#Testing">Testing</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DBD::File::HowTo - Guide to create DBD::File based driver</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  perldoc DBD::File::HowTo
+  perldoc DBI
+  perldoc DBI::DBD
+  perldoc DBD::File::Developers
+  perldoc DBI::DBD::SqlEngine::Developers
+  perldoc DBI::DBD::SqlEngine
+  perldoc SQL::Eval
+  perldoc DBI::DBD::SqlEngine::HowTo
+  perldoc SQL::Statement::Embed
+  perldoc DBD::File
+  perldoc DBD::File::HowTo
+  perldoc DBD::File::Developers</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This document provides a step-by-step guide, how to create a new <code><code>DBD::File</code></code> based DBD. It expects that you carefully read the <a href="../../../../lib/DBI.html">DBI</a> documentation and that you&#39;re familiar with <a href="../../../../lib/DBI/DBD.html">DBI::DBD</a> and had read and understood <a>DBD::ExampleP</a>.</p>
+
+<p>This document addresses experienced developers who are really sure that they need to invest time when writing a new DBI Driver. Writing a DBI Driver is neither a weekend project nor an easy job for hobby coders after work. Expect one or two man-month of time for the first start.</p>
+
+<p>Those who are still reading, should be able to sing the rules of <a href="../../../../lib/DBI/DBD.html#CREATING-A-NEW-DRIVER">&quot;CREATING A NEW DRIVER&quot; in DBI::DBD</a>.</p>
+
+<p>Of course, DBD::File is a DBI::DBD::SqlEngine and you surely read <a href="../../../../lib/DBI/DBD/SqlEngine/HowTo.html">DBI::DBD::SqlEngine::HowTo</a> before continuing here.</p>
+
+<h1 id="CREATING-DRIVER-CLASSES">CREATING DRIVER CLASSES</h1>
+
+<p>Do you have an entry in DBI&#39;s DBD registry? For this guide, a prefix of <code><code>foo_</code></code> is assumed.</p>
+
+<h2 id="Sample-Skeleton">Sample Skeleton</h2>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">DBD::Foo</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">warnings</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw(@ISA $VERSION)</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">base</span> <span class="string">qw(DBD::File)</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">DBI</span> <span class="operator">();</span>
+    
+    <span class="variable">$VERSION</span> <span class="operator">=</span> <span class="string">"0.001"</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">DBD::Foo::dr</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw(@ISA $imp_data_size)</span><span class="operator">;</span>
+    
+    <span class="variable">@ISA</span> <span class="operator">=</span> <span class="string">qw(DBD::File::dr)</span><span class="operator">;</span>
+    <span class="variable">$imp_data_size</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">DBD::Foo::db</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw(@ISA $imp_data_size)</span><span class="operator">;</span>
+    
+    <span class="variable">@ISA</span> <span class="operator">=</span> <span class="string">qw(DBD::File::db)</span><span class="operator">;</span>
+    <span class="variable">$imp_data_size</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">DBD::Foo::st</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw(@ISA $imp_data_size)</span><span class="operator">;</span>
+    
+    <span class="variable">@ISA</span> <span class="operator">=</span> <span class="string">qw(DBD::File::st)</span><span class="operator">;</span>
+    <span class="variable">$imp_data_size</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">DBD::Foo::Statement</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw(@ISA)</span><span class="operator">;</span>
+    
+    <span class="variable">@ISA</span> <span class="operator">=</span> <span class="string">qw(DBD::File::Statement)</span><span class="operator">;</span>
+    
+    <span class="keyword">package</span> <span class="variable">DBD::Foo::Table</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">vars</span> <span class="string">qw(@ISA)</span><span class="operator">;</span>
+    
+    <span class="variable">@ISA</span> <span class="operator">=</span> <span class="string">qw(DBD::File::Table)</span><span class="operator">;</span>
+    
+    <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Tiny, eh? And all you have now is a DBD named foo which will is able to deal with temporary tables, as long as you use <a href="../../../../lib/SQL/Statement.html">SQL::Statement</a>. In <a href="../../../../lib/DBI/SQL/Nano.html">DBI::SQL::Nano</a> environments, this DBD can do nothing.</p>
+
+<h2 id="Start-over">Start over</h2>
+
+<p>Based on <a href="../../../../lib/DBI/DBD/SqlEngine/HowTo.html">DBI::DBD::SqlEngine::HowTo</a>, we&#39;re now having a driver which could do basic things. Of course, it should now derive from DBD::File instead of DBI::DBD::SqlEngine, shouldn&#39;t it?</p>
+
+<p>DBD::File extends DBI::DBD::SqlEngine to deal with any kind of files. In principle, the only extensions required are to the table class:</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">DBD::Foo::Table</span><span class="operator">;</span>
+    
+    <span class="keyword">sub</span><span class="variable"> bootstrap_table_meta
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span> <span class="variable">$self</span><span class="operator">,</span> <span class="variable">$dbh</span><span class="operator">,</span> <span class="variable">$meta</span><span class="operator">,</span> <span class="variable">$table</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+    
+        <span class="comment"># initialize all $meta attributes which might be relevant for</span>
+        <span class="comment"># file2table</span>
+    
+        <span class="keyword">return</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">SUPER::bootstrap_table_meta</span><span class="operator">(</span><span class="variable">$dbh</span><span class="operator">,</span> <span class="variable">$meta</span><span class="operator">,</span> <span class="variable">$table</span><span class="operator">);</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">sub</span><span class="variable"> init_table_meta
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span> <span class="variable">$self</span><span class="operator">,</span> <span class="variable">$dbh</span><span class="operator">,</span> <span class="variable">$meta</span><span class="operator">,</span> <span class="variable">$table</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+    
+        <span class="comment"># called after $meta contains the results from file2table</span>
+        <span class="comment"># initialize all missing $meta attributes</span>
+    
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">SUPER::init_table_meta</span><span class="operator">(</span> <span class="variable">$dbh</span><span class="operator">,</span> <span class="variable">$meta</span><span class="operator">,</span> <span class="variable">$table</span> <span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>In case <code><code>DBD::File::Table::open_file</code></code> doesn&#39;t open the files as the driver needs that, override it!</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> open_file
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span> <span class="variable">$self</span><span class="operator">,</span> <span class="variable">$meta</span><span class="operator">,</span> <span class="variable">$attrs</span><span class="operator">,</span> <span class="variable">$flags</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+        <span class="comment"># ensure that $meta-&gt;{f_dontopen} is set</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">SUPER::open_file</span><span class="operator">(</span> <span class="variable">$meta</span><span class="operator">,</span> <span class="variable">$attrs</span><span class="operator">,</span> <span class="variable">$flags</span> <span class="operator">);</span>
+        <span class="comment"># now do what ever needs to be done</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>Combined with the methods implemented using the <a href="../../../../lib/SQL/Statement/Embed.html">SQL::Statement::Embed</a> guide, the table is full working and you could try a start over.</p>
+
+<h2 id="User-comfort">User comfort</h2>
+
+<p><code><code>DBD::File</code></code> since <code><code>0.39</code></code> consolidates all persistent meta data of a table into a single structure stored in <code><code><span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">f_meta</span><span class="operator">}</span>
+</code></code>. With <code><code>DBD::File</code></code> version <code><code>0.41</code></code> and <code><code>DBI::DBD::SqlEngine</code></code> version <code><code>0.05</code></code>, this consolidation moves to <a href="../../../../lib/DBI/DBD/SqlEngine.html">DBI::DBD::SqlEngine</a>. It&#39;s still the <code><code><span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$drv_prefix</span> <span class="operator">.</span> <span class="string">"_meta"</span><span class="operator">}</span>
+</code></code> attribute which cares, so what you learned at this place before, is still valid.</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> init_valid_attributes
+    </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$dbh</span> <span class="operator">=</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+    
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">SUPER::init_valid_attributes</span> <span class="operator">();</span>
+    
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_valid_attrs</span><span class="operator">}</span> <span class="operator">=</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span><span class="operator">;</span>
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_readonly_attrs</span><span class="operator">}</span> <span class="operator">=</span> <span class="operator">{</span> <span class="operator">...</span>  <span class="operator">}</span><span class="operator">;</span>
+    
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">foo_meta</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">"foo_tables"</span><span class="operator">;</span>
+    
+        <span class="keyword">return</span> <span class="variable">$dbh</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>See updates at <a href="../../../../lib/DBI/DBD/SqlEngine/HowTo.html#User-comfort">&quot;User comfort&quot; in DBI::DBD::SqlEngine::HowTo</a>.</p>
+
+<h2 id="Testing">Testing</h2>
+
+<p>Now you should have your own DBD::File based driver. Was easy, wasn&#39;t it? But does it work well? Prove it by writing tests and remember to use dbd_edit_mm_attribs from <a href="../../../../lib/DBI/DBD.html">DBI::DBD</a> to ensure testing even rare cases.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>This guide is written by Jens Rehsack. DBD::File is written by Jochen Wiedmann and Jeff Zucker.</p>
+
+<p>The module DBD::File is currently maintained by</p>
+
+<p>H.Merijn Brand &lt; h.m.brand at xs4all.nl &gt; and Jens Rehsack &lt; rehsack at googlemail.com &gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (C) 2010 by H.Merijn Brand &amp; Jens Rehsack</p>
+
+<p>All rights reserved.</p>
+
+<p>You may freely distribute and/or modify this module under the terms of either the GNU General Public License (GPL) or the Artistic License, as specified in the Perl README file.</p>
+
+
+</body>
+
+</html>
+
+

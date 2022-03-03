@@ -1,0 +1,188 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#CHANGES-AND-ENHANCEMENTS">CHANGES AND ENHANCEMENTS</a>
+    <ul>
+      <li><a href="#Features">Features</a></li>
+      <li><a href="#Testing">Testing</a></li>
+      <li><a href="#Performance">Performance</a></li>
+      <li><a href="#Reliability">Reliability</a></li>
+      <li><a href="#Extensibility">Extensibility</a></li>
+    </ul>
+  </li>
+  <li><a href="#PRIORITIES">PRIORITIES</a></li>
+  <li><a href="#RESOURCES-AND-CONTRIBUTIONS">RESOURCES AND CONTRIBUTIONS</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DBD::File::Roadmap - Planned Enhancements for DBD::File and pure Perl DBD&#39;s</p>
+
+<p>Jens Rehsack - May 2010</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>This document gives a high level overview of the future of the DBD::File DBI driver and groundwork for pure Perl DBI drivers.</p>
+
+<p>The planned enhancements cover features, testing, performance, reliability, extensibility and more.</p>
+
+<h1 id="CHANGES-AND-ENHANCEMENTS">CHANGES AND ENHANCEMENTS</h1>
+
+<h2 id="Features">Features</h2>
+
+<p>There are some features missing we would like to add, but there is no time plan:</p>
+
+<dl>
+
+<dt id="LOCK-TABLE">LOCK TABLE</dt>
+<dd>
+
+<p>The newly implemented internal common table meta storage area would allow us to implement LOCK TABLE support based on file system <code><code>flock ()</code></code> support.</p>
+
+</dd>
+<dt id="Transaction-support">Transaction support</dt>
+<dd>
+
+<p>While DBD::AnyData recommends explicitly committing by importing and exporting tables, DBD::File might be enhanced in a future version to allow transparent transactions using the temporary tables of SQL::Statement as shadow (dirty) tables.</p>
+
+<p>Transaction support will heavily rely on lock table support.</p>
+
+</dd>
+<dt id="Data-Dictionary-Persistence">Data Dictionary Persistence</dt>
+<dd>
+
+<p>SQL::Statement provides dictionary information when a &quot;CREATE TABLE ...&quot; statement is executed. This dictionary is preserved for some statement handle attribute fetches (as <code><code>NULLABLE</code></code> or <code><code>PRECISION</code></code>).</p>
+
+<p>It is planned to extend DBD::File to support data dictionaries to work on the tables in it. It is not planned to support one table in different dictionaries, but you can have several dictionaries in one directory.</p>
+
+</dd>
+<dt id="SQL-Engine-selecting-on-connect">SQL Engine selecting on connect</dt>
+<dd>
+
+<p>Currently the SQL engine selected is chosen during the loading of the module <a href="../../../../lib/DBI/SQL/Nano.html">DBI::SQL::Nano</a>. Ideally end users should be able to select the engine used in <code><code>DBI-&gt;connect ()</code></code> with a special DBD::File attribute.</p>
+
+</dd>
+</dl>
+
+<p>Other points of view to the planned features (and more features for the SQL::Statement engine) are shown in <a href="../../../../lib/SQL/Statement/Roadmap.html">SQL::Statement::Roadmap</a>.</p>
+
+<h2 id="Testing">Testing</h2>
+
+<p>DBD::File and the dependent DBD::DBM requires a lot more automated tests covering API stability and compatibility with optional modules like SQL::Statement.</p>
+
+<h2 id="Performance">Performance</h2>
+
+<p>Several arguments for support of features like indexes on columns and cursors are made for DBD::CSV (which is a DBD::File based driver, too). Similar arguments could be made for DBD::DBM, DBD::AnyData, DBD::RAM or DBD::PO etc.</p>
+
+<p>To improve the performance of the underlying SQL engines, a clean re-implementation seems to be required. Currently both engines are prematurely optimized and therefore it is not trivial to provide further optimization without the risk of breaking existing features.</p>
+
+<p>Join the DBI developers IRC channel at <a href="irc://irc.perl.org/dbi">irc://irc.perl.org/dbi</a> to participate or post to the DBI Developers Mailing List.</p>
+
+<h2 id="Reliability">Reliability</h2>
+
+<p>DBD::File currently lacks the following points:</p>
+
+<dl>
+
+<dt id="duplicate-table-names">duplicate table names</dt>
+<dd>
+
+<p>It is currently possible to access a table quoted with a relative path (a) and additionally using an absolute path (b). If (a) and (b) are the same file that is not recognized (except for flock protection handled by the Operating System) and two independent tables are handled.</p>
+
+</dd>
+<dt id="invalid-table-names">invalid table names</dt>
+<dd>
+
+<p>The current implementation does not prevent someone choosing a directory name as a physical file name for the table to open.</p>
+
+</dd>
+</dl>
+
+<h2 id="Extensibility">Extensibility</h2>
+
+<p>I (Jens Rehsack) have some (partially for example only) DBD&#39;s in mind:</p>
+
+<dl>
+
+<dt id="DBD::Sys">DBD::Sys</dt>
+<dd>
+
+<p>Derive DBD::Sys from a common code base shared with DBD::File which handles all the emulation DBI needs (as getinfo, SQL engine handling, ...)</p>
+
+</dd>
+<dt id="DBD::Dir">DBD::Dir</dt>
+<dd>
+
+<p>Provide a DBD::File derived to work with fixed table definitions through the file system to demonstrate how DBI / Pure Perl DBDs could handle databases with hierarchical structures.</p>
+
+</dd>
+<dt id="DBD::Join">DBD::Join</dt>
+<dd>
+
+<p>Provide a DBI driver which is able to manage multiple connections to other Databases (as DBD::Multiplex), but allow them to point to different data sources and allow joins between the tables of them:</p>
+
+<pre><code><code>  <span class="comment"># Example</span>
+  <span class="comment"># Let table 'lsof' being a table in DBD::Sys giving a list of open files using lsof utility</span>
+  <span class="comment"># Let table 'dir' being a atable from DBD::Dir</span>
+  <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span> <span class="string">"select * from dir,lsof where path='/documents' and dir.entry = lsof.filename"</span> <span class="operator">)</span>
+  <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">execute</span><span class="operator">();</span> <span class="comment"># gives all open files in '/documents'</span>
+  <span class="operator">...</span>
+  
+  <span class="comment"># Let table 'filesys' a DBD::Sys table of known file systems on current host</span>
+  <span class="comment"># Let table 'applications' a table of your Configuration Management Database</span>
+  <span class="comment">#  where current applications (relocatable, with mountpoints for filesystems)</span>
+  <span class="comment">#  are stored</span>
+  <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span> <span class="string">"select * from applications,filesys where "</span> <span class="operator">.</span>
+                       <span class="string">"application.mountpoint = filesys.mountpoint and "</span><span class="operator">.</span>
+                       <span class="string">"filesys.mounted is true"</span> <span class="operator">);</span>
+  <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">execute</span><span class="operator">();</span> <span class="comment"># gives all currently mounted applications on this host</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h1 id="PRIORITIES">PRIORITIES</h1>
+
+<p>Our priorities are focused on current issues. Initially many new test cases for DBD::File and DBD::DBM should be added to the DBI test suite. After that some additional documentation on how to use the DBD::File API will be provided.</p>
+
+<p>Any additional priorities will come later and can be modified by (paying) users.</p>
+
+<h1 id="RESOURCES-AND-CONTRIBUTIONS">RESOURCES AND CONTRIBUTIONS</h1>
+
+<p>See <a href="http://dbi.perl.org/contributing">http://dbi.perl.org/contributing</a> for <i>how you can help</i>.</p>
+
+<p>If your company has benefited from DBI, please consider if it could make a donation to The Perl Foundation &quot;DBI Development&quot; fund at <a href="http://dbi.perl.org/donate">http://dbi.perl.org/donate</a> to secure future development.</p>
+
+<p>Alternatively, if your company would benefit from a specific new DBI feature, please consider sponsoring it&#39;s development through the options listed in the section &quot;Commercial Support from the Author&quot; on <a href="http://dbi.perl.org/support/">http://dbi.perl.org/support/</a>.</p>
+
+<p>Using such targeted financing allows you to contribute to DBI development and rapidly get something specific and directly valuable to you in return.</p>
+
+<p>My company also offers annual support contracts for the DBI, which provide another way to support the DBI and get something specific in return. Contact me for details.</p>
+
+<p>Thank you.</p>
+
+
+</body>
+
+</html>
+
+

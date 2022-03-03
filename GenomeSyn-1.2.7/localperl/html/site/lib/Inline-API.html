@@ -1,0 +1,405 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../displayToc.js"></script>
+<script language="JavaScript" src="../../tocParas.js"></script>
+<script language="JavaScript" src="../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#A-Skeleton">A Skeleton</a></li>
+  <li><a href="#The-Inline-API">The Inline API</a>
+    <ul>
+      <li><a href="#The-register-Callback">The register() Callback</a></li>
+      <li><a href="#The-validate-Callback">The validate() Callback</a></li>
+      <li><a href="#The-build-Callback">The build() Callback</a></li>
+      <li><a href="#The-load-Callback">The load() Callback</a></li>
+      <li><a href="#The-info-Callback">The info() Callback</a></li>
+    </ul>
+  </li>
+  <li><a href="#The-Inline-Object">The Inline Object</a>
+    <ul>
+      <li><a href="#The-code-Attribute">The code Attribute</a></li>
+      <li><a href="#The-language-Attribute">The language Attribute</a></li>
+      <li><a href="#The-language_id-Attribute">The language_id Attribute</a></li>
+      <li><a href="#The-module-Attribute">The module Attribute</a></li>
+      <li><a href="#The-modfname-Attribute">The modfname Attribute</a></li>
+      <li><a href="#The-modpname-Attribute">The modpname Attribute</a></li>
+      <li><a href="#The-version-Attribute">The version Attribute</a></li>
+      <li><a href="#The-pkg-Attribute">The pkg Attribute</a></li>
+      <li><a href="#The-install_lib-Attribute">The install_lib Attribute</a></li>
+      <li><a href="#The-build_dir-Attribute">The build_dir Attribute</a></li>
+      <li><a href="#The-script-Attribute">The script Attribute</a></li>
+      <li><a href="#The-location-Attribute">The location Attribute</a></li>
+      <li><a href="#The-suffix-Attribute">The suffix Attribute</a></li>
+    </ul>
+  </li>
+  <li><a href="#The-Inline-Namespace">The Inline Namespace</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Inline-API - How to bind a programming language to Perl using Inline.pm</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment">#!/usr/bin/perl</span>
+    
+    <span class="keyword">use</span> <span class="variable">Inline</span> <span class="variable">Foo</span><span class="operator">;</span>
+    <span class="variable">say_it</span><span class="operator">(</span><span class="string">'foo'</span><span class="operator">);</span>  <span class="comment"># Use Foo to print "Hello, Foo"</span>
+    
+    <span class="variable">__Foo__</span>
+    <span class="variable">foo</span><span class="operator">-</span><span class="keyword">sub</span><span class="variable"> say_it </span><span class="operator">{</span>
+        <span class="variable">foo</span><span class="operator">-</span><span class="keyword">my</span> <span class="variable">$foo</span> <span class="operator">=</span> <span class="variable">foo</span><span class="operator">-</span><span class="keyword">shift</span><span class="operator">;</span>
+        <span class="variable">foo</span><span class="operator">-</span><span class="keyword">print</span> <span class="string">"Hello, </span><span class="variable">$foo</span><span class="string">\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>So you think Inline C is pretty cool, but what you really need is for Perl to work with the brand new programming language &quot;Foo&quot;. Well you&#39;re in luck. <code><code>Inline.pm</code></code> has support for adding your own Inline Language Support Module (<b>ILSM</b>), like <code><code>Inline::Foo</code></code>.</p>
+
+<p>Inline has always been intended to work with lots of different programming languages. Many of the details can be shared between implementations, so that <code><code>Inline::Java</code></code> has a similar interface to <code><code>Inline::ASM</code></code>. All of the common code is in <code><code>Inline.pm</code></code>.</p>
+
+<p>Language specific modules like <code><code>Inline::Python</code></code> are subclasses of <code><code>Inline.pm</code></code>. They can inherit as much of the common behaviour as they want, and provide specific behaviour of their own. This usually comes in the form of Configuration Options and language specific compilation.</p>
+
+<p>The Inline C support is probably the best boilerplate to copy from. Since version 0.30 all C support was isolated into the module <code><code>Inline::C</code></code> and the parsing grammar is further broken out into <code><code>Inline::C::grammar</code></code>. All of these components come with the Inline distribution.</p>
+
+<p>This POD gives you all the details you need for implementing an ILSM. For further assistance, contact inline@perl.org See <a href="#SEE-ALSO">&quot;SEE ALSO&quot;</a> below.</p>
+
+<p>We&#39;ll examine the joke language Inline::Foo which is distributed with Inline. It actually is a full functioning ILSM. I use it in Inline&#39;s test harness to test base Inline functionality. It is very short, and can help you get your head wrapped around the Inline API.</p>
+
+<h1 id="A-Skeleton">A Skeleton</h1>
+
+<p>For the remainder of this tutorial, let&#39;s assume we&#39;re writing an ILSM for the ficticious language <code><code>Foo</code></code>. We&#39;ll call it <code><code>Inline::Foo</code></code>. Here is the entire (working) implementation.</p>
+
+<pre><code><code>    <span class="keyword">package</span> <span class="variable">Inline::Foo</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+    <span class="variable">$Inline::Foo::VERSION</span> <span class="operator">=</span> <span class="string">'0.01'</span><span class="operator">;</span>
+    <span class="variable">@Inline::Foo::ISA</span> <span class="operator">=</span> <span class="string">qw(Inline)</span><span class="operator">;</span>
+    <span class="keyword">require</span> <span class="variable">Inline</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Carp</span><span class="operator">;</span>
+    
+    <span class="comment">#===========================================================</span>
+    <span class="comment"># Register Foo as an Inline Language Support Module (ILSM)</span>
+    <span class="comment">#===========================================================</span>
+    <span class="keyword">sub</span><span class="variable"> register </span><span class="operator">{</span>
+        <span class="keyword">return</span> <span class="operator">{</span>
+            <span class="string">language</span> <span class="operator">=&gt;</span> <span class="string">'Foo'</span><span class="operator">,</span>
+            <span class="string">aliases</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'foo'</span><span class="operator">]</span><span class="operator">,</span>
+            <span class="string">type</span> <span class="operator">=&gt;</span> <span class="string">'interpreted'</span><span class="operator">,</span>
+            <span class="string">suffix</span> <span class="operator">=&gt;</span> <span class="string">'foo'</span><span class="operator">,</span>
+           <span class="operator">}</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="comment">#===========================================================</span>
+    <span class="comment"># Error messages</span>
+    <span class="comment">#===========================================================</span>
+    <span class="keyword">sub</span><span class="variable"> usage_config </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$key</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+        <span class="string">"'</span><span class="variable">$key</span><span class="string">' is not a valid config option for Inline::Foo\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">sub</span><span class="variable"> usage_config_bar </span><span class="operator">{</span>
+        <span class="string">"Invalid value for Inline::Foo config option BAR"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="comment">#===========================================================</span>
+    <span class="comment"># Validate the Foo Config Options</span>
+    <span class="comment">#===========================================================</span>
+    <span class="keyword">sub</span><span class="variable"> validate </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$o</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="variable">$o</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">ILSM</span><span class="operator">}{</span><span class="string">PATTERN</span><span class="operator">}</span> <span class="operator">||=</span> <span class="string">'foo-'</span><span class="operator">;</span>
+        <span class="variable">$o</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">ILSM</span><span class="operator">}{</span><span class="string">BAR</span><span class="operator">}</span> <span class="operator">||=</span> <span class="number">0</span><span class="operator">;</span>
+        <span class="keyword">while</span> <span class="operator">(</span><span class="variable">@_</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$key</span><span class="operator">,</span> <span class="variable">$value</span><span class="operator">)</span> <span class="operator">=</span> <span class="keyword">splice</span> <span class="variable">@_</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="number">2</span><span class="operator">;</span>
+        <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$key</span> <span class="keyword">eq</span> <span class="string">'PATTERN'</span><span class="operator">)</span> <span class="operator">{</span>
+            <span class="variable">$o</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">ILSM</span><span class="operator">}{</span><span class="string">PATTERN</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">$value</span><span class="operator">;</span>
+            <span class="keyword">next</span><span class="operator">;</span>
+        <span class="operator">}</span>
+        <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$key</span> <span class="keyword">eq</span> <span class="string">'BAR'</span><span class="operator">)</span> <span class="operator">{</span>
+            <span class="variable">croak</span> <span class="variable">usage_config_bar</span>
+              <span class="keyword">unless</span> <span class="variable">$value</span> <span class="operator">=~</span> <span class="regex">/^[01]$/</span><span class="operator">;</span>
+            <span class="variable">$o</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">ILSM</span><span class="operator">}{</span><span class="string">BAR</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">$value</span><span class="operator">;</span>
+            <span class="keyword">next</span><span class="operator">;</span>
+        <span class="operator">}</span>
+        <span class="variable">croak</span> <span class="variable">usage_config</span><span class="operator">(</span><span class="variable">$key</span><span class="operator">);</span>
+        <span class="operator">}</span>
+    <span class="operator">}</span>
+    
+    <span class="comment">#===========================================================</span>
+    <span class="comment"># Parse and compile Foo code</span>
+    <span class="comment">#===========================================================</span>
+    <span class="keyword">sub</span><span class="variable"> build </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$o</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$code</span> <span class="operator">=</span> <span class="variable">$o</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">API</span><span class="operator">}{</span><span class="string">code</span><span class="operator">}</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$pattern</span> <span class="operator">=</span> <span class="variable">$o</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">ILSM</span><span class="operator">}{</span><span class="string">PATTERN</span><span class="operator">}</span><span class="operator">;</span>
+        <span class="variable">$code</span> <span class="operator">=~</span> <span class="regex">s/</span><span class="variable">$pattern</span><span class="regex">//g</span><span class="operator">;</span>
+        <span class="variable">$code</span> <span class="operator">=~</span> <span class="regex">s/bar-//g</span> <span class="keyword">if</span> <span class="variable">$o</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">ILSM</span><span class="operator">}{</span><span class="string">BAR</span><span class="operator">}</span><span class="operator">;</span>
+        <span class="keyword">sleep</span> <span class="number">1</span><span class="operator">;</span>             <span class="comment"># imitate compile delay</span>
+        <span class="operator">{</span>
+            <span class="keyword">package</span> <span class="variable">Foo::Tester</span><span class="operator">;</span>
+            <span class="keyword">eval</span> <span class="variable">$code</span><span class="operator">;</span>
+        <span class="operator">}</span>
+        <span class="variable">croak</span> <span class="string">"Foo build failed:\n$@"</span> <span class="keyword">if</span> <span class="variable">$@</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$path</span> <span class="operator">=</span> <span class="string">"</span><span class="variable">$o</span><span class="string">-&gt;{API}{install_lib}/auto/</span><span class="variable">$o</span><span class="string">-&gt;{API}{modpname}"</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">$o</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">API</span><span class="operator">}{</span><span class="string">location</span><span class="operator">}</span><span class="operator">;</span>
+        <span class="variable">$o</span><span class="operator">-&gt;</span><span class="variable">mkpath</span><span class="operator">(</span><span class="variable">$path</span><span class="operator">)</span> <span class="keyword">unless</span> <span class="keyword">-d</span> <span class="variable">$path</span><span class="operator">;</span>
+        <span class="keyword">open</span> <span class="variable">FOO_OBJ</span><span class="operator">,</span> <span class="string">"&gt; </span><span class="variable">$obj</span><span class="string">"</span>
+          <span class="keyword">or</span> <span class="variable">croak</span> <span class="string">"Can't open </span><span class="variable">$obj</span><span class="string"> for output\n$!"</span><span class="operator">;</span>
+        <span class="keyword">print</span> <span class="variable">FOO_OBJ</span> <span class="variable">$code</span><span class="operator">;</span>
+        <span class="keyword">close</span> <span class="operator">\</span><span class="variable">*FOO_OBJ</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="comment">#===========================================================</span>
+    <span class="comment"># Only needed for interpreted languages</span>
+    <span class="comment">#===========================================================</span>
+    <span class="keyword">sub</span><span class="variable"> load </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$o</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">$o</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">API</span><span class="operator">}{</span><span class="string">location</span><span class="operator">}</span><span class="operator">;</span>
+        <span class="keyword">open</span> <span class="variable">FOO_OBJ</span><span class="operator">,</span> <span class="string">"&lt; </span><span class="variable">$obj</span><span class="string">"</span>
+          <span class="keyword">or</span> <span class="variable">croak</span> <span class="string">"Can't open </span><span class="variable">$obj</span><span class="string"> for output\n$!"</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$code</span> <span class="operator">=</span> <span class="keyword">join</span> <span class="string">''</span><span class="operator">,</span> <span class="operator">&lt;</span><span class="variable">FOO_OBJ</span><span class="operator">&gt;;</span>
+        <span class="keyword">close</span> <span class="operator">\</span><span class="variable">*FOO_OBJ</span><span class="operator">;</span>
+        <span class="keyword">eval</span> <span class="string">"package </span><span class="variable">$o</span><span class="string">-&gt;{API}{pkg};\n</span><span class="variable">$code</span><span class="string">"</span><span class="operator">;</span>
+        <span class="variable">croak</span> <span class="string">"Unable to load Foo module </span><span class="variable">$obj</span><span class="string">:\n$@"</span> <span class="keyword">if</span> <span class="variable">$@</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="comment">#===========================================================</span>
+    <span class="comment"># Return a small report about the Foo code.</span>
+    <span class="comment">#===========================================================</span>
+    <span class="keyword">sub</span><span class="variable"> info </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$o</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="keyword">my</span> <span class="variable">$text</span> <span class="operator">=</span> <span class="operator">&lt;&lt;</span><span class="default">'END'</span><span class="operator">;</span><span class="string">
+    This is a small report about the Foo code. Perhaps it contains
+    information about the functions the parser found which will be
+    bound to Perl. It will get included in the text produced by the
+    Inline 'INFO' command.
+    </span><span class="default">END</span>
+        <span class="keyword">return</span> <span class="variable">$text</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Except for <code><code>load()</code></code>, the subroutines in this code are mandatory for an ILSM. What they do is described below. A few things to note:</p>
+
+<ol>
+
+<li><p><code><code>Inline::Foo</code></code> must be a subclass of Inline. This is accomplished with:</p>
+
+<pre><code><code>    <span class="variable">@Inline::Foo::ISA</span> <span class="operator">=</span> <span class="string">qw(Inline)</span><span class="operator">;</span>
+</code></code></pre>
+
+</li>
+<li><p>The line &#39;<code><code><span class="keyword">require</span> <span class="variable">Inline</span><span class="operator">;</span>
+</code></code>&#39; is not necessary. But it is there to remind you not to say &#39;<code><code><span class="keyword">use</span> <span class="variable">Inline</span><span class="operator">;</span>
+</code></code>&#39;. This will not work.</p>
+
+</li>
+<li><p>Remember, it is not valid for a user to say:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Inline::Foo</span><span class="operator">;</span>
+</code></code></pre>
+
+<p><code><code>Inline.pm</code></code> will detect such usage for you in its <code><code>import</code></code> method, which is automatically inherited since <code><code>Inline::Foo</code></code> is a subclass.</p>
+
+</li>
+<li><p>In the build function, you normally need to parse your source code. Inline::C uses Parse::RecDescent to do this. Inline::Foo simply uses eval. (After we strip out all occurances of &#39;foo-&#39;).</p>
+
+<p>An alternative parsing method that works well for many ILSMs (like Java and Python) is to use the language&#39;s compiler itself to parse for you. This works as long as the compiler can be made to give back parse information.</p>
+
+</li>
+</ol>
+
+<h1 id="The-Inline-API">The Inline API</h1>
+
+<p>This section is a more formal specification of what functionality you&#39;ll need to provide to implement an ILSM.</p>
+
+<p>When Inline determines that some <code><code>Foo</code></code> code needs to be compiled it will automatically load your ILSM module. It will then call various subroutines which you need to supply. We&#39;ll call these subroutines &quot;callbacks&quot;.</p>
+
+<p>You will need to provide the following 5 callback subroutines.</p>
+
+<h2 id="The-register-Callback">The register() Callback</h2>
+
+<p>This subroutine receives no arguments. It returns a reference to a hash of ILSM meta-data. Inline calls this routine only when it is trying to detect new ILSM-s that have been installed on a given system. Here is an example of the has ref you would return for Foo:</p>
+
+<pre><code><code>    <span class="operator">{</span>
+     <span class="string">language</span> <span class="operator">=&gt;</span> <span class="string">'Foo'</span><span class="operator">,</span>
+     <span class="string">aliases</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'foo'</span><span class="operator">]</span><span class="operator">,</span>
+     <span class="string">type</span> <span class="operator">=&gt;</span> <span class="string">'interpreted'</span><span class="operator">,</span>
+     <span class="string">suffix</span> <span class="operator">=&gt;</span> <span class="string">'foo'</span><span class="operator">,</span>
+    <span class="operator">};</span>
+</code></code></pre>
+
+<p>The meta-data items have the following meanings:</p>
+
+<dl>
+
+<dt id="language">language</dt>
+<dd>
+
+<p>This is the proper name of the language. It is usually implemented as <code><code>Inline::X</code></code> for a given language &#39;X&#39;.</p>
+
+</dd>
+<dt id="aliases">aliases</dt>
+<dd>
+
+<p>This is a reference to an array of language name aliases. The proper name of a language can only contain word characters. [A-Za-z0-9_] An alias can contain any characters except whitespace and quotes. This is useful for names like &#39;C++&#39; and &#39;C#&#39;.</p>
+
+</dd>
+<dt id="type">type</dt>
+<dd>
+
+<p>Must be set to &#39;compiled&#39; or &#39;interpreted&#39;. Indicates the category of the language.</p>
+
+</dd>
+<dt id="suffix">suffix</dt>
+<dd>
+
+<p>This is the file extension for the cached object that will be created. For &#39;compiled&#39; languages, it will probably be &#39;so&#39; or &#39;dll&#39;. The appropriate value is in <code><code>Config.pm</code></code>.</p>
+
+<p>For interpreted languages, this value can be whatever you want. Python uses <code><code>pydat</code></code>. Foo uses <code><code>foo</code></code>.</p>
+
+</dd>
+</dl>
+
+<h2 id="The-validate-Callback">The validate() Callback</h2>
+
+<p>This routine gets passed all configuration options that were not already handled by the base Inline module. The options are passed as key/value pairs. It is up to you to validate each option and store its value in the Inline object (which is also passed in). If a particular option is invalid, you should croak with an appropriate error message.</p>
+
+<h2 id="The-build-Callback">The build() Callback</h2>
+
+<p>This subroutine is responsible for doing the parsing and compilation of the Foo source code. The Inline object is passed as the only argument. All pertinent information will be stored in this object. <code><code>build()</code></code> is required to create a cache object of a specific name, or to croak with an appropriate error message.</p>
+
+<p>This is the meat of your ILSM. Since it will most likely be quite complicated, it is probably best that you study an existing ILSM like <code><code>Inline::C</code></code>.</p>
+
+<h2 id="The-load-Callback">The load() Callback</h2>
+
+<p>This method only needs to be provided for interpreted languages. It&#39;s responsibility is to start the interpreter.</p>
+
+<p>For compiled languages, the load routine from <code><code>Inline.pm</code></code> is called which uses <code><code>DynaLoader</code></code> to load the shared object or DLL.</p>
+
+<h2 id="The-info-Callback">The info() Callback</h2>
+
+<p>This method is called when the user makes use of the <code><code>INFO</code></code> shortcut. You should return a string containing a small report about the Inlined code.</p>
+
+<h1 id="The-Inline-Object">The Inline Object</h1>
+
+<p><code><code>Inline.pm</code></code> creates a hash based Perl object for each section of Inlined source code it receives. This object contains lots of information about the code, the environment, and the configuration options used.</p>
+
+<p>This object is a hash that is broken into several subhashes. The only two subhashes that an ILSM should use at all are $o-&gt;{API} and $o-&gt;{ILSM}. The first one contains all of the information that Inline has gather for you in order for you to create/load a cached object of your design. The second one is a repository where your ILSM can freely store data that it might need later on.</p>
+
+<p>This section will describe all of the Inline object &quot;API&quot; attributes.</p>
+
+<h2 id="The-code-Attribute">The code Attribute</h2>
+
+<p>This the actual source code passed in by the user. It is stored as one long string.</p>
+
+<h2 id="The-language-Attribute">The language Attribute</h2>
+
+<p>The proper name of the language being used.</p>
+
+<h2 id="The-language_id-Attribute">The language_id Attribute</h2>
+
+<p>The language name specified by the user. Could be &#39;C++&#39; instead of &#39;CPP&#39;.</p>
+
+<h2 id="The-module-Attribute">The module Attribute</h2>
+
+<p>This is the shared object&#39;s file name.</p>
+
+<h2 id="The-modfname-Attribute">The modfname Attribute</h2>
+
+<p>This is the shared object&#39;s file name.</p>
+
+<h2 id="The-modpname-Attribute">The modpname Attribute</h2>
+
+<p>This is the shared object&#39;s installation path extension.</p>
+
+<h2 id="The-version-Attribute">The version Attribute</h2>
+
+<p>The version of <code><code>Inline.pm</code></code> being used.</p>
+
+<h2 id="The-pkg-Attribute">The pkg Attribute</h2>
+
+<p>The Perl package from which this invocation pf Inline was called.</p>
+
+<h2 id="The-install_lib-Attribute">The install_lib Attribute</h2>
+
+<p>This is the directory to write the shared object into.</p>
+
+<h2 id="The-build_dir-Attribute">The build_dir Attribute</h2>
+
+<p>This is the directory under which you should write all of your build related files.</p>
+
+<h2 id="The-script-Attribute">The script Attribute</h2>
+
+<p>This is the name of the script that invoked Inline.</p>
+
+<h2 id="The-location-Attribute">The location Attribute</h2>
+
+<p>This is the full path name of the executable object in question.</p>
+
+<h2 id="The-suffix-Attribute">The suffix Attribute</h2>
+
+<p>This is the shared library extension name. (Usually &#39;so&#39; or &#39;dll&#39;).</p>
+
+<h1 id="The-Inline-Namespace">The Inline Namespace</h1>
+
+<p><code><code>Inline.pm</code></code> has been set up so that anyone can write their own language support modules. It further allows anyone to write a different implementation of an existing Inline language, like C for instance. You can distribute that module on the CPAN.</p>
+
+<p>If you have plans to implement and distribute an Inline module, I would ask that you please work with the Inline community. We can be reached at the Inline mailing list: inline@perl.org (Send mail to inline-subscribe@perl.org to subscribe). Here you should find the advice and assistance needed to make your module a success.</p>
+
+<p>The Inline community will decide if your implementation of COBOL will be distributed as the official <code><code>Inline::COBOL</code></code> or should use an alternate namespace. In matters of dispute, I (Brian Ingerson) retain final authority. (and I hope not to need use of it :-) Actually modules@perl.org retains the <b>final</b> authority.</p>
+
+<p>But even if you want to work alone, you are free and welcome to write and distribute Inline language support modules on CPAN. You&#39;ll just need to distribute them under a different package name.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>For generic information about Inline, see <a href="../../../.cpan/build/Inline-0.53-96IrIa/blib/lib/Inline.html">Inline</a>.</p>
+
+<p>For information about using Inline with C see <a href="../../../.cpan/build/Inline-0.53-96IrIa/blib/lib/Inline/C.html">Inline::C</a>.</p>
+
+<p>For information on supported languages and platforms see <a href="../../../.cpan/build/Inline-0.53-96IrIa/blib/lib/Inline-Support.html">Inline-Support</a>.</p>
+
+<p>Inline&#39;s mailing list is inline@perl.org</p>
+
+<p>To subscribe, send email to inline-subscribe@perl.org</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Brian Ingerson &lt;INGY@cpan.org&gt;</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2000-2002. Brian Ingerson.</p>
+
+<p>Copyright (c) 2008, 2010, 2011. Sisyphus.</p>
+
+<p>This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<p>See http://www.perl.com/perl/misc/Artistic.html</p>
+
+
+</body>
+
+</html>
+
+

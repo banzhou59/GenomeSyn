@@ -1,0 +1,303 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#CATCHING-EVENTS">CATCHING EVENTS</a></li>
+    </ul>
+  </li>
+  <li><a href="#PUBLIC-METHODS--">PUBLIC METHODS -</a>
+    <ul>
+      <li>
+        <ul>
+          <li><a href="#new">new</a></li>
+          <li><a href="#tree-stag-">tree (stag)</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#CAUGHT-EVENTS">CAUGHT EVENTS</a></li>
+  <li><a href="#PROTECTED-METHODS--">PROTECTED METHODS -</a>
+    <ul>
+      <li>
+        <ul>
+          <li><a href="#s_-">s_*</a></li>
+          <li><a href="#e_-">e_*</a></li>
+          <li><a href="#CONSUMES">CONSUMES</a></li>
+          <li><a href="#depth">depth</a></li>
+          <li><a href="#up">up</a></li>
+          <li><a href="#up_to">up_to</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<pre><code><code>  Data::Stag::BaseHandler     - Base class for writing tag stream handlers</code></code></pre>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># EXAMPLE 1</span>
+  <span class="keyword">package</span> <span class="variable">MyPersonHandler</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">base</span> <span class="string">qw(Data::Stag::BaseHandler)</span><span class="operator">;</span>
+  
+  <span class="comment"># handler that prints &lt;person&gt; nodes as they are parsed;</span>
+  <span class="comment"># after each &lt;person&gt; node is intercepted, it is discarded</span>
+  <span class="comment"># (it does not go to form the final tree)</span>
+  <span class="keyword">sub</span><span class="variable"> e_person </span><span class="operator">{</span>
+      <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">$node</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+      <span class="keyword">printf</span> <span class="string">"Person name:%s address:%s\n"</span><span class="operator">,</span>
+        <span class="variable">$node</span><span class="operator">-&gt;</span><span class="variable">sget</span><span class="operator">(</span><span class="string">'name'</span><span class="operator">),</span> <span class="variable">$node</span><span class="operator">-&gt;</span><span class="variable">sget</span><span class="operator">(</span><span class="string">'address'</span><span class="operator">);</span>
+      <span class="keyword">return</span><span class="operator">;</span>               <span class="comment"># prune this from tree</span>
+  <span class="operator">}</span>
+  <span class="number">1</span><span class="operator">;</span>
+  
+  <span class="comment"># EXAMPLE 2</span>
+  <span class="keyword">package</span> <span class="variable">MyStatsHandler</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">base</span> <span class="string">qw(Data::Stag::BaseHandler)</span><span class="operator">;</span>
+  
+  <span class="comment"># handler that modifies tree as it goes</span>
+  <span class="comment"># changes &lt;measurement&gt;&lt;unit&gt;inch&lt;/unit&gt;&lt;quantity&gt;10&lt;/quantity&gt;&lt;/measurement&gt;</span>
+  <span class="comment"># to      &lt;measurement&gt;&lt;unit&gt;cm&lt;/unit&gt;&lt;quantity&gt;25&lt;/quantity&gt;&lt;/measurement&gt;</span>
+  <span class="keyword">sub</span><span class="variable"> e_measurement </span><span class="operator">{</span>
+      <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">$node</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+      <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$node</span><span class="operator">-&gt;</span><span class="variable">sget</span><span class="operator">(</span><span class="string">'unit'</span><span class="operator">)</span> <span class="keyword">eq</span> <span class="string">'inch'</span><span class="operator">)</span> <span class="operator">{</span>
+          <span class="variable">$node</span><span class="operator">-&gt;</span><span class="variable">set</span><span class="operator">(</span><span class="string">'unit'</span><span class="operator">,</span> <span class="string">'cm'</span><span class="operator">);</span>
+          <span class="variable">$node</span><span class="operator">-&gt;</span><span class="variable">set</span><span class="operator">(</span><span class="string">'quantity'</span><span class="operator">,</span> <span class="variable">$node</span><span class="operator">-&gt;</span><span class="variable">get</span><span class="operator">(</span><span class="string">'quantity'</span><span class="operator">)</span> <span class="operator">*</span> <span class="number">2.5</span><span class="operator">);</span>
+      <span class="operator">}</span>
+      <span class="keyword">return</span> <span class="variable">$node</span><span class="operator">;</span>     <span class="comment"># replace &lt;measurement&gt; with new data in result tree</span>
+  <span class="operator">}</span>
+  <span class="number">1</span><span class="operator">;</span>
+  
+  <span class="comment"># Using the handlers</span>
+  <span class="keyword">my</span> <span class="variable">$handler</span> <span class="operator">=</span> <span class="variable">MyHandler</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$stag</span> <span class="operator">=</span> <span class="variable">Data::Stag</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span><span class="string">-fh</span><span class="operator">=&gt;</span><span class="variable">$fh</span><span class="operator">,</span> <span class="string">-handler</span><span class="operator">=&gt;</span><span class="variable">$handler</span><span class="operator">);</span>
+  
+  <span class="comment"># Using a handler from the command line:</span>
+  <span class="variable">unix</span><span class="operator">&gt;</span> <span class="variable">stag</span><span class="operator">-</span><span class="variable">handle</span><span class="operator">.</span><span class="variable">pl</span> <span class="operator">-</span><span class="regex">m MyHandler input.xml &gt; post-processed.xml
+  </span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Default Simple Event Handler, other handlers inherit from this class</p>
+
+<p>See also <a href="../../../../../.cpan/build/Data-Stag-0.11-NlX_Og/blib/lib/Data/Stag.html">Data::Stag</a> and <a href="../../../../../.cpan/build/Data-Stag-0.11-NlX_Og/blib/lib/Data/Stag/BaseGenerator.html">Data::Stag::BaseGenerator</a></p>
+
+<p>Stag has an event-handling architecture; parsers or generators <b>generate</b> or <b>fire</b> events. Events can be hierarchical/nested, just like stag nodes. These events are caught by handlers. By default, uncaught events stack to form stag trees.</p>
+
+<p>Stag has built in parsers for parsing xml, sxpr and itext data. You can construct your own parsers for dealing with your own formats specific to your own data; these should inherit from <a href="../../../../../.cpan/build/Data-Stag-0.11-NlX_Og/blib/lib/Data/Stag/BaseGenerator.html">Data::Stag::BaseGenerator</a></p>
+
+<p>Stag also has built in handlers for these formats. You can construct your own - either as modules that inherit from this one, or as hashes of anonymous subroutines.</p>
+
+<p>If you wish to write your own handler that writes out to another format, you may wish to inherit from <a href="../../../../../.cpan/build/Data-Stag-0.11-NlX_Og/blib/lib/Data/Stag/Writer.html">Data::Stag::Writer</a></p>
+
+<h2 id="CATCHING-EVENTS">CATCHING EVENTS</h2>
+
+<p>This class catches Data::Stag node events (start, end and body) and allows the subclassing module to intercept these. Unintercepted events get pushed into a tree. The final tree is returned at the end of a parse() call</p>
+
+<p>This class can take SAX events and turn them into simple Data::Stag events</p>
+
+<p>the events recognised are</p>
+
+<pre><code><code>  start_event(node-name)
+  evbody(node-data)
+  end_event(node-name)</code></code></pre>
+
+<p>and also</p>
+
+<pre><code><code>  event(node-name, node-data|[nodes])</code></code></pre>
+
+<p>which is just a wrapper for the other events</p>
+
+<p>you can either intercept these methods; or you can define methods</p>
+
+<pre><code><code>  s_&lt;element_name&gt;
+  e_&lt;element_name&gt;</code></code></pre>
+
+<p>that get called on the start/end of an event; you can dynamically change the structure of the tree by returning nodes from these methods.</p>
+
+<pre><code><code>  <span class="comment"># the follow handler prunes &lt;foo&gt; nodes from the tree, and writes</span>
+  <span class="comment"># out data from the &lt;person&gt; node</span>
+  <span class="comment"># when parsing large datasets, it can be a good idea to prune nodes</span>
+  <span class="comment"># from the tree, so the result tree of the parse is not too big</span>
+  <span class="keyword">my</span> <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">Data::Stag</span><span class="operator">-&gt;</span><span class="variable">makehandler</span><span class="operator">(</span> <span class="string">foo</span> <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">,</span>
+                                   <span class="string">person</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+                                       <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+                                       <span class="keyword">my</span> <span class="variable">$node</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+                                       <span class="keyword">printf</span> <span class="string">"Person name:%s address:%s\n"</span><span class="operator">,</span>
+                                         <span class="variable">$node</span><span class="operator">-&gt;</span><span class="variable">sget</span><span class="operator">(</span><span class="string">'name'</span><span class="operator">),</span> <span class="variable">$node</span><span class="operator">-&gt;</span><span class="variable">sget</span><span class="operator">(</span><span class="string">'address'</span><span class="operator">);</span>
+                                       <span class="keyword">return</span><span class="operator">;</span>
+                                   <span class="operator">});</span>
+  <span class="keyword">my</span> <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">MyParser</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+  <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">handler</span><span class="operator">(</span><span class="variable">$h</span><span class="operator">);</span>
+  <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span><span class="string">-fh</span><span class="operator">=&gt;</span><span class="variable">$fh</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$result_tree</span> <span class="operator">=</span> <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">stag</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="PUBLIC-METHODS--">PUBLIC METHODS -</h1>
+
+<h3 id="new">new</h3>
+
+<pre><code><code>       Title: new
+
+        Args: 
+      Return: L&lt;Data::Stag::BaseHandler&gt;
+     Example: </code></code></pre>
+
+<p>returns the tree that was built from all uncaught events</p>
+
+<h3 id="tree-stag-">tree (stag)</h3>
+
+<pre><code><code>       <span class="variable">Title</span><span class="operator">:</span> <span class="variable">tree</span>
+            <span class="variable">Synonym</span><span class="operator">:</span> <span class="variable">stag</span>
+       
+        <span class="variable">Args</span><span class="operator">:</span> 
+             <span class="variable">Return</span><span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Data::Stag</span><span class="operator">&gt;</span>
+            <span class="variable">Example</span><span class="operator">:</span> <span class="keyword">print</span> <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">handler</span><span class="operator">-&gt;</span><span class="variable">tree</span><span class="operator">-&gt;</span><span class="variable">xml</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>returns the tree that was built from all uncaught events</p>
+
+<h1 id="CAUGHT-EVENTS">CAUGHT EVENTS</h1>
+
+<p>A <a href="../../../../../.cpan/build/Data-Stag-0.11-NlX_Og/blib/lib/Data/Stag/BaseGenerator.html">Data::Stag::BaseGenerator</a> class will generate events by calling the following methods on this class:</p>
+
+<dl>
+
+<dt id="start_event-NODENAME">start_event NODENAME</dt>
+<dd>
+
+</dd>
+<dt id="evbody-DATA">evbody DATA</dt>
+<dd>
+
+</dd>
+<dt id="end_event-NODENAME-optional-">end_event NODENAME {optional}</dt>
+<dd>
+
+</dd>
+<dt id="event-NODENAME-DATA">event NODENAME DATA</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>These events can be nested/hierarchical</p>
+
+<p>If uncaught, these events are stacked into a stag tree, which can be written as xml or one of the other stag formats</p>
+
+<h1 id="PROTECTED-METHODS--">PROTECTED METHODS -</h1>
+
+<h3 id="s_-">s_*</h3>
+
+<pre><code><code>        Args: handler L&lt;Data::Stag::BaseHandler&gt;
+      Return: 
+     Example: </code></code></pre>
+
+<p>autogenerated method - called by the parser when ever it starts a node; * matches the node name</p>
+
+<p>override this class providing the name of the node you wish to intercept</p>
+
+<h3 id="e_-">e_*</h3>
+
+<pre><code><code>        Args: handler L&lt;Data::Stag::BaseHandler&gt;, node L&lt;Data::Stag&gt;
+      Return: node L&lt;Data::Stag&gt;
+     Example: </code></code></pre>
+
+<p>autogenerated method - called by the parser when ever it ends a node; * matches the node name</p>
+
+<p>override this class providing the name of the node you wish to intercept</p>
+
+<h3 id="CONSUMES">CONSUMES</h3>
+
+<p>define this in your handler class to make explicit the list of node names that your parser consumes; this is then used if your handler is placed in a chain</p>
+
+<pre><code><code>  <span class="keyword">package</span> <span class="variable">MyHandler</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">base</span> <span class="string">qw(Data::Stag::BaseHandler)</span><span class="operator">;</span>
+  <span class="keyword">sub</span><span class="variable"> CONSUMES </span><span class="operator">{</span><span class="string">qw(person city)</span><span class="operator">}</span>
+  <span class="keyword">sub</span><span class="variable"> e_person </span><span class="operator">{....}</span>
+  <span class="keyword">sub</span><span class="variable"> e_city   </span><span class="operator">{....}</span>
+</code></code></pre>
+
+<h3 id="depth">depth</h3>
+
+<pre><code><code>       Title: depth
+
+        Args: 
+      Return: depth int
+     Example: </code></code></pre>
+
+<p>depth of the nested event tree</p>
+
+<h3 id="up">up</h3>
+
+<pre><code><code>       <span class="variable">Title</span><span class="operator">:</span> <span class="variable">up</span>
+       
+        <span class="variable">Args</span><span class="operator">:</span> <span class="variable">dist</span> <span class="keyword">int</span>
+             <span class="variable">Return</span><span class="operator">:</span> <span class="variable">node</span> <span class="variable">stag</span>
+            <span class="variable">Example</span><span class="operator">:</span> <span class="variable">$stag</span><span class="operator">-&gt;</span><span class="variable">up</span><span class="operator">(-</span><span class="number">2</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>when called when intercepting a node &lt;foo&gt;, this will look <b>dist</b> up the tree to find the container node</p>
+
+<p>For example, if our data contains the node &lt;blah&gt; below:</p>
+
+<pre><code><code>  <span class="operator">&lt;</span><span class="variable">blah</span><span class="operator">&gt;</span>
+    <span class="operator">&lt;</span><span class="variable">foo</span><span class="operator">&gt;</span>
+      <span class="operator">&lt;</span><span class="variable">a</span><span class="operator">&gt;</span><span class="number">1</span><span class="operator">&lt;/</span><span class="variable">b</span><span class="operator">&gt;</span>
+    <span class="operator">&lt;/</span><span class="variable">foo</span><span class="operator">&gt;</span>
+    <span class="operator">&lt;</span><span class="variable">foo</span><span class="operator">&gt;</span>
+      <span class="operator">&lt;</span><span class="variable">a</span><span class="operator">&gt;</span><span class="number">2</span><span class="operator">&lt;/</span><span class="variable">b</span><span class="operator">&gt;</span>
+    <span class="operator">&lt;/</span><span class="variable">foo</span><span class="operator">&gt;</span>
+  <span class="operator">&lt;/</span><span class="variable">blah</span><span class="operator">&gt;</span>
+  
+    <span class="comment"># and we have the following code:</span>
+    <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">Data::Stag</span><span class="operator">-&gt;</span><span class="variable">makehandler</span><span class="operator">(</span><span class="string">foo</span><span class="operator">=&gt;</span><span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+                                           <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$self</span><span class="operator">,</span> <span class="variable">$foo</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+                                           <span class="keyword">print</span> <span class="variable">$foo</span><span class="operator">-&gt;</span><span class="variable">up</span><span class="operator">(</span><span class="number">1</span><span class="operator">)-&gt;</span><span class="variable">xml</span><span class="operator">;</span>
+                                           <span class="keyword">return</span><span class="operator">});</span>
+</code></code></pre>
+
+<p>The &lt;foo&gt; handler will be called twice; it will print the structure of the containing &lt;blah&gt; node, but the first time round, the &lt;blah&gt; node will not be complete</p>
+
+<h3 id="up_to">up_to</h3>
+
+<pre><code><code>       <span class="variable">Title</span><span class="operator">:</span> <span class="variable">up_to</span>
+       
+        <span class="variable">Args</span><span class="operator">:</span> <span class="variable">nodename</span> <span class="variable">str</span>
+             <span class="variable">Return</span><span class="operator">:</span> <span class="variable">node</span> <span class="variable">stag</span>
+            <span class="variable">Example</span><span class="operator">:</span> <span class="variable">$stag</span><span class="operator">-&gt;</span><span class="variable">up_to</span><span class="operator">(</span><span class="string">'blah'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Similar to up(), but it will go up the container event nodes until it finds one with the matching name</p>
+
+
+</body>
+
+</html>
+
+

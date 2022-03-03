@@ -1,0 +1,216 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#Class-Methods">Class Methods</a>
+        <ul>
+          <li><a href="#"></a></li>
+        </ul>
+      </li>
+      <li><a href="#Rules-data-structure">Rules data structure</a>
+        <ul>
+          <li><a href="#Rules-examples">Rules examples</a></li>
+          <li><a href="#Rules-resolution">Rules resolution</a></li>
+          <li><a href="#Glob-style-pattern-matching-for-rules">Glob-style pattern matching for rules</a></li>
+        </ul>
+      </li>
+      <li><a href="#Instance-Methods">Instance Methods</a>
+        <ul>
+          <li><a href="#1"></a></li>
+          <li><a href="#2"></a></li>
+          <li><a href="#3"></a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>TAP::Parser::Scheduler - Schedule tests during parallel testing</p>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>Version 3.36</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">TAP::Parser::Scheduler</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="Class-Methods">Class Methods</h2>
+
+<h3 id=""><code><code>new</code></code></h3>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$sched</span> <span class="operator">=</span> <span class="variable">TAP::Parser::Scheduler</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">tests</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@tests</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$sched</span> <span class="operator">=</span> <span class="variable">TAP::Parser::Scheduler</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+        <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="operator">[</span> <span class="operator">[</span><span class="string">'t/test_name.t'</span><span class="operator">,</span><span class="string">'Test Description'</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">...</span> <span class="operator">]</span><span class="operator">,</span>
+        <span class="string">rules</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">%rules</span><span class="operator">,</span>
+    <span class="operator">);</span>
+</code></code></pre>
+
+<p>Given &#39;tests&#39; and optional &#39;rules&#39; as input, returns a new <code><code>TAP::Parser::Scheduler</code></code> object. Each member of <code><code>@tests</code></code> should be either a a test file name, or a two element arrayref, where the first element is a test file name, and the second element is a test description. By default, we&#39;ll use the test name as the description.</p>
+
+<p>The optional <code><code>rules</code></code> attribute provides direction on which tests should be run in parallel and which should be run sequentially. If no rule data structure is provided, a default data structure is used which makes every test eligible to be run in parallel:</p>
+
+<pre><code><code>    <span class="operator">{</span> <span class="string">par</span> <span class="operator">=&gt;</span> <span class="string">'**'</span> <span class="operator">},</span>
+</code></code></pre>
+
+<p>The rules data structure is documented more in the next section.</p>
+
+<h2 id="Rules-data-structure">Rules data structure</h2>
+
+<p>The &quot;<code><code>rules</code></code>&quot; data structure is the the heart of the scheduler. It allows you to express simple rules like &quot;run all tests in sequence&quot; or &quot;run all tests in parallel except these five tests.&quot;. However, the rules structure also supports glob-style pattern matching and recursive definitions, so you can also express arbitarily complicated patterns.</p>
+
+<p>The rule must only have one top level key: either &#39;par&#39; for &quot;parallel&quot; or &#39;seq&#39; for &quot;sequence&quot;.</p>
+
+<p>Values must be either strings with possible glob-style matching, or arrayrefs of strings or hashrefs which follow this pattern recursively.</p>
+
+<p>Every element in an arrayref directly below a &#39;par&#39; key is eligible to be run in parallel, while vavalues directly below a &#39;seq&#39; key must be run in sequence.</p>
+
+<h3 id="Rules-examples">Rules examples</h3>
+
+<p>Here are some examples:</p>
+
+<pre><code><code>    <span class="comment"># All tests be run in parallel (the default rule)</span>
+    <span class="operator">{</span> <span class="string">par</span> <span class="operator">=&gt;</span> <span class="string">'**'</span> <span class="operator">},</span>
+    
+    <span class="comment"># Run all tests in sequence, except those starting with "p"</span>
+    <span class="operator">{</span> <span class="string">par</span> <span class="operator">=&gt;</span> <span class="string">'t/p*.t'</span> <span class="operator">}</span><span class="operator">,</span>
+    
+    <span class="comment"># Run all tests in parallel, except those starting with "p"</span>
+    <span class="operator">{</span>
+        <span class="string">seq</span> <span class="operator">=&gt;</span> <span class="operator">[</span>
+                  <span class="operator">{</span> <span class="string">seq</span> <span class="operator">=&gt;</span> <span class="string">'t/p*.t'</span> <span class="operator">}</span><span class="operator">,</span>
+                  <span class="operator">{</span> <span class="string">par</span> <span class="operator">=&gt;</span> <span class="string">'**'</span>     <span class="operator">}</span><span class="operator">,</span>
+               <span class="operator">]</span><span class="operator">,</span>
+    <span class="operator">}</span>
+    
+    <span class="comment"># Run some  startup tests in sequence, then some parallel tests than some</span>
+    <span class="comment"># teardown tests in sequence.</span>
+    <span class="operator">{</span>
+        <span class="string">seq</span> <span class="operator">=&gt;</span> <span class="operator">[</span>
+            <span class="operator">{</span> <span class="string">seq</span> <span class="operator">=&gt;</span> <span class="string">'t/startup/*.t'</span> <span class="operator">}</span><span class="operator">,</span>
+            <span class="operator">{</span> <span class="string">par</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'t/a/*.t'</span><span class="operator">,</span><span class="string">'t/b/*.t'</span><span class="operator">,</span><span class="string">'t/c/*.t'</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">}</span>
+            <span class="operator">{</span> <span class="string">seq</span> <span class="operator">=&gt;</span> <span class="string">'t/shutdown/*.t'</span> <span class="operator">}</span><span class="operator">,</span>
+        <span class="operator">]</span><span class="operator">,</span>
+    <span class="operator">}</span><span class="operator">,</span>
+</code></code></pre>
+
+<h3 id="Rules-resolution">Rules resolution</h3>
+
+<ul>
+
+<li><p>By default, all tests are eligible to be run in parallel. Specifying any of your own rules removes this one.</p>
+
+</li>
+<li><p>&quot;First match wins&quot;. The first rule that matches a test will be the one that applies.</p>
+
+</li>
+<li><p>Any test which does not match a rule will be run in sequence at the end of the run.</p>
+
+</li>
+<li><p>The existence of a rule does not imply selecting a test. You must still specify the tests to run.</p>
+
+</li>
+<li><p>Specifying a rule to allow tests to run in parallel does not make the run in parallel. You still need specify the number of parallel <code><code>jobs</code></code> in your Harness object.</p>
+
+</li>
+</ul>
+
+<h3 id="Glob-style-pattern-matching-for-rules">Glob-style pattern matching for rules</h3>
+
+<p>We implement our own glob-style pattern matching. Here are the patterns it supports:</p>
+
+<pre><code><code>    <span class="operator">**</span> <span class="variable">is</span> <span class="variable">any</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">characters</span><span class="operator">,</span> <span class="variable">including</span> <span class="operator">/,</span> <span class="variable">within</span> <span class="variable">a</span> <span class="variable">pathname</span>
+    <span class="operator">*</span> <span class="variable">is</span> <span class="variable">zero</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">characters</span> <span class="variable">within</span> <span class="variable">a</span> <span class="variable">filename</span><span class="operator">/</span><span class="variable">directory</span> <span class="variable">name</span>
+    <span class="operator">?</span> <span class="variable">is</span> <span class="variable">exactly</span> <span class="variable">one</span> <span class="variable">character</span> <span class="variable">within</span> <span class="variable">a</span> <span class="variable">filename</span><span class="operator">/</span><span class="variable">directory</span> <span class="variable">name</span>
+    <span class="operator">{</span><span class="variable">foo</span><span class="operator">,</span><span class="variable">bar</span><span class="operator">,</span><span class="variable">baz</span><span class="operator">}</span> <span class="variable">is</span> <span class="variable">any</span> <span class="variable">of</span> <span class="variable">foo</span><span class="operator">,</span> <span class="variable">bar</span> <span class="keyword">or</span> <span class="variable">baz</span><span class="operator">.</span>
+    <span class="operator">\</span> <span class="variable">is</span> <span class="variable">an</span> <span class="variable">escape</span> <span class="variable">character</span>
+</code></code></pre>
+
+<h2 id="Instance-Methods">Instance Methods</h2>
+
+<h3 id="1"><code><code>get_all</code></code></h3>
+
+<p>Get a list of all remaining tests.</p>
+
+<h3 id="2"><code><code>get_job</code></code></h3>
+
+<p>Return the next available job as <a href="../../../../lib/TAP/Parser/Scheduler/Job.html">TAP::Parser::Scheduler::Job</a> object or <code><code>undef</code></code> if none are available. Returns a <a href="../../../../lib/TAP/Parser/Scheduler/Spinner.html">TAP::Parser::Scheduler::Spinner</a> if the scheduler still has pending jobs but none are available to run right now.</p>
+
+<h3 id="3"><code><code>as_string</code></code></h3>
+
+<p>Return a human readable representation of the scheduling tree. For example:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@tests</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">qw{
+        t/startup/foo.t 
+        t/shutdown/foo.t
+    
+        t/a/foo.t t/b/foo.t t/c/foo.t t/d/foo.t
+    }</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$sched</span> <span class="operator">=</span> <span class="variable">TAP::Parser::Scheduler</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+        <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@tests</span><span class="operator">,</span>
+        <span class="string">rules</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+            <span class="string">seq</span> <span class="operator">=&gt;</span> <span class="operator">[</span>
+                <span class="operator">{</span> <span class="string">seq</span> <span class="operator">=&gt;</span> <span class="string">'t/startup/*.t'</span> <span class="operator">}</span><span class="operator">,</span>
+                <span class="operator">{</span> <span class="string">par</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'t/a/*.t'</span><span class="operator">,</span><span class="string">'t/b/*.t'</span><span class="operator">,</span><span class="string">'t/c/*.t'</span><span class="operator">]</span> <span class="operator">}</span><span class="operator">,</span>
+                <span class="operator">{</span> <span class="string">seq</span> <span class="operator">=&gt;</span> <span class="string">'t/shutdown/*.t'</span> <span class="operator">}</span><span class="operator">,</span>
+            <span class="operator">]</span><span class="operator">,</span>
+        <span class="operator">}</span><span class="operator">,</span>
+    <span class="operator">);</span>
+</code></code></pre>
+
+<p>Produces:</p>
+
+<pre><code><code>    par:
+      seq:
+        par:
+          seq:
+            par:
+              seq:
+                &#39;t/startup/foo.t&#39;
+            par:
+              seq:
+                &#39;t/a/foo.t&#39;
+              seq:
+                &#39;t/b/foo.t&#39;
+              seq:
+                &#39;t/c/foo.t&#39;
+            par:
+              seq:
+                &#39;t/shutdown/foo.t&#39;
+        &#39;t/d/foo.t&#39;</code></code></pre>
+
+
+</body>
+
+</html>
+
+

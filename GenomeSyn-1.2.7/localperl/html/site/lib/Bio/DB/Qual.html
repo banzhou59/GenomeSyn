@@ -1,0 +1,533 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#DATABASE-CREATION-AND-INDEXING">DATABASE CREATION AND INDEXING</a></li>
+  <li><a href="#OBJECT-METHODS">OBJECT METHODS</a></li>
+  <li><a href="#TIED-INTERFACES">TIED INTERFACES</a>
+    <ul>
+      <li><a href="#Creating-a-Tied-Hash">Creating a Tied Hash</a></li>
+      <li><a href="#Creating-a-Tied-Filehandle">Creating a Tied Filehandle</a></li>
+    </ul>
+  </li>
+  <li><a href="#LIMITATIONS">LIMITATIONS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#newFh">newFh</a></li>
+      <li><a href="#index_dir">index_dir</a></li>
+      <li><a href="#get_Qual_by_id">get_Qual_by_id</a></li>
+      <li><a href="#set_pack_method">set_pack_method</a></li>
+      <li><a href="#index_file">index_file</a></li>
+      <li><a href="#dbmargs">dbmargs</a></li>
+      <li><a href="#index_name">index_name</a></li>
+      <li><a href="#calculate_offsets">calculate_offsets</a></li>
+      <li><a href="#get_all_ids">get_all_ids</a></li>
+      <li><a href="#length">length</a></li>
+      <li><a href="#subqual">subqual</a></li>
+      <li><a href="#header">header</a></li>
+      <li><a href="#get_PrimaryQual_stream">get_PrimaryQual_stream</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::Qual -- Fast indexed access to a directory of quality files</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::DB::Qual</span><span class="operator">;</span>
+  
+  <span class="comment"># create database from directory of qual files</span>
+  <span class="keyword">my</span> <span class="variable">$db</span>      <span class="operator">=</span> <span class="variable">Bio::DB::Qual</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'/path/to/qual/files'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@ids</span>     <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">ids</span><span class="operator">;</span>
+  
+  <span class="comment"># simple access (for those without Bioperl)</span>
+  <span class="keyword">my</span> <span class="variable">@qual</span>    <span class="operator">=</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">qual</span><span class="operator">(</span><span class="string">'CHROMOSOME_I'</span><span class="operator">,</span><span class="number">4_000_000</span> <span class="operator">=&gt;</span> <span class="number">4_100_000</span><span class="operator">)</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">@revqual</span> <span class="operator">=</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">qual</span><span class="operator">(</span><span class="string">'CHROMOSOME_I'</span><span class="operator">,</span><span class="number">4_100_000</span> <span class="operator">=&gt;</span> <span class="number">4_000_000</span><span class="operator">)</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$length</span>  <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">(</span><span class="string">'CHROMOSOME_I'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$header</span>  <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">header</span><span class="operator">(</span><span class="string">'CHROMOSOME_I'</span><span class="operator">);</span>
+  
+  <span class="comment"># Bioperl-style access</span>
+  <span class="keyword">my</span> <span class="variable">$obj</span>     <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Qual_by_id</span><span class="operator">(</span><span class="string">'CHROMOSOME_I'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@qual</span>    <span class="operator">=</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">qual</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">@subqual</span> <span class="operator">=</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">subqual</span><span class="operator">(</span><span class="number">4_000_000</span> <span class="operator">=&gt;</span> <span class="number">4_100_000</span><span class="operator">)</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$length</span>  <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">;</span>
+  <span class="comment"># (etc)</span>
+  
+  <span class="comment"># Bio::SeqIO-style access</span>
+  <span class="keyword">my</span> <span class="variable">$stream</span>  <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_PrimaryQual_stream</span><span class="operator">;</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$qual</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># Bio::Seq::PrimaryQual operations</span>
+  <span class="operator">}</span>
+  
+  <span class="keyword">my</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::DB::Qual</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">'/path/to/qual/files'</span><span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$qual</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;)</span> <span class="operator">{</span>
+    <span class="comment"># Bio::Seq::PrimaryQual operations</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># tied hash access</span>
+  <span class="keyword">tie</span> <span class="variable">%qualities</span><span class="operator">,</span><span class="string">'Bio::DB::Qual'</span><span class="operator">,</span><span class="string">'/path/to/qual/files'</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="variable">$qualities</span><span class="operator">{</span><span class="string">'CHROMOSOME_I:1,20000'</span><span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::DB::Qual provides indexed access to one or more qual files. It provides random access to each quality score entry without having to read the file from the beginning. Access to subqualities (portions of a quality score) is provided, although contrary to Bio::DB::Fasta, the full quality score has to be brought in memory.</p>
+
+<p>When you initialize the module, you point it at a single qual file or a directory of multiple such files. The first time it is run, the module generates an index of the contents of the file or directory using the AnyDBM module (Berkeley DB* preferred, followed by GDBM_File, NDBM_File, and SDBM_File). Thereafter it uses the index file to find the file and offset for any requested quality score. If one of the source qual files is updated, the module reindexes just that one file. (You can also force reindexing manually). For improved performance, the module keeps a cache of open filehandles, closing less-recently used ones when the cache is full.</p>
+
+<p>The qual files may contain decimal quality scores. Entries may have any line length up to 65,536 characters, and different line lengths are allowed in the same file. However, within a quality score entry, all lines must be the same length except for the last. An error will be thrown if this is not the case.</p>
+
+<p>The module uses /^&gt;(\S+)/ to extract the primary ID of each quality score from the qual header. During indexing, you may pass a callback routine to modify this primary ID. For example, you may wish to extract a portion of the gi|gb|abc|xyz prefixes that are commonly used. The original header line can be recovered later.</p>
+
+<p>*Berkeley DB can be obtained free from www.sleepycat.com. After it is installed you will need to install the BerkeleyDB Perl module.</p>
+
+<h1 id="DATABASE-CREATION-AND-INDEXING">DATABASE CREATION AND INDEXING</h1>
+
+<p>The two constructors for this class are new() and newFh(). The former creates a Bio::DB::Qual object which is accessed via method calls. The latter creates a tied filehandle which can be used Bio::SeqIO-style to fetch quality score objects in a data stream. There is also a tied hash interface.</p>
+
+<dl>
+
+<dt id="db-Bio::DB::Qual-new-qual_path-options-">$db = Bio::DB::Qual-&gt;new($qual_path [,%options])</dt>
+<dd>
+
+<p>Create a new Bio::DB::Qual object from the Qual file or files indicated by $qual_path. Indexing will be performed automatically if needed. If successful, new() will return the database accessor object. Otherwise it will return undef.</p>
+
+<p>$qual_path may be an individual qual file, or may refer to a directory containing one or more of such files. Following the path, you may pass a series of name=&gt;value options or a hash with these same name=&gt;value pairs. Valid options are:</p>
+
+<pre><code><code> <span class="variable">Option</span> <span class="variable">Name</span>   <span class="variable">Description</span>               <span class="variable">Default</span>
+ <span class="operator">-----------</span>   <span class="operator">-----------</span>               <span class="operator">-------</span>
+ 
+ <span class="operator">-</span><span class="keyword">glob</span>         <span class="variable">Glob</span> <span class="variable">expression</span> <span class="variable">to</span> <span class="keyword">use</span>    <span class="operator">*.</span><span class="operator">{</span><span class="variable">qa</span><span class="operator">,</span><span class="variable">QA</span><span class="operator">,</span><span class="variable">qual</span><span class="operator">,</span><span class="variable">QUAL</span><span class="operator">}</span>
+               <span class="keyword">for</span> <span class="variable">searching</span> <span class="keyword">for</span> <span class="variable">qual</span>
+               <span class="variable">files</span> <span class="variable">in</span> <span class="variable">directories</span><span class="operator">.</span> 
+ 
+ <span class="operator">-</span><span class="variable">makeid</span>       <span class="variable">A</span> <span class="variable">code</span> <span class="variable">subroutine</span> <span class="keyword">for</span>     <span class="variable">None</span>
+               <span class="variable">transforming</span> <span class="variable">qual</span> <span class="variable">IDs</span><span class="operator">.</span>
+ 
+ <span class="operator">-</span><span class="variable">maxopen</span>      <span class="variable">Maximum</span> <span class="variable">size</span> <span class="variable">of</span>           <span class="number">32</span>
+               <span class="variable">filehandle</span> <span class="variable">cache</span><span class="operator">.</span>
+ 
+ <span class="operator">-</span><span class="variable">debug</span>        <span class="variable">Turn</span> <span class="variable">on</span> <span class="variable">status</span>            <span class="number">0</span>
+               <span class="variable">messages</span><span class="operator">.</span>
+ 
+ <span class="operator">-</span><span class="variable">reindex</span>      <span class="variable">Force</span> <span class="variable">the</span> <span class="keyword">index</span> <span class="variable">to</span> <span class="variable">be</span>     <span class="number">0</span>
+               <span class="variable">rebuilt</span><span class="operator">.</span>
+ 
+ <span class="operator">-</span><span class="variable">dbmargs</span>      <span class="variable">Additional</span> <span class="variable">arguments</span>      <span class="variable">none</span>
+               <span class="variable">to</span> <span class="variable">pass</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">DBM</span>
+               <span class="variable">routines</span> <span class="keyword">when</span> <span class="keyword">tied</span>
+               <span class="operator">(</span><span class="keyword">scalar</span> <span class="keyword">or</span> <span class="variable">array</span> <span class="keyword">ref</span><span class="operator">).</span>
+</code></code></pre>
+
+<p>-dbmargs can be used to control the format of the index. For example, you can pass $DB_BTREE to this argument so as to force the IDs to be sorted and retrieved alphabetically. Note that you must use the same arguments every time you open the index!</p>
+
+<p>-reindex can be used to force the index to be recreated from scratch.</p>
+
+</dd>
+<dt id="fh-Bio::DB::Qual-newFh-qual_path-options-">$fh = Bio::DB::Qual-&gt;newFh($qual_path [,%options])</dt>
+<dd>
+
+<p>Create a tied filehandle opened on a Bio::DB::Qual object. Reading from this filehandle with &lt;&gt; will return a stream of quality objects, Bio::SeqIO-style.</p>
+
+</dd>
+</dl>
+
+<p>The -makeid option gives you a chance to modify quality score IDs during indexing. The option value should be a code reference that will take a scalar argument and return a scalar result, like this:</p>
+
+<pre><code><code>  <span class="variable">$db</span> <span class="operator">=</span> <span class="variable">Bio::DB::Qual</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">"file.qual"</span><span class="operator">,</span><span class="string">-makeid</span><span class="operator">=&gt;\&amp;</span><span class="variable">make_my_id</span><span class="operator">);</span>
+  
+  <span class="keyword">sub</span><span class="variable"> make_my_id </span><span class="operator">{</span>
+    <span class="keyword">my</span> <span class="variable">$description_line</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+    <span class="comment"># get a different id from the quality header, e.g.</span>
+    <span class="variable">$description_line</span> <span class="operator">=~</span> <span class="regex">/(\S+)$/</span><span class="operator">;</span>
+    <span class="keyword">return</span> <span class="variable">$1</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>make_my_id() will be called with the full qual id line (including the &quot;&gt;&quot; symbol!). For example:</p>
+
+<pre><code><code>  &gt;A12345.3 Predicted C. elegans protein egl-2</code></code></pre>
+
+<p>By default, this module will use the regular expression /^&gt;(\S+)/ to extract &quot;A12345.3&quot; for use as the ID.If you pass a -makeid callback, you can extract any portion of this, such as the &quot;egl-2&quot; symbol.</p>
+
+<p>The -makeid option is ignored after the index is constructed.</p>
+
+<h1 id="OBJECT-METHODS">OBJECT METHODS</h1>
+
+<p>The following object methods are provided.</p>
+
+<dl>
+
+<dt id="raw_qual-db-qual-id-start-stop-">$raw_qual = $db-&gt;qual($id [,$start, $stop])</dt>
+<dd>
+
+<p>Return a quality score array reference given an ID and optionally a start and stop position (the quality value number) in the quality score. If $stop is less than $start, then the reverse complement of the quality score is returned (this violates Bio::Seq conventions).</p>
+
+<p>For your convenience, subqualities can be indicated with any of the following compound IDs:</p>
+
+<pre><code><code>   $db-&gt;qual(&quot;$id:$start,$stop&quot;)
+
+   $db-&gt;qual(&quot;$id:$start..$stop&quot;)
+
+   $db-&gt;qual(&quot;$id:$start-$stop&quot;)</code></code></pre>
+
+</dd>
+<dt id="length-db-length-id-">$length = $db-&gt;length($id)</dt>
+<dd>
+
+<p>Return the length of the indicated quality score, i.e. the number of quality values.</p>
+
+</dd>
+<dt id="header-db-header-id-">$header = $db-&gt;header($id)</dt>
+<dd>
+
+<p>Return the header line for the ID, including the initial &quot;&gt;&quot;.</p>
+
+</dd>
+<dt id="filename-db-file-id-">$filename = $db-&gt;file($id)</dt>
+<dd>
+
+<p>Return the name of the file in which the indicated quality score can be found.</p>
+
+</dd>
+<dt id="offset-db-offset-id-">$offset = $db-&gt;offset($id)</dt>
+<dd>
+
+<p>Return the offset of the indicated quality score from the beginning of the file in which it is located. The offset points to the beginning of the quality score, not the beginning of the header line.</p>
+
+</dd>
+<dt id="header_length-db-headerlen-id-">$header_length = $db-&gt;headerlen($id)</dt>
+<dd>
+
+<p>Return the length of the header line for the indicated quality score.</p>
+
+</dd>
+<dt id="header_offset-db-header_offset-id-">$header_offset = $db-&gt;header_offset($id)</dt>
+<dd>
+
+<p>Return the offset of the header line for the indicated quality score from the beginning of the file in which it is located.</p>
+
+</dd>
+<dt id="index_name-db-index_name">$index_name = $db-&gt;index_name</dt>
+<dd>
+
+<p>Return the path to the index file.</p>
+
+</dd>
+<dt id="path-db-path">$path = $db-&gt;path</dt>
+<dd>
+
+<p>Return the path to the Qual file(s).</p>
+
+</dd>
+</dl>
+
+<p>For BioPerl-style access, the following methods are provided:</p>
+
+<dl>
+
+<dt id="qual-db-get_Qual_by_id-id-">$qual = $db-&gt;get_Qual_by_id($id)</dt>
+<dd>
+
+<p>Return a Bio::Seq::PrimaryQual object, which obeys the Bio::PrimarySeqI conventions. To recover the quality score, call $qual-&gt;qual().</p>
+
+<p>Note that get_Qual_by_id() does not bring the entire quality score into memory until requested. Internally, the returned object uses the accessor to generate subqualities as needed.</p>
+
+</dd>
+<dt id="qual-db-get_Qual_by_acc-id-">$qual = $db-&gt;get_Qual_by_acc($id)</dt>
+<dd>
+
+</dd>
+<dt id="qual-db-get_Qual_by_primary_id-id-">$qual = $db-&gt;get_Qual_by_primary_id($id)</dt>
+<dd>
+
+<p>These methods all do the same thing as get_Qual_by_id().</p>
+
+</dd>
+<dt id="stream-db-get_PrimaryQual_stream-">$stream = $db-&gt;get_PrimaryQual_stream()</dt>
+<dd>
+
+<p>Return a Bio::DB::Qual::Stream object, which supports a single method next_seq(). Each call to next_seq() returns a new Bio::Seq::PrimaryQual object, until no more quality scores remain.</p>
+
+</dd>
+</dl>
+
+<p>See <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Seq/PrimaryQual.html">Bio::Seq::PrimaryQual</a> and <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/PrimarySeqI.html">Bio::PrimarySeqI</a> for methods provided by the quality objects returned from get_Qual_by_id() and get_PrimaryQual_stream().</p>
+
+<h1 id="TIED-INTERFACES">TIED INTERFACES</h1>
+
+<p>This module provides two tied interfaces, one which allows you to treat the quality score database as a hash, and the other which allows you to treat the database as an I/O stream.</p>
+
+<h2 id="Creating-a-Tied-Hash">Creating a Tied Hash</h2>
+
+<p>The tied hash interface is very straightforward.</p>
+
+<dl>
+
+<dt id="obj-tie-db-Bio::DB::Qual-path-to-qual-files-args-">$obj = tie %db,&#39;Bio::DB::Qual&#39;,&#39;/path/to/qual/files&#39; [,@args]</dt>
+<dd>
+
+<p>Tie %db to Bio::DB::Qual using the indicated path to the Qual files. The optional @args list is the same set of named argument/value pairs used by Bio::DB::Qual-&gt;new().</p>
+
+<p>If successful, tie() will return the tied object. Otherwise it will return undef.</p>
+
+</dd>
+</dl>
+
+<p>Once tied, you can use the hash to retrieve an individual quality score by its ID, like this:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$qual</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">{</span><span class="string">CHROMOSOME_I</span><span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>You may select a subquality by appending the comma-separated range to the quality score ID in the format &quot;$id:$start,$stop&quot;. For example, here is the first 1000 quality values of the quality score with ID &quot;CHROMOSOME_I&quot;:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$qual</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">{</span><span class="string">'CHROMOSOME_I:1,1000'</span><span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>(The regular expression used to parse this format allows quality score IDs to contain colons.)</p>
+
+<p>When selecting subqualities, if $start &gt; stop, then the reverse complement will be returned.</p>
+
+<p>The keys() and values() functions will return the IDs and their quality scores, respectively. In addition, each() can be used to iterate over the entire data set:</p>
+
+<pre><code><code> <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="operator">(</span><span class="variable">$id</span><span class="operator">,</span><span class="variable">$quality</span><span class="operator">)</span> <span class="operator">=</span> <span class="keyword">each</span> <span class="variable">%db</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$id</span><span class="string"> =&gt; </span><span class="variable">$quality</span><span class="string">\n"</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>When dealing with very large quality scores, you can avoid bringing them into memory by calling each() in a scalar context. This returns the key only. You can then use tied(%db) to recover the Bio::DB::Qual object and call its methods.</p>
+
+<pre><code><code> <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$id</span> <span class="operator">=</span> <span class="keyword">each</span> <span class="variable">%db</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$id</span><span class="string"> =&gt; </span><span class="variable">$db</span><span class="string">{</span><span class="variable">$quality</span><span class="string">:1,100}\n"</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$id</span><span class="string"> =&gt; "</span><span class="operator">,</span><span class="keyword">tied</span><span class="operator">(</span><span class="variable">%db</span><span class="operator">)-&gt;</span><span class="variable">length</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">),</span><span class="string">"\n"</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>You may, in addition invoke Bio::DB::Qual the FIRSTKEY and NEXTKEY tied hash methods directly.</p>
+
+<dl>
+
+<dt id="id-db-FIRSTKEY">$id = $db-&gt;FIRSTKEY</dt>
+<dd>
+
+<p>Return the first ID in the database.</p>
+
+</dd>
+<dt id="id-db-NEXTKEY-id-">$id = $db-&gt;NEXTKEY($id)</dt>
+<dd>
+
+<p>Given an ID, return the next quality score ID.</p>
+
+</dd>
+</dl>
+
+<p>This allows you to write the following iterative loop using just the object- oriented interface:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$db</span> <span class="operator">=</span> <span class="variable">Bio::DB::Qual</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'/path/to/qual/files'</span><span class="operator">);</span>
+ <span class="keyword">for</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$id</span><span class="operator">=</span><span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">FIRSTKEY</span><span class="operator">;</span> <span class="variable">$id</span><span class="operator">;</span> <span class="variable">$id</span><span class="operator">=</span><span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">NEXTKEY</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">))</span> <span class="operator">{</span>
+    <span class="comment"># do something with quality</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="Creating-a-Tied-Filehandle">Creating a Tied Filehandle</h2>
+
+<p>The Bio::DB::Qual-&gt;newFh() method creates a tied filehandle from which you can read Bio::Seq::PrimaryQual quality score objects sequentially. The following bit of code will iterate sequentially over all quality scores in the database:</p>
+
+<pre><code><code> <span class="keyword">my</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::DB::Qual</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">'/path/to/qual/files'</span><span class="operator">);</span>
+ <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$qual</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;)</span> <span class="operator">{</span>
+   <span class="keyword">print</span> <span class="variable">$qual</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">,</span><span class="string">' =&gt; '</span><span class="operator">,</span><span class="variable">$qual</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>When no more quality scores remain to be retrieved, the stream will return undef.</p>
+
+<h1 id="LIMITATIONS">LIMITATIONS</h1>
+
+<p>When a quality score is deleted from one of the qual files, this deletion is not detected by the module and removed from the index. As a result, a &quot;ghost&quot; entry will remain in the index and will return garbage results if accessed. Currently, the only way to accommodate deletions is to rebuild the entire index, either by deleting it manually, or by passing -reindex=&gt;1 to new() when initializing the module.</p>
+
+<p>All quality score lines for a given quality score must have the same length except for the last (not sure why there is this limitation). This is not problematic for sequences but could be annoying for quality scores. A workaround is to make sure the your quality scores fit on no more than 2 lines. Another solution could be to padd them with blank spaces so that each line has the same number of characters (maybe this padding should be implemented in Bio::SeqIO::qual?).</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Florent E Angly &lt;florent . angly @ gmail-dot-com&gt;.</p>
+
+<p>Module largely based on and adapted from Bio::DB::Fasta by Lincoln Stein.</p>
+
+<p>Copyright (c) 2007 Florent E Angly.</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$db</span> <span class="operator">=</span> <span class="variable">Bio::DB::Qual</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="variable">$path</span><span class="operator">,</span> <span class="variable">@options</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">initialize</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::DB::Qual</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">new</span> <span class="variable">Bio::DB::Qual</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">path</span> <span class="variable">to</span> <span class="variable">dir</span> <span class="variable">of</span> <span class="variable">qual</span> <span class="variable">files</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">single</span> <span class="variable">qual</span> <span class="variable">filename</span>
+</code></code></pre>
+
+<p>These are optional arguments to pass in as well.</p>
+
+<pre><code><code> <span class="operator">-</span><span class="keyword">glob</span>         <span class="variable">Glob</span> <span class="variable">expression</span> <span class="variable">to</span> <span class="keyword">use</span>    <span class="operator">*.</span><span class="operator">{</span><span class="variable">qual</span><span class="operator">,</span><span class="variable">QUAL</span><span class="operator">,</span><span class="variable">qa</span><span class="operator">,</span><span class="variable">QA</span><span class="operator">}</span>
+               <span class="keyword">for</span> <span class="variable">searching</span> <span class="keyword">for</span> <span class="variable">qual</span>
+               <span class="variable">files</span> <span class="variable">in</span> <span class="variable">directories</span><span class="operator">.</span> 
+ 
+ <span class="operator">-</span><span class="variable">makeid</span>       <span class="variable">A</span> <span class="variable">code</span> <span class="variable">subroutine</span> <span class="keyword">for</span>     <span class="variable">none</span>
+               <span class="variable">transforming</span> <span class="variable">qual</span> <span class="variable">IDs</span><span class="operator">.</span>
+ 
+ <span class="operator">-</span><span class="variable">maxopen</span>      <span class="variable">Maximum</span> <span class="variable">size</span> <span class="variable">of</span>           <span class="number">32</span>
+               <span class="variable">filehandle</span> <span class="variable">cache</span><span class="operator">.</span>
+ 
+ <span class="operator">-</span><span class="variable">debug</span>        <span class="variable">Turn</span> <span class="variable">on</span> <span class="variable">status</span>            <span class="number">0</span>
+               <span class="variable">messages</span><span class="operator">.</span>
+ 
+ <span class="operator">-</span><span class="variable">reindex</span>      <span class="variable">Force</span> <span class="variable">the</span> <span class="keyword">index</span> <span class="variable">to</span> <span class="variable">be</span>     <span class="number">0</span>
+               <span class="variable">rebuilt</span><span class="operator">.</span>
+ 
+ <span class="operator">-</span><span class="variable">dbmargs</span>      <span class="variable">Additional</span> <span class="variable">arguments</span>      <span class="variable">none</span>
+               <span class="variable">to</span> <span class="variable">pass</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">DBM</span>
+               <span class="variable">routines</span> <span class="keyword">when</span> <span class="keyword">tied</span>
+               <span class="operator">(</span><span class="keyword">scalar</span> <span class="keyword">or</span> <span class="variable">array</span> <span class="keyword">ref</span><span class="operator">).</span>
+</code></code></pre>
+
+<h2 id="newFh">newFh</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">newFh</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::DB::Qual</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">'/path/to/qual/files'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">gets</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Fh</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">file</span> <span class="keyword">or</span> <span class="variable">directory</span> <span class="variable">containing</span> <span class="variable">several</span> <span class="variable">files</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">filehandle</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="index_dir">index_dir</h2>
+
+<pre><code><code> Title   : index_dir
+ Usage   : $db-&gt;index_dir($dir)
+ Function: set the index dir and load all files in the dir
+ Returns : hashref of qual offsets in each file
+ Args    : dirname, boolean to force a reload of all files</code></code></pre>
+
+<h2 id="get_Qual_by_id">get_Qual_by_id</h2>
+
+<pre><code><code> Title   : get_Qual_by_id
+ Usage   : my $qual = $db-&gt;get_Qual_by_id($id)
+ Function: Bio::DB::RandomAccessI method implemented
+ Returns : Bio::PrimarySeqI object
+ Args    : id</code></code></pre>
+
+<h2 id="set_pack_method">set_pack_method</h2>
+
+<pre><code><code> Title   : set_pack_method
+ Usage   : $db-&gt;set_pack_method( @files )
+ Function: Determines whether data packing uses 32 or 64 bit integers
+ Returns : 1 for success
+ Args    : one or more file paths</code></code></pre>
+
+<h2 id="index_file">index_file</h2>
+
+<pre><code><code> Title   : index_file
+ Usage   : $db-&gt;index_file($filename)
+ Function: (re)loads a quality score file and indexes quality score offsets in
+           the file
+ Returns : qual offsets in the file
+ Args    : filename, boolean to force reloading a file</code></code></pre>
+
+<h2 id="dbmargs">dbmargs</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">dbmargs</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@args</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">dbmargs</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">gets</span> <span class="variable">stored</span> <span class="variable">dbm</span> <span class="variable">arguments</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">array</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="index_name">index_name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">index_name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$indexname</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">index_name</span><span class="operator">(</span><span class="variable">$path</span><span class="operator">,</span><span class="variable">$isdir</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="keyword">index</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">specific</span> <span class="variable">path</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">path</span> <span class="variable">to</span> <span class="variable">check</span><span class="operator">,</span> <span class="variable">boolean</span> <span class="keyword">if</span> <span class="variable">it</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">dir</span>
+</code></code></pre>
+
+<h2 id="calculate_offsets">calculate_offsets</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">calculate_offsets</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">calculate_offsets</span><span class="operator">(</span><span class="variable">$filename</span><span class="operator">,</span><span class="variable">$offsets</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">calculates</span> <span class="variable">the</span> <span class="variable">quality</span> <span class="variable">score</span> <span class="variable">offsets</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">based</span> <span class="variable">on</span> <span class="variable">ID</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">offset</span> <span class="variable">hash</span> <span class="keyword">for</span> <span class="keyword">each</span> <span class="variable">file</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">file</span> <span class="variable">to</span> <span class="variable">process</span><span class="operator">,</span> <span class="variable">$offsets</span> <span class="operator">-</span> <span class="variable">hashref</span> <span class="variable">of</span> <span class="variable">id</span> <span class="variable">to</span> <span class="variable">offset</span> <span class="variable">storage</span>
+</code></code></pre>
+
+<h2 id="get_all_ids">get_all_ids</h2>
+
+<pre><code><code> Title   : get_all_ids
+ Usage   : my @ids = $db-&gt;get_all_ids
+ Function: gets all the stored ids in all indexes
+ Returns : list of ids
+ Args    : none</code></code></pre>
+
+<h2 id="length">length</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="keyword">length</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$qualdb</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">(</span><span class="variable">$seqid</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">gets</span> <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">quality</span> <span class="keyword">values</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">quality</span> <span class="variable">score</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">scalar</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">ID</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">quality</span> <span class="variable">score</span>
+</code></code></pre>
+
+<h2 id="subqual">subqual</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">subqual</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">@qualarr</span> <span class="operator">=</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$qualdb</span><span class="operator">-&gt;</span><span class="variable">subqual</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">,</span><span class="variable">$start</span><span class="operator">,</span><span class="variable">$stop</span><span class="operator">)</span><span class="operator">}</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">a</span> <span class="variable">subqual</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">quality</span> <span class="variable">score</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">database</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">subquality</span> <span class="variable">array</span> <span class="variable">reference</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">id</span> <span class="variable">of</span> <span class="variable">quality</span> <span class="variable">score</span><span class="operator">,</span> <span class="variable">starting</span> <span class="variable">quality</span> <span class="variable">value</span> <span class="variable">number</span><span class="operator">,</span> <span class="variable">ending</span> <span class="variable">quality</span>
+           <span class="variable">value</span> <span class="variable">number</span>
+</code></code></pre>
+
+<h2 id="header">header</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">header</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$qualdb</span><span class="operator">-&gt;</span><span class="variable">header</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">header</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">quality</span> <span class="variable">score</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">database</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">header</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">id</span> <span class="variable">of</span> <span class="variable">quality</span> <span class="variable">score</span>
+</code></code></pre>
+
+<h2 id="get_PrimaryQual_stream">get_PrimaryQual_stream</h2>
+
+<pre><code><code> Title   : get_PrimaryQual_stream
+ Usage   : $qualdb-&gt;get_PrimaryQual_stream
+ Function: get a SeqIO-like stream of quality scores 
+ Returns : stream object
+ Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

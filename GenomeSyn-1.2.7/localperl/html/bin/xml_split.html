@@ -1,0 +1,185 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../displayToc.js"></script>
+<script language="JavaScript" src="../tocParas.js"></script>
+<script language="JavaScript" src="../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#OPTIONS">OPTIONS</a></li>
+  <li><a href="#EXAMPLES">EXAMPLES</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#LICENSE">LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<pre><code><code>  xml_split - cut a big XML file into smaller chunks</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><code><code>xml_split</code></code> takes a (presumably big) XML file and split it in several smaller files. The memory used is the memory needed for the biggest chunk (ie memory is reused for each new chunk).</p>
+
+<p>It can split at a given level in the tree (the default, splits children of the root), or on a condition (using the subset of XPath understood by XML::Twig, so <code><code>section</code></code> or <code><code>/doc/section</code></code>).</p>
+
+<p>Each generated file is replaced by a processing instruction that will allow <code><code>xml_merge</code></code> to rebuild the original document. The processing instruction format is <code><code>&lt;?merge subdocs=[01] :&lt;filename&gt; ?&gt;</code></code></p>
+
+<p>File names are &lt;file&gt;-&lt;nb&gt;.xml, with &lt;file&gt;-00.xml holding the main document.</p>
+
+<h1 id="OPTIONS">OPTIONS</h1>
+
+<dl>
+
+<dt id="l-level">-l &lt;level&gt;</dt>
+<dd>
+
+<p>level to cut at: 1 generates a file for each child of the root, 2 for each grand child</p>
+
+<p>defaults to 1</p>
+
+</dd>
+<dt id="c-condition">-c &lt;condition&gt;</dt>
+<dd>
+
+<p>generate a file for each element that passes the condition</p>
+
+<p>xml_split -c &lt;section&gt; will put each <code><code>section</code></code> element in its own file (nested sections are handled too)</p>
+
+<p>Note that at the moment this option is a lot slower than using <code><code>-l</code></code></p>
+
+</dd>
+<dt id="s-size">-s &lt;size&gt;</dt>
+<dd>
+
+<p>generates files of (approximately) &lt;size&gt;. The content of each file is enclosed in a new element (<code><code>xml_split::root</code></code>), so it&#39;s well-formed XML. The size can be given in bytes, Kb, Mb or Gb.</p>
+
+</dd>
+<dt id="g-nb">-g &lt;nb&gt;</dt>
+<dd>
+
+<p>groups &lt;nb&gt; elements in a single file. The content of each file is enclosed in a new element (<code><code>xml_split::root</code></code>), so it&#39;s well-formed XML.</p>
+
+</dd>
+<dt id="b-name">-b &lt;name&gt;</dt>
+<dd>
+
+<p>base name for the output, files will be named &lt;base&gt;-&lt;nb&gt;&lt;.ext&gt;</p>
+
+<p>&lt;nb&gt; is a sequence number, see below <code><code>--nb_digits</code></code> &lt;ext&gt; is an extension, see below <code><code>--extension</code></code></p>
+
+<p>defaults to the original file name (if available) or <code><code>out</code></code> (if input comes from the standard input)</p>
+
+</dd>
+<dt id="n-nb">-n &lt;nb&gt;</dt>
+<dd>
+
+<p>number of digits in the sequence number for each file</p>
+
+<p>if more digits than &lt;nb&gt; are needed, then they are used: if <code><code>--nb_digits 2</code></code> is used and 112 files are generated they will be named <code><code>&lt;file&gt;-01.xml</code></code> to <code><code>&lt;file&gt;-112.xml</code></code></p>
+
+<p>defaults to 2</p>
+
+</dd>
+<dt id="e-ext">-e &lt;ext&gt;</dt>
+<dd>
+
+<p>extension to use for generated files</p>
+
+<p>defaults to the original file extension or <code><code>.xml</code></code></p>
+
+</dd>
+<dt id="i">-i</dt>
+<dd>
+
+<p>use XInclude elements instead of Processing Instructions to mark where sub files need to be included</p>
+
+</dd>
+<dt id="v">-v</dt>
+<dd>
+
+<p>verbose output</p>
+
+<p>Note that this option can slow down processing considerably (by an order of magnitude) when generating lots of small documents</p>
+
+</dd>
+<dt id="V">-V</dt>
+<dd>
+
+<p>outputs version and exit</p>
+
+</dd>
+<dt id="h">-h</dt>
+<dd>
+
+<p>short help</p>
+
+</dd>
+<dt id="m">-m</dt>
+<dd>
+
+<p>man (requires pod2text to be in the path)</p>
+
+</dd>
+</dl>
+
+<h1 id="EXAMPLES">EXAMPLES</h1>
+
+<pre><code><code>  xml_split foo.xml             # split at level 1
+  xml_split -l 2 foo.xml        # split at level 2
+  xml_split -c section foo.xml  # a file is generated for each section element
+                                # nested sections are split properly</code></code></pre>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>XML::Twig, xml_merge</p>
+
+<h1 id="TODO">TODO</h1>
+
+<dl>
+
+<dt id="optimize-the-code">optimize the code</dt>
+<dd>
+
+<p>any idea welcome! I have already implemented most of what I thought would improve performances.</p>
+
+</dd>
+<dt id="provide-other-methods-that-PIs-to-keep-merge-information">provide other methods that PIs to keep merge information</dt>
+<dd>
+
+<p>XInclude is a good candidate (alpha support added in 0.04).</p>
+
+<p>using entities, which would seem the natural way to do it, doesn&#39;t work, as they make it impossible to have both the main document and the sub docs to be well-formed if the sub docs include sub-sub docs (you can&#39;t have entity declarations in an entity)</p>
+
+</dd>
+</dl>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Michel Rodriguez &lt;mirod@cpan.org&gt;</p>
+
+<h1 id="LICENSE">LICENSE</h1>
+
+<p>This tool is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,213 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#Contributors">Contributors</a>
+    <ul>
+      <li><a href="#APPENDIX">APPENDIX</a></li>
+      <li><a href="#term_factory">term_factory</a></li>
+      <li><a href="#db">db</a></li>
+      <li><a href="#persist_term_handler">persist_term_handler</a></li>
+      <li><a href="#persist_relationship_handler">persist_relationship_handler</a></li>
+      <li><a href="#persist_term">_persist_term</a></li>
+      <li><a href="#persist_relationship">_persist_relationship</a></li>
+      <li><a href="#persist_ontology">_persist_ontology</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::OntologyIO::Handlers::InterPro_BioSQL_Handler - parse an InterPro XML file and persist the resulting terms to a Biosql database</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="comment"># see load_interpro.pl in bioperl-db/scripts/biosql/</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module is for parsing an InterPro XML file and persist the resulting terms to a Biosql database as soon as the term is complete as signaled by the appropriate xml tag. This parser takes advantage of SAX, a stream-based XML parser technology, to keep the used memory as small as possible. The alternative parser for InterPro, module InterProHandler, builds up the entire ontology in memory, which given the size of the latest InterPro releases requires a huge amount of memory.</p>
+
+<p>This module takes the following non-standard arguments upon instantiation.</p>
+
+<pre><code><code>   -db           the adaptor factory as returned by a call to
+                 Bio::DB::BioDB-&gt;new()
+   -version      the InterPro version (not available as property!)
+   -term_factory the object factory to use for creating terms</code></code></pre>
+
+<p>Note that there are two alternatives for how to persist the terms and relationships to the database. The default is using the adaptor factory passed as -db or set as a property to create persistent objects and store them in the database. The alternative is to specify a term persistence and a relationship persistence handler; if one or both have been set, the respective handler will be called with each term and relationship that is to be stored. See properties persist_term_handler and persist_relationship_handler.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Juguang Xiao, juguang@tll.org.sg</p>
+
+<h1 id="Contributors">Contributors</h1>
+
+<p>Hilmar Lapp, hlapp at gmx.net</p>
+
+<h2 id="APPENDIX">APPENDIX</h2>
+
+<p>The rest of the documentation details each of the object methods. Interal methods are usually preceded with a _</p>
+
+<h2 id="term_factory">term_factory</h2>
+
+<pre><code><code> Title   : term_factory
+ Usage   : $obj-&gt;term_factory($newval)
+ Function: Get/set the ontology term factory to use.
+
+           As a user of this module it is not necessary to call this
+           method as there will be default. In order to change the
+           default, the easiest way is to instantiate
+           L&lt;Bio::Ontology::TermFactory&gt; with the proper -type
+           argument. Most if not all parsers will actually use this
+           very implementation, so even easier than the aforementioned
+           way is to simply call
+           $ontio-&gt;term_factory-&gt;type(&quot;Bio::Ontology::MyTerm&quot;).
+
+ Example :
+ Returns : value of term_factory (a Bio::Factory::ObjectFactoryI object)
+ Args    : on set, new value (a Bio::Factory::ObjectFactoryI object, optional)</code></code></pre>
+
+<h2 id="db">db</h2>
+
+<pre><code><code> Title   : db
+ Usage   : $obj-&gt;db($newval)
+ Function: Sets or retrieves the database adaptor factory.
+
+           The adaptor factory is a Bio::DB::DBAdaptorI compliant
+           object and will be used to obtain the persistence adaptors
+           necessary to serialize terms and relationships to the
+           database.
+
+           Usually, you will obtain such an object from a call to
+           Bio::DB::BioDB. You *must* set this property before
+           starting the parse.
+
+           Note that this property is immutable once set, except that
+           you may set it to undef. Therefore, be careful not to set
+           to undef before setting the desired real value.
+
+ Example :
+ Returns : value of db (a Bio::DB::DBAdaptorI compliant object)
+ Args    : on set, new value (a Bio::DB::DBAdaptorI compliant object
+           or undef, optional)</code></code></pre>
+
+<h2 id="persist_term_handler">persist_term_handler</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">persist_term_handler</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">persist_term_handler</span><span class="operator">(</span><span class="variable">$handler</span><span class="operator">,</span><span class="variable">@args</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Sets</span> <span class="keyword">or</span> <span class="variable">retrieves</span> <span class="variable">the</span> <span class="variable">persistence</span> <span class="variable">handler</span> <span class="keyword">for</span> <span class="variable">terms</span> <span class="variable">along</span>
+           <span class="variable">with</span> <span class="variable">the</span> <span class="variable">constant</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">arguments</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">passed</span> <span class="variable">to</span> <span class="variable">the</span>
+           <span class="variable">handler</span><span class="operator">.</span>
+ 
+           <span class="variable">If</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">argument</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">treated</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">closure</span> <span class="keyword">and</span>
+           <span class="variable">be</span> <span class="variable">called</span> <span class="keyword">for</span> <span class="keyword">each</span> <span class="variable">term</span> <span class="variable">to</span> <span class="variable">persist</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">database</span><span class="operator">.</span> <span class="variable">The</span>
+           <span class="variable">term</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">passed</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">named</span> <span class="variable">parameter</span> <span class="operator">(-</span><span class="variable">term</span><span class="operator">),</span> <span class="variable">followed</span>
+           <span class="variable">by</span> <span class="variable">the</span> <span class="variable">other</span> <span class="variable">arguments</span> <span class="variable">passed</span> <span class="variable">to</span> <span class="variable">this</span> <span class="variable">setter</span><span class="operator">.</span> <span class="variable">Note</span> <span class="variable">that</span>
+           <span class="variable">this</span> <span class="variable">allows</span> <span class="variable">one</span> <span class="variable">to</span> <span class="variable">pass</span> <span class="variable">an</span> <span class="variable">arbitrary</span> <span class="variable">configuration</span> <span class="variable">to</span> <span class="variable">the</span>
+           <span class="variable">handler</span><span class="operator">.</span>
+ 
+           <span class="variable">If</span> <span class="keyword">not</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">terms</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">persisted</span> <span class="variable">along</span> <span class="variable">with</span> <span class="variable">their</span>
+           <span class="variable">relationships</span> <span class="variable">using</span> <span class="variable">the</span> <span class="variable">respective</span> <span class="variable">persistence</span> <span class="variable">adaptor</span>
+           <span class="variable">returned</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">adaptor</span> <span class="variable">factory</span> <span class="operator">(</span><span class="variable">see</span> <span class="variable">property</span> <span class="variable">db</span><span class="operator">).</span>
+ 
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">reference</span> <span class="variable">with</span> <span class="variable">the</span> <span class="keyword">values</span> <span class="variable">passed</span> <span class="variable">on</span> <span class="variable">set</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">an</span> <span class="variable">empty</span>
+           <span class="variable">array</span> <span class="keyword">if</span> <span class="variable">never</span> <span class="variable">set</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">On</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="keyword">values</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">first</span> <span class="variable">value</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">handler</span>
+           <span class="variable">as</span> <span class="variable">a</span> <span class="variable">closure</span><span class="operator">;</span> <span class="variable">all</span> <span class="variable">other</span> <span class="keyword">values</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">passed</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">handler</span>
+           <span class="variable">as</span> <span class="variable">constant</span> <span class="variable">argument</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="persist_relationship_handler">persist_relationship_handler</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">persist_relationship_handler</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">persist_relationship_handler</span><span class="operator">(</span><span class="variable">$handler</span><span class="operator">,</span><span class="variable">@args</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Sets</span> <span class="keyword">or</span> <span class="variable">retrieves</span> <span class="variable">the</span> <span class="variable">persistence</span> <span class="variable">handler</span> <span class="keyword">for</span> <span class="variable">relationships</span>
+           <span class="variable">along</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">constant</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">arguments</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">passed</span> <span class="variable">to</span>
+           <span class="variable">the</span> <span class="variable">handler</span><span class="operator">.</span>
+ 
+           <span class="variable">If</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">first</span> <span class="variable">argument</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">treated</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">closure</span> <span class="keyword">and</span>
+           <span class="variable">be</span> <span class="variable">called</span> <span class="keyword">for</span> <span class="keyword">each</span> <span class="variable">relationship</span> <span class="variable">to</span> <span class="variable">persist</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">database</span><span class="operator">.</span> <span class="variable">The</span>
+           <span class="variable">relationship</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">passed</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">named</span> <span class="variable">parameter</span> <span class="operator">(-</span><span class="variable">rel</span><span class="operator">),</span> <span class="variable">followed</span>
+           <span class="variable">by</span> <span class="variable">the</span> <span class="variable">other</span> <span class="variable">arguments</span> <span class="variable">passed</span> <span class="variable">to</span> <span class="variable">this</span> <span class="variable">setter</span><span class="operator">.</span> <span class="variable">Note</span> <span class="variable">that</span>
+           <span class="variable">this</span> <span class="variable">allows</span> <span class="variable">one</span> <span class="variable">to</span> <span class="variable">pass</span> <span class="variable">an</span> <span class="variable">arbitrary</span> <span class="variable">configuration</span> <span class="variable">to</span> <span class="variable">the</span>
+           <span class="variable">handler</span><span class="operator">.</span>
+ 
+           <span class="variable">If</span> <span class="keyword">not</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">relationships</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">persisted</span> <span class="variable">along</span> <span class="variable">with</span> <span class="variable">their</span>
+           <span class="variable">relationships</span> <span class="variable">using</span> <span class="variable">the</span> <span class="variable">respective</span> <span class="variable">persistence</span> <span class="variable">adaptor</span>
+           <span class="variable">returned</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">adaptor</span> <span class="variable">factory</span> <span class="operator">(</span><span class="variable">see</span> <span class="variable">property</span> <span class="variable">db</span><span class="operator">).</span>
+ 
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">reference</span> <span class="variable">with</span> <span class="variable">the</span> <span class="keyword">values</span> <span class="variable">passed</span> <span class="variable">on</span> <span class="variable">set</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">an</span> <span class="variable">empty</span>
+           <span class="variable">array</span> <span class="keyword">if</span> <span class="variable">never</span> <span class="variable">set</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">On</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="keyword">values</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">first</span> <span class="variable">value</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">handler</span>
+           <span class="variable">as</span> <span class="variable">a</span> <span class="variable">closure</span><span class="operator">;</span> <span class="variable">all</span> <span class="variable">other</span> <span class="keyword">values</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">passed</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">handler</span>
+           <span class="variable">as</span> <span class="variable">constant</span> <span class="variable">argument</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="persist_term">_persist_term</h2>
+
+<pre><code><code> Title   : _persist_term
+ Usage   :
+ Function: Persists a term to the database, using either a previously
+           set persistence handler, or the adaptor factory directly.
+ Example :
+ Returns :
+ Args    : the ontology term to persist</code></code></pre>
+
+<h2 id="persist_relationship">_persist_relationship</h2>
+
+<pre><code><code> Title   : _persist_relationship
+ Usage   :
+ Function: Persists a relationship to the database, using either a
+           previously set persistence handler, or the adaptor factory
+           directly.
+
+ Example :
+ Returns :
+ Args    : the term relationship to persist</code></code></pre>
+
+<h2 id="persist_ontology">_persist_ontology</h2>
+
+<pre><code><code> Title   : _persist_ontology
+ Usage   :
+ Function: Perists the ontology itself to the database, by either
+           inserting or updating it.
+
+           Note that this will only create or update the ontology as
+           an entity, not any of its terms, relationships, or
+           relationship types.
+
+ Example :
+ Returns : the ontology as a peristent object with primary key
+ Args    : the ontology to persist as a Bio::Ontology::OntologyI
+           compliant object</code></code></pre>
+
+
+</body>
+
+</html>
+
+

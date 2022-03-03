@@ -1,0 +1,174 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#The-Driver">The Driver</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Bioperl-Project">AUTHOR - Bioperl Project</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#next_seq">next_seq</a></li>
+      <li><a href="#write_seq">write_seq</a></li>
+      <li><a href="#seqhandler">seqhandler</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqIO::gbdriver - GenBank handler-based push parser</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment">#It is probably best not to use this object directly, but</span>
+  <span class="comment">#rather go through the SeqIO handler:</span>
+  
+  <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$filename</span><span class="operator">,</span>
+                            <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'gbdriver'</span><span class="operator">);</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="comment"># do something with $seq</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object can transform Bio::Seq objects to and from GenBank flat file databases. The key difference between this parser and the tried-and-true Bio::SeqIO::genbank parser is this version separates the parsing and data manipulation into a &#39;driver&#39; method (next_seq) and separate object handlers which deal with the data passed to it.</p>
+
+<h2 id="The-Driver">The Driver</h2>
+
+<p>The main purpose of the driver routine, in this case next_seq(), is to carve out the data into meaningful chunks which are passed along to relevant handlers (see below).</p>
+
+<p>Each chunk of data in the has a NAME tag attached to it, similar to that for XML parsing. This designates the type of data passed (annotation type or seqfeature) and the handler to be called for processing the data.</p>
+
+<p>For GenBank annotations, the data is divided up and passed along to handlers according to whether the data is tagged with a field name (i.e. LOCUS) and whether the field name represents &#39;primary&#39; annotation (in this case, is present at the beginning of the line, such as REFERENCE). If the field is primary, it is assigned to the NAME tag. Field names which aren&#39;t primary (have at least 2 spaces before the name, like ORGANISM) are appended to the preceding primary field name as additional tags.</p>
+
+<p>For feature table data each new feature name signals the beginning of a new chunk of data. &#39;FEATURES&#39; is attached to NAME, the feature key (&#39;CDS&#39;, &#39;gene&#39;, etc) is attached as the PRIMARY_ID, and the location is assigned to it&#39;s own tag name (LOCATION). Feature qualifiers are added as additional keys, with multiple keys included in an array.</p>
+
+<p>Once a particular event occurs (new primary tag, sequence, end of record), the data is passed along to be processed by a handler or (if no handler is defined) tossed away.</p>
+
+<p>Internally, the hash ref for a representative annotation (here a REFERENCE) looks like this:</p>
+
+<pre><code><code>  <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">{</span>
+            <span class="string">'JOURNAL'</span> <span class="operator">=&gt;</span> <span class="string">'Unpublished (2003)'</span><span class="operator">,</span>
+            <span class="string">'TITLE'</span> <span class="operator">=&gt;</span> <span class="string">'The DNA sequence of Homo sapiens'</span><span class="operator">,</span>
+            <span class="string">'NAME'</span> <span class="operator">=&gt;</span> <span class="string">'REFERENCE'</span><span class="operator">,</span>
+            <span class="string">'REFERENCE'</span> <span class="operator">=&gt;</span> <span class="string">'1  (bases 1 to 10001)'</span><span class="operator">,</span>
+            <span class="string">'AUTHORS'</span> <span class="operator">=&gt;</span> <span class="string">'International Human Genome Sequencing Consortium.'</span>
+          <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>and a SeqFeature as this:</p>
+
+<pre><code><code>  <span class="variable">$VAR1</span> <span class="operator">=</span> <span class="operator">{</span>
+            <span class="string">'db_xref'</span> <span class="operator">=&gt;</span> <span class="operator">[</span>
+                           <span class="string">'GeneID:127086'</span><span class="operator">,</span>
+                           <span class="string">'InterimID:127086'</span>
+                         <span class="operator">]</span><span class="operator">,</span>
+            <span class="string">'LOCATION'</span> <span class="operator">=&gt;</span> <span class="string">'complement(3024..6641)'</span><span class="operator">,</span>
+            <span class="string">'NAME'</span> <span class="operator">=&gt;</span> <span class="string">'FEATURES'</span><span class="operator">,</span>
+            <span class="string">'FEATURE_KEY'</span> <span class="operator">=&gt;</span> <span class="string">'gene'</span><span class="operator">,</span>
+            <span class="string">'gene'</span> <span class="operator">=&gt;</span> <span class="string">'LOC127086'</span><span class="operator">,</span>
+            <span class="string">'note'</span> <span class="operator">=&gt;</span> <span class="string">'Derived by automated computational analysis using
+                       gene prediction method: GNOMON.'</span>
+          <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Note that any driver implementation would suffice as long as it fulfilled the requirements above.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Bioperl-Project">AUTHOR - Bioperl Project</h1>
+
+<p>bioperl-l at bioperl.org</p>
+
+<p>Original author Elia Stupka, elia -at- tigem.it</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Ewan Birney birney at ebi.ac.uk Jason Stajich jason at bioperl.org Chris Mungall cjm at fruitfly.bdgp.berkeley.edu Lincoln Stein lstein at cshl.org Heikki Lehvaslaiho, heikki at ebi.ac.uk Hilmar Lapp, hlapp at gmx.net Donald G. Jackson, donald.jackson at bms.com James Wasmuth, james.wasmuth at ed.ac.uk Brian Osborne, bosborne at alum.mit.edu</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="next_seq">next_seq</h2>
+
+<pre><code><code> Title   : next_seq
+ Usage   : $seq = $stream-&gt;next_seq()
+ Function: returns the next sequence in the stream
+ Returns : Bio::Seq object
+ Args    :</code></code></pre>
+
+<h2 id="write_seq">write_seq</h2>
+
+<pre><code><code> Title   : write_seq
+ Usage   : $stream-&gt;write_seq($seq)
+ Function: writes the $seq object (must be seq) to the stream
+ Returns : 1 for success and 0 for error
+ Args    : array of 1 to n Bio::SeqI objects</code></code></pre>
+
+<h2 id="seqhandler">seqhandler</h2>
+
+<pre><code><code> Title   : seqhandler
+ Usage   : $stream-&gt;seqhandler($handler)
+ Function: Get/Set teh Bio::Seq::HandlerBaseI object
+ Returns : Bio::Seq::HandlerBaseI 
+ Args    : Bio::Seq::HandlerBaseI </code></code></pre>
+
+
+</body>
+
+</html>
+
+

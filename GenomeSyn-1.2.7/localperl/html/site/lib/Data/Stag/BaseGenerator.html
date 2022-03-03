@@ -1,0 +1,252 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#PUBLIC-METHODS">PUBLIC METHODS</a>
+    <ul>
+      <li>
+        <ul>
+          <li><a href="#new">new</a></li>
+          <li><a href="#handler">handler</a></li>
+          <li><a href="#errhandler">errhandler</a></li>
+          <li><a href="#cache_errors">cache_errors</a></li>
+        </ul>
+      </li>
+      <li><a href="#parse">parse</a></li>
+      <li><a href="#parse1">parse</a></li>
+    </ul>
+  </li>
+  <li><a href="#PROTECTED-METHODS">PROTECTED METHODS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<pre><code><code>  Data::Stag::BaseGenerator     - base class for parsers and other event generators</code></code></pre>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># writing the parser</span>
+  <span class="keyword">package</span> <span class="variable">MyParser</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">base</span> <span class="string">qw(Data::Stag::BaseGenerator)</span><span class="operator">;</span>
+  
+  <span class="keyword">sub</span><span class="variable"> parse_fh </span><span class="operator">{</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$self</span><span class="operator">,</span> <span class="variable">$fh</span><span class="operator">)</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+  
+    <span class="keyword">my</span> <span class="variable">$lnum</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+    <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">start_event</span><span class="operator">(</span><span class="string">'data'</span><span class="operator">);</span>
+    <span class="keyword">while</span> <span class="operator">(&lt;</span><span class="variable">$fh</span><span class="operator">&gt;)</span> <span class="operator">{</span>
+      <span class="operator">++</span><span class="variable">$lnum</span><span class="operator">;</span>
+      <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">line_no</span><span class="operator">(</span><span class="variable">$lnum</span><span class="operator">);</span>
+      <span class="comment"># do stuff</span>
+      <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">start_event</span><span class="operator">(</span><span class="string">'foo'</span><span class="operator">);</span>
+  
+      <span class="comment"># ...</span>
+      <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">event</span><span class="operator">(</span><span class="string">blah</span><span class="operator">=&gt;</span><span class="number">5</span><span class="operator">);</span>
+  
+      <span class="comment">#</span>
+      <span class="keyword">if</span> <span class="operator">(</span><span class="regex">/incorrect_line/</span><span class="operator">)</span> <span class="operator">{</span>
+         <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">parse_err</span><span class="operator">(</span><span class="string">'line not in correct format'</span><span class="operator">);</span>
+      <span class="operator">}</span>
+  
+      <span class="comment"># ...</span>
+      <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">end_event</span><span class="operator">(</span><span class="string">'foo'</span><span class="operator">);</span>
+    <span class="operator">}</span>
+    <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">pop_stack_to_depth</span><span class="operator">(</span><span class="number">0</span><span class="operator">);</span>
+  <span class="operator">}</span>
+  <span class="number">1</span><span class="operator">;</span>
+  
+  <span class="comment"># using the parser</span>
+  <span class="keyword">my</span> <span class="variable">$p</span> <span class="operator">=</span> <span class="variable">MyParser</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">MyHandler</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span> <span class="comment"># see Data::Stag::BaseHandler</span>
+  <span class="keyword">my</span> <span class="variable">$eh</span> <span class="operator">=</span> <span class="variable">Data::Stag</span><span class="operator">-&gt;</span><span class="variable">makehandler</span><span class="operator">;</span>
+  <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">handler</span><span class="operator">(</span><span class="variable">$h</span><span class="operator">);</span>
+  <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">errhandler</span><span class="operator">(</span><span class="variable">$eh</span><span class="operator">);</span>
+  <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span><span class="variable">$file</span><span class="operator">);</span>
+  
+  <span class="comment"># result tree</span>
+  <span class="keyword">print</span> <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">stag</span><span class="operator">-&gt;</span><span class="variable">xml</span><span class="operator">;</span>
+  
+  <span class="comment"># write parse errs on standard err</span>
+  <span class="keyword">printf</span> <span class="operator">\</span><span class="variable">*STDERR</span> <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">errhandler</span><span class="operator">-&gt;</span><span class="variable">stag</span><span class="operator">-&gt;</span><span class="variable">xml</span><span class="operator">;</span>
+  
+  <span class="comment"># using the parser from the command line</span>
+  <span class="variable">unix</span><span class="operator">&gt;</span> <span class="variable">stag</span><span class="operator">-</span><span class="variable">parse</span><span class="operator">.</span><span class="variable">pl</span> <span class="keyword">-p</span> <span class="variable">MyParser</span> <span class="keyword">-w</span> <span class="variable">xml</span> <span class="keyword">-e</span> <span class="variable">err</span><span class="operator">.</span><span class="variable">xml</span> <span class="operator">&gt;</span> <span class="variable">out</span><span class="operator">.</span><span class="variable">xml</span>
+  
+  <span class="comment"># using the parser from the command line via intermediate handler</span>
+  <span class="variable">unix</span><span class="operator">&gt;</span> <span class="variable">stag</span><span class="operator">-</span><span class="variable">handle</span><span class="operator">.</span><span class="variable">pl</span> <span class="keyword">-p</span> <span class="variable">MyParser</span> <span class="operator">-</span><span class="regex">m MyHandler -w xml -e err.xml &gt; out.xml
+  </span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is the base class for all parsers and event generators</p>
+
+<p>parsers/generators take some input (usually a filehandle, but a generator could be a socket listener, for example) and fire stag events</p>
+
+<p>stag events are</p>
+
+<dl>
+
+<dt id="start_event-NODENAME">start_event NODENAME</dt>
+<dd>
+
+</dd>
+<dt id="evbody-DATA">evbody DATA</dt>
+<dd>
+
+</dd>
+<dt id="end_event-NODENAME-optional-">end_event NODENAME {optional}</dt>
+<dd>
+
+</dd>
+<dt id="event-NODENAME-DATA">event NODENAME DATA</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>These events can be nested/hierarchical</p>
+
+<p>If uncaught, these events are stacked into a stag tree, which can be written as xml or one of the other stag formats</p>
+
+<p>specialised handlers can be written to catch the events your parser throws</p>
+
+<p>For example, you may wish to write a pod parser that generates nested events like this:</p>
+
+<pre><code><code>  &lt;pod&gt;
+   &lt;section&gt;
+     &lt;type&gt;head1&lt;/type&gt;
+     &lt;name&gt;NAME&lt;/name&gt;
+     &lt;text&gt;Data::Stag - Structured Tags datastructures&lt;/text&gt;
+   &lt;/section&gt;
+   ...
+  &lt;/pod&gt;</code></code></pre>
+
+<p>(see the source for Data::Stag::PodParser for details)</p>
+
+<p>You can write handlers that take the pod-xml and generate something - for example HTML</p>
+
+<p>parsers may encounter unexpected things along the way - they may throw an exception, and fall over - or they may choose to fire an error event. by default, error event streams are diverted to STDERR. You can create your own error handlers</p>
+
+<h1 id="PUBLIC-METHODS">PUBLIC METHODS</h1>
+
+<h3 id="new">new</h3>
+
+<pre><code><code>       Title: new
+
+        Args: 
+      Return: L&lt;Data::Stag::BaseGenerator&gt;
+     Example: </code></code></pre>
+
+<p>CONSTRUCTOR</p>
+
+<h3 id="handler">handler</h3>
+
+<pre><code><code>       <span class="variable">Title</span><span class="operator">:</span> <span class="variable">handler</span>
+           <span class="variable">Function</span><span class="operator">:</span> <span class="variable">GET</span><span class="operator">/</span><span class="variable">SET</span> <span class="variable">ACCESSOR</span> <span class="variable">METHOD</span>
+        <span class="variable">Args</span><span class="operator">:</span> <span class="variable">handler</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Data::Stag::BaseHandler</span><span class="operator">&gt;</span> <span class="variable">optional</span>
+             <span class="variable">Return</span><span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Data::Stag::BaseHandler</span><span class="operator">&gt;</span>
+            <span class="variable">Example</span><span class="operator">:</span> <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">handler</span><span class="operator">(</span><span class="variable">MyHandler</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>each parser has a handler - all events generated are passed onto the handler; the default handler simply sits there collecting events</p>
+
+<h3 id="errhandler">errhandler</h3>
+
+<pre><code><code>       <span class="variable">Title</span><span class="operator">:</span> <span class="variable">errhandler</span>
+           <span class="variable">Function</span><span class="operator">:</span> <span class="variable">GET</span><span class="operator">/</span><span class="variable">SET</span> <span class="variable">ACCESSOR</span> <span class="variable">METHOD</span>
+        <span class="variable">Args</span><span class="operator">:</span> <span class="variable">handler</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Data::Stag::BaseHandler</span><span class="operator">&gt;</span> <span class="variable">optional</span>
+             <span class="variable">Return</span><span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Data::Stag::BaseHandler</span><span class="operator">&gt;</span>
+            <span class="variable">Example</span><span class="operator">:</span> <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">errhandler</span><span class="operator">(</span><span class="variable">Data::Stag</span><span class="operator">-&gt;</span><span class="variable">makehandler</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>each parser has an error handler - if the parser encounters things it does not expect, it can pass errors to the errorhandler</p>
+
+<p>if no errorhandler is set, an XML event handler that writes to STDERR is used</p>
+
+<h3 id="cache_errors">cache_errors</h3>
+
+<pre><code><code>       Title: cache_errors
+        Args: 
+      Return: 
+     Example: $p-&gt;cache_errors</code></code></pre>
+
+<p>If this is called, all errors will be cached rather than written to STDERR</p>
+
+<p>The error list can be accessed like this</p>
+
+<pre><code><code>  <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span><span class="variable">$fn</span><span class="operator">);</span>
+  <span class="variable">@errs</span> <span class="operator">=</span> <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">errhandler</span><span class="operator">-&gt;</span><span class="variable">stag</span><span class="operator">-&gt;</span><span class="variable">get_error</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="parse">parse</h2>
+
+<pre><code><code>  <span class="variable">Example</span> <span class="operator">-</span> <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span><span class="variable">$file1</span><span class="operator">,</span> <span class="variable">$file2</span><span class="operator">);</span>
+  <span class="variable">Returns</span> <span class="operator">-</span> 
+  <span class="variable">Args</span>    <span class="operator">-</span> <span class="variable">filenames</span> <span class="variable">str</span><span class="operator">-</span><span class="variable">LIST</span>
+</code></code></pre>
+
+<p>parses a file</p>
+
+<h2 id="parse1">parse</h2>
+
+<pre><code><code>  Example - $parser-&gt;parse_fh($fh)
+  Returns - 
+  Args    - fh FILEHANDLE</code></code></pre>
+
+<p>parses an open filehandle</p>
+
+<h1 id="PROTECTED-METHODS">PROTECTED METHODS</h1>
+
+<p>These methods are only of interest if you are making your own parser/generator class</p>
+
+<dl>
+
+<dt id="start_event-NODENAME1">start_event NODENAME</dt>
+<dd>
+
+</dd>
+<dt id="evbody-DATA1">evbody DATA</dt>
+<dd>
+
+</dd>
+<dt id="end_event-NODENAME-optional-1">end_event NODENAME {optional}</dt>
+<dd>
+
+</dd>
+<dt id="event-NODENAME-DATA1">event NODENAME DATA</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../.cpan/build/Data-Stag-0.11-NlX_Og/blib/lib/Data/Stag.html">Data::Stag</a> <a href="../../../../../.cpan/build/Data-Stag-0.11-NlX_Og/blib/lib/Data/Stag/BaseHandler.html">Data::Stag::BaseHandler</a></p>
+
+
+</body>
+
+</html>
+
+

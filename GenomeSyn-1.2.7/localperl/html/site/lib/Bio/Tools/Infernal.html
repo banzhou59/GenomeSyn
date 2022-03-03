@@ -1,0 +1,281 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Chris-Fields">AUTHOR - Chris Fields</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#motif_tag">motif_tag</a></li>
+      <li><a href="#source_tag">source_tag</a></li>
+      <li><a href="#desc_tag">desc_tag</a></li>
+      <li><a href="#covariance_model">covariance_model</a></li>
+      <li><a href="#rfam">rfam</a></li>
+      <li><a href="#minscore">minscore</a></li>
+      <li><a href="#program_version">program_version</a></li>
+      <li><a href="#analysis_method">analysis_method</a></li>
+      <li><a href="#next_feature">next_feature</a></li>
+      <li><a href="#next_prediction">next_prediction</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Infernal - A parser for Infernal output</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tools::Infernal</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Infernal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$rna_output</span><span class="operator">,</span>
+                                        <span class="string">-motiftag</span> <span class="operator">=&gt;</span> <span class="string">'misc_binding'</span>
+                                        <span class="string">-desctag</span> <span class="operator">=&gt;</span> <span class="string">'Lysine riboswitch'</span><span class="operator">,</span>
+                                        <span class="string">-cm</span>    <span class="operator">=&gt;</span> <span class="string">'RF00168'</span><span class="operator">,</span>
+                                        <span class="string">-rfam</span>  <span class="operator">=&gt;</span>  <span class="string">'RF00168'</span><span class="operator">,</span>
+                                        <span class="string">-minscore</span> <span class="operator">=&gt;</span> <span class="number">20</span><span class="operator">);</span>
+  <span class="comment">#parse the results, get a Bio::SeqFeature::FeaturePair</span>
+  <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$motif</span> <span class="operator">=</span> <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">next_prediction</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># do something here</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is a highly experimental parser for Infernal output from the cmsearch program. At some point it is anticipated that this will morph into a proper SearchIO parser, along with the related RNAMotif and ERPIN tools.</p>
+
+<p>The Infernal suite of programs are used for generating RNA CM (covariance models) and searching sequences using CMs to locate potentially similar structures. The program is under active development; it is anticiapted that this will support the latest version available.</p>
+
+<p>This parser has been tested and is capable of parsing Infernal 0.7 and 0.71 output. However, future Infernal versions may break parsing as the output is constantly evolving, so keep an eye on this space for additional notes.</p>
+
+<p>Currently data is parsed into a Bio::SeqFeature::FeaturePair object, consisting of a query (the covariance model) and the hit (sequence searched).</p>
+
+<p>Model data is accessible via the following:</p>
+
+<pre><code><code>  Data            SeqFeature::FeaturePair         Note
+  --------------------------------------------------------------------------
+  primary tag     $sf-&gt;primary_tag                Rfam ID (if passed to new())
+  start           $sf-&gt;start                      Based on CM length
+  end             $sf-&gt;end                        Based on CM length
+  score           $sf-&gt;score                      Bit score
+  strand          $sf-&gt;strand                     0 (CM does not have a strand)
+  seqid           $sf-&gt;seq_id                     Rfam ID (if passed to new())
+  display name    $sf-&gt;feature1-&gt;display_name     CM name (if passed to new())
+  source          $sf-&gt;feature1-&gt;source tag      &#39;Infernal&#39; followed by version</code></code></pre>
+
+<p>Hit data is accessible via the following:</p>
+
+<pre><code><code>  Data            SeqFeature::FeaturePair         Note
+  ------------------------------------------------------------------
+  start           $sf-&gt;hstart
+  end             $sf-&gt;hend
+  score(bits)     $sf-&gt;hscore
+  strand          $sf-&gt;hstrand
+  seqid           $sf-&gt;hseqid
+  Primary Tag     $sf-&gt;hprimary_tag
+  Source Tag      $sf-&gt;hsource_tag</code></code></pre>
+
+<p>Added FeaturePair tags are :</p>
+
+<pre><code><code>   secstructure - entire description line (in case the regex used for
+                  sequence ID doesn&#39;t adequately catch the name
+   model        - name of the descriptor file (may include path to file)
+   midline      - contains structural information from the descriptor
+                  used as a query
+   hit          - sequence of motif, separated by spaces according to
+                  matches to the structure in the descriptor (in
+                  SecStructure).
+   seqname      - raw sequence name (for downstream parsing if needed)</code></code></pre>
+
+<p>An additional parameter (&#39;minscore&#39;) is added due to the huge number of spurious hits generated by cmsearch. This screens data, only building and returning objects when a minimal bitscore is present.</p>
+
+<p>See t/rnamotif.t for example usage.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Chris-Fields">AUTHOR - Chris Fields</h1>
+
+<p>Email cjfields-at-uiuc-dot-edu</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Infernal</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Tools::Infernal</span> <span class="variable">object</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">of</span> <span class="variable">Bio::Tools::Infernal</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">-</span><span class="variable">fh</span><span class="operator">/-</span><span class="variable">file</span>  <span class="operator">-</span> <span class="keyword">for</span> <span class="variable">input</span> <span class="variable">filehandle</span><span class="operator">/</span><span class="variable">filename</span>
+           <span class="operator">-</span><span class="variable">motiftag</span>  <span class="operator">-</span> <span class="variable">primary</span> <span class="variable">tag</span> <span class="variable">used</span> <span class="variable">in</span> <span class="variable">gene</span> <span class="variable">features</span> <span class="operator">(</span><span class="keyword">default</span> <span class="string">'misc_binding'</span><span class="operator">)</span>
+           <span class="operator">-</span><span class="variable">desctag</span>   <span class="operator">-</span> <span class="variable">tag</span> <span class="variable">used</span> <span class="keyword">for</span> <span class="variable">display_name</span> <span class="variable">name</span> <span class="operator">(</span><span class="keyword">default</span> <span class="string">'infernal'</span><span class="operator">)</span>
+           <span class="operator">-</span><span class="variable">srctag</span>    <span class="operator">-</span> <span class="variable">source</span> <span class="variable">tag</span> <span class="variable">used</span> <span class="variable">in</span> <span class="variable">all</span> <span class="variable">features</span> <span class="operator">(</span><span class="keyword">default</span> <span class="string">'Infernal'</span><span class="operator">)</span>
+           <span class="operator">-</span><span class="variable">rfam</span>      <span class="operator">-</span> <span class="variable">Rfam</span> <span class="variable">id</span> <span class="variable">number</span>
+           <span class="operator">-</span><span class="variable">cm</span>        <span class="operator">-</span> <span class="variable">covariance</span> <span class="variable">model</span> <span class="variable">used</span> <span class="variable">in</span> <span class="variable">analysis</span> <span class="operator">(</span><span class="variable">may</span> <span class="variable">be</span> <span class="variable">same</span> <span class="variable">as</span> <span class="variable">rfam</span> <span class="comment">#)</span>
+           <span class="operator">-</span><span class="variable">minscore</span>  <span class="operator">-</span> <span class="variable">minimum</span> <span class="variable">score</span> <span class="operator">(</span><span class="variable">simple</span> <span class="variable">screener</span><span class="operator">,</span> <span class="variable">since</span> <span class="variable">Infernal</span> <span class="variable">generates</span>
+                        <span class="variable">a</span> <span class="variable">ton</span> <span class="variable">of</span> <span class="variable">spurious</span> <span class="variable">hits</span><span class="operator">)</span>
+           <span class="operator">-</span><span class="variable">version</span>   <span class="operator">-</span> <span class="variable">Infernal</span> <span class="variable">program</span> <span class="variable">version</span>
+</code></code></pre>
+
+<h2 id="motif_tag">motif_tag</h2>
+
+<pre><code><code> Title   : motif_tag
+ Usage   : $obj-&gt;motif_tag($newval)
+ Function: Get/Set the value used for &#39;motif_tag&#39;, which is used for setting the
+           primary_tag.
+           Default is &#39;misc_binding&#39; as set by the global $MotifTag.
+           &#39;misc_binding&#39; is used here because a conserved RNA motif is capable
+           of binding proteins (regulatory proteins), antisense RNA (siRNA),
+           small molecules (riboswitches), or nothing at all (tRNA,
+           terminators, etc.).  It is recommended that this be changed to other
+           tags (&#39;misc_RNA&#39;, &#39;protein_binding&#39;, &#39;tRNA&#39;, etc.) where appropriate.
+           For more information, see:
+           http://www.ncbi.nlm.nih.gov/collab/FT/index.html
+ Returns : value of motif_tag (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="source_tag">source_tag</h2>
+
+<pre><code><code> Title   : source_tag
+ Usage   : $obj-&gt;source_tag($newval)
+ Function: Get/Set the value used for the &#39;source_tag&#39;.
+           Default is &#39;Infernal&#39; as set by the global $SrcTag
+ Returns : value of source_tag (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="desc_tag">desc_tag</h2>
+
+<pre><code><code> Title   : desc_tag
+ Usage   : $obj-&gt;desc_tag($newval)
+ Function: Get/Set the value used for the query motif.  This will be placed in
+           the tag &#39;-display_name&#39;.  Default is &#39;infernal&#39; as set by the global
+           $DescTag.  Use this to manually set the descriptor (motif searched for).
+           Since there is no way for this module to tell what the motif is from the
+           name of the descriptor file or the Infernal output, this should
+           be set every time an Infernal object is instantiated for clarity
+ Returns : value of exon_tag (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="covariance_model">covariance_model</h2>
+
+<pre><code><code> Title   : covariance_model
+ Usage   : $obj-&gt;covariance_model($newval)
+ Function: Get/Set the value used for the covariance model used in the analysis.
+ Returns : value of exon_tag (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="rfam">rfam</h2>
+
+<pre><code><code> Title   : rfam
+ Usage   : $obj-&gt;rfam($newval)
+ Function: Get/Set the Rfam accession number
+ Returns : value of exon_tag (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="minscore">minscore</h2>
+
+<pre><code><code> Title   : minscore
+ Usage   : $obj-&gt;minscore($newval)
+ Function: Get/Set the minimum score threshold for generating SeqFeatures
+ Returns : value of exon_tag (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="program_version">program_version</h2>
+
+<pre><code><code> Title   : program_version
+ Usage   : $obj-&gt;program_version($newval)
+ Function: Get/Set the Infernal program version
+ Returns : value of exon_tag (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)
+           Note: this is set to $DEFAULT_VERSION by, um, default</code></code></pre>
+
+<h2 id="analysis_method">analysis_method</h2>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">analysis_method</span><span class="operator">();</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Inherited</span> <span class="variable">method</span><span class="operator">.</span> <span class="variable">Overridden</span> <span class="variable">to</span> <span class="variable">ensure</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">matches</span>
+             <span class="operator">/</span><span class="variable">Infernal</span><span class="operator">/</span><span class="variable">i</span><span class="operator">.</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">String</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+</code></code></pre>
+
+<h2 id="next_feature">next_feature</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_feature</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">while</span><span class="operator">(</span><span class="variable">$gene</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">next_feature</span><span class="operator">())</span> <span class="operator">{</span>
+                  <span class="comment"># do something</span>
+           <span class="operator">}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">gene</span> <span class="variable">structure</span> <span class="variable">prediction</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">RNAMotif</span> <span class="variable">result</span>
+           <span class="variable">file</span><span class="operator">.</span> <span class="variable">Call</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">repeatedly</span> <span class="keyword">until</span> <span class="variable">FALSE</span> <span class="variable">is</span> <span class="variable">returned</span><span class="operator">.</span>
+           <span class="variable">The</span> <span class="variable">returned</span> <span class="variable">object</span> <span class="variable">is</span> <span class="variable">actually</span> <span class="variable">a</span> <span class="variable">SeqFeatureI</span> <span class="variable">implementing</span> <span class="variable">object</span><span class="operator">.</span>
+           <span class="variable">This</span> <span class="variable">method</span> <span class="variable">is</span> <span class="variable">required</span> <span class="keyword">for</span> <span class="variable">classes</span> <span class="variable">implementing</span> <span class="variable">the</span>
+           <span class="variable">SeqAnalysisParserI</span> <span class="variable">interface</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">is</span> <span class="variable">merely</span> <span class="variable">an</span> <span class="variable">alias</span> <span class="keyword">for</span> 
+           <span class="variable">next_prediction</span><span class="operator">()</span> <span class="variable">at</span> <span class="variable">present</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Tools::Prediction::Gene</span> <span class="variable">object</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span> <span class="operator">(</span><span class="variable">at</span> <span class="variable">present</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="next_prediction">next_prediction</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_prediction</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">while</span><span class="operator">(</span><span class="variable">$gene</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">next_prediction</span><span class="operator">())</span> <span class="operator">{</span>
+                  <span class="comment"># do something</span>
+           <span class="operator">}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">gene</span> <span class="variable">structure</span> <span class="variable">prediction</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">RNAMotif</span> <span class="variable">result</span>
+           <span class="variable">file</span><span class="operator">.</span> <span class="variable">Call</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">repeatedly</span> <span class="keyword">until</span> <span class="variable">FALSE</span> <span class="variable">is</span> <span class="variable">returned</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqFeature::Generic</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">None</span> <span class="operator">(</span><span class="variable">at</span> <span class="variable">present</span><span class="operator">)</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

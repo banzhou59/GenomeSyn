@@ -1,0 +1,521 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../displayToc.js"></script>
+<script language="JavaScript" src="../../tocParas.js"></script>
+<script language="JavaScript" src="../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Top-level-contexts:">Top-level contexts:</a></li>
+      <li><a href="#Lvalue-subroutines:">Lvalue subroutines:</a></li>
+      <li><a href="#Assignment-context:">Assignment context:</a></li>
+      <li><a href="#Reference-context:">Reference context:</a></li>
+      <li><a href="#Item-count">Item count</a></li>
+      <li><a href="#Boolean-context">Boolean context</a></li>
+    </ul>
+  </li>
+  <li><a href="#FUNCTIONS">FUNCTIONS</a></li>
+  <li><a href="#EXAMPLES">EXAMPLES</a></li>
+  <li><a href="#ARGUMENTS">ARGUMENTS</a></li>
+  <li><a href="#EXPORT">EXPORT</a></li>
+  <li><a href="#INTERFACE">INTERFACE</a></li>
+  <li><a href="#SUBTLETIES">SUBTLETIES</a></li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Want - A generalisation of <code><code>wantarray</code></code></p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Want</span><span class="operator">;</span>
+  <span class="keyword">sub</span><span class="variable"> foo :lvalue </span><span class="operator">{</span>
+      <span class="keyword">if</span>    <span class="operator">(</span><span class="variable">want</span><span class="operator">(</span><span class="string">qw'LVALUE ASSIGN'</span><span class="operator">))</span> <span class="operator">{</span>
+        <span class="keyword">print</span> <span class="string">"We have been assigned "</span><span class="operator">,</span> <span class="variable">want</span><span class="operator">(</span><span class="string">'ASSIGN'</span><span class="operator">);</span>
+        <span class="variable">lnoreturn</span><span class="operator">;</span>
+      <span class="operator">}</span>
+      <span class="keyword">elsif</span> <span class="operator">(</span><span class="variable">want</span><span class="operator">(</span><span class="string">'LIST'</span><span class="operator">))</span> <span class="operator">{</span>
+        <span class="variable">rreturn</span> <span class="operator">(</span><span class="number">1</span><span class="operator">,</span> <span class="number">2</span><span class="operator">,</span> <span class="number">3</span><span class="operator">);</span>
+      <span class="operator">}</span>
+      <span class="keyword">elsif</span> <span class="operator">(</span><span class="variable">want</span><span class="operator">(</span><span class="string">'BOOL'</span><span class="operator">))</span> <span class="operator">{</span>
+        <span class="variable">rreturn</span> <span class="number">0</span><span class="operator">;</span>
+      <span class="operator">}</span>
+      <span class="keyword">elsif</span> <span class="operator">(</span><span class="variable">want</span><span class="operator">(</span><span class="string">qw'SCALAR !REF'</span><span class="operator">))</span> <span class="operator">{</span>
+        <span class="variable">rreturn</span> <span class="number">23</span><span class="operator">;</span>
+      <span class="operator">}</span>
+      <span class="keyword">elsif</span> <span class="operator">(</span><span class="variable">want</span><span class="operator">(</span><span class="string">'HASH'</span><span class="operator">))</span> <span class="operator">{</span>
+        <span class="variable">rreturn</span> <span class="operator">{</span> <span class="string">foo</span> <span class="operator">=&gt;</span> <span class="number">17</span><span class="operator">,</span> <span class="string">bar</span> <span class="operator">=&gt;</span> <span class="number">23</span> <span class="operator">};</span>
+      <span class="operator">}</span>
+      <span class="keyword">return</span><span class="operator">;</span>  <span class="comment"># You have to put this at the end to keep the compiler happy</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module generalises the mechanism of the <b>wantarray</b> function, allowing a function to determine in some detail how its return value is going to be immediately used.</p>
+
+<h2 id="Top-level-contexts:">Top-level contexts:</h2>
+
+<p>The three kinds of top-level context are well known:</p>
+
+<dl>
+
+<dt id="VOID"><b>VOID</b></dt>
+<dd>
+
+<p>The return value is not being used in any way. It could be an entire statement like <code><code><span class="variable">foo</span><span class="operator">();</span>
+</code></code>, or the last component of a compound statement which is itself in void context, such as <code><code><span class="variable">$test</span> <span class="operator">||</span> <span class="variable">foo</span><span class="operator">();</span>
+</code></code>n. Be warned that the last statement of a subroutine will be in whatever context the subroutine was called in, because the result is implicitly returned.</p>
+
+</dd>
+<dt id="SCALAR"><b>SCALAR</b></dt>
+<dd>
+
+<p>The return value is being treated as a scalar value of some sort:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$x</span> <span class="operator">=</span> <span class="variable">foo</span><span class="operator">();</span>
+  <span class="variable">$y</span> <span class="operator">+=</span> <span class="variable">foo</span><span class="operator">();</span>
+  <span class="keyword">print</span> <span class="string">"123"</span> <span class="operator">x</span> <span class="variable">foo</span><span class="operator">();</span>
+  <span class="keyword">print</span> <span class="keyword">scalar</span> <span class="variable">foo</span><span class="operator">();</span>
+  <span class="keyword">warn</span> <span class="variable">foo</span><span class="operator">()-&gt;</span><span class="operator">{</span><span class="number">23</span><span class="operator">}</span><span class="operator">;</span>
+  <span class="operator">...</span><span class="variable">etc</span><span class="operator">...</span>
+</code></code></pre>
+
+</dd>
+<dt id="LIST"><b>LIST</b></dt>
+<dd>
+
+<p>The return value is treated as a list of values:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">@x</span> <span class="operator">=</span> <span class="variable">foo</span><span class="operator">();</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$x</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">foo</span><span class="operator">();</span>
+  <span class="operator">()</span> <span class="operator">=</span> <span class="variable">foo</span><span class="operator">();</span>           <span class="comment"># even though the results are discarded</span>
+  <span class="keyword">print</span> <span class="variable">foo</span><span class="operator">();</span>
+  <span class="variable">bar</span><span class="operator">(</span><span class="variable">foo</span><span class="operator">());</span>           <span class="comment"># unless the bar subroutine has a prototype</span>
+  <span class="keyword">print</span> <span class="variable">@hash</span><span class="operator">{</span><span class="variable">foo</span><span class="operator">()</span><span class="operator">}</span><span class="operator">;</span>   <span class="comment"># (hash slice)</span>
+  <span class="operator">...</span><span class="variable">etc</span><span class="operator">...</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h2 id="Lvalue-subroutines:">Lvalue subroutines:</h2>
+
+<p>The introduction of <b>lvalue subroutines</b> in Perl 5.6 has created a new type of contextual information, which is independent of those listed above. When an lvalue subroutine is called, it can either be called in the ordinary way (so that its result is treated as an ordinary value, an <b>rvalue</b>); or else it can be called so that its result is considered updatable, an <b>lvalue</b>.</p>
+
+<p>These rather arcane terms (lvalue and rvalue) are easier to remember if you know why they are so called. If you consider a simple assignment statement <code><code>left = right</code></code>, then the <b>l</b>eft-hand side is an <b>l</b>value and the <b>r</b>ight-hand side is an <b>r</b>value.</p>
+
+<p>So (for lvalue subroutines only) there are two new types of context:</p>
+
+<dl>
+
+<dt id="RVALUE"><b>RVALUE</b></dt>
+<dd>
+
+<p>The caller is definitely not trying to assign to the result:</p>
+
+<pre><code><code>  <span class="variable">foo</span><span class="operator">();</span>
+  <span class="keyword">my</span> <span class="variable">$x</span> <span class="operator">=</span> <span class="variable">foo</span><span class="operator">();</span>
+  <span class="operator">...</span><span class="variable">etc</span><span class="operator">...</span>
+</code></code></pre>
+
+<p>If the sub is declared without the <code><code>:lvalue</code></code> attribute, then it will <i>always</i> be in RVALUE context.</p>
+
+<p>If you need to return values from an lvalue subroutine in RVALUE context, you should use the <code><code>rreturn</code></code> function rather than an ordinary <code><code>return</code></code>. Otherwise you&#39;ll probably get a compile-time error in perl 5.6.1 and later.</p>
+
+</dd>
+<dt id="LVALUE"><b>LVALUE</b></dt>
+<dd>
+
+<p>Either the caller is directly assigning to the result of the sub call:</p>
+
+<pre><code><code>  <span class="variable">foo</span><span class="operator">()</span> <span class="operator">=</span> <span class="variable">$x</span><span class="operator">;</span>
+  <span class="variable">foo</span><span class="operator">()</span> <span class="operator">=</span> <span class="operator">(</span><span class="number">1</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="number">2</span><span class="operator">,</span> <span class="number">3</span><span class="operator">,</span> <span class="number">5</span><span class="operator">,</span> <span class="number">8</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>or the caller is making a reference to the result, which might be assigned to later:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$ref</span> <span class="operator">=</span> <span class="operator">\(</span><span class="variable">foo</span><span class="operator">());</span>   <span class="comment"># Could now have: $$ref = 99;</span>
+  
+  <span class="comment"># Note that this example imposes LIST context on the sub call.</span>
+  <span class="comment"># So we're taking a reference to the first element to be</span>
+  <span class="comment"># returned _in list context_.</span>
+  <span class="comment"># If we want to call the function in scalar context, we can</span>
+  <span class="comment"># do it like this:</span>
+  <span class="keyword">my</span> <span class="variable">$ref</span> <span class="operator">=</span> <span class="operator">\(</span><span class="keyword">scalar</span> <span class="variable">foo</span><span class="operator">());</span>
+</code></code></pre>
+
+<p>or else the result of the function call is being used as part of the argument list for <i>another</i> function call:</p>
+
+<pre><code><code>  <span class="variable">bar</span><span class="operator">(</span><span class="variable">foo</span><span class="operator">());</span>   <span class="comment"># Will *always* call foo in lvalue context,</span>
+                <span class="comment"># (provided that foo is an C&lt;:lvalue&gt; sub)</span>
+                <span class="comment"># regardless of what bar actually does.</span>
+</code></code></pre>
+
+<p>The reason for this last case is that bar might be a sub which modifies its arguments. They&#39;re rare in contemporary Perl code, but perfectly possible:</p>
+
+<pre><code><code>  <span class="keyword">sub</span><span class="variable"> bar </span><span class="operator">{</span>
+    <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span> <span class="operator">=</span> <span class="number">23</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>(This is really a throwback to Perl 4, which didn&#39;t support explicit references.)</p>
+
+</dd>
+</dl>
+
+<h2 id="Assignment-context:">Assignment context:</h2>
+
+<p>The commonest use of lvalue subroutines is with the assignment statement:</p>
+
+<pre><code><code>  <span class="variable">size</span><span class="operator">()</span> <span class="operator">=</span> <span class="number">12</span><span class="operator">;</span>
+  <span class="operator">(</span><span class="variable">list</span><span class="operator">())</span> <span class="operator">=</span> <span class="operator">(</span><span class="number">1</span><span class="operator">..</span><span class="number">10</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>A useful motto to remember when thinking about assignment statements is <i>context comes from the left</i>. Consider code like this:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$x</span><span class="operator">,</span> <span class="variable">$y</span><span class="operator">,</span> <span class="variable">$z</span><span class="operator">);</span>
+  <span class="keyword">sub</span><span class="variable"> list </span><span class="operator">()</span> <span class="operator">:</span><span class="variable">lvalue</span> <span class="operator">{</span> <span class="operator">(</span><span class="variable">$x</span><span class="operator">,</span> <span class="variable">$y</span><span class="operator">,</span> <span class="variable">$z</span><span class="operator">)</span> <span class="operator">}</span>
+  <span class="variable">list</span> <span class="operator">=</span> <span class="operator">(</span><span class="number">1</span><span class="operator">,</span> <span class="number">2</span><span class="operator">,</span> <span class="number">3</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="string">"\$x = </span><span class="variable">$x</span><span class="string">; \$y = </span><span class="variable">$y</span><span class="string">; \$z = </span><span class="variable">$z</span><span class="string">\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This prints <code><code><span class="variable">$x</span> <span class="operator">=</span> <span class="operator">;</span> <span class="variable">$y</span> <span class="operator">=</span> <span class="operator">;</span> <span class="variable">$z</span> <span class="operator">=</span> <span class="number">3</span>
+</code></code>, which may not be what you were expecting. The reason is that the assignment is in scalar context, so the comma operator is in scalar context too, and discards all values but the last. You can fix it by writing <code><code><span class="operator">(</span><span class="variable">list</span><span class="operator">)</span> <span class="operator">=</span> <span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+</code></code> instead.</p>
+
+<p>If your lvalue subroutine is used on the left of an assignment statement, it&#39;s in <b>ASSIGN</b> context. If ASSIGN is the only argument to <code><code>want()</code></code>, then it returns a reference to an array of the value(s) of the right-hand side.</p>
+
+<p>In this case, you should return with the <code><code>lnoreturn</code></code> function, rather than an ordinary <code><code>return</code></code>.</p>
+
+<p>This makes it very easy to write lvalue subroutines which do clever things:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Want</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  <span class="keyword">sub</span><span class="variable"> backstr :lvalue </span><span class="operator">{</span>
+    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">want</span><span class="operator">(</span><span class="string">qw'LVALUE ASSIGN'</span><span class="operator">))</span> <span class="operator">{</span>
+      <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$a</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">want</span><span class="operator">(</span><span class="string">'ASSIGN'</span><span class="operator">);</span>
+      <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span> <span class="operator">=</span> <span class="keyword">reverse</span> <span class="variable">$a</span><span class="operator">;</span>
+      <span class="variable">lnoreturn</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    <span class="keyword">elsif</span> <span class="operator">(</span><span class="variable">want</span><span class="operator">(</span><span class="string">'RVALUE'</span><span class="operator">))</span> <span class="operator">{</span>
+      <span class="variable">rreturn</span> <span class="keyword">scalar</span> <span class="keyword">reverse</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    <span class="keyword">else</span> <span class="operator">{</span>
+      <span class="variable">carp</span><span class="operator">(</span><span class="string">"Not in ASSIGN context"</span><span class="operator">);</span>
+    <span class="operator">}</span>
+    <span class="keyword">return</span>
+  <span class="operator">}</span>
+   
+  <span class="keyword">print</span> <span class="string">"foo -&gt; "</span><span class="operator">,</span> <span class="variable">backstr</span><span class="operator">(</span><span class="string">"foo"</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>        <span class="comment"># foo -&gt; oof</span>
+  <span class="variable">backstr</span><span class="operator">(</span><span class="keyword">my</span> <span class="variable">$robin</span><span class="operator">)</span> <span class="operator">=</span> <span class="string">"nibor"</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="string">"\$robin is now </span><span class="variable">$robin</span><span class="string">\n"</span><span class="operator">;</span>              <span class="comment"># $robin is now robin</span>
+</code></code></pre>
+
+<p>Notice that you need to put a (meaningless) return statement at the end of the function, otherwise you will get the error <i>Can&#39;t modify non-lvalue subroutine call in lvalue subroutine return</i>.</p>
+
+<p>The only way to write that <code><code>backstr</code></code> function without using Want is to return a tied variable which is tied to a custom class.</p>
+
+<h2 id="Reference-context:">Reference context:</h2>
+
+<p>Sometimes in scalar context the caller is expecting a reference of some sort to be returned:</p>
+
+<pre><code><code>    <span class="keyword">print</span> <span class="variable">foo</span><span class="operator">()-&gt;();</span>     <span class="comment"># CODE reference expected</span>
+    <span class="keyword">print</span> <span class="variable">foo</span><span class="operator">()-&gt;</span><span class="operator">{</span><span class="string">bar</span><span class="operator">}</span><span class="operator">;</span>  <span class="comment"># HASH reference expected</span>
+    <span class="keyword">print</span> <span class="variable">foo</span><span class="operator">()-&gt;</span><span class="operator">[</span><span class="number">23</span><span class="operator">]</span><span class="operator">;</span>   <span class="comment"># ARRAY reference expected</span>
+    <span class="keyword">print</span> <span class="variable">$</span><span class="operator">{</span><span class="variable">foo</span><span class="operator">()</span><span class="operator">}</span><span class="operator">;</span>      <span class="comment"># SCALAR reference expected</span>
+    <span class="keyword">print</span> <span class="variable">foo</span><span class="operator">()-&gt;</span><span class="variable">bar</span><span class="operator">();</span>  <span class="comment"># OBJECT reference expected</span>
+    
+    <span class="keyword">my</span> <span class="variable">$format</span> <span class="operator">=</span> <span class="variable">*</span><span class="operator">{</span><span class="variable">foo</span><span class="operator">()</span><span class="operator">}{</span><span class="string">FORMAT</span><span class="operator">}</span> <span class="comment"># GLOB reference expected</span>
+</code></code></pre>
+
+<p>You can check this using conditionals like <code><code>if (want(&#39;CODE&#39;))</code></code>. There is also a function <code><code>wantref()</code></code> which returns one of the strings &quot;CODE&quot;, &quot;HASH&quot;, &quot;ARRAY&quot;, &quot;GLOB&quot;, &quot;SCALAR&quot; or &quot;OBJECT&quot;; or the empty string if a reference is not expected.</p>
+
+<p>Because <code><code>want(&#39;SCALAR&#39;)</code></code> is already used to select ordinary scalar context, you have to use <code><code>want(&#39;REFSCALAR&#39;)</code></code> to find out if a SCALAR reference is expected. Or you could use <code><code>want(&#39;REF&#39;) eq &#39;SCALAR&#39;</code></code> of course.</p>
+
+<p>Be warned that <code><code>want(&#39;ARRAY&#39;)</code></code> is a <b>very</b> different thing from <code><code>wantarray()</code></code>.</p>
+
+<h2 id="Item-count">Item count</h2>
+
+<p>Sometimes in list context the caller is expecting a particular number of items to be returned:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$x</span><span class="operator">,</span> <span class="variable">$y</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">foo</span><span class="operator">();</span>   <span class="comment"># foo is expected to return two items</span>
+</code></code></pre>
+
+<p>If you pass a number to the <code><code>want</code></code> function, then it will return true or false according to whether at least that many items are wanted. So if we are in the definition of a sub which is being called as above, then:</p>
+
+<pre><code><code>    want(1) returns true
+    want(2) returns true
+    want(3) returns false</code></code></pre>
+
+<p>Sometimes there is no limit to the number of items that might be used:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@x</span> <span class="operator">=</span> <span class="variable">foo</span><span class="operator">();</span>
+    <span class="variable">do_something_with</span><span class="operator">(</span> <span class="variable">foo</span><span class="operator">()</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>In this case, <code><code>want(2)</code></code>, <code><code>want(100)</code></code>, <code><code>want(1E9)</code></code> and so on will all return true; and so will <code><code>want(&#39;Infinity&#39;)</code></code>.</p>
+
+<p>The <code><code>howmany</code></code> function can be used to find out how many items are wanted. If the context is scalar, then <code><code>want(1)</code></code> returns true and <code><code>howmany()</code></code> returns 1. If you want to check whether your result is being assigned to a singleton list, you can say <code><code><span class="keyword">if</span> <span class="operator">(</span><span class="variable">want</span><span class="operator">(</span><span class="string">'LIST'</span><span class="operator">,</span> <span class="number">1</span><span class="operator">))</span> <span class="operator">{</span> <span class="operator">...</span> <span class="operator">}</span>
+</code></code>.</p>
+
+<h2 id="Boolean-context">Boolean context</h2>
+
+<p>Sometimes the caller is only interested in the truth or falsity of a function&#39;s return value:</p>
+
+<pre><code><code>    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">everything_is_okay</span><span class="operator">())</span> <span class="operator">{</span>
+        <span class="comment"># Carry on</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">print</span> <span class="operator">(</span><span class="variable">foo</span><span class="operator">()</span> <span class="operator">?</span> <span class="string">"ok\n"</span> <span class="operator">:</span> <span class="string">"not ok\n"</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>In the following example, all subroutine calls are in BOOL context:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$x</span> <span class="operator">=</span> <span class="operator">(</span> <span class="operator">(</span><span class="variable">foo</span><span class="operator">()</span> <span class="operator">&amp;&amp;</span> <span class="operator">!</span><span class="variable">bar</span><span class="operator">())</span> <span class="keyword">xor</span> <span class="operator">(</span><span class="variable">baz</span><span class="operator">()</span> <span class="operator">||</span> <span class="variable">quux</span><span class="operator">())</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Boolean context, like the reference contexts above, is considered to be a subcontext of SCALAR.</p>
+
+<h1 id="FUNCTIONS">FUNCTIONS</h1>
+
+<dl>
+
+<dt id="want-SPECIFIERS-">want(SPECIFIERS)</dt>
+<dd>
+
+<p>This is the primary interface to this module, and should suffice for most purposes. You pass it a list of context specifiers, and the return value is true whenever all of the specifiers hold.</p>
+
+<pre><code><code>    <span class="variable">want</span><span class="operator">(</span><span class="string">'LVALUE'</span><span class="operator">,</span> <span class="string">'SCALAR'</span><span class="operator">);</span>   <span class="comment"># Are we in scalar lvalue context?</span>
+    <span class="variable">want</span><span class="operator">(</span><span class="string">'RVALUE'</span><span class="operator">,</span> <span class="number">3</span><span class="operator">);</span>          <span class="comment"># Are at least three rvalues wanted?</span>
+    <span class="variable">want</span><span class="operator">(</span><span class="string">'ARRAY'</span><span class="operator">);</span>      <span class="comment"># Is the return value used as an array ref?</span>
+</code></code></pre>
+
+<p>You can also prefix a specifier with an exclamation mark to indicate that you <b>don&#39;t</b> want it to be true</p>
+
+<pre><code><code>    <span class="variable">want</span><span class="operator">(</span><span class="number">2</span><span class="operator">,</span> <span class="string">'!3'</span><span class="operator">);</span>              <span class="comment"># Caller wants exactly two items.</span>
+    <span class="variable">want</span><span class="operator">(</span><span class="string">qw'REF !CODE !GLOB'</span><span class="operator">);</span>  <span class="comment"># Expecting a reference that</span>
+                                <span class="comment">#   isn't a CODE or GLOB ref.</span>
+    <span class="variable">want</span><span class="operator">(</span><span class="number">100</span><span class="operator">,</span> <span class="string">'!Infinity'</span><span class="operator">);</span>     <span class="comment"># Expecting at least 100 items,</span>
+                                <span class="comment">#   but there is a limit.</span>
+</code></code></pre>
+
+<p>If the <i>REF</i> keyword is the only parameter passed, then the type of reference will be returned. This is just a synonym for the <code><code>wantref</code></code> function: it&#39;s included because you might find it useful if you don&#39;t want to pollute your namespace by importing several functions, and to conform to Damian Conway&#39;s suggestion in RFC 21.</p>
+
+<p>Finally, the keyword <i>COUNT</i> can be used, provided that it&#39;s the only keyword you pass. Mixing COUNT with other keywords is an error. This is a synonym for the <code><code>howmany</code></code> function.</p>
+
+<p>A full list of the permitted keyword is in the <b>ARGUMENTS</b> section below.</p>
+
+</dd>
+<dt id="rreturn">rreturn</dt>
+<dd>
+
+<p>Use this function instead of <code><code>return</code></code> from inside an lvalue subroutine when you know that you&#39;re in RVALUE context. If you try to use a normal <code><code>return</code></code>, you&#39;ll get a compile-time error in Perl 5.6.1 and above unless you return an lvalue. (Note: this is no longer true in Perl 5.16, where an ordinary return will once again work.)</p>
+
+</dd>
+<dt id="lnoreturn">lnoreturn</dt>
+<dd>
+
+<p>Use this function instead of <code><code>return</code></code> from inside an lvalue subroutine when you&#39;re in ASSIGN context and you&#39;ve used <code><code>want(&#39;ASSIGN&#39;)</code></code> to carry out the appropriate action.</p>
+
+<p>If you use <code><code>rreturn</code></code> or <code><code>lnoreturn</code></code>, then you have to put a bare <code><code><span class="keyword">return</span><span class="operator">;</span>
+</code></code> at the very end of your lvalue subroutine, in order to stop the Perl compiler from complaining. Think of it as akin to the <code><code><span class="number">1</span><span class="operator">;</span>
+</code></code> that you have to put at the end of a module. (Note: this is no longer true in Perl 5.16.)</p>
+
+</dd>
+<dt id="howmany-">howmany()</dt>
+<dd>
+
+<p>Returns the <i>expectation count</i>, i.e. the number of items expected. If the expectation count is undefined, that indicates that an unlimited number of items might be used (e.g. the return value is being assigned to an array). In void context the expectation count is zero, and in scalar context it is one.</p>
+
+<p>The same as <code><code>want(&#39;COUNT&#39;)</code></code>.</p>
+
+</dd>
+<dt id="wantref-">wantref()</dt>
+<dd>
+
+<p>Returns the type of reference which the caller is expecting, or the empty string if the caller isn&#39;t expecting a reference immediately.</p>
+
+<p>The same as <code><code>want(&#39;REF&#39;)</code></code>.</p>
+
+</dd>
+</dl>
+
+<h1 id="EXAMPLES">EXAMPLES</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Carp</span> <span class="string">'croak'</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Want</span> <span class="string">'howmany'</span><span class="operator">;</span>
+    <span class="keyword">sub</span><span class="variable"> numbers </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$count</span> <span class="operator">=</span> <span class="variable">howmany</span><span class="operator">();</span>
+        <span class="variable">croak</span><span class="operator">(</span><span class="string">"Can't make an infinite list"</span><span class="operator">)</span> <span class="keyword">if</span> <span class="operator">!</span><span class="keyword">defined</span><span class="operator">(</span><span class="variable">$count</span><span class="operator">);</span>
+        <span class="keyword">return</span> <span class="operator">(</span><span class="number">1</span><span class="operator">..</span><span class="variable">$count</span><span class="operator">);</span>
+    <span class="operator">}</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$one</span><span class="operator">,</span> <span class="variable">$two</span><span class="operator">,</span> <span class="variable">$three</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">numbers</span><span class="operator">();</span>
+    
+    
+    <span class="keyword">use</span> <span class="variable">Want</span> <span class="string">'want'</span><span class="operator">;</span>
+    <span class="keyword">sub</span><span class="variable"> pi </span><span class="operator">()</span> <span class="operator">{</span>
+        <span class="keyword">if</span>    <span class="operator">(</span><span class="variable">want</span><span class="operator">(</span><span class="string">'ARRAY'</span><span class="operator">))</span> <span class="operator">{</span>
+            <span class="keyword">return</span> <span class="operator">[</span><span class="number">3</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="number">4</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="number">5</span><span class="operator">,</span> <span class="number">9</span><span class="operator">]</span><span class="operator">;</span>
+        <span class="operator">}</span>
+        <span class="keyword">elsif</span> <span class="operator">(</span><span class="variable">want</span><span class="operator">(</span><span class="string">'LIST'</span><span class="operator">))</span> <span class="operator">{</span>
+            <span class="keyword">return</span> <span class="operator">(</span><span class="number">3</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="number">4</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="number">5</span><span class="operator">,</span> <span class="number">9</span><span class="operator">);</span>
+        <span class="operator">}</span>
+        <span class="keyword">else</span> <span class="operator">{</span>
+            <span class="keyword">return</span> <span class="number">3</span><span class="operator">;</span>
+        <span class="operator">}</span>
+    <span class="operator">}</span>
+    <span class="keyword">print</span> <span class="variable">pi</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">2</span><span class="operator">]</span><span class="operator">;</span>      <span class="comment"># prints 4</span>
+    <span class="keyword">print</span> <span class="operator">((</span><span class="variable">pi</span><span class="operator">)</span><span class="operator">[</span><span class="number">3</span><span class="operator">]</span><span class="operator">);</span>    <span class="comment"># prints 1</span>
+</code></code></pre>
+
+<h1 id="ARGUMENTS">ARGUMENTS</h1>
+
+<p>The permitted arguments to the <code><code>want</code></code> function are listed below. The list is structured so that sub-contexts appear below the context that they are part of.</p>
+
+<ul>
+
+<li><p>VOID</p>
+
+</li>
+<li><p>SCALAR</p>
+
+<ul>
+
+<li><p>REF</p>
+
+<ul>
+
+<li><p>REFSCALAR</p>
+
+</li>
+<li><p>CODE</p>
+
+</li>
+<li><p>HASH</p>
+
+</li>
+<li><p>ARRAY</p>
+
+</li>
+<li><p>GLOB</p>
+
+</li>
+<li><p>OBJECT</p>
+
+</li>
+</ul>
+
+</li>
+<li><p>BOOL</p>
+
+</li>
+</ul>
+
+</li>
+<li><p>LIST</p>
+
+<ul>
+
+<li><p>COUNT</p>
+
+</li>
+<li><p>&lt;number&gt;</p>
+
+</li>
+<li><p>Infinity</p>
+
+</li>
+</ul>
+
+</li>
+<li><p>LVALUE</p>
+
+<ul>
+
+<li><p>ASSIGN</p>
+
+</li>
+</ul>
+
+</li>
+<li><p>RVALUE</p>
+
+</li>
+</ul>
+
+<h1 id="EXPORT">EXPORT</h1>
+
+<p>The <code><code>want</code></code> and <code><code>rreturn</code></code> functions are exported by default. The <code><code>wantref</code></code> and/or <code><code>howmany</code></code> functions can also be imported:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Want</span> <span class="string">qw'want howmany'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>If you don&#39;t import these functions, you must qualify their names as (e.g.) <code><code>Want::wantref</code></code>.</p>
+
+<h1 id="INTERFACE">INTERFACE</h1>
+
+<p>This module is still under development, and the public interface may change in future versions. The <code><code>want</code></code> function can now be regarded as stable.</p>
+
+<p>I&#39;d be interested to know how you&#39;re using this module.</p>
+
+<h1 id="SUBTLETIES">SUBTLETIES</h1>
+
+<p>There are two different levels of <b>BOOL</b> context. <i>Pure</i> boolean context occurs in conditional expressions, and the operands of the <code><code>xor</code></code> and <code><code>!</code></code>/<code><code>not</code></code> operators. Pure boolean context also propagates down through the <code><code>&amp;&amp;</code></code> and <code><code>||</code></code> operators.</p>
+
+<p>However, consider an expression like <code><code>my $x = foo() &amp;&amp; &quot;yes&quot;</code></code>. The subroutine is called in <i>pseudo</i>-boolean context - its return value isn&#39;t <b>entirely</b> ignored, because the undefined value, the empty string and the integer 0 are all false.</p>
+
+<p>At the moment <code><code>want(&#39;BOOL&#39;)</code></code> is true in either pure or pseudo boolean context. Let me know if this is a problem.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<pre><code><code> * Doesn&#39;t work from inside a tie-handler.</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Robin Houston, &lt;robin@cpan.org&gt;</p>
+
+<p>Thanks to Damian Conway for encouragement and good suggestions, and Father Chrysostomos for a patch.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<ul>
+
+<li><p><a href="../../lib/pod/perlfunc.html#wantarray">&quot;wantarray&quot; in perlfunc</a></p>
+
+</li>
+<li><p>Perl6 RFC 21, by Damian Conway. http://dev.perl.org/rfc/21.html</p>
+
+</li>
+</ul>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2001-2012, Robin Houston. All Rights Reserved. This module is free software. It may be used, redistributed and/or modified under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

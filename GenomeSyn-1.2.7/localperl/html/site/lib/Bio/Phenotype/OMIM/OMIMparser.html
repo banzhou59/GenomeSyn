@@ -1,0 +1,234 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#next_phenotype">next_phenotype</a></li>
+      <li><a href="#init">init</a></li>
+      <li><a href="#genemap_file_name">genemap_file_name</a></li>
+      <li><a href="#omimtxt_file_name">omimtxt_file_name</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Phenotype::OMIM::OMIMparser - parser for the OMIM database</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Phenotype::OMIM::OMIMparser</span><span class="operator">;</span>
+  
+  <span class="comment"># The OMIM database is available as textfile at:</span>
+  <span class="comment"># ftp://ncbi.nlm.nih.gov/repository/OMIM/omim.txt.Z</span>
+  <span class="comment"># The genemap is available as textfile at:</span>
+  <span class="comment"># ftp://ncbi.nlm.nih.gov/repository/OMIM/genemap</span>
+  
+  <span class="variable">$omim_parser</span> <span class="operator">=</span> <span class="variable">Bio::Phenotype::OMIM::OMIMparser</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-genemap</span>  <span class="operator">=&gt;</span> <span class="string">"/path/to/genemap"</span><span class="operator">,</span>
+                                                        <span class="string">-omimtext</span> <span class="operator">=&gt;</span> <span class="string">"/path/to/omim.txt"</span> <span class="operator">);</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$omim_entry</span> <span class="operator">=</span> <span class="variable">$omim_parser</span><span class="operator">-&gt;</span><span class="variable">next_phenotype</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># This prints everything.</span>
+    <span class="keyword">print</span><span class="operator">(</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">to_string</span><span class="operator">()</span> <span class="operator">);</span>
+    <span class="keyword">print</span> <span class="string">"\n\n"</span><span class="operator">;</span>
+  
+    <span class="comment"># This gets individual data (some of them object-arrays)</span>
+    <span class="comment"># (and illustrates the relevant methods of OMIMentry).</span>
+    <span class="keyword">my</span> <span class="variable">$numb</span>  <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">MIM_number</span><span class="operator">();</span>                     <span class="comment"># *FIELD* NO</span>
+    <span class="keyword">my</span> <span class="variable">$title</span> <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">title</span><span class="operator">();</span>                          <span class="comment"># *FIELD* TI - first line</span>
+    <span class="keyword">my</span> <span class="variable">$alt</span>   <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">alternative_titles_and_symbols</span><span class="operator">();</span> <span class="comment"># *FIELD* TI - additional lines</span>
+    <span class="keyword">my</span> <span class="variable">$mtt</span>   <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">more_than_two_genes</span><span class="operator">();</span>            <span class="comment"># "#" before title</span>
+    <span class="keyword">my</span> <span class="variable">$sep</span>   <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">is_separate</span><span class="operator">();</span>                    <span class="comment"># "*" before title</span>
+    <span class="keyword">my</span> <span class="variable">$desc</span>  <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">description</span><span class="operator">();</span>                    <span class="comment"># *FIELD* TX</span>
+    <span class="keyword">my</span> <span class="variable">$mm</span>    <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">mapping_method</span><span class="operator">();</span>                 <span class="comment"># from genemap</span>
+    <span class="keyword">my</span> <span class="variable">$gs</span>    <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">gene_status</span><span class="operator">();</span>                    <span class="comment"># from genemap</span>
+    <span class="keyword">my</span> <span class="variable">$cr</span>    <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">created</span><span class="operator">();</span>                        <span class="comment"># *FIELD* CD</span>
+    <span class="keyword">my</span> <span class="variable">$cont</span>  <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">contributors</span><span class="operator">();</span>                   <span class="comment"># *FIELD* CN</span>
+    <span class="keyword">my</span> <span class="variable">$ed</span>    <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">edited</span><span class="operator">();</span>                         <span class="comment"># *FIELD* ED</span>
+    <span class="keyword">my</span> <span class="variable">$sa</span>    <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">additional_references</span><span class="operator">();</span>          <span class="comment"># *FIELD* SA</span>
+    <span class="keyword">my</span> <span class="variable">$cs</span>    <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">clinical_symptoms_raw</span><span class="operator">();</span>              <span class="comment"># *FIELD* CS</span>
+    <span class="keyword">my</span> <span class="variable">$comm</span>  <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">comment</span><span class="operator">();</span>                        <span class="comment"># from genemap</span>
+  
+    <span class="keyword">my</span> <span class="variable">$mini_mim</span>   <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">miniMIM</span><span class="operator">();</span>                   <span class="comment"># *FIELD* MN</span>
+      <span class="comment"># A Bio::Phenotype::OMIM::MiniMIMentry object.</span>
+      <span class="comment"># class Bio::Phenotype::OMIM::MiniMIMentry</span>
+      <span class="comment"># provides the following:</span>
+      <span class="comment"># - description()</span>
+      <span class="comment"># - created()</span>
+      <span class="comment"># - contributors()</span>
+      <span class="comment"># - edited() </span>
+      <span class="comment">#</span>
+    <span class="comment"># Prints the contents of the MINI MIM entry (most OMIM entries do</span>
+    <span class="comment"># not have MINI MIM entries, though).</span>
+    <span class="keyword">print</span> <span class="variable">$mini_mim</span><span class="operator">-&gt;</span><span class="variable">description</span><span class="operator">().</span><span class="string">"\n"</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="variable">$mini_mim</span><span class="operator">-&gt;</span><span class="variable">created</span><span class="operator">().</span><span class="string">"\n"</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="variable">$mini_mim</span><span class="operator">-&gt;</span><span class="variable">contributors</span><span class="operator">().</span><span class="string">"\n"</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="variable">$mini_mim</span><span class="operator">-&gt;</span><span class="variable">edited</span><span class="operator">().</span><span class="string">"\n"</span><span class="operator">;</span>
+  
+    <span class="keyword">my</span> <span class="variable">@corrs</span>      <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">each_Correlate</span><span class="operator">();</span>            <span class="comment"># from genemap</span>
+      <span class="comment"># Array of Bio::Phenotype::Correlate objects.</span>
+      <span class="comment"># class Bio::Phenotype::Correlate</span>
+      <span class="comment"># provides the following:</span>
+      <span class="comment"># - name()</span>
+      <span class="comment"># - description() (not used)</span>
+      <span class="comment"># - species() (always mouse)</span>
+      <span class="comment"># - type() ("OMIM mouse correlate")</span>
+      <span class="comment"># - comment() </span>
+  
+    <span class="keyword">my</span> <span class="variable">@refs</span>       <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">each_Reference</span><span class="operator">();</span>            <span class="comment"># *FIELD* RF</span>
+      <span class="comment"># Array of Bio::Annotation::Reference objects.</span>
+  
+  
+    <span class="keyword">my</span> <span class="variable">@avs</span>        <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">each_AllelicVariant</span><span class="operator">();</span>       <span class="comment"># *FIELD* AV</span>
+      <span class="comment"># Array of Bio::Phenotype::OMIM::OMIMentryAllelicVariant objects.</span>
+      <span class="comment"># class Bio::Phenotype::OMIM::OMIMentryAllelicVariant</span>
+      <span class="comment"># provides the following:</span>
+      <span class="comment"># - number (e.g ".0001" )</span>
+      <span class="comment"># - title (e.g "ALCOHOL INTOLERANCE" )</span>
+      <span class="comment"># - symbol (e.g "ALDH2*2" )</span>
+      <span class="comment"># - description (e.g "The ALDH2*2-encoded protein has a change ..." )</span>
+      <span class="comment"># - aa_ori  (used if information in the form "LYS123ARG" is found)</span>
+      <span class="comment"># - aa_mut (used if information in the form "LYS123ARG" is found)</span>
+      <span class="comment"># - position (used if information in the form "LYS123ARG" is found)</span>
+      <span class="comment"># - additional_mutations (used for e.g. "1-BP DEL, 911T")</span>
+  
+    <span class="keyword">my</span> <span class="variable">@cps</span>        <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">each_CytoPosition</span><span class="operator">();</span>         <span class="comment"># from genemap</span>
+      <span class="comment"># Array of Bio::Map::CytoPosition objects.</span>
+  
+    <span class="keyword">my</span> <span class="variable">@gss</span>        <span class="operator">=</span> <span class="variable">$omim_entry</span><span class="operator">-&gt;</span><span class="variable">each_gene_symbol</span><span class="operator">();</span>          <span class="comment"># from genemap</span>
+      <span class="comment"># Array of strings.</span>
+  
+    <span class="comment"># do something ...</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This parser returns Bio::Phenotype::OMIM::OMIMentry objects (which inherit from Bio::Phenotype::PhenotypeI). It parses the OMIM database available as ftp://ncbi.nlm.nih.gov/repository/OMIM/omim.txt.Z together with (optionally) the gene map file at ftp://ncbi.nlm.nih.gov/repository/OMIM/genemap.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing lists Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Christian M. Zmasek</p>
+
+<p>Email: czmasek-at-burnham.org or cmzmasek@yahoo.com</p>
+
+<p>WWW: http://monochrome-effect.net/</p>
+
+<p>Address:</p>
+
+<pre><code><code>  Genomics Institute of the Novartis Research Foundation
+  10675 John Jay Hopkins Drive
+  San Diego, CA 92121</code></code></pre>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$omim_parser</span> <span class="operator">=</span> <span class="variable">Bio::Phenotype::OMIM::OMIMparser</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-genemap</span>  <span class="operator">=&gt;</span> <span class="string">"/path/to/genemap"</span><span class="operator">,</span>
+                                                                 <span class="string">-omimtext</span> <span class="operator">=&gt;</span> <span class="string">"/path/to/omim.txt"</span> <span class="operator">);</span>                      
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Creates</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">OMIMparser</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">new</span> <span class="variable">OMIMparser</span> <span class="variable">object</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-genemap</span>  <span class="operator">=&gt;</span> <span class="variable">the</span> <span class="variable">genemap</span> <span class="variable">file</span> <span class="variable">name</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+           <span class="string">-omimtext</span> <span class="operator">=&gt;</span> <span class="variable">the</span> <span class="variable">omim</span> <span class="variable">text</span> <span class="variable">file</span> <span class="variable">name</span>
+</code></code></pre>
+
+<h2 id="next_phenotype">next_phenotype</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_phenotype</span><span class="operator">()</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$omim_entry</span> <span class="operator">=</span> <span class="variable">$omim_parser</span><span class="operator">-&gt;</span><span class="variable">next_phenotype</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+               <span class="comment"># do something with $omim_entry</span>
+           <span class="operator">}</span>    
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">an</span> <span class="variable">Bio::Phenotype::OMIM::OMIMentry</span> <span class="keyword">or</span>
+           <span class="keyword">undef</span> <span class="variable">once</span> <span class="variable">the</span> <span class="variable">end</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">omim</span> <span class="variable">text</span> <span class="variable">file</span> <span class="variable">is</span> <span class="variable">reached</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Phenotype::OMIM::OMIMentry</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="init">init</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">init</span><span class="operator">()</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$omim_parser</span><span class="operator">-&gt;</span><span class="variable">init</span><span class="operator">();</span>   
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Initializes</span> <span class="variable">this</span> <span class="variable">OMIMparser</span> <span class="variable">to</span> <span class="variable">all</span> <span class="string">""</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="genemap_file_name">genemap_file_name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">genemap_file_name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$omimparser</span><span class="operator">-&gt;</span><span class="variable">genemap_file_name</span><span class="operator">(</span> <span class="string">"genemap"</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span><span class="operator">/</span><span class="variable">get</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">genemap</span> <span class="variable">file</span> <span class="variable">name</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">genemap</span> <span class="variable">file</span> <span class="variable">name</span> <span class="operator">[</span><span class="variable">string</span><span class="operator">]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">The</span> <span class="variable">genemap</span> <span class="variable">file</span> <span class="variable">name</span> <span class="operator">[</span><span class="variable">string</span><span class="operator">]</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">).</span>
+</code></code></pre>
+
+<h2 id="omimtxt_file_name">omimtxt_file_name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">omimtxt_file_name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$omimparser</span><span class="operator">-&gt;</span><span class="variable">omimtxt_file_name</span><span class="operator">(</span> <span class="string">"omim.txt"</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span><span class="operator">/</span><span class="variable">get</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">omim</span> <span class="variable">text</span> <span class="variable">file</span> <span class="variable">name</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">the</span> <span class="variable">omim</span> <span class="variable">text</span> <span class="variable">file</span> <span class="variable">name</span> <span class="operator">[</span><span class="variable">string</span><span class="operator">]</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">The</span> <span class="variable">the</span> <span class="variable">omim</span> <span class="variable">text</span> <span class="variable">file</span> <span class="variable">name</span> <span class="operator">[</span><span class="variable">string</span><span class="operator">]</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">).</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

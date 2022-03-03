@@ -1,0 +1,296 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+  <li><a href="#Constructor">Constructor</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+    </ul>
+  </li>
+  <li><a href="#WebDBSeqI-compliance">WebDBSeqI compliance</a>
+    <ul>
+      <li><a href="#get_request">get_request</a></li>
+      <li><a href="#postprocess_data">postprocess_data</a></li>
+    </ul>
+  </li>
+  <li><a href="#WebDBSeqI-overrides">WebDBSeqI overrides</a>
+    <ul>
+      <li><a href="#get_seq_stream">get_seq_stream</a></li>
+      <li><a href="#get_Stream_by_acc">get_Stream_by_acc</a></li>
+      <li><a href="#get_Stream_by_query">get_Stream_by_query</a></li>
+    </ul>
+  </li>
+  <li><a href="#Internals">Internals</a>
+    <ul>
+      <li><a href="#lanl_base">lanl_base</a></li>
+      <li><a href="#map_db">map_db</a></li>
+      <li><a href="#make_search_if">make_search_if</a></li>
+      <li><a href="#search_">search_</a></li>
+      <li><a href="#map_db_uri">_map_db_uri</a></li>
+      <li><a href="#make_search_if_uri">_make_search_if_uri</a></li>
+      <li><a href="#search_uri">_search_uri</a></li>
+      <li><a href="#session_id">_session_id</a></li>
+      <li><a href="#response">_response</a></li>
+      <li><a href="#Dude-sorry">Dude, sorry</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::HIV - Database object interface to the Los Alamos HIV Sequence Database</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="variable">$db</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::HIV</span><span class="operator">;</span>
+    
+    <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Seq_by_id</span><span class="operator">(</span><span class="string">'94284'</span><span class="operator">);</span>                                 <span class="comment"># LANL sequence id</span>
+    <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Seq_by_acc</span><span class="operator">(</span><span class="string">'EF432710'</span><span class="operator">);</span>                             <span class="comment"># GenBank accession</span>
+    
+    <span class="variable">$q</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::Query::HIVQuery</span><span class="operator">(</span> <span class="string">" (C D)[subtype] SI[phenotype] (symptomatic AIDS)[patient_health] "</span> <span class="operator">);</span>
+    
+    <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Stream_by_query</span><span class="operator">(</span><span class="variable">$q</span><span class="operator">);</span>
+    <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">();</span>
+    <span class="operator">(</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">annotation</span><span class="operator">-&gt;</span><span class="variable">get_Annotations</span><span class="operator">(</span><span class="string">'Virus'</span><span class="operator">))</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">subtype</span><span class="operator">}</span>          <span class="comment"># returns 'D'</span>
+    <span class="operator">(</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">annotation</span><span class="operator">-&gt;</span><span class="variable">get_Annotations</span><span class="operator">(</span><span class="string">'Patient'</span><span class="operator">))</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">patient_health</span><span class="operator">}</span> <span class="comment"># returns 'AIDS'</span>
+    <span class="operator">(</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">annotation</span><span class="operator">-&gt;</span><span class="variable">get_Annotations</span><span class="operator">(</span><span class="string">'accession'</span><span class="operator">))</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">value</span><span class="operator">}</span>        <span class="comment"># returns 'K03454'</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::DB::HIV, along with <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/Query/HIVQuery.html">Bio::DB::Query::HIVQuery</a>, provides an interface for obtaining annotated HIV and SIV sequences from the Los Alamos National Laboratory (LANL) HIV Sequence Database ( <a href="http://www.hiv.lanl.gov/content/sequence/HIV/mainpage.html">http://www.hiv.lanl.gov/content/sequence/HIV/mainpage.html</a> ). Unannotated sequences can be retrieved directly from the database object, using either LANL ids or GenBank accessions. Annotations are obtained via a query object, and are attached to the correct <code><code>Bio::Seq</code></code> objects when the query is handled by <code><code>Bio::DB::HIV::get_Seq_by_query</code></code> or <code><code>Bio::DB::HIV::get_Stream_by_query</code></code>.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<p>Email maj@fortinbras.us</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Mark A. Jensen</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h1 id="Constructor">Constructor</h1>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::DB::HIV</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::DB::HIV</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">of</span> <span class="variable">Bio::DB::HIV</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h1 id="WebDBSeqI-compliance">WebDBSeqI compliance</h1>
+
+<h2 id="get_request">get_request</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_request</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$url</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">get_request</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">a</span> <span class="variable">HTTP::Request</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">%qualifiers</span> <span class="operator">=</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="variable">of</span> <span class="variable">qualifiers</span> <span class="variable">with</span> <span class="keyword">keys</span> <span class="variable">in</span>
+            <span class="operator">(-</span><span class="variable">ids</span><span class="operator">,</span> <span class="operator">-</span><span class="keyword">format</span><span class="operator">,</span> <span class="operator">-</span><span class="variable">mode</span><span class="operator">,</span> <span class="operator">-</span><span class="variable">query</span><span class="operator">)</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">Several</span> <span class="variable">layers</span> <span class="variable">of</span> <span class="variable">requests</span> <span class="variable">are</span> <span class="variable">performed</span> <span class="variable">to</span> <span class="variable">get</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">sequence</span><span class="operator">;</span>
+           <span class="variable">see</span> <span class="variable">Bio::DB::Query::HIVQuery</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="postprocess_data">postprocess_data</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">postprocess_data</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">postprocess_data</span> <span class="operator">(</span> <span class="string">'type'</span> <span class="operator">=&gt;</span> <span class="string">'string'</span><span class="operator">,</span>
+                                     <span class="string">'location'</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">$datastr</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">process</span> <span class="variable">downloaded</span> <span class="variable">data</span> <span class="variable">before</span> <span class="variable">loading</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">void</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">hash</span> <span class="variable">with</span> <span class="variable">two</span> <span class="keyword">keys</span> <span class="operator">-</span> <span class="string">'type'</span> <span class="variable">can</span> <span class="variable">be</span> <span class="string">'string'</span> <span class="keyword">or</span> <span class="string">'file'</span>
+                              <span class="operator">-</span> <span class="string">'location'</span> <span class="variable">either</span> <span class="variable">file</span> <span class="variable">location</span> <span class="keyword">or</span> <span class="variable">string</span>
+                                           <span class="variable">reference</span> <span class="variable">containing</span> <span class="variable">data</span>
+</code></code></pre>
+
+<h1 id="WebDBSeqI-overrides">WebDBSeqI overrides</h1>
+
+<h2 id="get_seq_stream">get_seq_stream</h2>
+
+<pre><code><code> Title   : get_seq_stream
+ Usage   : my $seqio = $self-&gt;get_seq_stream(%qualifiers)
+ Function: builds a url and queries a web db
+ Returns : a Bio::SeqIO stream capable of producing sequence
+ Args    : %qualifiers = a hash qualifiers that the implementing class
+           will process to make a url suitable for web querying
+ Note    : Some tightening up of the baseclass version</code></code></pre>
+
+<h2 id="get_Stream_by_acc">get_Stream_by_acc</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Stream_by_acc</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Stream_by_acc</span><span class="operator">(</span><span class="operator">[</span><span class="variable">$acc1</span><span class="operator">,</span> <span class="variable">$acc2</span><span class="operator">]</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">a</span> <span class="variable">series</span> <span class="variable">of</span> <span class="variable">Seq</span> <span class="variable">objects</span> <span class="variable">by</span> <span class="variable">GenBank</span> <span class="variable">accession</span> <span class="variable">numbers</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span> <span class="variable">stream</span> <span class="variable">object</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">an</span> <span class="variable">arrayref</span> <span class="variable">of</span> <span class="variable">accession</span> <span class="variable">numbers</span> <span class="keyword">for</span>
+            <span class="variable">the</span> <span class="variable">desired</span> <span class="variable">sequence</span> <span class="variable">entries</span>
+  <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">For</span> <span class="variable">LANL</span> <span class="variable">DB</span><span class="operator">,</span> <span class="variable">alternative</span> <span class="variable">to</span> <span class="variable">LANL</span> <span class="variable">seqids</span>
+</code></code></pre>
+
+<h2 id="get_Stream_by_query">get_Stream_by_query</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_Stream_by_query</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_Stream_by_query</span><span class="operator">(</span><span class="variable">$query</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Gets</span> <span class="variable">a</span> <span class="variable">series</span> <span class="variable">of</span> <span class="variable">Seq</span> <span class="variable">objects</span> <span class="variable">by</span> <span class="variable">way</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">query</span> <span class="variable">string</span> <span class="keyword">or</span> <span class="variable">oject</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::SeqIO</span> <span class="variable">stream</span> <span class="variable">object</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">$query</span> <span class="operator">:</span> <span class="variable">Currently</span><span class="operator">,</span> <span class="variable">only</span> <span class="variable">a</span> <span class="variable">Bio::DB::Query::HIVQuery</span> <span class="variable">object</span><span class="operator">.</span>
+            <span class="variable">It's</span> <span class="variable">a</span> <span class="variable">good</span> <span class="variable">idea</span> <span class="variable">to</span> <span class="variable">create</span> <span class="variable">the</span> <span class="variable">query</span> <span class="variable">object</span> <span class="variable">first</span> <span class="keyword">and</span> <span class="variable">interrogate</span>
+            <span class="variable">it</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">entry</span> <span class="variable">count</span> <span class="variable">before</span> <span class="variable">you</span> <span class="variable">fetch</span> <span class="variable">a</span> <span class="variable">potentially</span> <span class="variable">large</span> <span class="variable">stream</span><span class="operator">.</span>
+</code></code></pre>
+
+<h1 id="Internals">Internals</h1>
+
+<h2 id="lanl_base">lanl_base</h2>
+
+<pre><code><code> Title   : lanl_base
+ Usage   : $obj-&gt;lanl_base($newval)
+ Function: get/set the base url of the LANL HIV database
+ Example :
+ Returns : value of lanl_base (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="map_db">map_db</h2>
+
+<pre><code><code> Title   : map_db
+ Usage   : $obj-&gt;map_db($newval)
+ Function: get/set the cgi filename for map_db (&quot;Database Map&quot;)
+ Example :
+ Returns : value of map_db (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="make_search_if">make_search_if</h2>
+
+<pre><code><code> Title   : make_search_if
+ Usage   : $obj-&gt;make_search_if($newval)
+ Function: get/set the cgi filename for make_search_if (&quot;Make Search Interface&quot;)
+ Example :
+ Returns : value of make_search_if (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="search_">search_</h2>
+
+<pre><code><code> Title   : search_
+ Usage   : $obj-&gt;search_($newval)
+ Function: get/set the cgi filename for the search query page
+           (&quot;Search Database&quot;)
+ Example :
+ Returns : value of search_ (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="map_db_uri">_map_db_uri</h2>
+
+<pre><code><code> Title   : _map_db_uri
+ Usage   :
+ Function: return the full map_db uri (&quot;Database Map&quot;)
+ Example :
+ Returns : scalar string
+ Args    : none</code></code></pre>
+
+<h2 id="make_search_if_uri">_make_search_if_uri</h2>
+
+<pre><code><code> Title   : _make_search_if_uri
+ Usage   :
+ Function: return the full make_search_if uri (&quot;Make Search Interface&quot;)
+ Example :
+ Returns : scalar string
+ Args    : none</code></code></pre>
+
+<h2 id="search_uri">_search_uri</h2>
+
+<pre><code><code> Title   : _search_uri
+ Usage   :
+ Function: return the full search cgi uri (&quot;Search Database&quot;)
+ Example :
+ Returns : scalar string
+ Args    : none</code></code></pre>
+
+<h2 id="session_id">_session_id</h2>
+
+<pre><code><code> Title   : _session_id
+ Usage   : $obj-&gt;_session_id($newval)
+ Function: Contains HIV db session id (initialized in _do_lanl_request)
+ Example :
+ Returns : value of _session_id (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="response">_response</h2>
+
+<pre><code><code> Title   : _response
+ Usage   : $obj-&gt;_response($newval)
+ Function: hold the response to search post
+ Example :
+ Returns : value of _response (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="Dude-sorry">Dude, sorry</h2>
+
+<pre><code><code> Title   : _sorry
+ Usage   : $hiv-&gt;_sorry
+ Function: Throws an exception for unsupported option or parameter
+ Example :
+ Returns :
+ Args    : scalar string</code></code></pre>
+
+
+</body>
+
+</html>
+
+

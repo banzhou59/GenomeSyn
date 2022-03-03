@@ -1,0 +1,535 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#METHODS">METHODS</a></li>
+  <li><a href="#CALLBACKS">CALLBACKS</a></li>
+  <li><a href="#BLOCKING-CALLS">BLOCKING CALLS</a></li>
+  <li><a href="#RETRIEVING-DATASTRUCTURES-from-child-processes">RETRIEVING DATASTRUCTURES from child processes</a></li>
+  <li><a href="#EXAMPLES">EXAMPLES</a>
+    <ul>
+      <li><a href="#Parallel-get">Parallel get</a></li>
+      <li><a href="#Callbacks">Callbacks</a></li>
+      <li><a href="#Data-structure-retrieval">Data structure retrieval</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS-AND-LIMITATIONS">BUGS AND LIMITATIONS</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#CREDITS">CREDITS</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Parallel::ForkManager - A simple parallel processing fork manager</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Parallel::ForkManager</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$pm</span> <span class="operator">=</span> <span class="variable">Parallel::ForkManager</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">$MAX_PROCESSES</span><span class="operator">);</span>
+  
+  <span class="variable">DATA_LOOP</span><span class="operator">:</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$data</span> <span class="operator">(</span><span class="variable">@all_data</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># Forks and returns the pid for the child:</span>
+    <span class="keyword">my</span> <span class="variable">$pid</span> <span class="operator">=</span> <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">start</span> <span class="keyword">and</span> <span class="keyword">next</span> <span class="variable">DATA_LOOP</span><span class="operator">;</span>
+  
+    <span class="operator">...</span> <span class="keyword">do</span> <span class="variable">some</span> <span class="variable">work</span> <span class="variable">with</span> <span class="variable">$data</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">child</span> <span class="variable">process</span> <span class="operator">...</span>
+  
+    <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span> <span class="comment"># Terminates the child process</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module is intended for use in operations that can be done in parallel where the number of processes to be forked off should be limited. Typical use is a downloader which will be retrieving hundreds/thousands of files.</p>
+
+<p>The code for a downloader would look something like this:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">LWP::Simple</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Parallel::ForkManager</span><span class="operator">;</span>
+  
+  <span class="operator">...</span>
+  
+  <span class="keyword">my</span> <span class="variable">@links</span><span class="operator">=(</span>
+    <span class="operator">[</span><span class="string">"http://www.foo.bar/rulez.data"</span><span class="operator">,</span><span class="string">"rulez_data.txt"</span><span class="operator">]</span><span class="operator">,</span>
+    <span class="operator">[</span><span class="string">"http://new.host/more_data.doc"</span><span class="operator">,</span><span class="string">"more_data.doc"</span><span class="operator">]</span><span class="operator">,</span>
+    <span class="operator">...</span>
+  <span class="operator">);</span>
+  
+  <span class="operator">...</span>
+  
+  <span class="comment"># Max 30 processes for parallel download</span>
+  <span class="keyword">my</span> <span class="variable">$pm</span> <span class="operator">=</span> <span class="variable">Parallel::ForkManager</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="number">30</span><span class="operator">);</span>
+  
+  <span class="variable">LINKS</span><span class="operator">:</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$linkarray</span> <span class="operator">(</span><span class="variable">@links</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">start</span> <span class="keyword">and</span> <span class="keyword">next</span> <span class="variable">LINKS</span><span class="operator">;</span> <span class="comment"># do the fork</span>
+  
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$link</span><span class="operator">,</span> <span class="variable">$fn</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@$linkarray</span><span class="operator">;</span>
+    <span class="keyword">warn</span> <span class="string">"Cannot get </span><span class="variable">$fn</span><span class="string"> from </span><span class="variable">$link</span><span class="string">"</span>
+      <span class="keyword">if</span> <span class="variable">getstore</span><span class="operator">(</span><span class="variable">$link</span><span class="operator">,</span> <span class="variable">$fn</span><span class="operator">)</span> <span class="operator">!=</span> <span class="variable">RC_OK</span><span class="operator">;</span>
+  
+    <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span> <span class="comment"># do the exit in the child process</span>
+  <span class="operator">}</span>
+  <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">wait_all_children</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>First you need to instantiate the ForkManager with the &quot;new&quot; constructor. You must specify the maximum number of processes to be created. If you specify 0, then NO fork will be done; this is good for debugging purposes.</p>
+
+<p>Next, use $pm-&gt;start to do the fork. $pm returns 0 for the child process, and child pid for the parent process (see also <a>&quot;fork()&quot; in perlfunc(1p)</a>). The &quot;and next&quot; skips the internal loop in the parent process. NOTE: $pm-&gt;start dies if the fork fails.</p>
+
+<p>$pm-&gt;finish terminates the child process (assuming a fork was done in the &quot;start&quot;).</p>
+
+<p>NOTE: You cannot use $pm-&gt;start if you are already in the child process. If you want to manage another set of subprocesses in the child process, you must instantiate another Parallel::ForkManager object!</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<p>The comment letter indicates where the method should be run. P for parent, C for child.</p>
+
+<dl>
+
+<dt id="new-processes">new $processes</dt>
+<dd>
+
+<p>Instantiate a new Parallel::ForkManager object. You must specify the maximum number of children to fork off. If you specify 0 (zero), then no children will be forked. This is intended for debugging purposes.</p>
+
+<p>The optional second parameter, $tempdir, is only used if you want the children to send back a reference to some data (see RETRIEVING DATASTRUCTURES below). If not provided, it is set via a call to <a href="../../../lib/File/Temp.html">File::Temp</a>::tempdir().</p>
+
+<p>The new method will die if the temporary directory does not exist or it is not a directory.</p>
+
+</dd>
+<dt id="start-process_identifier-">start [ $process_identifier ]</dt>
+<dd>
+
+<p>This method does the fork. It returns the pid of the child process for the parent, and 0 for the child process. If the $processes parameter for the constructor is 0 then, assuming you&#39;re in the child process, $pm-&gt;start simply returns 0.</p>
+
+<p>An optional $process_identifier can be provided to this method... It is used by the &quot;run_on_finish&quot; callback (see CALLBACKS) for identifying the finished process.</p>
+
+</dd>
+<dt id="finish-exit_code-data_structure_reference-">finish [ $exit_code [, $data_structure_reference] ]</dt>
+<dd>
+
+<p>Closes the child process by exiting and accepts an optional exit code (default exit code is 0) which can be retrieved in the parent via callback. If the second optional parameter is provided, the child attempts to send it&#39;s contents back to the parent. If you use the program in debug mode ($processes == 0), this method just calls the callback.</p>
+
+<p>If the $data_structure_reference is provided, then it is serialized and passed to the parent process. See RETRIEVING DATASTRUCTURES for more info.</p>
+
+</dd>
+<dt id="set_max_procs-processes">set_max_procs $processes</dt>
+<dd>
+
+<p>Allows you to set a new maximum number of children to maintain.</p>
+
+</dd>
+<dt id="wait_all_children">wait_all_children</dt>
+<dd>
+
+<p>You can call this method to wait for all the processes which have been forked. This is a blocking wait.</p>
+
+</dd>
+<dt id="max_procs">max_procs</dt>
+<dd>
+
+<p>Returns the maximal number of processes the object will fork.</p>
+
+</dd>
+<dt id="running_procs">running_procs</dt>
+<dd>
+
+<p>Returns the pids of the forked processes currently monitored by the <code><code>Parallel::ForkManager</code></code>. Note that children are still reported as running until the fork manager harvest them, via the next call to <code><code>start</code></code> or <code><code>wait_all_children</code></code>.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@pids</span> <span class="operator">=</span> <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">running_procs</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$nbr_children</span> <span class="operator">=-</span> <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">running_procs</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="wait_for_available_procs-n-">wait_for_available_procs( $n )</dt>
+<dd>
+
+<p>Wait until <code><code>$n</code></code> available process slots are available. If <code><code>$n</code></code> is not given, defaults to <i>1</i>.</p>
+
+</dd>
+<dt id="waitpid_blocking_sleep">waitpid_blocking_sleep</dt>
+<dd>
+
+<p>Returns the sleep period, in seconds, of the pseudo-blocking calls. Returns <code><code>0</code></code> if disabled.</p>
+
+<p>Defaults to 1 second.</p>
+
+<p>See <i>BLOCKING CALLS</i> for more details.</p>
+
+</dd>
+<dt id="set_waitpid_blocking_sleep-seconds">set_waitpid_blocking_sleep $seconds</dt>
+<dd>
+
+<p>Sets the the sleep period, in seconds, of the pseudo-blocking calls. Set to <code><code>0</code></code> to disable.</p>
+
+<p>See <i>BLOCKING CALLS</i> for more details.</p>
+
+</dd>
+</dl>
+
+<h1 id="CALLBACKS">CALLBACKS</h1>
+
+<p>You can define callbacks in the code, which are called on events like starting a process or upon finish. Declare these before the first call to start().</p>
+
+<p>The callbacks can be defined with the following methods:</p>
+
+<dl>
+
+<dt id="run_on_finish-code-pid-">run_on_finish $code [, $pid ]</dt>
+<dd>
+
+<p>You can define a subroutine which is called when a child is terminated. It is called in the parent process.</p>
+
+<p>The parameters of the $code are the following:</p>
+
+<pre><code><code>  - pid of the process, which is terminated
+  - exit code of the program
+  - identification of the process (if provided in the &quot;start&quot; method)
+  - exit signal (0-127: signal name)
+  - core dump (1 if there was core dump at exit)
+  - datastructure reference or undef (see RETRIEVING DATASTRUCTURES)</code></code></pre>
+
+</dd>
+<dt id="run_on_start-code">run_on_start $code</dt>
+<dd>
+
+<p>You can define a subroutine which is called when a child is started. It called after the successful startup of a child in the parent process.</p>
+
+<p>The parameters of the $code are the following:</p>
+
+<pre><code><code>  - pid of the process which has been started
+  - identification of the process (if provided in the &quot;start&quot; method)</code></code></pre>
+
+</dd>
+<dt id="run_on_wait-code-period-">run_on_wait $code, [$period]</dt>
+<dd>
+
+<p>You can define a subroutine which is called when the child process needs to wait for the startup. If $period is not defined, then one call is done per child. If $period is defined, then $code is called periodically and the module waits for $period seconds between the two calls. Note, $period can be fractional number also. The exact &quot;$period seconds&quot; is not guaranteed, signals can shorten and the process scheduler can make it longer (on busy systems).</p>
+
+<p>The $code called in the &quot;start&quot; and the &quot;wait_all_children&quot; method also.</p>
+
+<p>No parameters are passed to the $code on the call.</p>
+
+</dd>
+</dl>
+
+<h1 id="BLOCKING-CALLS">BLOCKING CALLS</h1>
+
+<p>When it comes to waiting for child processes to terminate, <code><code>Parallel::ForkManager</code></code> is between a fork and a hard place (if you excuse the terrible pun). The underlying Perl <code><code>waitpid</code></code> function that the module relies on can block until either one specific or any child process terminate, but not for a process part of a given group.</p>
+
+<p>This means that the module can do one of two things when it waits for one of its child processes to terminate:</p>
+
+<dl>
+
+<dt id="Only-wait-for-its-own-child-processes">Only wait for its own child processes</dt>
+<dd>
+
+<p>This is done via a loop using a <code><code>waitpid</code></code> non-blocking call and a sleep statement. The code does something along the lines of</p>
+
+<pre><code><code>    <span class="keyword">while</span><span class="operator">(</span><span class="number">1</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">if</span> <span class="operator">(</span> <span class="variable">any</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">P::FM</span> <span class="variable">child</span> <span class="variable">process</span> <span class="variable">terminated</span> <span class="operator">)</span> <span class="operator">{</span>
+            <span class="keyword">return</span> <span class="variable">its</span> <span class="variable">pid</span>
+        <span class="operator">}</span>
+    
+        <span class="keyword">sleep</span> <span class="variable">$sleep_period</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>This is the default behavior that the module will use. This is not the most efficient way to wait for child processes, but it&#39;s the safest way to ensure that <code><code>Parallel::ForkManager</code></code> won&#39;t interfere with any other part of the codebase.</p>
+
+<p>The sleep period is set via the method <code><code>set_waitpid_blocking_sleep</code></code>.</p>
+
+</dd>
+<dt id="Block-until-any-process-terminate">Block until any process terminate</dt>
+<dd>
+
+<p>Alternatively, <code><code>Parallel::ForkManager</code></code> can call <code><code>waitpid</code></code> such that it will block until any child process terminate. If the child process was not one of the monitored subprocesses, the wait will resume. This is more efficient, but mean that <code><code>P::FM</code></code> can captures (and discards) the termination notification that a different part of the code might be waiting for.</p>
+
+<p>If this is a race condition that doesn&#39;t apply to your codebase, you can set the <i>waitpid_blocking_sleep</i> period to <code><code>0</code></code>, which will enable <code><code>waitpid</code></code> call blocking.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$pm</span> <span class="operator">=</span> <span class="variable">Parallel::ForkManager</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="number">4</span> <span class="operator">);</span>
+    
+    <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">set_waitpid_blocking_sleep</span><span class="operator">(</span><span class="number">0</span><span class="operator">);</span>  <span class="comment"># true blocking calls enabled</span>
+    
+    <span class="keyword">for</span> <span class="operator">(</span> <span class="number">1</span><span class="operator">..</span><span class="number">100</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">start</span> <span class="keyword">and</span> <span class="keyword">next</span><span class="operator">;</span>
+    
+        <span class="operator">...;</span> <span class="comment"># do work</span>
+    
+        <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h1 id="RETRIEVING-DATASTRUCTURES-from-child-processes">RETRIEVING DATASTRUCTURES from child processes</h1>
+
+<p>The ability for the parent to retrieve data structures is new as of version 0.7.6.</p>
+
+<p>Each child process may optionally send 1 data structure back to the parent. By data structure, we mean a reference to a string, hash or array. The contents of the data structure are written out to temporary files on disc using the <a href="../../../lib/Storable.html">Storable</a> modules&#39; store() method. The reference is then retrieved from within the code you send to the run_on_finish callback.</p>
+
+<p>The data structure can be any scalar perl data structure which makes sense: string, numeric value or a reference to an array, hash or object.</p>
+
+<p>There are 2 steps involved in retrieving data structures:</p>
+
+<p>1) A reference to the data structure the child wishes to send back to the parent is provided as the second argument to the finish() call. It is up to the child to decide whether or not to send anything back to the parent.</p>
+
+<p>2) The data structure reference is retrieved using the callback provided in the run_on_finish() method.</p>
+
+<p>Keep in mind that data structure retrieval is not the same as returning a data structure from a method call. That is not what actually occurs. The data structure referenced in a given child process is serialized and written out to a file by <a href="../../../lib/Storable.html">Storable</a>. The file is subsequently read back into memory and a new data structure belonging to the parent process is created. Please consider the performance penality it can imply, so try to keep the returned structure small.</p>
+
+<h1 id="EXAMPLES">EXAMPLES</h1>
+
+<h2 id="Parallel-get">Parallel get</h2>
+
+<p>This small example can be used to get URLs in parallel.</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Parallel::ForkManager</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">LWP::Simple</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$pm</span> <span class="operator">=</span> <span class="variable">Parallel::ForkManager</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="number">10</span><span class="operator">);</span>
+  
+  <span class="variable">LINKS</span><span class="operator">:</span>
+  <span class="keyword">for</span> <span class="keyword">my</span> <span class="variable">$link</span> <span class="operator">(</span><span class="variable">@ARGV</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">start</span> <span class="keyword">and</span> <span class="keyword">next</span> <span class="variable">LINKS</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$fn</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$link</span> <span class="operator">=~</span> <span class="regex">/^.*\/(.*?)$/</span><span class="operator">;</span>
+    <span class="keyword">if</span> <span class="operator">(!</span><span class="variable">$fn</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">warn</span> <span class="string">"Cannot determine filename from </span><span class="variable">$fn</span><span class="string">\n"</span><span class="operator">;</span>
+    <span class="operator">}</span> <span class="keyword">else</span> <span class="operator">{</span>
+      <span class="variable">$0</span> <span class="operator">.=</span> <span class="string">" "</span> <span class="operator">.</span> <span class="variable">$fn</span><span class="operator">;</span>
+      <span class="keyword">print</span> <span class="string">"Getting </span><span class="variable">$fn</span><span class="string"> from </span><span class="variable">$link</span><span class="string">\n"</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">getstore</span><span class="operator">(</span><span class="variable">$link</span><span class="operator">,</span> <span class="variable">$fn</span><span class="operator">);</span>
+      <span class="keyword">print</span> <span class="string">"</span><span class="variable">$link</span><span class="string"> downloaded. response code: </span><span class="variable">$rc</span><span class="string">\n"</span><span class="operator">;</span>
+    <span class="operator">};</span>
+    <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+  <span class="operator">};</span>
+</code></code></pre>
+
+<h2 id="Callbacks">Callbacks</h2>
+
+<p>Example of a program using callbacks to get child exit codes:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Parallel::ForkManager</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$max_procs</span> <span class="operator">=</span> <span class="number">5</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">@names</span> <span class="operator">=</span> <span class="string">qw( Fred Jim Lily Steve Jessica Bob Dave Christine Rico Sara )</span><span class="operator">;</span>
+  <span class="comment"># hash to resolve PID's back to child specific information</span>
+  
+  <span class="keyword">my</span> <span class="variable">$pm</span> <span class="operator">=</span> <span class="variable">Parallel::ForkManager</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">$max_procs</span><span class="operator">);</span>
+  
+  <span class="comment"># Setup a callback for when a child finishes up so we can</span>
+  <span class="comment"># get it's exit code</span>
+  <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">run_on_finish</span><span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+      <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$pid</span><span class="operator">,</span> <span class="variable">$exit_code</span><span class="operator">,</span> <span class="variable">$ident</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+      <span class="keyword">print</span> <span class="string">"** </span><span class="variable">$ident</span><span class="string"> just got out of the pool "</span><span class="operator">.</span>
+        <span class="string">"with PID </span><span class="variable">$pid</span><span class="string"> and exit code: </span><span class="variable">$exit_code</span><span class="string">\n"</span><span class="operator">;</span>
+  <span class="operator">});</span>
+  
+  <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">run_on_start</span><span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+      <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$pid</span><span class="operator">,</span> <span class="variable">$ident</span><span class="operator">)=</span><span class="variable">@_</span><span class="operator">;</span>
+      <span class="keyword">print</span> <span class="string">"** </span><span class="variable">$ident</span><span class="string"> started, pid: </span><span class="variable">$pid</span><span class="string">\n"</span><span class="operator">;</span>
+  <span class="operator">});</span>
+  
+  <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">run_on_wait</span><span class="operator">(</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+      <span class="keyword">print</span> <span class="string">"** Have to wait for one children ...\n"</span>
+    <span class="operator">},</span>
+    <span class="number">0</span><span class="operator">.</span><span class="number">5</span>
+  <span class="operator">);</span>
+  
+  <span class="variable">NAMES</span><span class="operator">:</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$child</span> <span class="operator">(</span> <span class="number">0</span> <span class="operator">..</span> <span class="variable">$#names</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">my</span> <span class="variable">$pid</span> <span class="operator">=</span> <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(</span><span class="variable">$names</span><span class="operator">[</span><span class="variable">$child</span><span class="operator">]</span><span class="operator">)</span> <span class="keyword">and</span> <span class="keyword">next</span> <span class="variable">NAMES</span><span class="operator">;</span>
+  
+    <span class="comment"># This code is the child process</span>
+    <span class="keyword">print</span> <span class="string">"This is </span><span class="variable">$names</span><span class="string">[</span><span class="variable">$child</span><span class="string">], Child number </span><span class="variable">$child</span><span class="string">\n"</span><span class="operator">;</span>
+    <span class="keyword">sleep</span> <span class="operator">(</span> <span class="number">2</span> <span class="operator">*</span> <span class="variable">$child</span> <span class="operator">);</span>
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$names</span><span class="string">[</span><span class="variable">$child</span><span class="string">], Child </span><span class="variable">$child</span><span class="string"> is about to get out...\n"</span><span class="operator">;</span>
+    <span class="keyword">sleep</span> <span class="number">1</span><span class="operator">;</span>
+    <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">(</span><span class="variable">$child</span><span class="operator">);</span> <span class="comment"># pass an exit code to finish</span>
+  <span class="operator">}</span>
+  
+  <span class="keyword">print</span> <span class="string">"Waiting for Children...\n"</span><span class="operator">;</span>
+  <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">wait_all_children</span><span class="operator">;</span>
+  <span class="keyword">print</span> <span class="string">"Everybody is out of the pool!\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="Data-structure-retrieval">Data structure retrieval</h2>
+
+<p>In this simple example, each child sends back a string reference.</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Parallel::ForkManager</span> <span class="number">0</span><span class="operator">.</span><span class="number">7.6</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$pm</span> <span class="operator">=</span> <span class="variable">Parallel::ForkManager</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="number">2</span><span class="operator">,</span> <span class="string">'/server/path/to/temp/dir/'</span><span class="operator">);</span>
+  
+  <span class="comment"># data structure retrieval and handling</span>
+  <span class="variable">$pm</span> <span class="operator">-&gt;</span> <span class="variable">run_on_finish</span> <span class="operator">(</span> <span class="comment"># called BEFORE the first call to start()</span>
+    <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+      <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$pid</span><span class="operator">,</span> <span class="variable">$exit_code</span><span class="operator">,</span> <span class="variable">$ident</span><span class="operator">,</span> <span class="variable">$exit_signal</span><span class="operator">,</span> <span class="variable">$core_dump</span><span class="operator">,</span> <span class="variable">$data_structure_reference</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+  
+      <span class="comment"># retrieve data structure from child</span>
+      <span class="keyword">if</span> <span class="operator">(</span><span class="keyword">defined</span><span class="operator">(</span><span class="variable">$data_structure_reference</span><span class="operator">))</span> <span class="operator">{</span>  <span class="comment"># children are not forced to send anything</span>
+        <span class="keyword">my</span> <span class="variable">$string</span> <span class="operator">=</span> <span class="variable">$</span><span class="operator">{</span><span class="variable">$data_structure_reference</span><span class="operator">}</span><span class="operator">;</span>  <span class="comment"># child passed a string reference</span>
+        <span class="keyword">print</span> <span class="string">"</span><span class="variable">$string</span><span class="string">\n"</span><span class="operator">;</span>
+      <span class="operator">}</span>
+      <span class="keyword">else</span> <span class="operator">{</span>  <span class="comment"># problems occuring during storage or retrieval will throw a warning</span>
+        <span class="keyword">print</span> <span class="string">qq|No message received from child process </span><span class="variable">$pid</span><span class="string">!\n|</span><span class="operator">;</span>
+      <span class="operator">}</span>
+    <span class="operator">}</span>
+  <span class="operator">);</span>
+  
+  <span class="comment"># prep random statement components</span>
+  <span class="keyword">my</span> <span class="variable">@foods</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'chocolate'</span><span class="operator">,</span> <span class="string">'ice cream'</span><span class="operator">,</span> <span class="string">'peanut butter'</span><span class="operator">,</span> <span class="string">'pickles'</span><span class="operator">,</span> <span class="string">'pizza'</span><span class="operator">,</span> <span class="string">'bacon'</span><span class="operator">,</span> <span class="string">'pancakes'</span><span class="operator">,</span> <span class="string">'spaghetti'</span><span class="operator">,</span> <span class="string">'cookies'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@preferences</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'loves'</span><span class="operator">,</span> <span class="string">q|can't stand|</span><span class="operator">,</span> <span class="string">'always wants more'</span><span class="operator">,</span> <span class="string">'will walk 100 miles for'</span><span class="operator">,</span> <span class="string">'only eats'</span><span class="operator">,</span> <span class="string">'would starve rather than eat'</span><span class="operator">);</span>
+  
+  <span class="comment"># run the parallel processes</span>
+  <span class="variable">PERSONS</span><span class="operator">:</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$person</span> <span class="operator">(</span><span class="string">qw(Fred Wilma Ernie Bert Lucy Ethel Curly Moe Larry)</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">()</span> <span class="keyword">and</span> <span class="keyword">next</span> <span class="variable">PERSONS</span><span class="operator">;</span>
+  
+    <span class="comment"># generate a random statement about food preferences</span>
+    <span class="keyword">my</span> <span class="variable">$statement</span> <span class="operator">=</span> <span class="variable">$person</span> <span class="operator">.</span> <span class="string">' '</span> <span class="operator">.</span> <span class="variable">$preferences</span><span class="operator">[</span><span class="keyword">int</span><span class="operator">(</span><span class="keyword">rand</span> <span class="variable">@preferences</span><span class="operator">)</span><span class="operator">]</span> <span class="operator">.</span> <span class="string">' '</span> <span class="operator">.</span> <span class="variable">$foods</span><span class="operator">[</span><span class="keyword">int</span><span class="operator">(</span><span class="keyword">rand</span> <span class="variable">@foods</span><span class="operator">)</span><span class="operator">]</span><span class="operator">;</span>
+  
+    <span class="comment"># send it back to the parent process</span>
+    <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">(</span><span class="number">0</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$statement</span><span class="operator">);</span>  <span class="comment"># note that it's a scalar REFERENCE, not the scalar itself</span>
+  <span class="operator">}</span>
+  <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">wait_all_children</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>A second datastructure retrieval example demonstrates how children decide whether or not to send anything back, what to send and how the parent should process whatever is retrieved.</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Parallel::ForkManager</span> <span class="number">0</span><span class="operator">.</span><span class="number">7.6</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Data::Dumper</span><span class="operator">;</span>  <span class="comment"># to display the data structures retrieved.</span>
+  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$pm</span> <span class="operator">=</span> <span class="variable">Parallel::ForkManager</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="number">20</span><span class="operator">);</span>  <span class="comment"># using the system temp dir $L&lt;File::Temp::tempdir()</span>
+  
+  <span class="comment"># data structure retrieval and handling</span>
+  <span class="keyword">my</span> <span class="variable">%retrieved_responses</span> <span class="operator">=</span> <span class="operator">();</span>  <span class="comment"># for collecting responses</span>
+  <span class="variable">$pm</span> <span class="operator">-&gt;</span> <span class="variable">run_on_finish</span> <span class="operator">(</span>
+    <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+      <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$pid</span><span class="operator">,</span> <span class="variable">$exit_code</span><span class="operator">,</span> <span class="variable">$ident</span><span class="operator">,</span> <span class="variable">$exit_signal</span><span class="operator">,</span> <span class="variable">$core_dump</span><span class="operator">,</span> <span class="variable">$data_structure_reference</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+  
+      <span class="comment"># see what the child sent us, if anything</span>
+      <span class="keyword">if</span> <span class="operator">(</span><span class="keyword">defined</span><span class="operator">(</span><span class="variable">$data_structure_reference</span><span class="operator">))</span> <span class="operator">{</span>  <span class="comment"># test rather than assume child sent anything</span>
+        <span class="keyword">my</span> <span class="variable">$reftype</span> <span class="operator">=</span> <span class="keyword">ref</span><span class="operator">(</span><span class="variable">$data_structure_reference</span><span class="operator">);</span>
+        <span class="keyword">print</span> <span class="string">qq|ident "</span><span class="variable">$ident</span><span class="string">" returned a "</span><span class="variable">$reftype</span><span class="string">" reference.\n\n|</span><span class="operator">;</span>
+        <span class="keyword">if</span> <span class="operator">(</span><span class="number">1</span><span class="operator">)</span> <span class="operator">{</span>  <span class="comment"># simple on/off switch to display the contents</span>
+          <span class="keyword">print</span> <span class="operator">&amp;</span><span class="variable">Dumper</span><span class="operator">(</span><span class="variable">$data_structure_reference</span><span class="operator">)</span> <span class="operator">.</span> <span class="string">qq|end of "</span><span class="variable">$ident</span><span class="string">" sent structure\n\n|</span><span class="operator">;</span>
+        <span class="operator">}</span>
+  
+        <span class="comment"># we can also collect retrieved data structures for processing after all children have exited</span>
+        <span class="variable">$retrieved_responses</span><span class="operator">{</span><span class="variable">$ident</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">$data_structure_reference</span><span class="operator">;</span>
+      <span class="operator">}</span> <span class="keyword">else</span> <span class="operator">{</span>
+        <span class="keyword">print</span> <span class="string">qq|ident "</span><span class="variable">$ident</span><span class="string">" did not send anything.\n\n|</span><span class="operator">;</span>
+      <span class="operator">}</span>
+    <span class="operator">}</span>
+  <span class="operator">);</span>
+  
+  <span class="comment"># generate a list of instructions</span>
+  <span class="keyword">my</span> <span class="variable">@instructions</span> <span class="operator">=</span> <span class="operator">(</span>  <span class="comment"># a unique identifier and what the child process should send</span>
+    <span class="operator">{</span><span class="string">'name'</span> <span class="operator">=&gt;</span> <span class="string">'%ENV keys as a string'</span><span class="operator">,</span> <span class="string">'send'</span> <span class="operator">=&gt;</span> <span class="string">'keys'</span><span class="operator">}</span><span class="operator">,</span>
+    <span class="operator">{</span><span class="string">'name'</span> <span class="operator">=&gt;</span> <span class="string">'Send Nothing'</span><span class="operator">}</span><span class="operator">,</span>  <span class="comment"># not instructing the child to send anything back to the parent</span>
+    <span class="operator">{</span><span class="string">'name'</span> <span class="operator">=&gt;</span> <span class="string">'Childs %ENV'</span><span class="operator">,</span> <span class="string">'send'</span> <span class="operator">=&gt;</span> <span class="string">'all'</span><span class="operator">}</span><span class="operator">,</span>
+    <span class="operator">{</span><span class="string">'name'</span> <span class="operator">=&gt;</span> <span class="string">'Child chooses randomly'</span><span class="operator">,</span> <span class="string">'send'</span> <span class="operator">=&gt;</span> <span class="string">'random'</span><span class="operator">}</span><span class="operator">,</span>
+    <span class="operator">{</span><span class="string">'name'</span> <span class="operator">=&gt;</span> <span class="string">'Invalid send instructions'</span><span class="operator">,</span> <span class="string">'send'</span> <span class="operator">=&gt;</span> <span class="string">'Na Na Nana Na'</span><span class="operator">}</span><span class="operator">,</span>
+    <span class="operator">{</span><span class="string">'name'</span> <span class="operator">=&gt;</span> <span class="string">'ENV values in an array'</span><span class="operator">,</span> <span class="string">'send'</span> <span class="operator">=&gt;</span> <span class="string">'values'</span><span class="operator">}</span><span class="operator">,</span>
+  <span class="operator">);</span>
+  
+  <span class="variable">INSTRUCTS</span><span class="operator">:</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$instruction</span> <span class="operator">(</span><span class="variable">@instructions</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(</span><span class="variable">$instruction</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'name'</span><span class="operator">}</span><span class="operator">)</span> <span class="keyword">and</span> <span class="keyword">next</span> <span class="variable">INSTRUCTS</span><span class="operator">;</span>  <span class="comment"># this time we are using an explicit, unique child process identifier</span>
+  
+    <span class="comment"># last step in child processing</span>
+    <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">(</span><span class="number">0</span><span class="operator">)</span> <span class="keyword">unless</span> <span class="variable">$instruction</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'send'</span><span class="operator">}</span><span class="operator">;</span>  <span class="comment"># no data structure is sent unless this child is told what to send.</span>
+  
+    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$instruction</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'send'</span><span class="operator">}</span> <span class="keyword">eq</span> <span class="string">'keys'</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">(</span><span class="number">0</span><span class="operator">,</span> <span class="operator">\</span><span class="keyword">join</span><span class="operator">(</span><span class="string">', '</span><span class="operator">,</span> <span class="keyword">keys</span> <span class="variable">%ENV</span><span class="operator">));</span>
+  
+    <span class="operator">}</span> <span class="keyword">elsif</span> <span class="operator">(</span><span class="variable">$instruction</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'send'</span><span class="operator">}</span> <span class="keyword">eq</span> <span class="string">'values'</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">(</span><span class="number">0</span><span class="operator">,</span> <span class="operator">[</span><span class="keyword">values</span> <span class="variable">%ENV</span><span class="operator">]</span><span class="operator">);</span>  <span class="comment"># kinda useless without knowing which keys they belong to...</span>
+  
+    <span class="operator">}</span> <span class="keyword">elsif</span> <span class="operator">(</span><span class="variable">$instruction</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'send'</span><span class="operator">}</span> <span class="keyword">eq</span> <span class="string">'all'</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">(</span><span class="number">0</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%ENV</span><span class="operator">);</span>  <span class="comment"># remember, we are not "returning" anything, just copying the hash to disc</span>
+  
+    <span class="comment"># demonstrate clearly that the child determines what type of reference to send</span>
+    <span class="operator">}</span> <span class="keyword">elsif</span> <span class="operator">(</span><span class="variable">$instruction</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'send'</span><span class="operator">}</span> <span class="keyword">eq</span> <span class="string">'random'</span><span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">my</span> <span class="variable">$string</span> <span class="operator">=</span> <span class="string">q|I'm just a string.|</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">@array</span> <span class="operator">=</span> <span class="string">qw(I am an array)</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">%hash</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">type</span> <span class="operator">=&gt;</span> <span class="string">'associative array'</span><span class="operator">,</span> <span class="string">synonym</span> <span class="operator">=&gt;</span> <span class="string">'hash'</span><span class="operator">,</span> <span class="string">cool</span> <span class="operator">=&gt;</span> <span class="string">'very :)'</span><span class="operator">);</span>
+      <span class="keyword">my</span> <span class="variable">$return_choice</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'string'</span><span class="operator">,</span> <span class="string">'array'</span><span class="operator">,</span> <span class="string">'hash'</span><span class="operator">)</span><span class="operator">[</span><span class="keyword">int</span><span class="operator">(</span><span class="keyword">rand</span> <span class="number">3</span><span class="operator">)</span><span class="operator">]</span><span class="operator">;</span>  <span class="comment"># randomly choose return data type</span>
+      <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">(</span><span class="number">0</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$string</span><span class="operator">)</span> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$return_choice</span> <span class="keyword">eq</span> <span class="string">'string'</span><span class="operator">);</span>
+      <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">(</span><span class="number">0</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@array</span><span class="operator">)</span> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$return_choice</span> <span class="keyword">eq</span> <span class="string">'array'</span><span class="operator">);</span>
+      <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">(</span><span class="number">0</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%hash</span><span class="operator">)</span> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$return_choice</span> <span class="keyword">eq</span> <span class="string">'hash'</span><span class="operator">);</span>
+  
+    <span class="comment"># as a responsible child, inform parent that their instruction was invalid</span>
+    <span class="operator">}</span> <span class="keyword">else</span> <span class="operator">{</span>
+      <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">(</span><span class="number">0</span><span class="operator">,</span> <span class="operator">\</span><span class="string">qq|Invalid instructions: "</span><span class="variable">$instruction</span><span class="string">-&gt;{'send'}".|</span><span class="operator">);</span>  <span class="comment"># ordinarily I wouldn't include invalid input in a response...</span>
+    <span class="operator">}</span>
+  <span class="operator">}</span>
+  <span class="variable">$pm</span><span class="operator">-&gt;</span><span class="variable">wait_all_children</span><span class="operator">;</span>  <span class="comment"># blocks until all forked processes have exited</span>
+  
+  <span class="comment"># post fork processing of returned data structures</span>
+  <span class="keyword">for</span> <span class="operator">(</span><span class="keyword">sort</span> <span class="keyword">keys</span> <span class="variable">%retrieved_responses</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="string">qq|Post processing "</span><span class="variable">$_</span><span class="string">"...\n|</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="BUGS-AND-LIMITATIONS">BUGS AND LIMITATIONS</h1>
+
+<p>Do not use Parallel::ForkManager in an environment, where other child processes can affect the run of the main program, so using this module is not recommended in an environment where fork() / wait() is already used.</p>
+
+<p>If you want to use more than one copies of the Parallel::ForkManager, then you have to make sure that all children processes are terminated, before you use the second object in the main program.</p>
+
+<p>You are free to use a new copy of Parallel::ForkManager in the child processes, although I don&#39;t think it makes sense.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2000-2010 Szab&oacute;, Bal&aacute;zs (dLux)</p>
+
+<p>All right reserved. This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<pre><code><code>  dLux (Szab&oacute;, Bal&aacute;zs) &lt;dlux@dlux.hu&gt;</code></code></pre>
+
+<h1 id="CREDITS">CREDITS</h1>
+
+<pre><code><code>  G&aacute;bor Szab&oacute; (szabgab@cpan.org)  (co-maintainer)
+  Michael Gang (bug report)
+  Noah Robin &lt;sitz@onastick.net&gt; (documentation tweaks)
+  Chuck Hirstius &lt;chirstius@megapathdsl.net&gt; (callback exit status, example)
+  Grant Hopwood &lt;hopwoodg@valero.com&gt; (win32 port)
+  Mark Southern &lt;mark_southern@merck.com&gt; (bugfix)
+  Ken Clarke &lt;www.perlprogrammer.net&gt;  (datastructure retrieval)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

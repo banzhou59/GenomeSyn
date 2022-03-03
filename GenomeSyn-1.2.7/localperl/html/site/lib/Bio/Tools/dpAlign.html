@@ -1,0 +1,275 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#DEPENDENCIES">DEPENDENCIES</a></li>
+  <li><a href="#TO-DO">TO-DO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a>
+    <ul>
+      <li><a href="#sequence_profile">sequence_profile</a></li>
+      <li><a href="#pairwise_alignment_score">pairwise_alignment_score</a></li>
+      <li><a href="#pairwise_alignment">pairwise_alignment</a></li>
+      <li><a href="#align_and_show">align_and_show</a></li>
+      <li><a href="#match">match</a></li>
+      <li><a href="#mismatch">mismatch</a></li>
+      <li><a href="#gap">gap</a></li>
+      <li><a href="#ext">ext</a></li>
+      <li><a href="#alg">alg</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::dpAlign - Perl extension to do pairwise dynamic programming sequence alignment</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tools::dpAlign</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::SimpleAlign</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::AlignIO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Matrix::IO</span><span class="operator">;</span>
+  
+  <span class="variable">$seq1</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$ARGV</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'fasta'</span><span class="operator">);</span>
+  <span class="variable">$seq2</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$ARGV</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'fasta'</span><span class="operator">);</span>
+  
+  <span class="comment"># create a dpAlign object</span>
+  <span class="comment"># to do global alignment, specify DPALIGN_GLOBAL_MILLER_MYERS</span>
+  <span class="comment"># to do ends-free alignment, specify DPALIGN_ENDSFREE_MILLER_MYERS</span>
+  <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">dpAlign</span><span class="operator">(</span><span class="string">-match</span> <span class="operator">=&gt;</span> <span class="number">3</span><span class="operator">,</span>
+                     <span class="string">-mismatch</span> <span class="operator">=&gt;</span> <span class="operator">-</span><span class="number">1</span><span class="operator">,</span>
+                     <span class="string">-gap</span> <span class="operator">=&gt;</span> <span class="number">3</span><span class="operator">,</span>
+                     <span class="string">-ext</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                     <span class="string">-alg</span> <span class="operator">=&gt;</span> <span class="variable">Bio::Tools::dpAlign::DPALIGN_LOCAL_MILLER_MYERS</span><span class="operator">);</span>
+  
+  <span class="comment"># actually do the alignment</span>
+  <span class="variable">$out</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">pairwise_alignment</span><span class="operator">(</span><span class="variable">$seq1</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">,</span> <span class="variable">$seq2</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">);</span>
+  <span class="variable">$alnout</span> <span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'pfam'</span><span class="operator">,</span> <span class="string">-fh</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*STDOUT</span><span class="operator">);</span>
+  <span class="variable">$alnout</span><span class="operator">-&gt;</span><span class="variable">write_aln</span><span class="operator">(</span><span class="variable">$out</span><span class="operator">);</span>
+  
+  <span class="comment"># To do protein alignment, set the sequence type to protein</span>
+  <span class="comment"># By default all protein alignments are using BLOSUM62 matrix</span>
+  <span class="comment"># the gap opening cost is 7 and gap extension is 1. These</span>
+  <span class="comment"># values are from ssearch. To use your own custom substitution </span>
+  <span class="comment"># matrix, you can create a Bio::Matrix::MatrixI object.</span>
+  
+  <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">Bio::Matrix::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'scoring'</span><span class="operator">,</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'blosum50.mat'</span><span class="operator">);</span>
+  <span class="variable">$matrix</span> <span class="operator">=</span> <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">next_matrix</span><span class="operator">;</span>
+  <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::dpAlign</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-matrix</span> <span class="operator">=&gt;</span> <span class="variable">$matrix</span><span class="operator">,</span> <span class="string">-alg</span> <span class="operator">=&gt;</span> <span class="variable">Bio::Tools::dpAlign::DPALIGN_LOCAL_MILLERMYERS</span><span class="operator">);</span>
+  <span class="variable">$seq1</span><span class="operator">-&gt;</span><span class="variable">alphabet</span><span class="operator">(</span><span class="string">'protein'</span><span class="operator">);</span>
+  <span class="variable">$seq2</span><span class="operator">-&gt;</span><span class="variable">alphabet</span><span class="operator">(</span><span class="string">'protein'</span><span class="operator">);</span>
+  <span class="variable">$out</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">pairwise_alignment</span><span class="operator">(</span><span class="variable">$seq1</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">,</span> <span class="variable">$seq2</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">);</span>
+  <span class="variable">$alnout</span><span class="operator">-&gt;</span><span class="variable">write_aln</span><span class="operator">(</span><span class="variable">$out</span><span class="operator">);</span>
+  
+  <span class="comment"># use the factory to make some output</span>
+  
+  <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">align_and_show</span><span class="operator">(</span><span class="variable">$seq1</span><span class="operator">,</span> <span class="variable">$seq2</span><span class="operator">,</span> <span class="variable">STDOUT</span><span class="operator">);</span>
+  
+  <span class="comment"># use Phil Green's algorithm to calculate the optimal local</span>
+  <span class="comment"># alignment score between two sequences quickly. It is very</span>
+  <span class="comment"># useful when you are searching a query sequence in a database</span>
+  <span class="comment"># of sequences. Since finding a alignment is more costly </span>
+  <span class="comment"># than just calculating scores, you can save time if you only </span>
+  <span class="comment"># align sequences that have a high alignment score.</span>
+  
+  <span class="comment"># To use this feature, first you call the sequence_profile function</span>
+  <span class="comment"># to obtain the profile of the query sequence.</span>
+  <span class="variable">$profile</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">sequence_profile</span><span class="operator">(</span><span class="variable">$query</span><span class="operator">);</span>
+  
+  <span class="variable">%scores</span> <span class="operator">=</span> <span class="operator">();</span>
+  <span class="comment"># Then use a loop to run a database of sequences against the</span>
+  <span class="comment"># profile to obtain a table of alignment scores</span>
+  <span class="variable">$dbseq</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'dbseq.fa'</span><span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'fasta'</span><span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">defined</span><span class="operator">(</span><span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$dbseq</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">))</span> <span class="operator">{</span>
+      <span class="variable">$scores</span><span class="operator">{</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">pairwise_alignment_score</span><span class="operator">(</span><span class="variable">$profile</span><span class="operator">,</span> <span class="variable">$seq</span><span class="operator">);</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Dynamic Programming approach is considered to be the most sensitive way to align two biological sequences. There are currently three major types of dynamic programming algorithms: Global Alignment, Local Alignment and Ends-free Alignment.</p>
+
+<p>Global Alignment compares two sequences in their entirety. By inserting gaps in the two sequences, it aligns two sequences to minimize the edit distance as defined by the gap cost function and the substitution matrix. Global Alignment is generally applied to two sequences that are very similar in length and content.</p>
+
+<p>Local Alignment instead attempts to find out the subsequences that has the minimal edit distance among all possible subsequences. It is good for sequences that has a stretch of subsequences that are similar to each other.</p>
+
+<p>Ends-free Alignment is a special case of Global Alignment. There are no gap penalty imposed for the gaps that extended from the end points of two sequences. Therefore it will be a good application when you think one sequence is contained by the other or when you think two sequences overlap each other.</p>
+
+<p>Dynamic Programming was first introduced by Needleman-Wunsch (1970) to globally align two sequences. The idea of local alignment was later introduced by Smith-Waterman (1981). Gotoh (1982) improved both algorithms by introducing auxillary arrays that reduced the time complexity of the algorithms to O(m*n). Miller-Myers (1988) exploits the divide-and-conquer idea introduced by Hirschberg (1975) to solve the affine gap cost dynamic programming using only linear space. At the time of this writing, it is accepted that Miller-Myers is the fastest single CPU implementation and using the least memory that is truly equivalent to original algorithm introduced by Needleman-Wunsch. According to Aaron Mackey, Phil Green&#39;s SWAT implementation introduced a heuristic that does not consider paths through the matrix where the score would be less than the gap opening penalty, yielding a 1.5-2X speedup on most comparisons. to skip the calculation of some cells. However, his approach is only good for calculating the minimum edit distance and find out the corresponding subsequences (aka search phase). Bill Pearson&#39;s popular dynamic programming alignment program SSEARCH uses Phil Green&#39;s algorithm to find the subsequences and then Miller-Myers&#39;s algorithm to find the actual alignment. (aka alignment phase)</p>
+
+<p>The current implementation supports local alignment of either DNA sequences or protein sequences. It allows you to specify either the Miller-Myers Global Alignment (DPALIGN_GLOBAL_MILLER_MYERS) or Miller-Myers Local Alignment (DPALIGN_LOCAL_MILLER_MYERS). For DNA alignment, you can specify the scores for match, mismatch, gap opening cost and gap extension cost. For protein alignment, it is using BLOSUM62 by default. Currently the substitution matrix is not configurable.</p>
+
+<p>Note: If you supply LocatableSeq objects to pairwise_alignment, pairwise_alignment_score, align_and_show or sequence_profile and the sequence supplied contains gaps, these functions will treat these sequences as if they are without gaps.</p>
+
+<h1 id="DEPENDENCIES">DEPENDENCIES</h1>
+
+<p>This package comes with the main bioperl distribution. You also need to install the lastest bioperl-ext package which contains the XS code that implements the algorithms. This package won&#39;t work if you haven&#39;t compiled the bioperl-ext package.</p>
+
+<h1 id="TO-DO">TO-DO</h1>
+
+<ol>
+
+<li><p>Basic support for IUPAC code for DNA sequence is now implemented. X will mismatch any character. T will match U. For others, whenever there is a possibility for match, it is considered a full match, for example, W will match B.</p>
+
+</li>
+<li><p>Allow custom substitution matrix for DNA. Note that for proteins, you can now use your own subsitution matirx.</p>
+
+</li>
+</ol>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<pre><code><code>        <span class="variable">This</span> <span class="variable">implementation</span> <span class="variable">was</span> <span class="variable">written</span> <span class="variable">by</span> <span class="variable">Yee</span> <span class="variable">Man</span> <span class="variable">Chan</span> <span class="operator">(</span><span class="variable">ymc</span><span class="variable">@yahoo</span><span class="operator">.</span><span class="variable">com</span><span class="operator">).</span>
+        <span class="variable">Copyright</span> <span class="operator">(</span><span class="variable">c</span><span class="operator">)</span> <span class="number">2003</span> <span class="variable">Yee</span> <span class="variable">Man</span> <span class="variable">Chan</span><span class="operator">.</span> <span class="variable">All</span> <span class="variable">rights</span> <span class="variable">reserved</span><span class="operator">.</span> <span class="variable">This</span> <span class="variable">program</span>
+        <span class="variable">is</span> <span class="variable">free</span> <span class="variable">software</span><span class="operator">;</span> <span class="variable">you</span> <span class="variable">can</span> <span class="variable">redistribute</span> <span class="variable">it</span> <span class="keyword">and</span><span class="regex">/or modify it under
+        the same terms as Perl itself. Special thanks to Aaron Mackey
+        and WIlliam Pearson for the helpful discussions. [The portion
+        of code inside pgreen subdirectory was borrowed from ssearch. It
+        should be distributed in the same terms as ssearch.]
+        </span>
+</code></code></pre>
+
+<h2 id="sequence_profile">sequence_profile</h2>
+
+<pre><code><code> Title   : sequence_profile
+ Usage   : $prof = $factory-&gt;sequence_profile($seq1)
+ Function: Makes a dpAlign_SequenceProfile object from one sequence
+ Returns : A dpAlign_SequenceProfile object
+ Args    : The lone argument is a Bio::PrimarySeqI that we want to 
+           build a profile for. Usually, this would be the Query sequence</code></code></pre>
+
+<h2 id="pairwise_alignment_score">pairwise_alignment_score</h2>
+
+<pre><code><code> Title   : pairwise_alignment_score
+ Usage   : $score = $factory-&gt;pairwise_alignment_score($prof,$seq2)
+ Function: Makes a SimpleAlign object from two sequences
+ Returns : An integer that is the score of the optimal alignment.
+ Args    : The first argument is the sequence profile obtained from a
+           call to the sequence_profile function. The second argument 
+           is a Bio::PrimarySeqI object to be aligned. The second argument
+           is usually a sequence in the database sequence. Note
+           that this function only uses Phil Green&#39;s algorithm and 
+           therefore theoretically may not always give you the optimal
+           score.</code></code></pre>
+
+<h2 id="pairwise_alignment">pairwise_alignment</h2>
+
+<pre><code><code> Title   : pairwise_alignment
+ Usage   : $aln = $factory-&gt;pairwise_alignment($seq1,$seq2)
+ Function: Makes a SimpleAlign object from two sequences
+ Returns : A SimpleAlign object if there is an alignment with positive
+           score. Otherwise, return undef.
+ Args    : The first and second arguments are both Bio::PrimarySeqI
+           objects that are to be aligned.</code></code></pre>
+
+<h2 id="align_and_show">align_and_show</h2>
+
+<pre><code><code> Title   : align_and_show
+ Usage   : $factory-&gt;align_and_show($seq1,$seq2,STDOUT)</code></code></pre>
+
+<h2 id="match">match</h2>
+
+<pre><code><code> Title     : match 
+ Usage     : $match = $factory-&gt;match() #get
+           : $factory-&gt;match($value) #set
+ Function  : the set get for the match score
+ Example   :
+ Returns   : match value
+ Arguments : new value</code></code></pre>
+
+<h2 id="mismatch">mismatch</h2>
+
+<pre><code><code> Title     : mismatch 
+ Usage     : $mismatch = $factory-&gt;mismatch() #get
+           : $factory-&gt;mismatch($value) #set
+ Function  : the set get for the mismatch penalty
+ Example   :
+ Returns   : mismatch value
+ Arguments : new value</code></code></pre>
+
+<h2 id="gap">gap</h2>
+
+<pre><code><code> Title     : gap
+ Usage     : $gap = $factory-&gt;gap() #get
+           : $factory-&gt;gap($value) #set
+ Function  : the set get for the gap penalty
+ Example   :
+ Returns   : gap value
+ Arguments : new value</code></code></pre>
+
+<h2 id="ext">ext</h2>
+
+<pre><code><code> Title     : ext
+ Usage     : $ext = $factory-&gt;ext() #get
+           : $factory-&gt;ext($value) #set
+ Function  : the set get for the ext penalty
+ Example   :
+ Returns   : ext value
+ Arguments : new value</code></code></pre>
+
+<h2 id="alg">alg</h2>
+
+<pre><code><code> Title     : alg
+ Usage     : $alg = $factory-&gt;alg() #get
+           : $factory-&gt;alg($value) #set
+ Function  : the set get for the algorithm
+ Example   :
+ Returns   : alg value
+ Arguments : new value</code></code></pre>
+
+
+</body>
+
+</html>
+
+

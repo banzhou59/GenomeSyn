@@ -1,0 +1,901 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#USING-MAGIC">USING MAGIC</a></li>
+  <li><a href="#PROBLEMATIC-DATA-AND-INCONSISTENCIES">PROBLEMATIC DATA AND INCONSISTENCIES</a></li>
+  <li><a href="#ALGORITHM">ALGORITHM</a>
+    <ul>
+      <li><a href="#Partitioning-into-groups">Partitioning into groups</a>
+        <ul>
+          <li><a href="#Multicopy-Genes">Multicopy Genes</a></li>
+          <li><a href="#What-next-">What next?</a></li>
+        </ul>
+      </li>
+      <li><a href="#Resolving-the-containment-hierarchy">Resolving the containment hierarchy</a></li>
+      <li><a href="#Using-splice-site-coordinates-to-infer-containment">Using splice site coordinates to infer containment</a></li>
+    </ul>
+  </li>
+  <li><a href="#POST-GROUPING-STEPS">POST-GROUPING STEPS</a>
+    <ul>
+      <li><a href="#Inferring-exons-from-mRNAs">Inferring exons from mRNAs</a>
+        <ul>
+          <li><a href="#tRNAs-and-other-noncoding-RNAs">tRNAs and other noncoding RNAs</a></li>
+        </ul>
+      </li>
+      <li><a href="#Inferring-mRNAs-from-CDS">Inferring mRNAs from CDS</a></li>
+    </ul>
+  </li>
+  <li><a href="#ADVANCED">ADVANCED</a>
+    <ul>
+      <li><a href="#Customising-the-grouping-of-features">Customising the grouping of features</a></li>
+      <li><a href="#Customising-the-resolution-of-the-containment-hierarchy">Customising the resolution of the containment hierarchy</a></li>
+      <li><a href="#Parsing-mRNA-records">Parsing mRNA records</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Chris-Mungall">AUTHOR - Chris Mungall</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#seq">seq</a></li>
+      <li><a href="#group_tag">group_tag</a></li>
+      <li><a href="#partonomy">partonomy</a></li>
+      <li><a href="#structure_type">structure_type</a></li>
+      <li><a href="#get_problems">get_problems</a></li>
+      <li><a href="#clear_problems">clear_problems</a></li>
+      <li><a href="#report_problems">report_problems</a></li>
+      <li><a href="#ignore_problems">ignore_problems</a></li>
+      <li><a href="#error_threshold">error_threshold</a></li>
+      <li><a href="#unflatten_seq">unflatten_seq</a></li>
+      <li><a href="#unflatten_groups">unflatten_groups</a></li>
+      <li><a href="#unflatten_group">unflatten_group</a></li>
+      <li><a href="#feature_from_splitloc">feature_from_splitloc</a></li>
+      <li><a href="#infer_mRNA_from_CDS">infer_mRNA_from_CDS</a></li>
+      <li><a href="#remove_types">remove_types</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqFeature::Tools::Unflattener - turns flat list of genbank-sourced features into a nested SeqFeatureI hierarchy</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># standard / generic use - unflatten a genbank record</span>
+  <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::SeqFeature::Tools::Unflattener</span><span class="operator">;</span>
+  
+  <span class="comment"># generate an Unflattener object</span>
+  <span class="variable">$unflattener</span> <span class="operator">=</span> <span class="variable">Bio::SeqFeature::Tools::Unflattener</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+  
+  <span class="comment"># first fetch a genbank SeqI object</span>
+  <span class="variable">$seqio</span> <span class="operator">=</span>
+    <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="string">'AE003644.gbk'</span><span class="operator">,</span>
+                    <span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'GenBank'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$out</span> <span class="operator">=</span>
+    <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'asciitree'</span><span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">())</span> <span class="operator">{</span>
+  
+    <span class="comment"># get top level unflattended SeqFeatureI objects</span>
+    <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">unflatten_seq</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">,</span>
+                                <span class="string">-use_magic</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span>
+    <span class="variable">$out</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+  
+    <span class="variable">@top_sfs</span> <span class="operator">=</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">get_SeqFeatures</span><span class="operator">;</span>
+    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$sf</span> <span class="operator">(</span><span class="variable">@top_sfs</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="comment"># do something with top-level features (eg genes)</span>
+    <span class="operator">}</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Most GenBank entries for annotated genomic DNA contain a <b>flat</b> list of features. These features can be parsed into an equivalent flat list of <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeatureI.html">Bio::SeqFeatureI</a> objects using the standard <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqIO.html">Bio::SeqIO</a> classes. However, it is often desirable to <b>unflatten</b> this list into something resembling actual <b>gene models</b>, in which genes, mRNAs and CDSs are <b>nested</b> according to the nature of the gene model.</p>
+
+<p>The BioPerl object model allows us to store these kind of associations between SeqFeatures in <b>containment hierarchies</b> -- any SeqFeatureI object can contain nested SeqFeatureI objects. The Bio::SeqFeature::Tools::Unflattener object facilitates construction of these hierarchies from the underlying GenBank flat-feature-list representation.</p>
+
+<p>For example, if you were to look at a typical GenBank DNA entry, say, <b>AE003644</b>, you would see a flat list of features:</p>
+
+<pre><code><code>  source
+
+  gene CG4491
+  mRNA CG4491-RA
+  CDS CG4491-PA
+
+  gene tRNA-Pro
+  tRNA tRNA-Pro
+
+  gene CG32954
+  mRNA CG32954-RA
+  mRNA CG32954-RC
+  mRNA CG32954-RB
+  CDS CG32954-PA
+  CDS CG32954-PB
+  CDS CG32954-PC</code></code></pre>
+
+<p>These features have sequence locations, but it is not immediately clear how to write code such that each mRNA is linked to the appropriate CDS (other than relying on IDs which is very bad)</p>
+
+<p>We would like to convert the above list into the <b>containment hierarchy</b>, shown below:</p>
+
+<pre><code><code>  source
+  gene
+    mRNA CG4491-RA
+      CDS CG4491-PA
+      exon
+      exon
+  gene
+    tRNA tRNA-Pro
+      exon
+  gene
+    mRNA CG32954-RA
+      CDS CG32954-PA
+      exon
+      exon
+    mRNA CG32954-RC
+      CDS CG32954-PC
+      exon
+      exon
+    mRNA CG32954-RB
+      CDS CG32954-PB
+      exon
+      exon</code></code></pre>
+
+<p>Where each feature is nested underneath its container. Note that exons have been automatically inferred (even for tRNA genes).</p>
+
+<p>We do this using a call on a <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeature/Tools/Unflattener.html">Bio::SeqFeature::Tools::Unflattener</a> object</p>
+
+<pre><code><code>  <span class="variable">@sfs</span> <span class="operator">=</span> <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">unflatten_seq</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>This would return a list of the <b>top level</b> (i.e. container) SeqFeatureI objects - in this case, genes. Other top level features are possible; for instance, the <b>source</b> feature which is always present, and other features such as <b>variation</b> or <b>misc_feature</b> types.</p>
+
+<p>The containment hierarchy can be accessed using the get_SeqFeature() call on any feature object - see <a>Bio::SeqFeature::FeatureHolderI</a>. The following code will traverse the containment hierarchy for a feature:</p>
+
+<pre><code><code>  <span class="keyword">sub</span><span class="variable"> traverse </span><span class="operator">{</span>
+    <span class="variable">$sf</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>   <span class="comment">#  $sf isa Bio::SeqfeatureI</span>
+  
+    <span class="comment"># ...do something with $sf!</span>
+  
+    <span class="comment"># depth first traversal of containment tree</span>
+    <span class="variable">@contained_sfs</span> <span class="operator">=</span> <span class="variable">$sf</span><span class="operator">-&gt;</span><span class="variable">get_SeqFeatures</span><span class="operator">;</span>
+    <span class="variable">traverse</span><span class="operator">(</span><span class="variable">$_</span><span class="operator">)</span> <span class="keyword">foreach</span> <span class="variable">@contained_sfs</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>Once you have built the hierarchy, you can do neat stuff like turn the features into &#39;rich&#39; feature objects (eg <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeature/Gene/GeneStructure.html">Bio::SeqFeature::Gene::GeneStructure</a>) or convert to a suitable format such as GFF3 or chadoxml (after mapping to the Sequence Ontology); this step is not described here.</p>
+
+<h1 id="USING-MAGIC">USING MAGIC</h1>
+
+<p>Due to the quixotic nature of how features are stored in GenBank/EMBL/DDBJ, there is no guarantee that the default behaviour of this module will produce perfect results. Sometimes it is hard or impossible to build a correct containment hierarchy if the information provided is simply too lossy, as is often the case. If you care deeply about your data, you should always manually inspect the resulting containment hierarchy; you may have to customise the algorithm for building the hierarchy, or even manually tweak the resulting hierarchy. This is explained in more detail further on in the document.</p>
+
+<p>However, if you are satisfied with the default behaviour, then you do not need to read any further. Just make sure you set the parameter <b>use_magic</b> - this will invoke incantations which will magically produce good results no matter what the idiosyncracies of the particular GenBank record in question.</p>
+
+<p>For example</p>
+
+<pre><code><code>  <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">unflatten_seq</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">,</span>
+                              <span class="string">-use_magic</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The success of this depends on the phase of the moon at the time the entry was submitted to GenBank. Note that the magical recipe is being constantly improved, so the results of invoking magic may vary depending on the bioperl release.</p>
+
+<p>If you are skeptical of magic, or you wish to exact fine grained control over how the entry is unflattened, or you simply wish to understand more about how this crazy stuff works, then read on!</p>
+
+<h1 id="PROBLEMATIC-DATA-AND-INCONSISTENCIES">PROBLEMATIC DATA AND INCONSISTENCIES</h1>
+
+<p>Occasionally the Unflattener will have problems with certain records. For example, the record may contain inconsistent data - maybe there is an <b>exon</b> entry that has no corresponding <b>mRNA</b> location.</p>
+
+<p>The default behaviour is to throw an exception reporting the problem, if the problem is relatively serious - for example, inconsistent data.</p>
+
+<p>You can exert more fine grained control over this - perhaps you want the Unflattener to do the best it can, and report any problems. This can be done - refer to the methods.</p>
+
+<pre><code><code>  error_threshold()
+
+  get_problems()
+
+  report_problems()
+
+  ignore_problems()</code></code></pre>
+
+<h1 id="ALGORITHM">ALGORITHM</h1>
+
+<p>This is the default algorithm; you should be able to override any part of it to customise.</p>
+
+<p>The core of the algorithm is in two parts</p>
+
+<dl>
+
+<dt id="Partitioning-the-flat-feature-list-into-groups">Partitioning the flat feature list into groups</dt>
+<dd>
+
+</dd>
+<dt id="Resolving-the-feature-containment-hierarchy-for-each-group">Resolving the feature containment hierarchy for each group</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>There are other optional steps after the completion of these two steps, such as <b>inferring exons</b>; we now describe in more detail what is going on.</p>
+
+<h2 id="Partitioning-into-groups">Partitioning into groups</h2>
+
+<p>First of all the flat feature list is partitioned into <b>group</b>s.</p>
+
+<p>The default way of doing this is to use the <b>gene</b> attribute; if we look at two features from GenBank accession AE003644.3:</p>
+
+<pre><code><code>     gene            20111..23268
+                     /gene=&quot;noc&quot;
+                     /locus_tag=&quot;CG4491&quot;
+                     /note=&quot;last curated on Thu Dec 13 16:51:32 PST 2001&quot;
+                     /map=&quot;35B2-35B2&quot;
+                     /db_xref=&quot;FLYBASE:FBgn0005771&quot;
+     mRNA            join(20111..20584,20887..23268)
+                     /gene=&quot;noc&quot;
+                     /locus_tag=&quot;CG4491&quot;
+                     /product=&quot;CG4491-RA&quot;
+                     /db_xref=&quot;FLYBASE:FBgn0005771&quot;</code></code></pre>
+
+<p>Both these features share the same /gene tag which is &quot;noc&quot;, so they correspond to the same gene model (the CDS feature is not shown, but this also has a tag-value /gene=&quot;noc&quot;).</p>
+
+<p>Not all groups need to correspond to gene models, but this is the most common use case; later on we shall describe how to customise the grouping.</p>
+
+<p>Sometimes other tags have to be used; for instance, if you look at the entire record for AE003644.3 you will see you actually need the use the /locus_tag attribute. This attribute is actually <b>not present</b> in most records!</p>
+
+<p>You can override this:</p>
+
+<pre><code><code>  <span class="variable">$collection</span><span class="operator">-&gt;</span><span class="variable">unflatten_seq</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">,</span> <span class="string">-group_tag</span><span class="operator">=&gt;</span><span class="string">'locus_tag'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Alternatively, if you <b>-use_magic</b>, the object will try and make a guess as to what the correct group_tag should be.</p>
+
+<p>At the end of this step, we should have a list of groups - there is no structure within a group; the group just serves to partition the flat features. For the example data above, we would have the following groups.</p>
+
+<pre><code><code>  [ source ]
+  [ gene mRNA CDS ]
+  [ gene mRNA CDS ]
+  [ gene mRNA CDS ]
+  [ gene mRNA mRNA mRNA CDS CDS CDS ]</code></code></pre>
+
+<h3 id="Multicopy-Genes">Multicopy Genes</h3>
+
+<p>Multicopy genes are usually rRNAs or tRNAs that are duplicated across the genome. Because they are functionally equivalent, and usually have the same sequence, they usually have the same group_tag (ie gene symbol); they often have a /note tag giving copy number. This means they will end up in the same group. This is undesirable, because they are spatially disconnected.</p>
+
+<p>There is another step, which involves splitting spatially disconnected groups into distinct groups</p>
+
+<p>this would turn this</p>
+
+<pre><code><code> [gene-rrn3 rRNA-rrn3 gene-rrn3 rRNA-rrn3]</code></code></pre>
+
+<p>into this</p>
+
+<pre><code><code> [gene-rrn3 rRNA-rrn3] [gene-rrn3 rRNA-rrn3]</code></code></pre>
+
+<p>based on the coordinates</p>
+
+<h3 id="What-next-">What next?</h3>
+
+<p>The next step is to add some structure to each group, by making <b>containment hierarchies</b>, trees that represent how the features interrelate</p>
+
+<h2 id="Resolving-the-containment-hierarchy">Resolving the containment hierarchy</h2>
+
+<p>After the grouping is done, we end up with a list of groups which probably contain features of type &#39;gene&#39;, &#39;mRNA&#39;, &#39;CDS&#39; and so on.</p>
+
+<p>Singleton groups (eg the &#39;source&#39; feature) are ignored at this stage.</p>
+
+<p>Each group is itself flat; we need to add an extra level of organisation. Usually this is because different spliceforms (represented by the &#39;mRNA&#39; feature) can give rise to different protein products (indicated by the &#39;CDS&#39; feature). We want to correctly associate mRNAs to CDSs.</p>
+
+<p>We want to go from a group like this:</p>
+
+<pre><code><code>  [ gene mRNA mRNA mRNA CDS CDS CDS ]</code></code></pre>
+
+<p>to a containment hierarchy like this:</p>
+
+<pre><code><code>  gene
+    mRNA
+      CDS
+    mRNA
+      CDS
+    mRNA
+      CDS</code></code></pre>
+
+<p>In which each CDS is nested underneath the correct corresponding mRNA.</p>
+
+<p>For entries that contain no alternate splicing, this is simple; we know that the group</p>
+
+<pre><code><code>  [ gene mRNA CDS ]</code></code></pre>
+
+<p>Must resolve to the tree</p>
+
+<pre><code><code>  gene
+    mRNA
+      CDS</code></code></pre>
+
+<p>How can we do this in entries with alternate splicing? The bad news is that there is no guaranteed way of doing this correctly for any GenBank entry. Occasionally the submission will have been done in such a way as to reconstruct the containment hierarchy. However, this is not consistent across databank entries, so no generic solution can be provided by this object. This module does provide the framework within which you can customise a solution for the particular dataset you are interested in - see later.</p>
+
+<p>The good news is that there is an inference we can do that should produce pretty good results the vast majority of the time. It uses splice coordinate data - this is the default behaviour of this module, and is described in detail below.</p>
+
+<h2 id="Using-splice-site-coordinates-to-infer-containment">Using splice site coordinates to infer containment</h2>
+
+<p>If an mRNA is to be the container for a CDS, then the splice site coordinates (or intron coordinates, depending on how you look at it) of the CDS must fit inside the splice site coordinates of the mRNA.</p>
+
+<p>Ambiguities can still arise, but the results produced should still be reasonable and consistent at the sequence level. Look at this fake example:</p>
+
+<pre><code><code>  mRNA    XXX---XX--XXXXXX--XXXX         join(1..3,7..8,11..16,19..23)
+  mRNA    XXX-------XXXXXX--XXXX         join(1..3,11..16,19..23)
+  CDS                 XXXX--XX           join(13..16,19..20)
+  CDS                 XXXX--XX           join(13..16,19..20)</code></code></pre>
+
+<p>[obviously the positions have been scaled down]</p>
+
+<p>We cannot unambiguously match mRNA with CDS based on splice sites, since both CDS share the splice site locations 16^17 and 18^19. However, the consequences of making a wrong match are probably not very severe. Any annotation data attached to the first CDS is probably identical to the seconds CDS, other than identifiers.</p>
+
+<p>The default behaviour of this module is to make an arbitrary call where it is ambiguous (the mapping will always be bijective; i.e. one mRNA -&gt; one CDS).</p>
+
+<p>[TODO: NOTE: not tested on EMBL data, which may not be bijective; ie two mRNAs can share the same CDS??]</p>
+
+<p>This completes the building of the containment hierarchy; other optional step follow</p>
+
+<h1 id="POST-GROUPING-STEPS">POST-GROUPING STEPS</h1>
+
+<h2 id="Inferring-exons-from-mRNAs">Inferring exons from mRNAs</h2>
+
+<p>This step always occurs if <b>-use_magic</b> is invoked.</p>
+
+<p>In a typical GenBank entry, the exons are <b>implicit</b>. That is they can be inferred from the mRNA location.</p>
+
+<p>For example:</p>
+
+<pre><code><code>     mRNA            join(20111..20584,20887..23268)</code></code></pre>
+
+<p>This tells us that this particular transcript has two exons. In bioperl, the mRNA feature will have a &#39;split location&#39;.</p>
+
+<p>If we call</p>
+
+<pre><code><code>  <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">feature_from_splitloc</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>This will generate the necessary exon features, and nest them under the appropriate mRNAs. Note that the mRNAs will no longer have split locations - they will have simple locations spanning the extent of the exons. This is intentional, to avoid redundancy.</p>
+
+<p>Occasionally a GenBank entry will have both implicit exons (from the mRNA location) <b>and</b> explicit exon features.</p>
+
+<p>In this case, exons will still be transferred. Tag-value data from the explicit exon will be transfered to the implicit exon. If exons are shared between mRNAs these will be represented by different objects. Any inconsistencies between implicit and explicit will be reported.</p>
+
+<h3 id="tRNAs-and-other-noncoding-RNAs">tRNAs and other noncoding RNAs</h3>
+
+<p>exons will also be generated from these features</p>
+
+<h2 id="Inferring-mRNAs-from-CDS">Inferring mRNAs from CDS</h2>
+
+<p>Some GenBank entries represent gene models using features of type gene, mRNA and CDS; some entries just use gene and CDS.</p>
+
+<p>If we only have gene and CDS, then the containment hierarchies will look like this:</p>
+
+<pre><code><code>  gene
+    CDS</code></code></pre>
+
+<p>If we want the containment hierarchies to be uniform, like this</p>
+
+<pre><code><code>  gene
+    mRNA
+      CDS</code></code></pre>
+
+<p>Then we must create an mRNA feature. This will have identical coordinates to the CDS. The assumption is that there is either no untranslated region, or it is unknown.</p>
+
+<p>To do this, we can call</p>
+
+<pre><code><code>   <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">infer_mRNA_from_CDS</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>This is taken care of automatically, if <b>-use_magic</b> is invoked.</p>
+
+<h1 id="ADVANCED">ADVANCED</h1>
+
+<h2 id="Customising-the-grouping-of-features">Customising the grouping of features</h2>
+
+<p>The default behaviour is suited mostly to building models of protein coding genes and noncoding genes from genbank genomic DNA submissions.</p>
+
+<p>You can change the tag used to partition the feature by passing in a different group_tag argument - see the unflatten_seq() method</p>
+
+<p>Other behaviour may be desirable. For example, even though SNPs (features of type &#39;variation&#39; in GenBank) are not actually part of the gene model, it may be desirable to group SNPs that overlap or are nearby gene models.</p>
+
+<p>It should certainly be possible to extend this module to do this. However, I have yet to code this part!!! If anyone would find this useful let me know.</p>
+
+<p>In the meantime, you could write your own grouping subroutine, and feed the results into unflatten_groups() [see the method documentation below]</p>
+
+<h2 id="Customising-the-resolution-of-the-containment-hierarchy">Customising the resolution of the containment hierarchy</h2>
+
+<p>Once the flat list of features has been partitioned into groups, the method unflatten_group() is called on each group to build a tree.</p>
+
+<p>The algorithm for doing this is described above; ambiguities are resolved by using splice coordinates. As discussed, this can be ambiguous.</p>
+
+<p>Some submissions may contain information in tags/attributes that hint as to the mapping that needs to be made between the features.</p>
+
+<p>For example, with the Drosophila Melanogaster release 3 submission, we see that CDS features in alternately spliced mRNAs have a form like this:</p>
+
+<pre><code><code>     CDS             join(145588..145686,145752..146156,146227..146493)
+                     /locus_tag=&quot;CG32954&quot;
+                     /note=&quot;CG32954 gene product from transcript CG32954-RA&quot;
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     /codon_start=1
+                     /product=&quot;CG32954-PA&quot;
+                     /protein_id=&quot;AAF53403.1&quot;
+                     /db_xref=&quot;GI:7298167&quot;
+                     /db_xref=&quot;FLYBASE:FBgn0052954&quot;
+                     /translation=&quot;MSFTLTNKNVIFVAGLGGIGLDTSKELLKRDLKNLVILDRIENP...&quot;</code></code></pre>
+
+<p>Here the /note tag provides the clue we need to link CDS to mRNA (highlighted with ^^^^). We just need to find the mRNA with the tag</p>
+
+<pre><code><code>  /product=&quot;CG32954-RA&quot;</code></code></pre>
+
+<p>I have no idea how consistent this practice is across submissions; it is consistent for the fruitfly genome submission.</p>
+
+<p>We can customise the behaviour of unflatten_group() by providing our own resolver method. This obviously requires a bit of extra programming, but there is no way to get around this.</p>
+
+<p>Here is an example of how to pass in your own resolver; this example basically checks the parent (container) /product tag to see if it matches the required string in the child (contained) /note tag.</p>
+
+<pre><code><code>       <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">unflatten_seq</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">,</span>
+                                 <span class="string">-group_tag</span><span class="operator">=&gt;</span><span class="string">'locus_tag'</span><span class="operator">,</span>
+                                 <span class="string">-resolver_method</span><span class="operator">=&gt;</span><span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+                                     <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+                                     <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$sf</span><span class="operator">,</span> <span class="variable">@candidate_container_sfs</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+                                     <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$sf</span><span class="operator">-&gt;</span><span class="variable">has_tag</span><span class="operator">(</span><span class="string">'note'</span><span class="operator">))</span> <span class="operator">{</span>
+                                         <span class="keyword">my</span> <span class="variable">@notes</span> <span class="operator">=</span> <span class="variable">$sf</span><span class="operator">-&gt;</span><span class="variable">get_tag_values</span><span class="operator">(</span><span class="string">'note'</span><span class="operator">);</span>
+                                         <span class="keyword">my</span> <span class="variable">@trnames</span> <span class="operator">=</span> <span class="keyword">map</span> <span class="operator">{</span><span class="regex">/from transcript\s+(.*)/</span><span class="operator">;</span>
+                                                            <span class="variable">$1</span><span class="operator">}</span> <span class="variable">@notes</span><span class="operator">;</span>
+                                         <span class="variable">@trnames</span> <span class="operator">=</span> <span class="keyword">grep</span> <span class="operator">{</span><span class="variable">$_</span><span class="operator">}</span> <span class="variable">@trnames</span><span class="operator">;</span>
+                                         <span class="keyword">my</span> <span class="variable">$trname</span><span class="operator">;</span>
+                                         <span class="keyword">if</span> <span class="operator">(</span><span class="variable">@trnames</span> <span class="operator">==</span> <span class="number">0</span><span class="operator">)</span> <span class="operator">{</span>
+                                             <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">throw</span><span class="operator">(</span><span class="string">"UNRESOLVABLE"</span><span class="operator">);</span>
+                                         <span class="operator">}</span>
+                                         <span class="keyword">elsif</span> <span class="operator">(</span><span class="variable">@trnames</span> <span class="operator">==</span> <span class="number">1</span><span class="operator">)</span> <span class="operator">{</span>
+                                             <span class="variable">$trname</span> <span class="operator">=</span> <span class="variable">$trnames</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+                                         <span class="operator">}</span>
+                                         <span class="keyword">else</span> <span class="operator">{</span>
+                                             <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">throw</span><span class="operator">(</span><span class="string">"AMBIGUOUS: </span><span class="variable">@trnames</span><span class="string">"</span><span class="operator">);</span>
+                                         <span class="operator">}</span>
+                                         <span class="keyword">my</span> <span class="variable">@container_sfs</span> <span class="operator">=</span>
+                                           <span class="keyword">grep</span> <span class="operator">{</span>
+                                               <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$product</span><span class="operator">)</span> <span class="operator">=</span>
+                                                 <span class="variable">$_</span><span class="operator">-&gt;</span><span class="variable">has_tag</span><span class="operator">(</span><span class="string">'product'</span><span class="operator">)</span> <span class="operator">?</span>
+                                                   <span class="variable">$_</span><span class="operator">-&gt;</span><span class="variable">get_tag_values</span><span class="operator">(</span><span class="string">'product'</span><span class="operator">)</span> <span class="operator">:</span>
+                                                     <span class="operator">(</span><span class="string">''</span><span class="operator">);</span>
+                                               <span class="variable">$product</span> <span class="keyword">eq</span> <span class="variable">$trname</span><span class="operator">;</span>
+                                           <span class="operator">}</span> <span class="variable">@candidate_container_sfs</span><span class="operator">;</span>
+                                         <span class="keyword">if</span> <span class="operator">(</span><span class="variable">@container_sfs</span> <span class="operator">==</span> <span class="number">0</span><span class="operator">)</span> <span class="operator">{</span>
+                                             <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">throw</span><span class="operator">(</span><span class="string">"UNRESOLVABLE"</span><span class="operator">);</span>
+                                         <span class="operator">}</span>
+                                         <span class="keyword">elsif</span> <span class="operator">(</span><span class="variable">@container_sfs</span> <span class="operator">==</span> <span class="number">1</span><span class="operator">)</span> <span class="operator">{</span>
+                                             <span class="comment"># we got it!</span>
+                                             <span class="keyword">return</span> <span class="variable">$container_sfs</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">;</span>
+                                         <span class="operator">}</span>
+                                         <span class="keyword">else</span> <span class="operator">{</span>
+                                             <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">throw</span><span class="operator">(</span><span class="string">"AMBIGUOUS"</span><span class="operator">);</span>
+                                         <span class="operator">}</span>
+                                     <span class="operator">}</span>
+                                 <span class="operator">});</span>
+</code></code></pre>
+
+<p>the resolver method is only called when there is more than one spliceform.</p>
+
+<h2 id="Parsing-mRNA-records">Parsing mRNA records</h2>
+
+<p>Some of the entries in sequence databanks are for mRNA sequences as well as genomic DNA. We may want to build models from these too.</p>
+
+<p>NOT YET DONE - IN PROGRESS!!!</p>
+
+<p>Open question - what would these look like?</p>
+
+<p>Ideally we would like a way of combining a mRNA record with the corresponding SeFeature entry from the appropriate genomic DNA record. This could be problemmatic in some cases - for example, the mRNA sequences may not match 100% (due to differences in strain, assembly problems, sequencing problems, etc). What then...?</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>Feature table description</p>
+
+<pre><code><code>  http://www.ebi.ac.uk/embl/Documentation/FT_definitions/feature_table.html</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing lists Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                         - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Chris-Mungall">AUTHOR - Chris Mungall</h1>
+
+<p>Email: cjm@fruitfly.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$unflattener</span> <span class="operator">=</span> <span class="variable">Bio::SeqFeature::Tools::Unflattener</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+           <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">unflatten_seq</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">constructor</span>
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::SeqFeature::Tools::Unflattener</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">see</span> <span class="variable">below</span>
+</code></code></pre>
+
+<p>Arguments</p>
+
+<pre><code><code>  <span class="operator">-</span><span class="variable">seq</span>       <span class="operator">:</span> <span class="variable">A</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::SeqI</span><span class="operator">&gt;</span> <span class="variable">object</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+               <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">to</span> <span class="variable">unflatten</span><span class="operator">;</span> <span class="variable">this</span> <span class="variable">can</span> <span class="variable">also</span> <span class="variable">be</span> <span class="variable">passed</span> <span class="variable">in</span>
+               <span class="keyword">when</span> <span class="variable">we</span> <span class="variable">call</span> <span class="variable">unflatten_seq</span><span class="operator">()</span>
+  
+  <span class="operator">-</span><span class="variable">group_tag</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">representing</span> <span class="variable">the</span> <span class="operator">/</span><span class="variable">tag</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">partition</span> <span class="variable">flat</span> <span class="variable">features</span>
+               <span class="operator">(</span><span class="variable">see</span> <span class="variable">discussion</span> <span class="variable">above</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="seq">seq</h2>
+
+<pre><code><code> Title   : seq
+ Usage   : $unflattener-&gt;seq($newval)
+ Function: 
+ Example : 
+ Returns : value of seq (a Bio::SeqI)
+ Args    : on set, new value (a Bio::SeqI, optional)</code></code></pre>
+
+<p>The Bio::SeqI object should hold a flat list of Bio::SeqFeatureI objects; this is the list that will be unflattened.</p>
+
+<p>The sequence object can also be set when we call unflatten_seq()</p>
+
+<h2 id="group_tag">group_tag</h2>
+
+<pre><code><code> Title   : group_tag
+ Usage   : $unflattener-&gt;group_tag($newval)
+ Function: 
+ Example : 
+ Returns : value of group_tag (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<p>This is the tag that will be used to collect elements from the flat feature list into groups; for instance, if we look at two typical GenBank features:</p>
+
+<pre><code><code>     gene            20111..23268
+                     /gene=&quot;noc&quot;
+                     /locus_tag=&quot;CG4491&quot;
+                     /note=&quot;last curated on Thu Dec 13 16:51:32 PST 2001&quot;
+                     /map=&quot;35B2-35B2&quot;
+                     /db_xref=&quot;FLYBASE:FBgn0005771&quot;
+     mRNA            join(20111..20584,20887..23268)
+                     /gene=&quot;noc&quot;
+                     /locus_tag=&quot;CG4491&quot;
+                     /product=&quot;CG4491-RA&quot;
+                     /db_xref=&quot;FLYBASE:FBgn0005771&quot;</code></code></pre>
+
+<p>We can see that these comprise the same gene model because they share the same /gene attribute; we want to collect these together in groups.</p>
+
+<p>Setting group_tag is optional. The default is to use &#39;gene&#39;. In the example above, we could also use /locus_tag</p>
+
+<h2 id="partonomy">partonomy</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">partonomy</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">partonomy</span><span class="operator">(</span><span class="operator">{</span><span class="string">mRNA</span><span class="operator">=&gt;</span><span class="string">'gene'</span><span class="operator">,</span> <span class="string">CDS</span><span class="operator">=&gt;</span><span class="string">'mRNA'</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> 
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">partonomy</span> <span class="operator">(</span><span class="variable">a</span> <span class="keyword">scalar</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">on</span> <span class="variable">set</span><span class="operator">,</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">a</span> <span class="keyword">scalar</span> <span class="keyword">or</span> <span class="keyword">undef</span><span class="operator">,</span> <span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<p>A hash representing the containment structure that the seq_feature nesting should conform to; each key represents the contained (child) type; each value represents the container (parent) type.</p>
+
+<h2 id="structure_type">structure_type</h2>
+
+<pre><code><code> Title   : structure_type
+ Usage   : $unflattener-&gt;structure_type($newval)
+ Function: 
+ Example : 
+ Returns : value of structure_type (a scalar)
+ Args    : on set, new value (an int or undef, optional)</code></code></pre>
+
+<p>GenBank entries conform to different flavours, or <b>structure types</b>. Some have mRNAs, some do not.</p>
+
+<p>Right now there are only two base structure types defined. If you set the structure type, then appropriate unflattening action will be taken. The presence or absence of explicit exons does not affect the structure type.</p>
+
+<p>If you invoke <b>-use_magic</b> then this will be set automatically, based on the content of the record.</p>
+
+<dl>
+
+<dt id="Type-0-DEFAULT-">Type 0 (DEFAULT)</dt>
+<dd>
+
+<p>typically contains</p>
+
+<pre><code><code>  source
+  gene
+  mRNA
+  CDS</code></code></pre>
+
+<p>with this structure type, we want the seq_features to be nested like this</p>
+
+<pre><code><code>  gene
+    mRNA
+    CDS
+      exon</code></code></pre>
+
+<p>exons and introns are implicit from the mRNA &#39;join&#39; location</p>
+
+<p>to get exons from the mRNAs, you will need this call (see below)</p>
+
+<pre><code><code>  <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">feature_from_splitloc</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="Type-1">Type 1</dt>
+<dd>
+
+<p>typically contains</p>
+
+<pre><code><code>  source
+  gene
+  CDS
+  exon [optional]
+  intron [optional]</code></code></pre>
+
+<p>there are no mRNA features</p>
+
+<p>with this structure type, we want the seq_features to be nested like this</p>
+
+<pre><code><code>  gene
+    CDS
+      exon
+      intron</code></code></pre>
+
+<p>exon and intron may or may not be present; they may be implicit from the CDS &#39;join&#39; location</p>
+
+</dd>
+</dl>
+
+<h2 id="get_problems">get_problems</h2>
+
+<pre><code><code> Title   : get_problems
+ Usage   : @probs = get_problems()
+ Function: Get the list of problem(s) for this object.
+ Example :
+ Returns : An array of [severity, description] pairs
+ Args    :</code></code></pre>
+
+<p>In the course of unflattening a record, problems may occur. Some of these problems are non-fatal, and can be ignored.</p>
+
+<p>Problems are represented as arrayrefs containing a pair [severity, description]</p>
+
+<p>severity is a number, the higher, the more severe the problem</p>
+
+<p>the description is a text string</p>
+
+<h2 id="clear_problems">clear_problems</h2>
+
+<pre><code><code> Title   : clear_problems
+ Usage   :
+ Function: resets the problem list to empty
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="report_problems">report_problems</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">report_problems</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">report_problems</span><span class="operator">(\</span><span class="variable">*STDERR</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">FileHandle</span> <span class="operator">(</span><span class="variable">defaults</span> <span class="variable">to</span> <span class="variable">STDERR</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="ignore_problems">ignore_problems</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">ignore_problems</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">ignore_problems</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<p>Unflattener is very particular about problems it finds along the way. If you have set the error_threshold such that less severe problems do not cause exceptions, Unflattener still expects you to report_problems() at the end, so that the user of the module is aware of any inconsistencies or problems with the data. In fact, a warning will be produced if there are unreported problems. To silence, this warning, call the ignore_problems() method before the Unflattener object is destroyed.</p>
+
+<h2 id="error_threshold">error_threshold</h2>
+
+<pre><code><code> Title   : error_threshold
+ Usage   : $obj-&gt;error_threshold($severity)
+ Function: 
+ Example : 
+ Returns : value of error_threshold (a scalar)
+ Args    : on set, new value (an integer)</code></code></pre>
+
+<p>Sets the threshold above which errors cause this module to throw an exception. The default is 0; all problems with a severity &gt; 0 will cause an exception.</p>
+
+<p>If you raise the threshold to 1, then the unflattening process will be more lax; problems of severity==1 are generally non-fatal, but may indicate that the results should be inspected, for example, to make sure there is no data loss.</p>
+
+<h2 id="unflatten_seq">unflatten_seq</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">unflatten_seq</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@sfs</span> <span class="operator">=</span> <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">unflatten_seq</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">turns</span> <span class="variable">a</span> <span class="variable">flat</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">features</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">holder</span> <span class="variable">features</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">objects</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">see</span> <span class="variable">below</span>
+</code></code></pre>
+
+<p>partitions a list of features then arranges them in a nested tree; see above for full explanation.</p>
+
+<p>note - the Bio::SeqI object passed in will be modified</p>
+
+<p>Arguments</p>
+
+<pre><code><code>  <span class="operator">-</span><span class="variable">seq</span>   <span class="operator">:</span>          <span class="variable">a</span> <span class="variable">Bio::SeqI</span> <span class="variable">object</span><span class="operator">;</span> <span class="variable">must</span> <span class="variable">contain</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">objects</span>
+                    <span class="operator">(</span><span class="variable">this</span> <span class="variable">is</span> <span class="variable">optional</span> <span class="keyword">if</span> <span class="variable">seq</span> <span class="variable">has</span> <span class="variable">already</span> <span class="variable">been</span> <span class="variable">set</span><span class="operator">)</span>
+  
+  <span class="operator">-</span><span class="variable">use_magic</span><span class="operator">:</span>       <span class="keyword">if</span> <span class="variable">TRUE</span> <span class="operator">(</span><span class="variable">ie</span> <span class="variable">non</span><span class="operator">-</span><span class="variable">zero</span><span class="operator">)</span> <span class="variable">then</span> <span class="variable">magic</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">invoked</span><span class="operator">;</span>
+                    <span class="variable">see</span> <span class="variable">discussion</span> <span class="variable">above</span><span class="operator">.</span>
+  
+  <span class="operator">-</span><span class="variable">resolver_method</span><span class="operator">:</span> <span class="variable">a</span> <span class="variable">CODE</span> <span class="variable">reference</span>
+                    <span class="variable">see</span> <span class="variable">the</span> <span class="variable">documentation</span> <span class="variable">above</span> <span class="keyword">for</span> <span class="variable">an</span> <span class="variable">example</span> <span class="variable">of</span>
+                    <span class="variable">a</span> <span class="variable">subroutine</span> <span class="variable">that</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">resolve</span> <span class="variable">hierarchies</span>
+                    <span class="variable">within</span> <span class="variable">groups</span><span class="operator">.</span>
+  
+                    <span class="variable">this</span> <span class="variable">is</span> <span class="variable">optional</span> <span class="operator">-</span> <span class="keyword">if</span> <span class="variable">nothing</span> <span class="variable">is</span> <span class="variable">supplied</span><span class="operator">,</span> <span class="variable">a</span> <span class="keyword">default</span>
+                    <span class="variable">subroutine</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">used</span> <span class="operator">(</span><span class="variable">see</span> <span class="variable">below</span><span class="operator">)</span>
+  
+  <span class="operator">-</span><span class="variable">group_tag</span><span class="operator">:</span>       <span class="variable">a</span> <span class="variable">string</span>
+                    <span class="operator">[</span> <span class="variable">see</span> <span class="variable">the</span> <span class="variable">group_tag</span><span class="operator">()</span> <span class="variable">method</span> <span class="operator">]</span>
+                    <span class="variable">this</span> <span class="variable">overrides</span> <span class="variable">the</span> <span class="keyword">default</span> <span class="variable">group_tag</span> <span class="variable">which</span> <span class="variable">is</span> <span class="string">'gene'</span>
+</code></code></pre>
+
+<h2 id="unflatten_groups">unflatten_groups</h2>
+
+<pre><code><code> Title   : unflatten_groups
+ Usage   :
+ Function: iterates over groups, calling unflatten_group() [see below]
+ Example :
+ Returns : list of Bio::SeqFeatureI objects that are holders
+ Args    : see below</code></code></pre>
+
+<p>Arguments</p>
+
+<pre><code><code>  <span class="operator">-</span><span class="variable">groups</span><span class="operator">:</span>          <span class="variable">list</span> <span class="variable">of</span> <span class="variable">list</span> <span class="variable">references</span><span class="operator">;</span> <span class="variable">inner</span> <span class="variable">list</span> <span class="variable">is</span> <span class="variable">of</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">objects</span>
+                    <span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.</span>  <span class="operator">(</span> <span class="operator">[</span><span class="variable">$sf1</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">[</span><span class="variable">$sf2</span><span class="operator">,</span> <span class="variable">$sf3</span><span class="operator">,</span> <span class="variable">$sf4</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">[</span><span class="variable">$sf5</span><span class="operator">,</span> <span class="operator">...</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">...)</span>
+  
+  <span class="operator">-</span><span class="variable">resolver_method</span><span class="operator">:</span> <span class="variable">a</span> <span class="variable">CODE</span> <span class="variable">reference</span>
+                    <span class="variable">see</span> <span class="variable">the</span> <span class="variable">documentation</span> <span class="variable">above</span> <span class="keyword">for</span> <span class="variable">an</span> <span class="variable">example</span> <span class="variable">of</span>
+                    <span class="variable">a</span> <span class="variable">subroutine</span> <span class="variable">that</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">resolve</span> <span class="variable">hierarchies</span>
+                    <span class="variable">within</span> <span class="variable">groups</span><span class="operator">.</span>
+  
+                    <span class="variable">this</span> <span class="variable">is</span> <span class="variable">optional</span> <span class="operator">-</span> <span class="variable">a</span> <span class="keyword">default</span> <span class="variable">subroutine</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">used</span>
+</code></code></pre>
+
+<p>NOTE: You should not need to call this method, unless you want fine grained control over how the unflattening process.</p>
+
+<h2 id="unflatten_group">unflatten_group</h2>
+
+<pre><code><code> Title   : unflatten_group
+ Usage   :
+ Function: nests a group of features into a feature containment hierarchy
+ Example :
+ Returns : Bio::SeqFeatureI objects that holds other features
+ Args    : see below</code></code></pre>
+
+<p>Arguments</p>
+
+<pre><code><code>  -group:           reference to list of Bio::SeqFeatureI objects
+
+  -resolver_method: a CODE reference
+                    see the documentation above for an example of
+                    a subroutine that can be used to resolve hierarchies
+                    within groups
+
+                    this is optional - a default subroutine will be used</code></code></pre>
+
+<p>NOTE: You should not need to call this method, unless you want fine grained control over how the unflattening process.</p>
+
+<h2 id="feature_from_splitloc">feature_from_splitloc</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">feature_from_splitloc</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$unflattener</span><span class="operator">-&gt;</span><span class="variable">feature_from_splitloc</span><span class="operator">(</span><span class="string">-features</span><span class="operator">=&gt;</span><span class="variable">$sfs</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">see</span> <span class="variable">below</span>
+</code></code></pre>
+
+<p>At this time all this method does is generate exons for mRNA or other RNA features</p>
+
+<p>Arguments:</p>
+
+<pre><code><code>  -feature:    a Bio::SeqFeatureI object (that conforms to Bio::FeatureHolderI)
+  -seq:        a Bio::SeqI object that contains Bio::SeqFeatureI objects
+  -features:   an arrayref of Bio::SeqFeatureI object</code></code></pre>
+
+<h2 id="infer_mRNA_from_CDS">infer_mRNA_from_CDS</h2>
+
+<pre><code><code> Title   : infer_mRNA_from_CDS
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<p>given a &quot;type 1&quot; containment hierarchy</p>
+
+<pre><code><code>  gene
+    CDS
+      exon</code></code></pre>
+
+<p>this will infer the uniform &quot;type 0&quot; containment hierarchy</p>
+
+<pre><code><code>  gene
+    mRNA
+      CDS
+      exon</code></code></pre>
+
+<p>all the children of the CDS will be moved to the mRNA</p>
+
+<p>a &quot;type 2&quot; containment hierarchy is mixed type &quot;0&quot; and &quot;1&quot; (for example, see ftp.ncbi.nih.gov/genomes/Schizosaccharomyces_pombe/)</p>
+
+<h2 id="remove_types">remove_types</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">remove_types</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$unf</span><span class="operator">-&gt;</span><span class="variable">remove_types</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">,</span> <span class="string">-types</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">"mRNA"</span><span class="operator">]</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<p>removes features of a set type</p>
+
+<p>useful for pre-filtering a genbank record; eg to get rid of STSs</p>
+
+<p>also, there is no way to unflatten ftp.ncbi.nih.gov/genomes/Schizosaccharomyces_pombe/ UNLESS the bogus mRNAs in these records are removed (or changed to a different type) - they just confuse things too much</p>
+
+
+</body>
+
+</html>
+
+

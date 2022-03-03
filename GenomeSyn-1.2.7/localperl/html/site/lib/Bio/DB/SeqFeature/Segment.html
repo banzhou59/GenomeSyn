@@ -1,0 +1,332 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#PUBLIC-METHODS">PUBLIC METHODS</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#features">features</a></li>
+      <li><a href="#get_seq_stream">get_seq_stream</a></li>
+      <li><a href="#store">store</a></li>
+      <li><a href="#primary_tag-type-">primary_tag, type,</a></li>
+      <li><a href="#as_string">as_string</a></li>
+      <li><a href="#rel2abs">rel2abs</a></li>
+      <li><a href="#abs2rel">abs2rel</a></li>
+      <li><a href="#Bio::SeqFeatureI-compatibility-methods">Bio::SeqFeatureI compatibility methods</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::SeqFeature::Segment -- Location-based access to genome annotation data</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">Bio::DB::SeqFeature::Store</span><span class="operator">;</span>
+ <span class="comment"># Open the sequence database</span>
+ <span class="keyword">my</span> <span class="variable">$db</span>      <span class="operator">=</span> <span class="variable">Bio::DB::SeqFeature::Store</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-adaptor</span> <span class="operator">=&gt;</span> <span class="string">'DBI::mysql'</span><span class="operator">,</span>
+                                                <span class="string">-dsn</span>     <span class="operator">=&gt;</span> <span class="string">'dbi:mysql:test'</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">$segment</span>  <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">segment</span><span class="operator">(</span><span class="string">'Chr1'</span><span class="operator">,</span><span class="number">5000</span><span class="operator">=&gt;</span><span class="number">6000</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$segment</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">'mRNA'</span><span class="operator">,</span><span class="string">'match'</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>The segment object simplifies access to Bio::DB::SeqFeature store by acting as a placeholder for a region of the genome. You can replace this statement:</p>
+
+<pre><code><code> <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">-seq_id</span><span class="operator">=&gt;</span><span class="string">'Chr1'</span><span class="operator">,</span>
+                           <span class="string">-start</span><span class="operator">=&gt;</span><span class="number">5000</span><span class="operator">,</span>
+                           <span class="string">-end</span><span class="operator">=&gt;</span><span class="number">6000</span><span class="operator">,</span>
+                           <span class="string">-types</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">'mRNA'</span><span class="operator">,</span><span class="string">'match'</span><span class="operator">,</span><span class="string">'repeat_region'</span><span class="operator">]</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>with these statements:</p>
+
+<pre><code><code> <span class="variable">$segment</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">segment</span><span class="operator">(</span><span class="string">'Chr1'</span><span class="operator">,</span><span class="number">5000</span><span class="operator">=&gt;</span><span class="number">6000</span><span class="operator">);</span>
+ <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$segment</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">'mRNA'</span><span class="operator">,</span><span class="string">'match'</span><span class="operator">,</span><span class="string">'repeat_region'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>You can also initialize a segment from an existing SeqFeature object. The range will be picked up from the SeqFeature boundaries:</p>
+
+<pre><code><code> <span class="variable">$segment</span> <span class="operator">=</span> <span class="variable">Bio::DB::SeqFeature::Segment</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">$feature</span><span class="operator">);</span>        <span class="comment"># for Bio::DB::SeqFeature</span>
+ <span class="variable">$segment</span> <span class="operator">=</span> <span class="variable">Bio::DB::SeqFeature::Segment</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">$feature</span><span class="operator">,</span><span class="variable">$store</span><span class="operator">);</span> <span class="comment"># for other Bio::SeqFeatureI objects</span>
+</code></code></pre>
+
+<p>The segment object implements the full Bio::SeqFeature::CollectionI interface, thereby allowing you to iterate over all features in the range.</p>
+
+<h1 id="PUBLIC-METHODS">PUBLIC METHODS</h1>
+
+<p>The following are public methods intended for external use.</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : $segment = Bio::DB::SeqFeature::Segment-&gt;new(@options)
+ Function: create a new Segment object
+ Returns : A Bio::DB::SeqFeature::Segment object
+ Args    : several - see below
+ Status  : public</code></code></pre>
+
+<p>This class method creates a Bio::DB::SeqFeature::Segment object. You must provide a Bio::DB::SeqFeature::Store as well as the coordinates of the segment. These arguments can be provided explicitly or indirectly.</p>
+
+<p>First form:</p>
+
+<pre><code><code> $segment = Bio::DB::SeqFeature::Segment-&gt;new($store,$seqid,$start,$end,$strand)</code></code></pre>
+
+<p>In this form a segment is defined by a Bio::DB::SeqFeature::Store, the sequence ID, the start, end and strand. This is the form that is invoked internally by Bio::DB::SeqFeature::Store when you call its segment() method.</p>
+
+<p>Second form:</p>
+
+<pre><code><code> <span class="variable">$segment</span> <span class="operator">=</span> <span class="variable">Bio::DB::SeqFeature::Segment</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">$seqfeature</span> <span class="operator">[</span><span class="operator">,</span><span class="variable">$store</span><span class="operator">]</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>In this form, you pass new() a Bio::SeqFeatureI object. The segment is constructed from the seq_id and coordinates are taken from the object. If you pass a store-aware seqfeature object (e.g. Bio::DB::SeqFeature) then the store database is also derived from the feature. Otherwise you will have to pass the store as a second argument.</p>
+
+<h2 id="features">features</h2>
+
+<pre><code><code> Title   : features
+ Usage   : @features = $segment-&gt;features(@args)
+ Function: fetch seqfeatures that overlap the segment
+ Returns : list of features
+ Args    : see below
+ Status  : Public</code></code></pre>
+
+<p>This is the workhorse for feature query and retrieval. It takes a series of -name=&gt;$value arguments filter arguments. Features that match all the filters are returned.</p>
+
+<pre><code><code>  Argument       Value
+  --------       -----
+
+ Location filters:
+  -strand        Strand
+  -range_type    Type of range match (&#39;overlaps&#39;,&#39;contains&#39;,&#39;contained_in&#39;)
+
+ Name filters:
+  -name          Name of feature (may be a glob expression)
+  -aliases       If true, match aliases as well as display names
+  -class         Archaic argument for backward compatibility.
+                  (-class=&gt;&#39;Clone&#39;,-name=&gt;&#39;ABC123&#39;) is equivalent
+                  to (-name=&gt;&#39;Clone:ABC123&#39;)
+
+ Type filters:
+  -types         List of feature types (array reference) or one type (scalar)
+  -type          Synonym for the above
+  -primary_tag   Synonym for the above
+
+  -attributes    Hashref of attribute=&gt;value pairs as per
+                    get_features_by_attribute(). Multiple alternative values
+                    can be matched by providing an array reference.
+  -attribute     synonym for -attributes</code></code></pre>
+
+<p>This is identical to the Bio::DB::SeqFeature::Store-&gt;features() method, except that the -seq_id, -start, and -end arguments are provided by the segment object. If a simple list of arguments is provided, then the list is taken to be the set of feature types (primary tags) to filter on.</p>
+
+<p>Examples:</p>
+
+<p>All features that overlap the current segment:</p>
+
+<pre><code><code> <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$segment</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>All features of type mRNA that overlap the current segment:</p>
+
+<pre><code><code> <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$segment</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">'mRNA'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>All features that are completely contained within the current segment:</p>
+
+<pre><code><code> <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$segment</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">-range_type</span><span class="operator">=&gt;</span><span class="string">'contains'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>All &quot;confirmed&quot; mRNAs that overlap the current segment:</p>
+
+<pre><code><code> <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$segment</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">-attributes</span><span class="operator">=&gt;</span><span class="operator">{</span><span class="string">confirmed</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">}</span><span class="operator">,</span><span class="string">-type</span><span class="operator">=&gt;</span><span class="string">'mRNA'</span><span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="get_seq_stream">get_seq_stream</h2>
+
+<pre><code><code> Title   : get_seq_stream
+ Usage   : $iterator = $segment-&gt;get_seq_stream(@args)
+ Function: return an iterator across all features in the database
+ Returns : a Bio::DB::SeqFeature::Store::Iterator object
+ Args    : (optional) the feature() method
+ Status  : public</code></code></pre>
+
+<p>This is identical to Bio::DB::SeqFeature::Store-&gt;get_seq_stream() except that the location filter is always automatically applied so that the iterator you receive returns features that overlap the segment&#39;s region.</p>
+
+<p>When called without any arguments this method will return an iterator object that will traverse all indexed features in the database that overlap the segment&#39;s region. Call the iterator&#39;s next_seq() method to step through them (in no particular order):</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$iterator</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_seq_stream</span><span class="operator">;</span>
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$iterator</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">print</span> <span class="variable">$feature</span><span class="operator">-&gt;</span><span class="variable">primary_tag</span><span class="operator">,</span><span class="string">' '</span><span class="operator">,</span><span class="variable">$feature</span><span class="operator">-&gt;</span><span class="variable">display_name</span><span class="operator">,</span><span class="string">"\n"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>You can select a subset of features by passing a series of filter arguments. The arguments are identical to those accepted by $segment-&gt;features().</p>
+
+<p>get_feature_stream() ican be used as a synonym for this method.</p>
+
+<h2 id="store">store</h2>
+
+<pre><code><code> Title   : store
+ Usage   : $store = $segment-&gt;store
+ Function: return the Bio::DB::SeqFeature::Store object associated with the segment
+ Returns : a Bio::DB::SeqFeature::Store: object
+ Args    : none
+ Status  : public</code></code></pre>
+
+<h2 id="primary_tag-type-">primary_tag, type,</h2>
+
+<pre><code><code> Title   : primary_tag,type
+ Usage   : $primary_tag = $segment-&gt;primary_tag
+ Function: returns the string &quot;region&quot;
+ Returns : &quot;region&quot;
+ Args    : none
+ Status  : public</code></code></pre>
+
+<p>The primary_tag method returns the constant tag &quot;region&quot;. type() is a synonym for this method.</p>
+
+<h2 id="as_string">as_string</h2>
+
+<pre><code><code> Title   : as_string
+ Usage   : $name = $segment-&gt;as_string
+ Function: expands the object into a human-readable string
+ Returns : &quot;seq_id:start..end&quot;
+ Args    : none
+ Status  : public</code></code></pre>
+
+<p>The as_string() method is overloaded into the &quot;&quot; operator so that the object is represented as a human readable string in the form &quot;seq_id:start..end&quot; when used in a string context.</p>
+
+<h2 id="rel2abs">rel2abs</h2>
+
+<pre><code><code> Title   : rel2abs
+ Usage   : @coords = $s-&gt;rel2abs(@coords)
+ Function: convert relative coordinates into absolute coordinates
+ Returns : a list of absolute coordinates
+ Args    : a list of relative coordinates
+ Status  : Public</code></code></pre>
+
+<p>This function takes a list of positions in relative coordinates to the segment, and converts them into absolute coordinates.</p>
+
+<h2 id="abs2rel">abs2rel</h2>
+
+<pre><code><code> Title   : abs2rel
+ Usage   : @rel_coords = $s-&gt;abs2rel(@abs_coords)
+ Function: convert absolute coordinates into relative coordinates
+ Returns : a list of relative coordinates
+ Args    : a list of absolute coordinates
+ Status  : Public</code></code></pre>
+
+<p>This function takes a list of positions in absolute coordinates and returns a list expressed in relative coordinates.</p>
+
+<h2 id="Bio::SeqFeatureI-compatibility-methods">Bio::SeqFeatureI compatibility methods</h2>
+
+<p>For convenience, segments are interchangeable with Bio::SeqFeature objects in many cases. This means that segments can be passed to BioPerl modules that expect Bio::SeqFeature objects and they should work as expected. The primary tag of segment objects is &quot;region&quot; (SO:0000001 &quot;Continous sequence &gt;=1 base pair&quot;).</p>
+
+<p>All these methods are read-only except for the primary_id, which can be get or set.</p>
+
+<p>The following Bio::SeqFeatureI methods are supported:</p>
+
+<dl>
+
+<dt id="start">start</dt>
+<dd>
+
+</dd>
+<dt id="end">end</dt>
+<dd>
+
+</dd>
+<dt id="seq_id">seq_id</dt>
+<dd>
+
+</dd>
+<dt id="strand">strand</dt>
+<dd>
+
+</dd>
+<dt id="length">length</dt>
+<dd>
+
+</dd>
+<dt id="display_name">display_name</dt>
+<dd>
+
+</dd>
+<dt id="primary_id">primary_id</dt>
+<dd>
+
+</dd>
+<dt id="primary_tag-always-returns-region-">primary_tag (always returns &quot;region&quot;)</dt>
+<dd>
+
+</dd>
+<dt id="source_tag-always-returns-Bio::DB::SeqFeature::Segment-">source_tag (always returns &quot;Bio::DB::SeqFeature::Segment&quot;)</dt>
+<dd>
+
+</dd>
+<dt id="get_SeqFeatures-always-returns-an-empty-list-">get_SeqFeatures (always returns an empty list)</dt>
+<dd>
+
+</dd>
+<dt id="seq">seq</dt>
+<dd>
+
+</dd>
+<dt id="entire_seq">entire_seq</dt>
+<dd>
+
+</dd>
+<dt id="location">location</dt>
+<dd>
+
+</dd>
+<dt id="All-Bio::RangeI-methods">All Bio::RangeI methods</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>This is an early version, so there are certainly some bugs. Please use the BioPerl bug tracking system to report bugs.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a>bioperl</a>, <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Store.html">Bio::DB::SeqFeature::Store</a>, <a>Bio::DB::SeqFeature::GFF3Loader</a>, <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Store/DBI/mysql.html">Bio::DB::SeqFeature::Store::DBI::mysql</a>, <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Store/bdb.html">Bio::DB::SeqFeature::Store::bdb</a></p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Lincoln Stein &lt;lstein@cshl.org&gt;.</p>
+
+<p>Copyright (c) 2006 Cold Spring Harbor Laboratory.</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

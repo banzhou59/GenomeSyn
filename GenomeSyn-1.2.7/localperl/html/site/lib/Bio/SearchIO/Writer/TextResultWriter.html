@@ -1,0 +1,316 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#to_string">to_string</a></li>
+      <li><a href="#start_report">start_report</a></li>
+      <li><a href="#default_start_report">default_start_report</a></li>
+      <li><a href="#title">title</a></li>
+      <li><a href="#default_title">default_title</a></li>
+      <li><a href="#introduction">introduction</a></li>
+      <li><a href="#default_introduction">default_introduction</a></li>
+      <li><a href="#end_report">end_report</a></li>
+      <li><a href="#id_parser">id_parser</a></li>
+      <li><a href="#default_id_parser">default_id_parser</a></li>
+      <li><a href="#algorithm_reference">algorithm_reference</a></li>
+      <li><a href="#Methods-Bio::SearchIO::SearchWriterI">Methods Bio::SearchIO::SearchWriterI</a></li>
+      <li><a href="#filter">filter</a></li>
+      <li><a href="#no_wublastlinks">no_wublastlinks</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SearchIO::Writer::TextResultWriter - Object to implement writing a Bio::Search::ResultI in Text.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::SearchIO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::SearchIO::Writer::TextResultWriter</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'blast'</span><span class="operator">,</span>
+                             <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="keyword">shift</span> <span class="variable">@ARGV</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$writer</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO::Writer::TextResultWriter</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+  <span class="keyword">my</span> <span class="variable">$out</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-writer</span> <span class="operator">=&gt;</span> <span class="variable">$writer</span><span class="operator">);</span>
+  <span class="variable">$out</span><span class="operator">-&gt;</span><span class="variable">write_result</span><span class="operator">(</span><span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_result</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object implements the SearchWriterI interface which will produce a set of Text for a specific Bio::Search::Report::ReportI interface.</p>
+
+<p>You can also provide the argument -filters =&gt; \%hash to filter the at the hsp, hit, or result level. %hash is an associative array which contains any or all of the keys (HSP, HIT, RESULT). The values pointed to by these keys would be references to a subroutine which expects to be passed an object - one of Bio::Search::HSP::HSPI, Bio::Search::Hit::HitI, and Bio::Search::Result::ResultI respectively. Each function needs to return a boolean value as to whether or not the passed element should be included in the output report - true if it is to be included, false if it to be omitted.</p>
+
+<p>For example to filter on sequences in the database which are too short for your criteria you would do the following.</p>
+
+<p>Define a hit filter method</p>
+
+<pre><code><code>  <span class="keyword">sub</span><span class="variable"> hit_filter </span><span class="operator">{</span> 
+      <span class="keyword">my</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+      <span class="keyword">return</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">length</span> <span class="variable">E</span><span class="operator">&lt;</span><span class="keyword">gt</span><span class="operator">&gt;</span> <span class="number">100</span><span class="operator">;</span> <span class="comment"># test if length of the hit sequence</span>
+                                     <span class="comment"># long enough    </span>
+  <span class="operator">}</span>
+  <span class="keyword">my</span> <span class="variable">$writer</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO::Writer::TextResultWriter</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+       <span class="string">-filters</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'HIT'</span> <span class="operator">=</span><span class="variable">E</span><span class="operator">&lt;</span><span class="keyword">gt</span><span class="operator">&gt;</span> <span class="operator">\&amp;</span><span class="variable">hit_filter</span> <span class="operator">}</span>  
+      <span class="operator">);</span>
+</code></code></pre>
+
+<p>Another example would be to filter HSPs on percent identity, let&#39;s only include HSPs which are 75% identical or better.</p>
+
+<pre><code><code>   <span class="keyword">sub</span><span class="variable"> hsp_filter </span><span class="operator">{</span>
+       <span class="keyword">my</span> <span class="variable">$hsp</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+       <span class="keyword">return</span> <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">percent_identity</span> <span class="variable">E</span><span class="operator">&lt;</span><span class="keyword">gt</span><span class="operator">&gt;</span> <span class="number">75</span><span class="operator">;</span>
+   <span class="operator">}</span>
+   <span class="keyword">my</span> <span class="variable">$writer</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO::Writer::TextResultWriter</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+       <span class="string">-filters</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">'HSP'</span> <span class="operator">=</span><span class="variable">E</span><span class="operator">&lt;</span><span class="keyword">gt</span><span class="operator">&gt;</span> <span class="operator">\&amp;</span><span class="variable">hsp_filter</span> <span class="operator">}</span>  
+      <span class="operator">);</span>
+</code></code></pre>
+
+<p>See <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SearchIO/SearchWriterI.html">Bio::SearchIO::SearchWriterI</a> for more info on the filter method.</p>
+
+<p>This module will use the module Text::Wrap if it is installed to wrap the Query description line. If you do not have Text::Wrap installed this module will work fine but you won&#39;t have the Query line wrapped. You will see a warning about this when you first instantiate a TextResultWriter - to avoid these warnings from showing up, simply set the verbosity upon initialization to -1 like this: my $writer = new Bio::SearchIO::Writer::TextResultWriter(-verbose =&gt; -1);</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich">AUTHOR - Jason Stajich</h1>
+
+<p>Email jason@bioperl.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::SearchIO::Writer::TextResultWriter</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::SearchIO::Writer::TextResultWriter</span> <span class="variable">object</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::SearchIO::Writer::TextResultWriter</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">-filters</span> <span class="operator">=&gt;</span> <span class="variable">hashref</span> <span class="variable">with</span> <span class="variable">any</span> <span class="keyword">or</span> <span class="variable">all</span> <span class="variable">of</span> <span class="variable">the</span> <span class="keyword">keys</span> <span class="operator">(</span><span class="variable">HSP</span> <span class="variable">HIT</span> <span class="variable">RESULT</span><span class="operator">)</span>
+           <span class="variable">which</span> <span class="variable">have</span> <span class="keyword">values</span> <span class="variable">pointing</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">subroutine</span> <span class="variable">reference</span>
+           <span class="variable">which</span> <span class="variable">will</span> <span class="variable">expect</span> <span class="variable">to</span> <span class="variable">get</span> <span class="variable">a</span> <span class="variable">Hit</span><span class="operator">,</span><span class="variable">HSP</span><span class="operator">,</span> <span class="variable">Result</span> <span class="variable">object</span> <span class="variable">respectively</span>
+           <span class="operator">-</span><span class="string">no_wublastlinks</span> <span class="operator">=&gt;</span> <span class="variable">boolean</span><span class="operator">.</span> <span class="variable">Do</span> <span class="keyword">not</span> <span class="variable">display</span> <span class="variable">WU</span><span class="operator">-</span><span class="variable">BLAST</span> <span class="variable">lines</span> <span class="variable">even</span> <span class="keyword">if</span> 
+                               <span class="variable">they</span> <span class="variable">are</span> <span class="variable">parsed</span> <span class="variable">out</span>
+                               <span class="variable">Links</span> <span class="operator">=</span> <span class="operator">(</span><span class="number">1</span><span class="operator">)</span> 
+</code></code></pre>
+
+<h2 id="to_string">to_string</h2>
+
+<pre><code><code> <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Produces</span> <span class="variable">data</span> <span class="keyword">for</span> <span class="keyword">each</span> <span class="variable">Search::Result::ResultI</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">string</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="variable">This</span> <span class="variable">is</span> <span class="variable">an</span> <span class="variable">abstract</span> <span class="variable">method</span><span class="operator">.</span> <span class="variable">For</span> <span class="variable">some</span> <span class="variable">useful</span> <span class="variable">implementations</span><span class="operator">,</span>
+           <span class="operator">:</span> <span class="variable">see</span> <span class="variable">ResultTableWriter</span><span class="operator">.</span><span class="variable">pm</span><span class="operator">,</span> <span class="variable">HitTableWriter</span><span class="operator">.</span><span class="variable">pm</span><span class="operator">,</span> 
+           <span class="operator">:</span> <span class="keyword">and</span> <span class="variable">HSPTableWriter</span><span class="operator">.</span><span class="variable">pm</span><span class="operator">.</span>
+ <span class="variable">Usage</span>     <span class="operator">:</span> <span class="keyword">print</span> <span class="variable">$writer</span><span class="operator">-&gt;</span><span class="variable">to_string</span><span class="operator">(</span> <span class="variable">$result_obj</span><span class="operator">,</span> <span class="variable">@args</span> <span class="operator">);</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="variable">$result_obj</span> <span class="operator">=</span> <span class="variable">A</span> <span class="variable">Bio::Search::Result::ResultI</span> <span class="variable">object</span>
+           <span class="operator">:</span> <span class="variable">@args</span> <span class="operator">=</span> <span class="variable">any</span> <span class="variable">additional</span> <span class="variable">arguments</span> <span class="variable">used</span> <span class="variable">by</span> <span class="variable">your</span> <span class="variable">implementation</span><span class="operator">.</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">String</span> <span class="variable">containing</span> <span class="variable">data</span> <span class="keyword">for</span> <span class="keyword">each</span> <span class="variable">search</span> <span class="variable">Result</span> <span class="keyword">or</span> <span class="variable">any</span> <span class="variable">of</span> <span class="variable">its</span>
+           <span class="operator">:</span> <span class="variable">sub</span><span class="operator">-</span><span class="variable">objects</span> <span class="operator">(</span><span class="variable">Hits</span> <span class="keyword">and</span> <span class="variable">HSPs</span><span class="operator">).</span>
+ <span class="variable">Throws</span>    <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+</code></code></pre>
+
+<h2 id="start_report">start_report</h2>
+
+<pre><code><code>  Title   : start_report
+  Usage   : $index-&gt;start_report( CODE )
+  Function: Stores or returns the code to
+            write the start of the &lt;HTML&gt; block, the &lt;TITLE&gt; block
+            and the start of the &lt;BODY&gt; block of HTML.   Useful
+            for (for instance) specifying alternative
+            HTML if you are embedding the output in
+            an HTML page which you have already started.
+            (For example a routine returning a null string).
+            Returns \&amp;default_start_report (see below) if not
+            set. 
+  Example : $index-&gt;start_report( \&amp;my_start_report )
+  Returns : ref to CODE if called without arguments
+  Args    : CODE</code></code></pre>
+
+<h2 id="default_start_report">default_start_report</h2>
+
+<pre><code><code> Title   : default_start_report
+ Usage   : $self-&gt;default_start_report($result)
+ Function: The default method to call when starting a report.
+ Returns : sting
+ Args    : First argument is a Bio::Search::Result::ResultI</code></code></pre>
+
+<h2 id="title">title</h2>
+
+<pre><code><code> Title   : title
+ Usage   : $self-&gt;title($CODE)
+
+  Function: Stores or returns the code to provide HTML for the given
+            BLAST report that will appear at the top of the BLAST report
+            HTML output.  Useful for (for instance) specifying
+            alternative routines to write your own titles.
+            Returns \&amp;default_title (see below) if not
+            set. 
+  Example : $index-&gt;title( \&amp;my_title )
+  Returns : ref to CODE if called without arguments
+  Args    : CODE</code></code></pre>
+
+<h2 id="default_title">default_title</h2>
+
+<pre><code><code> Title   : default_title
+ Usage   : $self-&gt;default_title($result)
+ Function: Provides HTML for the given BLAST report that will appear
+           at the top of the BLAST report output.
+ Returns : empty for text implementation
+ Args    : First argument is a Bio::Search::Result::ResultI</code></code></pre>
+
+<h2 id="introduction">introduction</h2>
+
+<pre><code><code> Title   : introduction
+ Usage   : $self-&gt;introduction($CODE)
+
+  Function: Stores or returns the code to provide HTML for the given
+            BLAST report detailing the query and the
+            database information.
+            Useful for (for instance) specifying
+            routines returning alternative introductions.
+            Returns \&amp;default_introduction (see below) if not
+            set. 
+  Example : $index-&gt;introduction( \&amp;my_introduction )
+  Returns : ref to CODE if called without arguments
+  Args    : CODE</code></code></pre>
+
+<h2 id="default_introduction">default_introduction</h2>
+
+<pre><code><code> Title   : default_introduction
+ Usage   : $self-&gt;default_introduction($result)
+ Function: Outputs HTML to provide the query
+           and the database information
+ Returns : string containing HTML
+ Args    : First argument is a Bio::Search::Result::ResultI
+           Second argument is string holding literature citation</code></code></pre>
+
+<h2 id="end_report">end_report</h2>
+
+<pre><code><code> Title   : end_report
+ Usage   : $self-&gt;end_report()
+ Function: The method to call when ending a report, this is
+           mostly for cleanup for formats which require you to 
+           have something at the end of the document (&lt;/BODY&gt;&lt;/HTML&gt;)
+           for HTML
+ Returns : string
+ Args    : none</code></code></pre>
+
+<h2 id="id_parser">id_parser</h2>
+
+<pre><code><code>  Title   : id_parser
+  Usage   : $index-&gt;id_parser( CODE )
+  Function: Stores or returns the code used by record_id to
+            parse the ID for record from a string.  Useful
+            for (for instance) specifying a different
+            parser for different flavours of FASTA file. 
+            Returns \&amp;default_id_parser (see below) if not
+            set. If you supply your own id_parser
+            subroutine, then it should expect a fasta
+            description line.  An entry will be added to
+            the index for each string in the list returned.
+  Example : $index-&gt;id_parser( \&amp;my_id_parser )
+  Returns : ref to CODE if called without arguments
+  Args    : CODE</code></code></pre>
+
+<h2 id="default_id_parser">default_id_parser</h2>
+
+<pre><code><code>  Title   : default_id_parser
+  Usage   : $id = default_id_parser( $header )
+  Function: The default Fasta ID parser for Fasta.pm
+            Returns $1 from applying the regexp /^&gt;\s*(\S+)/
+            to $header.
+  Returns : ID string
+  Args    : a fasta header line string</code></code></pre>
+
+<h2 id="algorithm_reference">algorithm_reference</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">algorithm_reference</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$reference</span> <span class="operator">=</span> <span class="variable">$writer</span><span class="operator">-&gt;</span><span class="variable">algorithm_reference</span><span class="operator">(</span><span class="variable">$result</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="variable">appropriate</span> <span class="variable">Bibliographic</span> <span class="variable">reference</span> <span class="keyword">for</span> <span class="variable">the</span> 
+           <span class="variable">algorithm</span> <span class="keyword">format</span> <span class="variable">being</span> <span class="variable">produced</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">String</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Search::Result::ResultI</span><span class="operator">&gt;</span> <span class="variable">to</span> <span class="variable">reference</span>
+</code></code></pre>
+
+<h2 id="Methods-Bio::SearchIO::SearchWriterI">Methods Bio::SearchIO::SearchWriterI</h2>
+
+<p><a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SearchIO/SearchWriterI.html">Bio::SearchIO::SearchWriterI</a> inherited methods.</p>
+
+<h2 id="filter">filter</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">filter</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$writer</span><span class="operator">-&gt;</span><span class="variable">filter</span><span class="operator">(</span><span class="string">'hsp'</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">hsp_filter</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Filter</span> <span class="variable">out</span> <span class="variable">either</span> <span class="variable">at</span> <span class="variable">HSP</span><span class="operator">,</span><span class="variable">Hit</span><span class="operator">,</span><span class="keyword">or</span> <span class="variable">Result</span> <span class="variable">level</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="string">string</span> <span class="operator">=&gt;</span> <span class="variable">data</span> <span class="variable">type</span><span class="operator">,</span>
+           <span class="variable">CODE</span> <span class="variable">reference</span>
+</code></code></pre>
+
+<h2 id="no_wublastlinks">no_wublastlinks</h2>
+
+<pre><code><code> Title   : no_wublastlinks
+ Usage   : $obj-&gt;no_wublastlinks($newval)
+ Function: Get/Set boolean value regarding whether or not to display
+           Link = (1) 
+           type output in the report output (WU-BLAST only)
+ Returns : boolean
+ Args    : on set, new boolean value (a scalar or undef, optional)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

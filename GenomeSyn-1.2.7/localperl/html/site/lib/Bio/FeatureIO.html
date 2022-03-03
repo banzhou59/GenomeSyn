@@ -1,0 +1,371 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#SUPPORTED-FORMATS">SUPPORTED FORMATS</a></li>
+  <li><a href="#CONSTRUCTORS">CONSTRUCTORS</a>
+    <ul>
+      <li><a href="#Bio::FeatureIO-new-">Bio::FeatureIO-&gt;new()</a></li>
+      <li><a href="#Bio::FeatureIO-newFh-">Bio::FeatureIO-&gt;newFh()</a></li>
+    </ul>
+  </li>
+  <li><a href="#OBJECT-METHODS">OBJECT METHODS</a>
+    <ul>
+      <li><a href="#feature-featureIO-next_feature-">$feature = $featureIO-&gt;next_feature()</a></li>
+      <li><a href="#featureIO-write_feature-feature-another_feature-...-">$featureIO-&gt;write_feature($feature [,$another_feature,...])</a></li>
+      <li><a href="#TIEHANDLE-READLINE-PRINT-">TIEHANDLE(), READLINE(), PRINT()</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Allen-Day">AUTHOR - Allen Day</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#newFh">newFh</a></li>
+      <li><a href="#fh1">fh</a></li>
+      <li><a href="#next_feature">next_feature</a></li>
+      <li><a href="#write_feature">write_feature</a></li>
+      <li><a href="#load_format_module">_load_format_module</a></li>
+      <li><a href="#seq">seq</a></li>
+      <li><a href="#filehandle">_filehandle</a></li>
+      <li><a href="#guess_format">_guess_format</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::FeatureIO - Handler for FeatureIO</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::FeatureIO</span><span class="operator">;</span>
+  
+  <span class="comment">#read from a file</span>
+  <span class="variable">$in</span>  <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"my.gff"</span> <span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'GFF'</span><span class="operator">);</span>
+  
+  <span class="comment">#read from a filehandle</span>
+  <span class="variable">$in</span>  <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-fh</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*GFF</span> <span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'GFF'</span><span class="operator">);</span>
+  
+  <span class="comment">#read features already attached to a sequence</span>
+  <span class="keyword">my</span> <span class="variable">$feat</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$seq</span> <span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'features'</span><span class="operator">);</span>
+  
+  <span class="comment">#read new features for existing sequence</span>
+  <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$seq</span> <span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'Das'</span><span class="operator">);</span>
+  
+  <span class="comment">#write out features</span>
+  <span class="variable">$out</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span>    <span class="operator">=&gt;</span> <span class="string">"&gt;outputfilename"</span> <span class="operator">,</span>
+                             <span class="string">-format</span>  <span class="operator">=&gt;</span> <span class="string">'GFF'</span> <span class="operator">,</span>
+                             <span class="string">-version</span> <span class="operator">=&gt;</span> <span class="number">3</span><span class="operator">);</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_feature</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">$out</span><span class="operator">-&gt;</span><span class="variable">write_feature</span><span class="operator">(</span><span class="variable">$feature</span><span class="operator">);</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>NOTE: This is a highly experimental I/O iterator subsystem for genomic sequence features. It is not complete, and is now undergoing a significant refactoring in a separate branch of BioPerl to address specific issues regarding the current implementation. Use at your own risk.</p>
+
+<p>Bio::FeatureIO is a handler module for the formats in the FeatureIO set (eg, Bio::FeatureIO::GFF).</p>
+
+<p>The Bio::FeatureIO system can be thought of like biological file handles. They are attached to filehandles with smart formatting rules (eg, GFF format, or BED format) and can either read or write feature objects (Bio::SeqFeature objects, or more correctly, Bio::FeatureHolderI implementing objects, of which Bio::SeqFeature is one such object). If you want to know what to do with a Bio::SeqFeatureI object, read <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeatureI.html">Bio::SeqFeatureI</a>.</p>
+
+<p>The idea is that you request a stream object for a particular format. All the stream objects have a notion of an internal file that is read from or written to. A particular FeatureIO object instance is configured for either input or output. A specific example of a stream object is the Bio::FeatureIO::gff object.</p>
+
+<p>Each stream object has functions:</p>
+
+<pre><code><code>  <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_feature</span><span class="operator">();</span>
+  <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">write_feature</span><span class="operator">(</span><span class="variable">$feature</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="SUPPORTED-FORMATS">SUPPORTED FORMATS</h1>
+
+<pre><code><code> name                         module
+ -----------------------------------
+ BED                          bed.pm
+ GFF                          gff.pm
+ GTF                          gtf.pm
+ InterPro (IPRScan 4.0)  interpro.pm
+ PTT (NCBI protein table)     ptt.pm</code></code></pre>
+
+<h1 id="CONSTRUCTORS">CONSTRUCTORS</h1>
+
+<h2 id="Bio::FeatureIO-new-">Bio::FeatureIO-&gt;new()</h2>
+
+<pre><code><code>   <span class="variable">$featureIO</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'filename'</span><span class="operator">,</span>   <span class="string">-format</span><span class="operator">=&gt;</span><span class="variable">$format</span><span class="operator">);</span>
+   <span class="variable">$featureIO</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-fh</span>   <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*FILEHANDLE</span><span class="operator">,</span> <span class="string">-format</span><span class="operator">=&gt;</span><span class="variable">$format</span><span class="operator">);</span>
+   <span class="variable">$featureIO</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span>  <span class="operator">=&gt;</span> <span class="variable">$seq</span><span class="operator">,</span>         <span class="string">-format</span><span class="operator">=&gt;</span><span class="variable">$format</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The new() class method constructs a new Bio::FeatureIO object. The returned object can be used to retrieve or print Seq objects. new() accepts the following parameters:</p>
+
+<dl>
+
+<dt id="file">-file</dt>
+<dd>
+
+<p>A file path to be opened for reading or writing. The usual Perl conventions apply:</p>
+
+<pre><code><code>   &#39;file&#39;       # open file for reading
+   &#39;&gt;file&#39;      # open file for writing
+   &#39;&gt;&gt;file&#39;     # open file for appending
+   &#39;+&lt;file&#39;     # open file read/write
+   &#39;command |&#39;  # open a pipe from the command
+   &#39;| command&#39;  # open a pipe to the command</code></code></pre>
+
+</dd>
+<dt id="fh">-fh</dt>
+<dd>
+
+<p>You may provide new() with a previously-opened filehandle. For example, to read from STDIN:</p>
+
+<pre><code><code>   <span class="variable">$featio</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-fh</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*STDIN</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Note that you must pass filehandles as references to globs.</p>
+
+<p>If neither a filehandle nor a filename is specified, then the module will read from the @ARGV array or STDIN, using the familiar &lt;&gt; semantics.</p>
+
+<p>A string filehandle is handy if you want to modify the output in the memory, before printing it out. The following program reads in EMBL formatted entries from a file and prints them out in fasta format with some HTML tags:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::FeatureIO</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">IO::String</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$in</span>  <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-file'</span> <span class="operator">=&gt;</span> <span class="string">"my.gff"</span> <span class="operator">,</span>
+                            <span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'EMBL'</span><span class="operator">);</span>
+  <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$f</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_feature</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="comment"># the output handle is reset for every file</span>
+      <span class="keyword">my</span> <span class="variable">$stringio</span> <span class="operator">=</span> <span class="variable">IO::String</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">$string</span><span class="operator">);</span>
+      <span class="keyword">my</span> <span class="variable">$out</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-fh'</span> <span class="operator">=&gt;</span> <span class="variable">$stringio</span><span class="operator">,</span>
+                                <span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">'gtf'</span><span class="operator">);</span>
+      <span class="comment"># output goes into $string</span>
+      <span class="variable">$out</span><span class="operator">-&gt;</span><span class="variable">write_feature</span><span class="operator">(</span><span class="variable">$f</span><span class="operator">);</span>
+      <span class="comment"># modify $string</span>
+      <span class="variable">$string</span> <span class="operator">=~</span> <span class="regex">s|(&gt;)(\w+)|$1&lt;font color="Red"&gt;$2&lt;/font&gt;|g</span><span class="operator">;</span>
+      <span class="comment"># print into STDOUT</span>
+      <span class="keyword">print</span> <span class="variable">$string</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+</dd>
+<dt id="format">-format</dt>
+<dd>
+
+<p>Specify the format of the file. See above for list of supported formats</p>
+
+</dd>
+<dt id="flush">-flush</dt>
+<dd>
+
+<p>By default, all files (or filehandles) opened for writing sequences will be flushed after each write_seq() (making the file immediately usable). If you don&#39;t need this facility and would like to marginally improve the efficiency of writing multiple sequences to the same file (or filehandle), pass the -flush option &#39;0&#39; or any other value that evaluates as defined but false:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$f1</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span> <span class="operator">-</span><span class="string">file</span>   <span class="operator">=&gt;</span> <span class="string">"&lt;a.f1"</span><span class="operator">,</span>
+                              <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">"f1"</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$f2</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">new</span> <span class="operator">-</span><span class="string">file</span>   <span class="operator">=&gt;</span> <span class="string">"&gt;a.f2"</span><span class="operator">,</span>
+                              <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">"f2"</span><span class="operator">,</span>
+                              <span class="string">-flush</span>  <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">;</span> <span class="comment"># go as fast as we can!</span>
+  
+  <span class="keyword">while</span><span class="operator">(</span><span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$f1</span><span class="operator">-&gt;</span><span class="variable">next_feature</span><span class="operator">)</span> <span class="operator">{</span> <span class="variable">$f2</span><span class="operator">-&gt;</span><span class="variable">write_feature</span><span class="operator">(</span><span class="variable">$feature</span><span class="operator">)</span> <span class="operator">}</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h2 id="Bio::FeatureIO-newFh-">Bio::FeatureIO-&gt;newFh()</h2>
+
+<pre><code><code>   <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-fh</span>   <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*FILEHANDLE</span><span class="operator">,</span> <span class="string">-format</span><span class="operator">=&gt;</span><span class="variable">$format</span><span class="operator">);</span>
+   <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-format</span> <span class="operator">=&gt;</span> <span class="variable">$format</span><span class="operator">);</span>
+   <span class="comment"># etc.</span>
+</code></code></pre>
+
+<p>This constructor behaves like new(), but returns a tied filehandle rather than a Bio::FeatureIO object. You can read sequences from this object using the familiar &lt;&gt; operator, and write to it using print(). The usual array and $_ semantics work. For example, you can read all sequence objects into an array like this:</p>
+
+<pre><code><code>  <span class="variable">@features</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;;</span>
+</code></code></pre>
+
+<p>Other operations, such as read(), sysread(), write(), close(), and printf() are not supported.</p>
+
+<h1 id="OBJECT-METHODS">OBJECT METHODS</h1>
+
+<p>See below for more detailed summaries. The main methods are:</p>
+
+<h2 id="feature-featureIO-next_feature-">$feature = $featureIO-&gt;next_feature()</h2>
+
+<p>Fetch the next feature from the stream.</p>
+
+<h2 id="featureIO-write_feature-feature-another_feature-...-">$featureIO-&gt;write_feature($feature [,$another_feature,...])</h2>
+
+<p>Write the specified feature(s) to the stream.</p>
+
+<h2 id="TIEHANDLE-READLINE-PRINT-">TIEHANDLE(), READLINE(), PRINT()</h2>
+
+<p>These provide the tie interface. See <a href="../../../lib/pod/perltie.html">perltie</a> for more details.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists.</p>
+
+<p>Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Allen-Day">AUTHOR - Allen Day</h1>
+
+<p>Email allenday@ucla.edu</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : $stream = Bio::FeatureIO-&gt;new(-file =&gt; $filename, -format =&gt; &#39;Format&#39;)
+ Function: Returns a new feature stream
+ Returns : A Bio::FeatureIO stream initialised with the appropriate format
+ Args    : Named parameters:
+             -file =&gt; $filename
+             -fh =&gt; filehandle to attach to
+             -format =&gt; format</code></code></pre>
+
+<h2 id="newFh">newFh</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">newFh</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$filename</span><span class="operator">,</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'Format'</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">does</span> <span class="variable">a</span> <span class="variable">new</span><span class="operator">()</span> <span class="variable">followed</span> <span class="variable">by</span> <span class="variable">an</span> <span class="variable">fh</span><span class="operator">()</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">Bio::FeatureIO</span><span class="operator">-&gt;</span><span class="variable">newFh</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$filename</span><span class="operator">,</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'Format'</span><span class="operator">)</span>
+           <span class="variable">$feature</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;;</span>   <span class="comment"># read a feature object</span>
+           <span class="keyword">print</span> <span class="variable">$fh</span> <span class="variable">$feature</span><span class="operator">;</span> <span class="comment"># write a feature object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">filehandle</span> <span class="keyword">tied</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">Bio::FeatureIO::Fh</span> <span class="variable">class</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<p>See <a>Bio::FeatureIO::Fh</a></p>
+
+<h2 id="fh1">fh</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">fh</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">fh</span>
+ <span class="variable">Function</span><span class="operator">:</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">$fh</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">fh</span><span class="operator">;</span>      <span class="comment"># make a tied filehandle</span>
+           <span class="variable">$feature</span> <span class="operator">=</span> <span class="operator">&lt;</span><span class="variable">$fh</span><span class="operator">&gt;;</span>   <span class="comment"># read a feature object</span>
+           <span class="keyword">print</span> <span class="variable">$fh</span> <span class="variable">$feature</span><span class="operator">;</span> <span class="comment"># write a feature object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">filehandle</span> <span class="keyword">tied</span> <span class="variable">to</span> <span class="variable">Bio::FeatureIO</span> <span class="variable">class</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="next_feature">next_feature</h2>
+
+<pre><code><code> Title   : next_feature
+ Usage   : $feature = stream-&gt;next_feature
+ Function: Reads the next feature object from the stream and returns it.
+
+           Certain driver modules may encounter entries in the stream
+           that are either misformatted or that use syntax not yet
+           understood by the driver. If such an incident is
+           recoverable, e.g., by dismissing a feature of a feature
+           table or some other non-mandatory part of an entry, the
+           driver will issue a warning. In the case of a
+           non-recoverable situation an exception will be thrown.  Do
+           not assume that you can resume parsing the same stream
+           after catching the exception. Note that you can always turn
+           recoverable errors into exceptions by calling
+           $stream-&gt;verbose(2).
+
+ Returns : a Bio::SeqFeatureI feature object
+ Args    : none</code></code></pre>
+
+<p>See <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Root/RootI.html">Bio::Root::RootI</a>, <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeatureI.html">Bio::SeqFeatureI</a></p>
+
+<h2 id="write_feature">write_feature</h2>
+
+<pre><code><code> Title   : write_feature
+ Usage   : $stream-&gt;write_feature($feature)
+ Function: writes the $feature object into the stream
+ Returns : 1 for success and 0 for error
+ Args    : Bio::SeqFeature object</code></code></pre>
+
+<h2 id="load_format_module">_load_format_module</h2>
+
+<pre><code><code> Title   : _load_format_module
+ Usage   : *INTERNAL FeatureIO stuff*
+ Function: Loads up (like use) a module at run time on demand
+ Example :
+ Returns :
+ Args    :</code></code></pre>
+
+<h2 id="seq">seq</h2>
+
+<pre><code><code> Title   : seq
+ Usage   : $obj-&gt;seq() OR $obj-&gt;seq($newSeq)
+ Example :
+ Returns : Bio::SeqI object
+ Args    : newSeq (optional)</code></code></pre>
+
+<h2 id="filehandle">_filehandle</h2>
+
+<pre><code><code> Title   : _filehandle
+ Usage   : $obj-&gt;_filehandle($newval)
+ Function: This method is deprecated. Call _fh() instead.
+ Example :
+ Returns : value of _filehandle
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="guess_format">_guess_format</h2>
+
+<pre><code><code> Title   : _guess_format
+ Usage   : $obj-&gt;_guess_format($filename)
+ Function: guess format based on file suffix
+ Example :
+ Returns : guessed format of filename (lower case)
+ Args    :
+ Notes   : See &quot;SUPPORTED FORMATS&quot;</code></code></pre>
+
+
+</body>
+
+</html>
+
+

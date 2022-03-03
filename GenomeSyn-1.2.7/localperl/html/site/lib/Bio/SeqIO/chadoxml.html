@@ -1,0 +1,403 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Peili-Zhang">AUTHOR - Peili Zhang</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#write_seq">write_seq</a></li>
+      <li><a href="#suppress_residues">suppress_residues</a></li>
+      <li><a href="#allow_residues">allow_residues</a></li>
+      <li><a href="#return_ftype_hash">return_ftype_hash</a></li>
+      <li><a href="#return_reltypename">return_reltypename</a></li>
+      <li><a href="#next_seq">next_seq</a></li>
+      <li><a href="#create_writer">_create_writer</a></li>
+      <li><a href="#close_chadoxml">close_chadoxml</a></li>
+      <li><a href="#handle_unreserved_tags">handle_unreserved_tags</a></li>
+      <li><a href="#handle_Alias_tag">handle_Alias_tag</a></li>
+      <li><a href="#handle_Ontology_tag">handle_Ontology_tag</a></li>
+      <li><a href="#handle_dbxref">handle_dbxref</a></li>
+      <li><a href="#handle_source">handle_source</a></li>
+      <li><a href="#srcf_hash">_srcf_hash</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqIO::chadoxml - chadoxml sequence output stream</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>It is probably best not to use this object directly, but rather go through the SeqIO handler system:</p>
+
+<pre><code><code>    <span class="variable">$writer</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"&gt;chado.xml"</span><span class="operator">,</span>
+                              <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'chadoxml'</span><span class="operator">);</span>
+    
+    <span class="comment"># assume you already have Sequence or SeqFeature objects</span>
+    <span class="variable">$writer</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$seq_obj</span><span class="operator">);</span>
+    
+    <span class="comment">#after writing all seqs</span>
+    <span class="variable">$writer</span><span class="operator">-&gt;</span><span class="variable">close_chadoxml</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object can transform Bio::Seq objects to chadoxml flat file databases (for chadoxml DTD, see http://gmod.cvs.sourceforge.net/gmod/schema/chado/dat/chado.dtd).</p>
+
+<p>This is currently a write-only module.</p>
+
+<pre><code><code>    <span class="variable">$seqio</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'&gt;outfile.xml'</span><span class="operator">,</span>
+                             <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'chadoxml'</span>
+                             <span class="string">-suppress_residues</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                             <span class="string">-allow_residues</span> <span class="operator">=&gt;</span> <span class="string">'chromosome'</span><span class="operator">,</span>
+                             <span class="operator">);</span>
+    
+    <span class="comment"># we have a Bio::Seq object $seq which is a gene located on</span>
+    <span class="comment"># chromosome arm 'X', to be written out to chadoxml</span>
+    <span class="comment"># before converting to chadoxml, $seq object B&lt;must&gt; be transformed</span>
+    <span class="comment"># so that all the coordinates in $seq are against the source</span>
+    <span class="comment"># feature to be passed into Bio::SeqIO::chadoxml-&gt;write_seq()</span>
+    <span class="comment"># -- chromosome arm X in the example below.</span>
+    
+    <span class="variable">$seqio</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="string">-seq</span><span class="operator">=&gt;</span><span class="variable">$seq</span><span class="operator">,</span>
+                      <span class="string">-genus</span>   <span class="operator">=&gt;</span> <span class="string">'Homo'</span><span class="operator">,</span>
+                      <span class="string">-species</span> <span class="operator">=&gt;</span> <span class="string">'sapiens'</span><span class="operator">,</span>
+                      <span class="string">-seq_so_type</span><span class="operator">=&gt;</span><span class="string">'gene'</span><span class="operator">,</span>
+                      <span class="string">-src_feature</span><span class="operator">=&gt;</span><span class="string">'X'</span><span class="operator">,</span>
+                      <span class="string">-src_feat_type</span><span class="operator">=&gt;</span><span class="string">'chromosome_arm'</span><span class="operator">,</span>
+                        <span class="string">-nounflatten</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">,</span>
+                      <span class="string">-is_analysis</span><span class="operator">=&gt;</span><span class="string">'true'</span><span class="operator">,</span>
+                      <span class="string">-data_source</span><span class="operator">=&gt;</span><span class="string">'GenBank'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The chadoxml output of Bio::SeqIO::chadoxml-&gt;write_seq() method can be passed to the loader utility in XORT package (http://gmod.cvs.sourceforge.net/gmod/schema/XMLTools/XORT/) to be loaded into chado.</p>
+
+<p>This object is currently implemented to work with sequence and annotation data from whole genome projects deposited in GenBank. It may not be able to handle all different types of data from all different sources.</p>
+
+<p>In converting a Bio::Seq object into chadoxml, a top-level feature is created to represent the object and all sequence features inside the Bio::Seq object are treated as subfeatures of the top-level feature. The Bio::SeqIO::chadoxml object calls Bio::SeqFeature::Tools::Unflattener to unflatten the flat feature list contained in the subject Bio::Seq object, to build gene model containment hierarchy conforming to chado central dogma model: gene --&gt; mRNA --&gt; exons and protein.</p>
+
+<p>Destination of data in the subject Bio::Seq object $seq is as following:</p>
+
+<pre><code><code>    <span class="operator">*</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">display_id</span><span class="operator">:</span>  <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">top</span><span class="operator">-</span><span class="variable">level</span> <span class="variable">feature</span><span class="operator">;</span>
+    
+    <span class="operator">*</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">accession_number</span><span class="operator">:</span> <span class="keyword">if</span> <span class="keyword">defined</span><span class="operator">,</span> <span class="variable">uniquename</span> <span class="keyword">and</span>
+                 <span class="variable">feature_dbxref</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">top</span><span class="operator">-</span><span class="variable">level</span>
+                 <span class="variable">feature</span> <span class="keyword">if</span> <span class="keyword">not</span> <span class="keyword">defined</span><span class="operator">,</span>
+                 <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">display_id</span> <span class="variable">is</span> <span class="variable">used</span> <span class="variable">as</span> <span class="variable">the</span>
+                 <span class="variable">uniquename</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">top</span><span class="operator">-</span><span class="variable">level</span> <span class="variable">feature</span><span class="operator">;</span>
+    
+    <span class="operator">*</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">molecule</span><span class="operator">:</span> <span class="variable">transformed</span> <span class="variable">to</span> <span class="variable">SO</span> <span class="variable">type</span><span class="operator">,</span> <span class="variable">used</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">feature</span>
+            <span class="variable">type</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">top</span><span class="operator">-</span><span class="variable">level</span> <span class="variable">feature</span> <span class="keyword">if</span> <span class="operator">-</span><span class="variable">seq_so_type</span>
+            <span class="variable">argument</span> <span class="variable">is</span> <span class="variable">supplied</span><span class="operator">,</span> <span class="keyword">use</span> <span class="variable">the</span> <span class="variable">supplied</span> <span class="variable">SO</span> <span class="variable">type</span>
+            <span class="variable">as</span> <span class="variable">the</span> <span class="variable">feature</span> <span class="variable">type</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">top</span><span class="operator">-</span><span class="variable">level</span> <span class="variable">feature</span><span class="operator">;</span>
+    
+    <span class="operator">*</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">species</span><span class="operator">:</span> <span class="variable">organism</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">top</span><span class="operator">-</span><span class="variable">level</span> <span class="variable">feature</span><span class="operator">;</span>
+    
+    <span class="operator">*</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">seq</span><span class="operator">:</span> <span class="variable">residues</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">top</span><span class="operator">-</span><span class="variable">level</span> <span class="variable">feature</span><span class="operator">;</span>
+    
+    <span class="operator">*</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">is_circular</span><span class="operator">,</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">division</span><span class="operator">:</span> <span class="variable">feature_cvterm</span><span class="operator">;</span>
+    
+    <span class="operator">*</span><span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">keywords</span><span class="operator">,</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">desc</span><span class="operator">,</span> <span class="variable">comments</span><span class="operator">:</span> <span class="variable">featureprop</span><span class="operator">;</span>
+    
+    <span class="variable">*references</span><span class="operator">:</span> <span class="variable">pub</span> <span class="keyword">and</span> <span class="variable">feature_pub</span><span class="operator">;</span>
+        <span class="variable">medline</span><span class="operator">/</span><span class="variable">pubmed</span> <span class="variable">ids</span><span class="operator">:</span> <span class="variable">pub_dbxref</span><span class="operator">;</span>
+        <span class="variable">comments</span><span class="operator">:</span> <span class="variable">pubprop</span><span class="operator">;</span>
+    
+    <span class="variable">*feature</span> <span class="string">"source"</span> <span class="variable">span</span><span class="operator">:</span> <span class="variable">featureloc</span> <span class="keyword">for</span> <span class="variable">top</span><span class="operator">-</span><span class="variable">level</span> <span class="variable">feature</span><span class="operator">;</span>
+    
+    <span class="variable">*feature</span> <span class="string">"source"</span> <span class="variable">db_xref</span><span class="operator">:</span> <span class="variable">feature_dbxref</span> <span class="keyword">for</span> <span class="variable">top</span><span class="operator">-</span><span class="variable">level</span> <span class="variable">feature</span><span class="operator">;</span>
+    
+    <span class="variable">*feature</span> <span class="string">"source"</span> <span class="variable">other</span> <span class="variable">tags</span><span class="operator">:</span> <span class="variable">featureprop</span> <span class="keyword">for</span> <span class="variable">top</span><span class="operator">-</span><span class="variable">level</span> <span class="variable">feature</span><span class="operator">;</span>
+    
+    <span class="variable">*subfeature</span> <span class="string">'symbol'</span> <span class="keyword">or</span> <span class="string">'label'</span> <span class="variable">tag</span><span class="operator">:</span> <span class="variable">feature</span> <span class="variable">uniquename</span><span class="operator">,</span> <span class="keyword">if</span>
+                     <span class="variable">none</span> <span class="variable">of</span> <span class="variable">these</span> <span class="variable">is</span> <span class="variable">present</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">chadoxml</span> <span class="variable">object</span>
+                     <span class="variable">generates</span> <span class="variable">feature</span> <span class="variable">uniquenames</span> <span class="variable">as</span><span class="operator">:</span>
+                     <span class="operator">&lt;</span><span class="variable">gene</span><span class="operator">&gt;-&lt;</span><span class="variable">feature_type</span><span class="operator">&gt;-&lt;</span><span class="variable">span</span><span class="operator">&gt;</span>
+                     <span class="operator">(</span><span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.</span> <span class="variable">foo</span><span class="operator">-</span><span class="variable">mRNA</span><span class="operator">--</span><span class="number">1000</span><span class="operator">..</span><span class="number">3000</span><span class="operator">);</span>
+    
+    <span class="variable">*gene</span> <span class="variable">model</span><span class="operator">:</span> <span class="variable">feature_relationship</span> <span class="variable">built</span> <span class="variable">based</span> <span class="variable">on</span> <span class="variable">the</span>
+                     <span class="variable">containment</span> <span class="variable">hierarchy</span><span class="operator">;</span>
+    
+    <span class="variable">*feature</span> <span class="variable">span</span><span class="operator">:</span> <span class="variable">featureloc</span><span class="operator">;</span>
+    
+    <span class="variable">*feature</span> <span class="variable">accession</span> <span class="variable">numbers</span><span class="operator">:</span> <span class="variable">feature_dbxref</span><span class="operator">;</span>
+    
+    <span class="variable">*feature</span> <span class="variable">tags</span> <span class="operator">(</span><span class="variable">except</span> <span class="variable">db_xref</span><span class="operator">,</span> <span class="variable">symbol</span> <span class="keyword">and</span> <span class="variable">gene</span><span class="operator">):</span> <span class="variable">featureprop</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Things to watch out for:</p>
+
+<pre><code><code>    <span class="variable">*chado</span> <span class="variable">schema</span> <span class="variable">change</span><span class="operator">:</span> <span class="variable">this</span> <span class="variable">version</span> <span class="variable">works</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">chado</span>
+                               <span class="variable">version</span> <span class="variable">tagged</span> <span class="variable">chado_1_01</span> <span class="variable">in</span> <span class="variable">GMOD</span> <span class="variable">CVS</span><span class="operator">.</span>
+    
+    <span class="variable">*feature</span> <span class="variable">uniquenames</span><span class="operator">:</span> <span class="variable">especially</span> <span class="variable">important</span> <span class="keyword">if</span> <span class="variable">using</span> <span class="variable">XORT</span>
+                              <span class="variable">loader</span> <span class="variable">to</span> <span class="keyword">do</span> <span class="variable">incremental</span> <span class="variable">load</span> <span class="variable">into</span>
+                              <span class="variable">chado</span><span class="operator">.</span> <span class="variable">may</span> <span class="variable">need</span> <span class="variable">pre</span><span class="operator">-</span><span class="variable">processing</span> <span class="variable">of</span> <span class="variable">the</span>
+                              <span class="variable">source</span> <span class="variable">data</span> <span class="variable">to</span> <span class="variable">put</span> <span class="variable">the</span> <span class="variable">correct</span>
+                              <span class="variable">uniquenames</span> <span class="variable">in</span> <span class="variable">place</span><span class="operator">.</span>
+    
+    <span class="variable">*pub</span> <span class="variable">uniquenames</span><span class="operator">:</span> <span class="variable">chadoxml</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">()</span> <span class="variable">has</span> <span class="variable">the</span> <span class="variable">FlyBase</span> <span class="variable">policy</span>
+                          <span class="variable">on</span> <span class="variable">pub</span> <span class="variable">uniquenames</span> <span class="variable">hard</span><span class="operator">-</span><span class="variable">coded</span><span class="operator">,</span> <span class="variable">it</span> <span class="variable">assigns</span>
+                          <span class="variable">pub</span> <span class="variable">uniquenames</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">following</span> <span class="variable">way</span><span class="operator">:</span> <span class="keyword">for</span>
+                          <span class="variable">journals</span> <span class="keyword">and</span> <span class="variable">books</span><span class="operator">,</span> <span class="keyword">use</span> <span class="variable">ISBN</span> <span class="variable">number</span><span class="operator">;</span> <span class="keyword">for</span>
+                          <span class="variable">published</span> <span class="variable">papers</span><span class="operator">,</span> <span class="keyword">use</span> <span class="variable">MEDLINE</span> <span class="variable">ID</span><span class="operator">;</span> <span class="keyword">for</span>
+                          <span class="variable">everything</span> <span class="keyword">else</span><span class="operator">,</span> <span class="keyword">use</span> <span class="variable">FlyBase</span> <span class="variable">unique</span>
+                          <span class="variable">identifier</span> <span class="variable">FBrf</span><span class="comment">#. need to modify the code to</span>
+                          <span class="variable">implement</span> <span class="variable">your</span> <span class="variable">policy</span><span class="operator">.</span> <span class="variable">look</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">comments</span>
+                          <span class="variable">in</span> <span class="variable">the</span> <span class="variable">code</span><span class="operator">.</span>
+    
+    <span class="variable">*for</span> <span class="variable">pubs</span> <span class="variable">possibly</span> <span class="variable">existing</span> <span class="variable">in</span> <span class="variable">chado</span> <span class="variable">but</span> <span class="variable">with</span> <span class="keyword">no</span> <span class="variable">knowledge</span> <span class="variable">of</span>
+         <span class="variable">its</span> <span class="variable">uniquename</span><span class="operator">:</span><span class="variable">put</span> <span class="string">"op"</span> <span class="variable">as</span> <span class="string">"match"</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">need</span> <span class="variable">to</span> <span class="variable">run</span> <span class="variable">the</span>
+                        <span class="variable">output</span> <span class="variable">chadoxml</span> <span class="variable">through</span> <span class="variable">a</span> <span class="variable">special</span> <span class="variable">filter</span> <span class="variable">that</span>
+                        <span class="variable">talks</span> <span class="variable">to</span> <span class="variable">chado</span> <span class="variable">database</span> <span class="keyword">and</span> <span class="variable">tries</span> <span class="variable">to</span> <span class="variable">find</span> <span class="variable">the</span>
+                        <span class="variable">pub</span> <span class="variable">by</span> <span class="variable">matching</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">provided</span> <span class="variable">information</span>
+                        <span class="variable">instead</span> <span class="variable">of</span> <span class="variable">looking</span> <span class="variable">up</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">unique</span> <span class="variable">key</span><span class="operator">.</span> <span class="variable">after</span>
+                        <span class="variable">matching</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">filter</span> <span class="variable">also</span> <span class="variable">resets</span> <span class="variable">the</span> <span class="string">"match"</span>
+                        <span class="variable">operation</span> <span class="variable">to</span> <span class="variable">either</span> <span class="string">"force"</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">),</span> <span class="keyword">or</span>
+                        <span class="string">"lookup"</span><span class="operator">,</span> <span class="keyword">or</span> <span class="string">"insert"</span><span class="operator">,</span> <span class="keyword">or</span> <span class="string">"update"</span><span class="operator">.</span> <span class="variable">the</span>
+                        <span class="string">"match"</span> <span class="variable">operation</span> <span class="variable">is</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">special</span> <span class="variable">FlyBase</span> <span class="keyword">use</span>
+                        <span class="variable">case</span><span class="operator">.</span> <span class="variable">please</span> <span class="variable">modify</span> <span class="variable">to</span> <span class="variable">work</span> <span class="variable">according</span> <span class="variable">to</span> <span class="variable">your</span>
+                        <span class="variable">rules</span><span class="operator">.</span>
+    
+    <span class="variable">*chado</span> <span class="variable">initialization</span> <span class="keyword">for</span> <span class="variable">loading</span><span class="operator">:</span>
+    
+        <span class="variable">cv</span> <span class="operator">&amp;</span> <span class="variable">cvterm</span><span class="operator">:</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">output</span> <span class="variable">chadoxml</span><span class="operator">,</span> <span class="variable">all</span> <span class="variable">cv's</span> <span class="keyword">and</span>
+                             <span class="variable">cvterm's</span> <span class="variable">are</span> <span class="variable">lookup</span> <span class="variable">only</span><span class="operator">.</span> <span class="variable">Therefore</span><span class="operator">,</span>
+                             <span class="variable">before</span> <span class="variable">using</span> <span class="variable">XORT</span> <span class="variable">loader</span> <span class="variable">to</span> <span class="variable">load</span> <span class="variable">the</span>
+                             <span class="variable">output</span> <span class="variable">into</span> <span class="variable">chado</span><span class="operator">,</span> <span class="variable">chado</span> <span class="variable">must</span> <span class="variable">be</span>
+                             <span class="variable">pre</span><span class="operator">-</span><span class="variable">loaded</span> <span class="variable">with</span> <span class="variable">all</span> <span class="variable">necessary</span> <span class="variable">CVs</span> <span class="keyword">and</span>
+                             <span class="variable">CVterms</span><span class="operator">,</span> <span class="variable">including</span> <span class="string">"SO"</span> <span class="operator">,</span> <span class="string">"property
+                             type"</span><span class="operator">,</span> <span class="string">"relationship type"</span><span class="operator">,</span> <span class="string">"pub type"</span><span class="operator">,</span>
+                             <span class="string">"pubprop type"</span><span class="operator">,</span> <span class="string">"pub relationship type"</span><span class="operator">,</span>
+                             <span class="string">"sequence topology"</span><span class="operator">,</span> <span class="string">"GenBank feature
+                             qualifier"</span><span class="operator">,</span> <span class="string">"GenBank division"</span><span class="operator">.</span> <span class="variable">A</span> <span class="variable">pub</span> <span class="variable">by</span>
+                             <span class="variable">the</span> <span class="variable">uniquename</span> <span class="string">'nullpub'</span> <span class="variable">of</span> <span class="variable">type</span> <span class="string">'null
+                             pub'</span> <span class="variable">needs</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">inserted</span><span class="operator">.</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Peili-Zhang">AUTHOR - Peili Zhang</h1>
+
+<p>Email peili@morgan.harvard.edu</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="write_seq">write_seq</h2>
+
+<pre><code><code> Title   : write_seq
+ Usage   : $stream-&gt;write_seq(-seq=&gt;$seq, -seq_so_type=&gt;$seqSOtype,
+                  -src_feature=&gt;$srcfeature,
+                  -src_feat_type=&gt;$srcfeattype,
+                  -nounflatten=&gt;0 or 1,
+                  -is_analysis=&gt;&#39;true&#39; or &#39;false&#39;,
+                  -data_source=&gt;$datasource)
+ Function: writes the $seq object (must be seq) into chadoxml.
+ Returns : 1 for success and 0 for error
+ Args     : A Bio::Seq object $seq, optional $seqSOtype, $srcfeature,
+            $srcfeattype, $nounflatten, $is_analysis and $data_source.</code></code></pre>
+
+<p>When $srcfeature (a string, the uniquename of the source feature) is given, the location and strand information of the top-level feature against the source feature will be derived from the sequence feature called &#39;source&#39; of the $seq object, a featureloc record is generated for the top -level feature on $srcfeature. when $srcfeature is given, $srcfeattype must also be present. All feature coordinates in $seq should be against $srcfeature. $seqSOtype is the optional SO term to use as the type of the top-level feature. For example, a GenBank data file for a Drosophila melanogaster genome scaffold has the molecule type of &quot;DNA&quot;, when converting to chadoxml, a $seqSOtype argument of &quot;golden_path_region&quot; can be supplied to save the scaffold as a feature of type &quot;golden_path_region&quot; in chadoxml, instead of &quot;DNA&quot;. a feature with primary tag of &#39;source&#39; must be present in the sequence feature list of $seq, to decribe the whole sequence record.</p>
+
+<p>In the current implementation:</p>
+
+<ul>
+
+<li><p>non-mRNA records</p>
+
+<p>A top-level feature of type $seq-&gt;alphabet is generated for the whole GenBank record, features listed are unflattened for DNA records to build gene model feature graph, and for the other types of records all features in $seq are treated as subfeatures of the top-level feature.</p>
+
+</li>
+<li><p>mRNA records</p>
+
+<p>If a &#39;gene&#39; feature is present, it <b>must</b> have a /symbol or /label tag to contain the uniquename of the gene. a top-level feature of type &#39;gene&#39; is generated. the mRNA is written as a subfeature of the top-level gene feature, and the other sequence features listed in $seq are treated as subfeatures of the mRNA feature.</p>
+
+</li>
+</ul>
+
+<h2 id="suppress_residues">suppress_residues</h2>
+
+<pre><code><code> Title    : suppress_residues
+ Usage    : $obj-&gt;suppress_residues()        #get existing value
+            $obj-&gt;suppress_residues($newval) #set new value
+ Function : Keep track of the flag to suppress printing of residues in the
+            chadoxml file. The default it to allow all residues to go into the
+            file.
+ Returns  : value of suppress_residues (a scalar)
+ Args     : new value of suppress_residues (to set)</code></code></pre>
+
+<h2 id="allow_residues">allow_residues</h2>
+
+<pre><code><code> Title    : allow_residues
+ Usage    : $obj-&gt;allow_residues()        #get existing value
+            $obj-&gt;allow_residues($feature_type) #set new value
+ Function : Track the allow_residues type.  This can be used in conjunction
+            with the suppress_residues flag to only allow residues from a
+            specific feature type to be printed in the xml file, for example,
+            only printing chromosome residues. When suppress_residues is set to
+            true, then only chromosome features would would go into the xml
+            file. If suppress_residues is not set, this function has no effect
+            (since the default is to put all residues in the xml file).
+ Returns  : value of allow_residues (string that corresponds to a feature type)
+ Args     : new value of allow_residues (to set)
+ Status   :</code></code></pre>
+
+<h2 id="return_ftype_hash">return_ftype_hash</h2>
+
+<pre><code><code> Title    : return_ftype_hash
+ Usage    : $obj-&gt;return_ftype_hash()
+ Function : A simple hash where returning it has be factored out of the main
+            code to allow subclasses to override it.
+ Returns  : A hash that indicates what the name of the SO term is and what
+            the name of the Sequence Ontology is in the cv table.
+ Args     : The string that represents the SO term.
+ Status   :</code></code></pre>
+
+<h2 id="return_reltypename">return_reltypename</h2>
+
+<pre><code><code> Title    : return_reltypename
+ Usage    : $obj-&gt;return_reltypename
+ Function : Return the appropriate relationship type name depending on the
+            feature type (typically part_of, but derives_from for polypeptide).
+ Returns  : A relationship type name.
+ Args     : A SO type name.
+ Status   :</code></code></pre>
+
+<h2 id="next_seq">next_seq</h2>
+
+<pre><code><code> Title    : next_seq
+ Usage    : $obj-&gt;next_seq
+ Function : 
+ Returns  : 
+ Args     : 
+ Status   : Not implemented (write only adaptor)</code></code></pre>
+
+<h2 id="create_writer">_create_writer</h2>
+
+<pre><code><code> Title    : _create_writer
+ Usage    : $obj-&gt;_create_writer
+ Function : Creates XML::Writer object and writes start tag
+ Returns  : Nothing, though the writer persists as part of the chadoxml object
+ Args     : None
+ Status   :</code></code></pre>
+
+<h2 id="close_chadoxml">close_chadoxml</h2>
+
+<pre><code><code> Title    : close_chadoxml
+ Usage    : $obj-&gt;close_chadoxml
+ Function : Writes the closing xml tag
+ Returns  : None
+ Args     : None
+ Status   :</code></code></pre>
+
+<h2 id="handle_unreserved_tags">handle_unreserved_tags</h2>
+
+<pre><code><code> Title    : handle_unreserved_tags
+ Usage    : $obj-&gt;handle_unreserved_tags
+ Function : Converts tag value pairs to xml-ready hashrefs
+ Returns  : The array containing the hashrefs
+ Args     : In order: the Seq or SeqFeature object, the key, and the hasharray
+ Status   :</code></code></pre>
+
+<h2 id="handle_Alias_tag">handle_Alias_tag</h2>
+
+<pre><code><code> Title    : handle_Alias_tag
+ Usage    : $obj-&gt;handle_Alias_tag
+ Function : Convert Alias values to synonym hash refs
+ Returns  : An array of synonym hash tags
+ Args     : The seq or seqFeature object and the synonym hash array
+ Status   :</code></code></pre>
+
+<h2 id="handle_Ontology_tag">handle_Ontology_tag</h2>
+
+<pre><code><code> Title    : handle_Ontology_tag
+ Usage    : $obj-&gt;handle_Ontology_tag
+ Function : Convert Ontology_term values to ontology term hash refs
+ Returns  : An array of ontology term hash refs
+ Args     : The seq or seqFeature object and the ontology term array
+ Status   :</code></code></pre>
+
+<h2 id="handle_dbxref">handle_dbxref</h2>
+
+<pre><code><code> Title    : handle_dbxref
+ Usage    : $obj-&gt;handle_dbxref
+ Function : Convert Dbxref values to dbxref hashref
+ Returns  : An array of dbxref hashrefs
+ Args     : A seq or seqFeature object and the dbxref array 
+ Status   :</code></code></pre>
+
+<h2 id="handle_source">handle_source</h2>
+
+<pre><code><code> Title    : handle_source
+ Usage    : $obj-&gt;handle_source
+ Function : 
+ Returns  : 
+ Args     : 
+ Status   :</code></code></pre>
+
+<h2 id="srcf_hash">_srcf_hash</h2>
+
+<pre><code><code> Title    : _srcf_hash
+ Usage    : $obj-&gt;_srcf_hash
+ Function : Creates the srcfeature hash for use in featureloc hashes
+ Returns  : The srcfeature hash
+ Args     : The srcfeature name, the srcfeature type and a reference to the
+            organism hash.
+ Status   :</code></code></pre>
+
+
+</body>
+
+</html>
+
+

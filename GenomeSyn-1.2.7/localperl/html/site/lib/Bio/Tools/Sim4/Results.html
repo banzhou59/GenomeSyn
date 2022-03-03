@@ -1,0 +1,223 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Ewan-Birney-Hilmar-Lapp">AUTHOR - Ewan Birney, Hilmar Lapp</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#analysis_method">analysis_method</a></li>
+      <li><a href="#parse_next_alignment">parse_next_alignment</a></li>
+      <li><a href="#next_exonset">next_exonset</a></li>
+      <li><a href="#next_feature">next_feature</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Sim4::Results - Results of one Sim4 run</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="comment"># to preset the order of EST and genomic file as given on the sim4 </span>
+   <span class="comment"># command line:</span>
+   <span class="keyword">my</span> <span class="variable">$sim4</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Sim4::Results</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'result.sim4'</span><span class="operator">,</span>
+                                             <span class="string">-estfirst</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+   <span class="comment"># to let the order be determined automatically (by length comparison):</span>
+   <span class="variable">$sim4</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Sim4::Results</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'sim4.results'</span> <span class="operator">);</span>
+   <span class="comment"># filehandle:</span>
+   <span class="variable">$sim4</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Sim4::Results</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-fh</span>   <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*INPUT</span> <span class="operator">);</span>
+   
+   <span class="comment"># parse the results</span>
+   <span class="keyword">while</span><span class="operator">(</span><span class="keyword">my</span> <span class="variable">$exonset</span> <span class="operator">=</span> <span class="variable">$sim4</span><span class="operator">-&gt;</span><span class="variable">next_exonset</span><span class="operator">())</span> <span class="operator">{</span>
+       <span class="comment"># $exonset is-a Bio::SeqFeature::Generic with Bio::Tools::Sim4::Exons</span>
+       <span class="comment"># as sub features</span>
+       <span class="keyword">print</span> <span class="string">"Delimited on sequence "</span><span class="operator">,</span> <span class="variable">$exonset</span><span class="operator">-&gt;</span><span class="variable">seq_id</span><span class="operator">(),</span> 
+             <span class="string">"from "</span><span class="operator">,</span> <span class="variable">$exonset</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(),</span> <span class="string">" to "</span><span class="operator">,</span> <span class="variable">$exonset</span><span class="operator">-&gt;</span><span class="variable">end</span><span class="operator">(),</span> <span class="string">"\n"</span><span class="operator">;</span>
+       <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$exon</span> <span class="operator">(</span> <span class="variable">$exonset</span><span class="operator">-&gt;</span><span class="variable">sub_SeqFeature</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+          <span class="comment"># $exon is-a Bio::SeqFeature::FeaturePair</span>
+          <span class="keyword">print</span> <span class="string">"Exon from "</span><span class="operator">,</span> <span class="variable">$exon</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">,</span> <span class="string">" to "</span><span class="operator">,</span> <span class="variable">$exon</span><span class="operator">-&gt;</span><span class="variable">end</span><span class="operator">,</span> 
+                <span class="string">" on strand "</span><span class="operator">,</span> <span class="variable">$exon</span><span class="operator">-&gt;</span><span class="variable">strand</span><span class="operator">(),</span> <span class="string">"\n"</span><span class="operator">;</span>
+          <span class="comment"># you can get out what it matched using the est_hit attribute</span>
+          <span class="keyword">my</span> <span class="variable">$homol</span> <span class="operator">=</span> <span class="variable">$exon</span><span class="operator">-&gt;</span><span class="variable">est_hit</span><span class="operator">();</span>
+          <span class="keyword">print</span> <span class="string">"Matched to sequence "</span><span class="operator">,</span> <span class="variable">$homol</span><span class="operator">-&gt;</span><span class="variable">seq_id</span><span class="operator">,</span> 
+                <span class="string">" at "</span><span class="operator">,</span> <span class="variable">$homol</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">,</span><span class="string">" to "</span><span class="operator">,</span> <span class="variable">$homol</span><span class="operator">-&gt;</span><span class="variable">end</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+      <span class="operator">}</span>
+   <span class="operator">}</span>
+   
+   <span class="comment"># essential if you gave a filename at initialization (otherwise the file</span>
+   <span class="comment"># stays open)</span>
+   <span class="variable">$sim4</span><span class="operator">-&gt;</span><span class="variable">close</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>The sim4 module provides a parser and results object for sim4 output. The sim4 results are specialised types of SeqFeatures, meaning you can add them to AnnSeq objects fine, and manipulate them in the &quot;normal&quot; seqfeature manner.</p>
+
+<p>The sim4 Exon objects are Bio::SeqFeature::FeaturePair inherited objects. The $esthit = $exon-&gt;est_hit() is the alignment as a feature on the matching object (normally, an EST), in which the start/end points are where the hit lies.</p>
+
+<p>To make this module work sensibly you need to run</p>
+
+<pre><code><code>     sim4 genomic.fasta est.database.fasta
+or
+     sim4 est.fasta genomic.database.fasta</code></code></pre>
+
+<p>To get the sequence identifiers recorded for the first sequence, too, use A=4 as output option for sim4.</p>
+
+<p>One fiddle here is that there are only two real possibilities to the matching criteria: either one sequence needs reversing or not. Because of this, it is impossible to tell whether the match is in the forward or reverse strand of the genomic DNA. We solve this here by assuming that the genomic DNA is always forward. As a consequence, the strand attribute of the matching EST is unknown, and the strand attribute of the genomic DNA (i.e., the Exon object) will reflect the direction of the hit.</p>
+
+<p>See the documentation of parse_next_alignment() for abilities of the parser to deal with the different output format options of sim4.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Ewan-Birney-Hilmar-Lapp">AUTHOR - Ewan Birney, Hilmar Lapp</h1>
+
+<p>Ewan Birney &lt;birney-at-sanger.ac.uk&gt; Hilmar Lapp &lt;hlapp-at-gmx.net&gt; or &lt;hilmar.lapp-at-pharma.novartis.com&gt;.</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="analysis_method">analysis_method</h2>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$sim4</span><span class="operator">-&gt;</span><span class="variable">analysis_method</span><span class="operator">();</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Inherited</span> <span class="variable">method</span><span class="operator">.</span> <span class="variable">Overridden</span> <span class="variable">to</span> <span class="variable">ensure</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">matches</span>
+             <span class="operator">/</span><span class="variable">sim4</span><span class="operator">/</span><span class="variable">i</span><span class="operator">.</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">String</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+</code></code></pre>
+
+<h2 id="parse_next_alignment">parse_next_alignment</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">parse_next_alignment</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@exons</span> <span class="operator">=</span> <span class="variable">$sim4_result</span><span class="operator">-&gt;</span><span class="variable">parse_next_alignment</span><span class="operator">;</span>
+           <span class="keyword">foreach</span> <span class="variable">$exon</span> <span class="operator">(</span><span class="variable">@exons</span><span class="operator">)</span> <span class="operator">{</span>
+               <span class="comment"># do something</span>
+           <span class="operator">}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Parses</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">alignment</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">Sim4</span> <span class="variable">result</span> <span class="variable">file</span> <span class="keyword">and</span> <span class="variable">returns</span> <span class="variable">the</span>
+           <span class="variable">found</span> <span class="variable">exons</span> <span class="variable">as</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">Bio::Tools::Sim4::Exon</span> <span class="variable">objects</span><span class="operator">.</span> <span class="variable">Call</span>
+           <span class="variable">this</span> <span class="variable">method</span> <span class="variable">repeatedly</span> <span class="keyword">until</span> <span class="variable">an</span> <span class="variable">empty</span> <span class="variable">array</span> <span class="variable">is</span> <span class="variable">returned</span> <span class="variable">to</span> <span class="variable">get</span> <span class="variable">the</span>
+           <span class="variable">results</span> <span class="keyword">for</span> <span class="variable">all</span> <span class="variable">alignments</span><span class="operator">.</span>
+ 
+           <span class="variable">The</span> <span class="variable">$exon</span><span class="operator">-&gt;</span><span class="variable">seq_id</span><span class="operator">()</span> <span class="variable">attribute</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">set</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">identifier</span> <span class="variable">of</span> <span class="variable">the</span>
+           <span class="variable">respective</span> <span class="variable">sequence</span> <span class="keyword">for</span> <span class="variable">both</span> <span class="variable">sequences</span> <span class="keyword">if</span> <span class="variable">A</span><span class="operator">=</span><span class="number">4</span> <span class="variable">was</span> <span class="variable">used</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">sim4</span>
+           <span class="variable">run</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">otherwise</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">second</span> <span class="variable">sequence</span> <span class="variable">only</span><span class="operator">.</span> <span class="variable">If</span> <span class="variable">the</span> <span class="variable">output</span> <span class="variable">does</span>
+           <span class="keyword">not</span> <span class="variable">contain</span> <span class="variable">the</span> <span class="variable">identifier</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">filename</span> <span class="variable">stripped</span> <span class="variable">of</span> <span class="variable">path</span> <span class="keyword">and</span> 
+           <span class="variable">extension</span> <span class="variable">is</span> <span class="variable">used</span> <span class="variable">instead</span><span class="operator">.</span> <span class="variable">In</span> <span class="variable">addition</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">full</span> <span class="variable">filename</span> 
+           <span class="variable">will</span> <span class="variable">be</span> <span class="variable">recorded</span> <span class="keyword">for</span> <span class="variable">both</span> <span class="variable">features</span> <span class="operator">(</span><span class="variable">$exon</span> <span class="variable">inherits</span> <span class="variable">off</span> 
+           <span class="variable">Bio::SeqFeature::SimilarityPair</span><span class="operator">)</span> <span class="variable">as</span> <span class="variable">tag</span> <span class="string">'filename'</span><span class="operator">.</span> <span class="variable">The</span> <span class="keyword">length</span>
+           <span class="variable">is</span> <span class="variable">accessible</span> <span class="variable">via</span> <span class="variable">the</span> <span class="variable">seqlength</span><span class="operator">()</span> <span class="variable">attribute</span> <span class="variable">of</span> <span class="variable">$exon</span><span class="operator">-&gt;</span><span class="variable">query</span><span class="operator">()</span> <span class="keyword">and</span>
+           <span class="variable">$exon</span><span class="operator">-&gt;</span><span class="variable">est_hit</span><span class="operator">().</span>
+ 
+           <span class="variable">Note</span> <span class="variable">that</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">is</span> <span class="variable">capable</span> <span class="variable">of</span> <span class="variable">dealing</span> <span class="variable">with</span> <span class="variable">outputs</span> <span class="variable">generated</span>
+           <span class="variable">with</span> <span class="keyword">format</span> <span class="number">0</span><span class="operator">,</span><span class="number">1</span><span class="operator">,</span><span class="number">3</span><span class="operator">,</span> <span class="keyword">and</span> <span class="number">4</span> <span class="operator">(</span><span class="variable">via</span> <span class="variable">the</span> <span class="variable">A</span><span class="operator">=</span><span class="variable">n</span> <span class="variable">option</span> <span class="variable">to</span> <span class="variable">sim4</span><span class="operator">).</span> <span class="variable">It</span>
+           <span class="variable">automatically</span> <span class="variable">determines</span> <span class="variable">which</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">two</span> <span class="variable">sequences</span> <span class="variable">has</span> <span class="variable">been</span> 
+           <span class="variable">reversed</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">adjusts</span> <span class="variable">the</span> <span class="variable">coordinates</span> <span class="keyword">for</span> <span class="variable">that</span> <span class="variable">sequence</span><span class="operator">.</span> <span class="variable">It</span> <span class="variable">will</span>
+           <span class="variable">also</span> <span class="variable">detect</span> <span class="variable">whether</span> <span class="variable">the</span> <span class="variable">EST</span> <span class="variable">sequence</span><span class="operator">(</span><span class="regex">s) were given as first or as
+           second file to sim4, unless this has been specified at creation
+           time of the object.
+ 
+ Example :
+ Returns : An array of Bio::Tools::Sim4::Exon objects
+ Args    :
+ </span>
+</code></code></pre>
+
+<h2 id="next_exonset">next_exonset</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_exonset</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$exonset</span> <span class="operator">=</span> <span class="variable">$sim4_result</span><span class="operator">-&gt;</span><span class="variable">parse_next_exonset</span><span class="operator">;</span>
+           <span class="keyword">print</span> <span class="string">"Exons start at "</span><span class="operator">,</span> <span class="variable">$exonset</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(),</span> 
+                 <span class="string">"and end at "</span><span class="operator">,</span> <span class="variable">$exonset</span><span class="operator">-&gt;</span><span class="variable">end</span><span class="operator">(),</span> <span class="string">"\n"</span><span class="operator">;</span>
+           <span class="keyword">foreach</span> <span class="variable">$exon</span> <span class="operator">(</span><span class="variable">$exonset</span><span class="operator">-&gt;</span><span class="variable">sub_SeqFeature</span><span class="operator">())</span> <span class="operator">{</span>
+               <span class="comment"># do something</span>
+           <span class="operator">}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Parses</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">alignment</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">Sim4</span> <span class="variable">result</span> <span class="variable">file</span> <span class="keyword">and</span> <span class="variable">returns</span> <span class="variable">the</span>
+           <span class="variable">set</span> <span class="variable">of</span> <span class="variable">exons</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">container</span> <span class="variable">of</span> <span class="variable">features</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">container</span> <span class="variable">is</span> <span class="variable">itself</span>
+           <span class="variable">a</span> <span class="variable">Bio::SeqFeature::Generic</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">Bio::Tools::Sim4::Exon</span>
+           <span class="variable">objects</span> <span class="variable">as</span> <span class="keyword">sub</span><span class="variable"> features. Start, end, and strand of the container
+           will represent the total region covered by the exons of this set.
+ 
+           See the documentation of parse_next_alignment</span><span class="operator">()</span> <span class="keyword">for</span> <span class="variable">further</span>
+           <span class="variable">reference</span> <span class="variable">about</span> <span class="variable">parsing</span> <span class="keyword">and</span> <span class="variable">how</span> <span class="variable">the</span> <span class="variable">information</span> <span class="variable">is</span> <span class="variable">stored</span><span class="operator">.</span>
+ 
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">An</span> <span class="variable">Bio::SeqFeature::Generic</span> <span class="variable">object</span> <span class="variable">holding</span> <span class="variable">Bio::Tools::Sim4::Exon</span>
+           <span class="variable">objects</span> <span class="variable">as</span> <span class="keyword">sub</span><span class="variable"> features.
+ Args    :
+ </span>
+</code></code></pre>
+
+<h2 id="next_feature">next_feature</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_feature</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">while</span><span class="operator">(</span><span class="variable">$exonset</span> <span class="operator">=</span> <span class="variable">$sim4</span><span class="operator">-&gt;</span><span class="variable">next_feature</span><span class="operator">())</span> <span class="operator">{</span>
+                  <span class="comment"># do something</span>
+           <span class="operator">}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Does</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">as</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">next_exonset</span><span class="operator">()&gt;.</span> <span class="variable">See</span> <span class="variable">there</span> <span class="keyword">for</span> <span class="variable">documentation</span> <span class="variable">of</span>
+           <span class="variable">the</span> <span class="variable">functionality</span><span class="operator">.</span> <span class="variable">Call</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">repeatedly</span> <span class="keyword">until</span> <span class="variable">FALSE</span> <span class="variable">is</span>
+           <span class="variable">returned</span><span class="operator">.</span>
+ 
+           <span class="variable">The</span> <span class="variable">returned</span> <span class="variable">object</span> <span class="variable">is</span> <span class="variable">actually</span> <span class="variable">a</span> <span class="variable">SeqFeatureI</span> <span class="variable">implementing</span> <span class="variable">object</span><span class="operator">.</span>
+           <span class="variable">This</span> <span class="variable">method</span> <span class="variable">is</span> <span class="variable">required</span> <span class="keyword">for</span> <span class="variable">classes</span> <span class="variable">implementing</span> <span class="variable">the</span>
+           <span class="variable">SeqAnalysisParserI</span> <span class="variable">interface</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">is</span> <span class="variable">merely</span> <span class="variable">an</span> <span class="variable">alias</span> <span class="keyword">for</span> 
+           <span class="variable">next_exonset</span><span class="operator">()</span> <span class="variable">at</span> <span class="variable">present</span><span class="operator">.</span>
+ 
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqFeature::Generic</span> <span class="variable">object</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,377 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Time-values">Time values</a></li>
+      <li><a href="#Interval-fudging">Interval fudging</a></li>
+    </ul>
+  </li>
+  <li><a href="#SUBCLASSING">SUBCLASSING</a></li>
+  <li><a href="#FUNCTIONS-METHODS">FUNCTIONS &amp; METHODS</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>IPC::Run::Timer -- Timer channels for IPC::Run.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="keyword">use</span> <span class="variable">IPC::Run</span> <span class="string">qw( run  timer timeout )</span><span class="operator">;</span>
+   <span class="comment">## or IPC::Run::Timer ( timer timeout );</span>
+   <span class="comment">## or IPC::Run::Timer ( :all );</span>
+   
+   <span class="comment">## A non-fatal timer:</span>
+   <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timer</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">);</span> <span class="comment"># or...</span>
+   <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">IO::Run::Timer</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">);</span>
+   <span class="variable">run</span> <span class="variable">$t</span><span class="operator">,</span> <span class="operator">...;</span>
+   
+   <span class="comment">## A timeout (which is a timer that dies on expiry):</span>
+   <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">);</span> <span class="comment"># or...</span>
+   <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">IO::Run::Timer</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="number">5</span><span class="operator">,</span> <span class="string">exception</span> <span class="operator">=&gt;</span> <span class="string">"harness timed out"</span> <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This class and module allows timers and timeouts to be created for use by IPC::Run. A timer simply expires when it&#39;s time is up. A timeout is a timer that throws an exception when it expires.</p>
+
+<p>Timeouts are usually a bit simpler to use than timers: they throw an exception on expiration so you don&#39;t need to check them:</p>
+
+<pre><code><code>   <span class="comment">## Give @cmd 10 seconds to get started, then 5 seconds to respond</span>
+   <span class="keyword">my</span> <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">10</span> <span class="operator">);</span>
+   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span><span class="operator">(</span>
+      <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span>
+      <span class="variable">$t</span><span class="operator">,</span>
+   <span class="operator">);</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/prompt/</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"some stimulus"</span><span class="operator">;</span>
+   <span class="variable">$out</span> <span class="operator">=</span> <span class="string">''</span><span class="operator">;</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">time</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">)</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/expected response/</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>You do need to check timers:</p>
+
+<pre><code><code>   <span class="comment">## Give @cmd 10 seconds to get started, then 5 seconds to respond</span>
+   <span class="keyword">my</span> <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timer</span><span class="operator">(</span> <span class="number">10</span> <span class="operator">);</span>
+   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span><span class="operator">(</span>
+      <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span>
+      <span class="variable">$t</span><span class="operator">,</span>
+   <span class="operator">);</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">is_expired</span> <span class="operator">||</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/prompt/</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"some stimulus"</span><span class="operator">;</span>
+   <span class="variable">$out</span> <span class="operator">=</span> <span class="string">''</span><span class="operator">;</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">time</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">)</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/expected response/</span> <span class="operator">||</span> <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">is_expired</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Timers and timeouts that are reset get started by start() and pump(). Timers change state only in pump(). Since run() and finish() both call pump(), they act like pump() with repect to timers.</p>
+
+<p>Timers and timeouts have three states: reset, running, and expired. Setting the timeout value resets the timer, as does calling the reset() method. The start() method starts (or restarts) a timer with the most recently set time value, no matter what state it&#39;s in.</p>
+
+<h2 id="Time-values">Time values</h2>
+
+<p>All time values are in seconds. Times may be specified as integer or floating point seconds, optionally preceded by puncuation-separated days, hours, and minutes.\</p>
+
+<p>Examples:</p>
+
+<pre><code><code>   1           1 second
+   1.1         1.1 seconds
+   60          60 seconds
+   1:0         1 minute
+   1:1         1 minute, 1 second
+   1:90        2 minutes, 30 seconds
+   1:2:3:4.5   1 day, 2 hours, 3 minutes, 4.5 seconds</code></code></pre>
+
+<p>Absolute date/time strings are *not* accepted: year, month and day-of-month parsing is not available (patches welcome :-).</p>
+
+<h2 id="Interval-fudging">Interval fudging</h2>
+
+<p>When calculating an end time from a start time and an interval, IPC::Run::Timer instances add a little fudge factor. This is to ensure that no time will expire before the interval is up.</p>
+
+<p>First a little background. Time is sampled in discrete increments. We&#39;ll call the exact moment that the reported time increments from one interval to the next a tick, and the interval between ticks as the time period. Here&#39;s a diagram of three ticks and the periods between them:</p>
+
+<pre><code><code>    -0-0-0-0-0-0-0-0-0-0-1-1-1-1-1-1-1-1-1-1-2-...
+    ^                   ^                   ^
+    |&lt;--- period 0 ----&gt;|&lt;--- period 1 ----&gt;|
+    |                   |                   |
+  tick 0              tick 1              tick 2</code></code></pre>
+
+<p>To see why the fudge factor is necessary, consider what would happen when a timer with an interval of 1 second is started right at the end of period 0:</p>
+
+<pre><code><code>    -0-0-0-0-0-0-0-0-0-0-1-1-1-1-1-1-1-1-1-1-2-...
+    ^                ^  ^                   ^
+    |                |  |                   |
+    |                |  |                   |
+  tick 0             |tick 1              tick 2
+                     |
+                 start $t</code></code></pre>
+
+<p>Assuming that check() is called many times per period, then the timer is likely to expire just after tick 1, since the time reported will have lept from the value &#39;0&#39; to the value &#39;1&#39;:</p>
+
+<pre><code><code>    -0-0-0-0-0-0-0-0-0-0-1-1-1-1-1-1-1-1-1-1-2-...
+    ^                ^  ^   ^               ^
+    |                |  |   |               |
+    |                |  |   |               |
+  tick 0             |tick 1|             tick 2
+                     |      |
+                 start $t   |
+                            |
+                        check $t</code></code></pre>
+
+<p>Adding a fudge of &#39;1&#39; in this example means that the timer is guaranteed not to expire before tick 2.</p>
+
+<p>The fudge is not added to an interval of &#39;0&#39;.</p>
+
+<p>This means that intervals guarantee a minimum interval. Given that the process running perl may be suspended for some period of time, or that it gets busy doing something time-consuming, there are no other guarantees on how long it will take a timer to expire.</p>
+
+<h1 id="SUBCLASSING">SUBCLASSING</h1>
+
+<p>INCOMPATIBLE CHANGE: Due to the awkwardness introduced by ripping pseudohashes out of Perl, this class <i>no longer</i> uses the fields pragma.</p>
+
+<h1 id="FUNCTIONS-METHODS">FUNCTIONS &amp; METHODS</h1>
+
+<dl>
+
+<dt id="timer">timer</dt>
+<dd>
+
+<p>A constructor function (not method) of IPC::Run::Timer instances:</p>
+
+<pre><code><code>   <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timer</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">);</span>
+   <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timer</span><span class="operator">(</span> <span class="number">5</span><span class="operator">,</span> <span class="string">name</span> <span class="operator">=&gt;</span> <span class="string">'stall timer'</span><span class="operator">,</span> <span class="string">debug</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+   
+   <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timer</span><span class="operator">;</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">interval</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">);</span>
+   
+   <span class="variable">run</span> <span class="operator">...,</span> <span class="variable">$t</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">...,</span> <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timer</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>This convenience function is a shortened spelling of</p>
+
+<pre><code><code>   <span class="variable">IPC::Run::Timer</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="operator">...</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>. It returns a timer in the reset state with a given interval.</p>
+
+<p>If an exception is provided, it will be thrown when the timer notices that it has expired (in check()). The name is for debugging usage, if you plan on having multiple timers around. If no name is provided, a name like &quot;timer #1&quot; will be provided.</p>
+
+</dd>
+<dt id="timeout">timeout</dt>
+<dd>
+
+<p>A constructor function (not method) of IPC::Run::Timer instances:</p>
+
+<pre><code><code>   <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">);</span>
+   <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">5</span><span class="operator">,</span> <span class="string">exception</span> <span class="operator">=&gt;</span> <span class="string">"kablooey"</span> <span class="operator">);</span>
+   <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">5</span><span class="operator">,</span> <span class="string">name</span> <span class="operator">=&gt;</span> <span class="string">"stall"</span><span class="operator">,</span> <span class="string">exception</span> <span class="operator">=&gt;</span> <span class="string">"kablooey"</span> <span class="operator">);</span>
+   
+   <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timeout</span><span class="operator">;</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">interval</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">);</span>
+   
+   <span class="variable">run</span> <span class="operator">...,</span> <span class="variable">$t</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">...,</span> <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>A This convenience function is a shortened spelling of</p>
+
+<pre><code><code>   <span class="variable">IPC::Run::Timer</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">exception</span> <span class="operator">=&gt;</span> <span class="string">"IPC::Run: timeout ..."</span><span class="operator">,</span> <span class="operator">...</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>. It returns a timer in the reset state that will throw an exception when it expires.</p>
+
+<p>Takes the same parameters as <a href="#timer">&quot;timer&quot;</a>, any exception passed in overrides the default exception.</p>
+
+</dd>
+<dt id="new">new</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">IPC::Run::Timer</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">()</span>  <span class="operator">;</span>
+   <span class="variable">IPC::Run::Timer</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">)</span>  <span class="operator">;</span>
+   <span class="variable">IPC::Run::Timer</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="number">5</span><span class="operator">,</span> <span class="string">exception</span> <span class="operator">=&gt;</span> <span class="string">'kablooey'</span> <span class="operator">)</span>  <span class="operator">;</span>
+</code></code></pre>
+
+<p>Constructor. See <a href="#timer">&quot;timer&quot;</a> for details.</p>
+
+</dd>
+<dt id="check">check</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">check</span> <span class="variable">$t</span><span class="operator">;</span>
+   <span class="variable">check</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$now</span><span class="operator">;</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">check</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Checks to see if a timer has expired since the last check. Has no effect on non-running timers. This will throw an exception if one is defined.</p>
+
+<p>IPC::Run::pump() calls this routine for any timers in the harness.</p>
+
+<p>You may pass in a version of now, which is useful in case you have it lying around or you want to check several timers with a consistent concept of the current time.</p>
+
+<p>Returns the time left before end_time or 0 if end_time is no longer in the future or the timer is not running (unless, of course, check() expire()s the timer and this results in an exception being thrown).</p>
+
+<p>Returns undef if the timer is not running on entry, 0 if check() expires it, and the time left if it&#39;s left running.</p>
+
+</dd>
+<dt id="debug">debug</dt>
+<dd>
+
+<p>Sets/gets the current setting of the debugging flag for this timer. This has no effect if debugging is not enabled for the current harness.</p>
+
+</dd>
+<dt id="end_time">end_time</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">$et</span> <span class="operator">=</span> <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">end_time</span><span class="operator">;</span>
+   <span class="variable">$et</span> <span class="operator">=</span> <span class="variable">end_time</span> <span class="variable">$t</span><span class="operator">;</span>
+   
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">end_time</span><span class="operator">(</span> <span class="keyword">time</span> <span class="operator">+</span> <span class="number">10</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Returns the time when this timer will or did expire. Even if this time is in the past, the timer may not be expired, since check() may not have been called yet.</p>
+
+<p>Note that this end_time is not start_time($t) + interval($t), since some small extra amount of time is added to make sure that the timer does not expire before interval() elapses. If this were not so, then</p>
+
+<p>Changing end_time() while a timer is running will set the expiration time. Changing it while it is expired has no affect, since reset()ing a timer always clears the end_time().</p>
+
+</dd>
+<dt id="exception">exception</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">$x</span> <span class="operator">=</span> <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">exception</span><span class="operator">;</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">exception</span><span class="operator">(</span> <span class="variable">$x</span> <span class="operator">);</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">exception</span><span class="operator">(</span> <span class="keyword">undef</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Sets/gets the exception to throw, if any. &#39;undef&#39; means that no exception will be thrown. Exception does not need to be a scalar: you may ask that references be thrown.</p>
+
+</dd>
+<dt id="interval">interval</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">$i</span> <span class="operator">=</span> <span class="variable">interval</span> <span class="variable">$t</span><span class="operator">;</span>
+   <span class="variable">$i</span> <span class="operator">=</span> <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">interval</span><span class="operator">;</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">interval</span><span class="operator">(</span> <span class="variable">$i</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Sets the interval. Sets the end time based on the start_time() and the interval (and a little fudge) if the timer is running.</p>
+
+</dd>
+<dt id="expire">expire</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">expire</span> <span class="variable">$t</span><span class="operator">;</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">expire</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Sets the state to expired (undef). Will throw an exception if one is defined and the timer was not already expired. You can expire a reset timer without starting it.</p>
+
+</dd>
+<dt id="is_running">is_running</dt>
+<dd>
+
+</dd>
+<dt id="is_reset">is_reset</dt>
+<dd>
+
+</dd>
+<dt id="is_expired">is_expired</dt>
+<dd>
+
+</dd>
+<dt id="name">name</dt>
+<dd>
+
+<p>Sets/gets this timer&#39;s name. The name is only used for debugging purposes so you can tell which freakin&#39; timer is doing what.</p>
+
+</dd>
+<dt id="reset">reset</dt>
+<dd>
+
+<pre><code><code>   <span class="keyword">reset</span> <span class="variable">$t</span><span class="operator">;</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">reset</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Resets the timer to the non-running, non-expired state and clears the end_time().</p>
+
+</dd>
+<dt id="start">start</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">start</span> <span class="variable">$t</span><span class="operator">;</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">;</span>
+   <span class="variable">start</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$interval</span><span class="operator">;</span>
+   <span class="variable">start</span> <span class="variable">$t</span><span class="operator">,</span> <span class="variable">$interval</span><span class="operator">,</span> <span class="variable">$now</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Starts or restarts a timer. This always sets the start_time. It sets the end_time based on the interval if the timer is running or if no end time has been set.</p>
+
+<p>You may pass an optional interval or current time value.</p>
+
+<p>Not passing a defined interval causes the previous interval setting to be re-used unless the timer is reset and an end_time has been set (an exception is thrown if no interval has been set).</p>
+
+<p>Not passing a defined current time value causes the current time to be used.</p>
+
+<p>Passing a current time value is useful if you happen to have a time value lying around or if you want to make sure that several timers are started with the same concept of start time. You might even need to lie to an IPC::Run::Timer, occasionally.</p>
+
+</dd>
+<dt id="start_time">start_time</dt>
+<dd>
+
+<p>Sets/gets the start time, in seconds since the epoch. Setting this manually is a bad idea, it&#39;s better to call <a href="#start">&quot;start&quot;</a>() at the correct time.</p>
+
+</dd>
+<dt id="state">state</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">$s</span> <span class="operator">=</span> <span class="keyword">state</span> <span class="variable">$t</span><span class="operator">;</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">state</span><span class="operator">(</span> <span class="variable">$s</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Get/Set the current state. Only use this if you really need to transfer the state to/from some variable. Use <a href="#expire">&quot;expire&quot;</a>, <a href="#start">&quot;start&quot;</a>, <a href="#reset">&quot;reset&quot;</a>, <a href="#is_expired">&quot;is_expired&quot;</a>, <a href="#is_running">&quot;is_running&quot;</a>, <a href="#is_reset">&quot;is_reset&quot;</a>.</p>
+
+<p>Note: Setting the state to &#39;undef&#39; to expire a timer will not throw an exception.</p>
+
+</dd>
+</dl>
+
+<h1 id="TODO">TODO</h1>
+
+<p>use Time::HiRes; if it&#39;s present.</p>
+
+<p>Add detection and parsing of [[[HH:]MM:]SS formatted times and intervals.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Barrie Slaymaker &lt;barries@slaysys.com&gt;</p>
+
+
+</body>
+
+</html>
+
+

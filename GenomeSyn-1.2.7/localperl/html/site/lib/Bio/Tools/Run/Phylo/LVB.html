@@ -1,0 +1,266 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#PARAMETERS-FOR-LVB-COMPUTATION">PARAMETERS FOR LVB COMPUTATION</a>
+    <ul>
+      <li><a href="#FORMAT">FORMAT</a></li>
+      <li><a href="#GAPS">GAPS</a></li>
+      <li><a href="#SEED">SEED</a></li>
+      <li><a href="#DURATION">DURATION</a></li>
+      <li><a href="#BOOTSTRAPS">BOOTSTRAPS</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#run">run</a></li>
+      <li><a href="#create_tree">create_tree</a></li>
+      <li><a href="#run1">_run</a></li>
+      <li><a href="#setinput">_setinput</a></li>
+      <li><a href="#setparams">_setparams</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::Phylo::LVB - Object for using the LVB program to create an array of <a>Bio::Tree</a> objects from a nucleotide multiple alignment file or a nucleotide SimpleAlign object. Works with LVB version 2.1.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Phylo::LVB</span><span class="operator">;</span>
+  
+  <span class="comment"># Create a SimpleAlign object.</span>
+  <span class="comment"># NOTE. Aligning nucleotide sequence directly, as below, makes</span>
+  <span class="comment"># sense for non-coding nucleotide sequence (e.g., structural RNA</span>
+  <span class="comment"># genes, introns, ITS). For protein-coding genes, to prevent</span>
+  <span class="comment"># Clustal intronducing frameshifts one should instead align the</span>
+  <span class="comment"># translations of the genes, then convert the multiple alignment</span>
+  <span class="comment"># to nucleotide by referring to the corresponding transcript</span>
+  <span class="comment"># sequences (e.g., using EMBOSS tranalign).</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Alignment::Clustalw</span><span class="operator">;</span>
+  <span class="variable">$aln_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Alignment::Clustalw</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">quiet</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+  <span class="variable">$inputfilename</span> <span class="operator">=</span> <span class="string">"/Users/daniel/nuc.fa"</span><span class="operator">;</span>
+  <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$aln_factory</span><span class="operator">-&gt;</span><span class="variable">align</span><span class="operator">(</span><span class="variable">$inputfilename</span><span class="operator">);</span>
+  
+  <span class="comment"># Create the tree or trees.</span>
+  <span class="variable">$tree_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::LVB</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">quiet</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+  <span class="variable">@trees</span> <span class="operator">=</span> <span class="variable">$tree_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+  
+  <span class="comment"># Or one can pass in a file name containing a nucleotide multiple</span>
+  <span class="comment"># alignment in Phylip 3.6 format:</span>
+  <span class="variable">$tree_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::LVB</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">quiet</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">);</span>
+  <span class="variable">$tree</span> <span class="operator">=</span> <span class="variable">$tree_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">"/Users/daniel/nuc.phy"</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Wrapper for LVB, which uses a simulated annealing heuristic search to seek parsimonious trees from a nucleotide multiple alignment.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="PARAMETERS-FOR-LVB-COMPUTATION">PARAMETERS FOR LVB COMPUTATION</h1>
+
+<h2 id="FORMAT">FORMAT</h2>
+
+<pre><code><code>  Title       : FORMAT
+  Description : (optional)
+                When running LVB from a Phylip 3.6-format
+                multiple alignment file, this specifies
+                the layout of the file. It may be
+                &quot;interleaved&quot; or &quot;sequential&quot;. FORMAT is
+                automatically set to &quot;interleaved&quot; if
+                running from a SimpleAlign object.
+                Defaults to &quot;interleaved&quot;.</code></code></pre>
+
+<h2 id="GAPS">GAPS</h2>
+
+<pre><code><code>  Title       : GAPS
+  Description : (optional)
+                LVB can treat gaps represented in the
+                multiple alignment by &quot;-&quot; as either
+                &quot;fifthstate&quot; or &quot;unknown&quot;. &quot;fifthstate&quot;
+                regards &quot;-&quot; as equivalent to &quot;O&quot;, which
+                is an unambiguous character state
+                distinct from all nucleotides. &quot;unknown&quot;
+                regards &quot;-&quot; as equivalent to &quot;?&quot;, which
+                is as an ambiguous site that may contain
+                &quot;A&quot; or &quot;C&quot; or &quot;G&quot; or &quot;T&quot; or &quot;O&quot;.
+                Defaults to &quot;unknown&quot;.</code></code></pre>
+
+<h2 id="SEED">SEED</h2>
+
+<pre><code><code>  Title       : SEED
+  Description : (optional)
+                This specifies the random number seed
+                for LVB. SEED must be an integer in the
+                range 0 to 900000000 inclusive. If no
+                seed is specified, LVB takes a seed from
+                the system clock. By default, no seed is
+                specified.</code></code></pre>
+
+<h2 id="DURATION">DURATION</h2>
+
+<pre><code><code>  Title       : DURATION
+  Description : (optional)
+                This specifies the duration of the
+                analysis, which may be &quot;fast&quot; or &quot;slow&quot;.
+                &quot;slow&quot; causes LVB to perform a more
+                thorough and more time-consuming search
+                than &quot;fast&quot;. Defaults to &quot;slow&quot;.</code></code></pre>
+
+<h2 id="BOOTSTRAPS">BOOTSTRAPS</h2>
+
+<pre><code><code>  Title       : BOOTSTRAPS
+  Description : (optional)
+                This specifies the number of bootstrap
+                replicates to use, which must be a
+                positive integer. Set bootstraps to 0 for
+                no bootstrapping. Defaults to 0.</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Daniel Barker</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Email jason-AT-bioperl_DOT_org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : -&gt;program_name()
+ Function: holds the program name
+ Returns:  string
+ Args    : None</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> Title   : program_dir
+ Usage   : -&gt;program_dir()
+ Function: returns undef
+ Args    :</code></code></pre>
+
+<h2 id="run">run</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">run</span> 
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+        <span class="variable">$inputfilename</span> <span class="operator">=</span> <span class="string">'/Users/daniel/nuc.phy'</span><span class="operator">;</span>
+        <span class="variable">@trees</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$inputfilename</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Create</span> <span class="variable">one</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">LVB</span> <span class="variable">trees</span> <span class="variable">from</span> <span class="variable">a</span> <span class="variable">SimpleAlign</span>
+           <span class="variable">object</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">a</span> <span class="variable">Phylip</span> <span class="number">3.6</span><span class="operator">-</span><span class="keyword">format</span>
+           <span class="variable">nucleotide</span> <span class="variable">multiple</span> <span class="variable">alignment</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">of</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Tree</span><span class="operator">&gt;</span> <span class="variable">objects</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Name</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">a</span> <span class="variable">nucleotide</span> <span class="variable">multiple</span>
+           <span class="variable">alignment</span> <span class="variable">in</span> <span class="variable">Phylip</span> <span class="number">3.6</span> <span class="keyword">format</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">SimpleAlign</span>
+           <span class="variable">object</span>
+</code></code></pre>
+
+<h2 id="create_tree">create_tree</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">create_tree</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+        <span class="variable">$inputfilename</span> <span class="operator">=</span> <span class="string">'/Users/daniel/nuc.phy'</span><span class="operator">;</span>
+        <span class="variable">@trees</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">create_tree</span><span class="operator">(</span><span class="variable">$inputfilename</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Create</span> <span class="variable">one</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">LVB</span> <span class="variable">trees</span> <span class="variable">from</span> <span class="variable">a</span> <span class="variable">SimpleAlign</span>
+           <span class="variable">object</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">a</span> <span class="variable">Phylip</span> <span class="number">3.6</span><span class="operator">-</span><span class="keyword">format</span>
+           <span class="variable">nucleotide</span> <span class="variable">multiple</span> <span class="variable">alignment</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Array</span> <span class="variable">of</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Tree</span><span class="operator">&gt;</span> <span class="variable">objects</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Name</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">a</span> <span class="variable">nucleotide</span> <span class="variable">multiple</span> 
+           <span class="variable">alignment</span> <span class="variable">in</span> <span class="variable">Phylip</span> <span class="number">3.6</span> <span class="keyword">format</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">SimpleAlign</span>
+           <span class="variable">object</span>
+</code></code></pre>
+
+<h2 id="run1">_run</h2>
+
+<pre><code><code> Title   : _run
+ Usage   : Internal function, not to be called directly 
+ Function:  makes actual system call to lvb program
+ Example :
+ Returns : Array of Bio::Tree objects
+ Args    : Name of a file containing a multiple alignment
+           in Phylip 3.6 format and a parameter string to be
+           passed to LVB</code></code></pre>
+
+<h2 id="setinput">_setinput</h2>
+
+<pre><code><code> Title   :  _setinput
+ Usage   :  Internal function, not to be called directly        
+ Function:   Create input file for lvb program
+ Example :
+ Returns : name of file containing a multiple alignment in
+           Phylip 3.6 format 
+ Args    : SimpleAlign object reference or input file name</code></code></pre>
+
+<h2 id="setparams">_setparams</h2>
+
+<pre><code><code> Title   :  _setparams
+ Usage   :  Internal function, not to be called directly        
+ Function:   Create parameter inputs for lvb program
+ Example :
+ Returns : parameter string to be passed to LVB
+ Args    : name of calling object</code></code></pre>
+
+
+</body>
+
+</html>
+
+

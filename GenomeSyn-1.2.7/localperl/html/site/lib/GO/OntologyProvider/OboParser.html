@@ -1,0 +1,164 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#Instance-Constructor">Instance Constructor</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+    </ul>
+  </li>
+  <li><a href="#Instance-Methods">Instance Methods</a>
+    <ul>
+      <li><a href="#printOntology">printOntology</a></li>
+      <li><a href="#allNodes">allNodes</a></li>
+      <li><a href="#rootNode">rootNode</a></li>
+      <li><a href="#nodeFromId">nodeFromId</a></li>
+      <li><a href="#numNodes">numNodes</a></li>
+      <li><a href="#serializeToDisk">serializeToDisk</a></li>
+    </ul>
+  </li>
+  <li><a href="#Authors">Authors</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>GO::OntologyProvider::OboParser - Provides API for retrieving data from Gene Ontology obo file.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">GO::OntologyProvider::OboParser</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$ontology</span> <span class="operator">=</span> <span class="variable">GO::OntologyProvider::OboParser</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">ontologyFile</span> <span class="operator">=&gt;</span> <span class="string">"gene_ontology.obo"</span><span class="operator">,</span>
+                                                        <span class="string">aspect</span>       <span class="operator">=&gt;</span> <span class="operator">[</span><span class="variable">P</span><span class="operator">|</span><span class="variable">F</span><span class="operator">|</span><span class="variable">C</span><span class="operator">]</span><span class="operator">);</span>
+    
+    <span class="keyword">print</span> <span class="string">"The ancestors of GO:0006177 are:\n"</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$node</span> <span class="operator">=</span> <span class="variable">$ontology</span><span class="operator">-&gt;</span><span class="variable">nodeFromId</span><span class="operator">(</span><span class="string">"GO:0006177"</span><span class="operator">);</span>
+    
+    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$ancestor</span> <span class="operator">(</span><span class="variable">$node</span><span class="operator">-&gt;</span><span class="variable">ancestors</span><span class="operator">){</span>
+    
+        <span class="keyword">print</span> <span class="variable">$ancestor</span><span class="operator">-&gt;</span><span class="variable">goid</span><span class="operator">,</span> <span class="string">" "</span><span class="operator">,</span> <span class="variable">$ancestor</span><span class="operator">-&gt;</span><span class="variable">term</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+    
+    <span class="operator">}</span>
+    
+    <span class="variable">$ontology</span><span class="operator">-&gt;</span><span class="variable">printOntology</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>GO::OntologyProvider::OboParser implements the interface defined by GO::OntologyProvider, and parses the gene ontology obo file (GO) in plain text (not XML) format. These files can be obtained from the Gene Ontology Consortium web site, http://www.geneontology.org/. From the information in the file, it creates a directed acyclic graph (DAG) structure in memory. This means that GO terms are arranged into tree-like structures where each GO node can have multiple parent nodes and multiple child nodes. The file MUST be named with a .obo suffix.</p>
+
+<p>This data structure can be used in conjunction with files in which certain genes are annotated to corresponding GO nodes.</p>
+
+<p>Each GO ID (e.g. &quot;GO:1234567&quot;) has associated with it a GO node. That GO node contains the name of the GO term, a list of the nodes directly above the node (&quot;parent nodes&quot;), and a list of the nodes directly below the current node (&quot;child nodes&quot;). The &quot;ancestor nodes&quot; of a certain node are all of the nodes that are in a path from the current node to the root of the ontology, with all repetitions removed.</p>
+
+<p>The example format is as follows:</p>
+
+<p>[Term] id: GO:0000006 name: high affinity zinc uptake transporter activity namespace: molecular_function def: &quot;Catalysis of the reaction: Zn2+(out) = Zn2+(in), probably powered by proton motive force.&quot; [TC:2.A.5.1.1] xref_analog: TC:2.A.5.1.1 is_a: GO:0005385 ! zinc ion transporter activity</p>
+
+<p>[Term] id: GO:0000005 name: ribosomal chaperone activity namespace: molecular_function def: &quot;OBSOLETE. Assists in the correct assembly of ribosomes or ribosomal subunits in vivo, but is not a component of the assembled ribosome when performing its normal biological function.&quot; [GOC:jl, PMID:12150913] comment: This term was made obsolete because it refers to a class of gene products and a biological process rather than a molecular function. To update annotations, consider the molecular function term &#39;unfolded protein binding ; GO:0051082&#39; and the biological process term &#39;ribosome biogenesis and assembly ; GO:0042254&#39; and its children. is_obsolete: true</p>
+
+<h1 id="Instance-Constructor">Instance Constructor</h1>
+
+<h2 id="new">new</h2>
+
+<p>This is the constructor for an OboParser object. The constructor expects one of two arguments, either an &#39;ontologyFile&#39; argument, or an &#39;objectFile&#39; argument. When instantiated with an ontologyFile argument, it expects it to correspond to an obo file created by the GO consortium, according to their file format, and in addition, also requires an &#39;aspect&#39; argument. When instantiated with an objectFile argument, it expects to open a previously created ontologyParser object that has been serialized to disk (see serializeToDisk).</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$ontology</span> <span class="operator">=</span> <span class="variable">GO::OntologyProvider::OboParser</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">ontologyFile</span> <span class="operator">=&gt;</span> <span class="variable">$ontologyFile</span><span class="operator">,</span>
+                                                        <span class="string">aspect</span>       <span class="operator">=&gt;</span> <span class="variable">$aspect</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">$ontology</span> <span class="operator">=</span> <span class="variable">GO::OntologyProvider::OboParser</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">objectFile</span>   <span class="operator">=&gt;</span> <span class="variable">$objectFile</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="Instance-Methods">Instance Methods</h1>
+
+<h2 id="printOntology">printOntology</h2>
+
+<p>This prints out the ontology, with redundancies, to STDOUT. It does not yet print out all of the ontology information (like relationship type etc). This method will be likely be removed in a future version, so should not be relied upon.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="variable">$ontologyParser</span><span class="operator">-&gt;</span><span class="variable">printOntology</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="allNodes">allNodes</h2>
+
+<p>This method returns an array of all the GO:Nodes that have been created.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@nodes</span> <span class="operator">=</span> <span class="variable">$ontologyParser</span><span class="operator">-&gt;</span><span class="variable">allNodes</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="rootNode">rootNode</h2>
+
+<p>This returns the root node in the ontology.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$rootNode</span> <span class="operator">=</span> <span class="variable">$ontologyParser</span><span class="operator">-&gt;</span><span class="variable">rootNode</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="nodeFromId">nodeFromId</h2>
+
+<p>This public method takes a GOID and returns the GO::Node that it corresponds to.</p>
+
+<p>Usage :</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$node</span> <span class="operator">=</span> <span class="variable">$ontologyParser</span><span class="operator">-&gt;</span><span class="variable">nodeFromId</span><span class="operator">(</span><span class="variable">$goid</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>If the GOID does not correspond to a GO node, then undef will be returned. Note if you try to call any methods on an undef, you will get a fatal runtime error, so if you can&#39;t guarantee all GOIDs that you supply are good, you should check that the return value from this method is defined.</p>
+
+<h2 id="numNodes">numNodes</h2>
+
+<p>This public method returns the number of nodes that exist with the ontology</p>
+
+<p>Usage :</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$numNodes</span> <span class="operator">=</span> <span class="variable">$ontologyParser</span><span class="operator">-&gt;</span><span class="variable">numNodes</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="serializeToDisk">serializeToDisk</h2>
+
+<p>Saves the current state of the Ontology Parser Object to a file, using the Storable package. Saves in network order for portability, just in case. Returns the name of the file. If no filename is provided, then the name of the file (and its directory, if one was provided) used for object construction, will be used, with .obj appended. If the object was instantiated from a file with a .obj suffix, then the same filename would be used, if none were provided.</p>
+
+<p>This method currently causes a segfault on MacOSX (at least 10.1.5 -&gt; 10.2.3), with perl 5.6, and Storable 1.0.14, when trying to store the process ontology. This failure occurs using either store, or nstore, and is manifested by a segmentation fault. It has not been investigated whether this is a perl problem, or a Storable problem (which has large amounts of C-code). This does not cause a segmentation on Solaris, using perl 5.6.1 and Storable 1.0.13. This does not make it clear whether it is a MacOSX problem or a perl problem or not. It should be noted that newer versions of both perl and Storable exist, and the code should be tested with those as well.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$objectFile</span> <span class="operator">=</span> <span class="variable">$ontologyParser</span><span class="operator">-&gt;</span><span class="variable">serializeToDisk</span><span class="operator">(</span><span class="string">filename</span><span class="operator">=&gt;</span><span class="variable">$filename</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="Authors">Authors</h1>
+
+<pre><code><code>    <span class="variable">Gavin</span> <span class="variable">Sherlock</span><span class="operator">;</span> <span class="variable">sherlock</span><span class="variable">@genome</span><span class="operator">.</span><span class="variable">stanford</span><span class="operator">.</span><span class="variable">edu</span>
+    <span class="variable">Elizabeth</span> <span class="variable">Boyle</span><span class="operator">;</span> <span class="variable">ell</span><span class="variable">@mit</span><span class="operator">.</span><span class="variable">edu</span>
+    <span class="variable">Shuai</span> <span class="variable">Weng</span><span class="operator">;</span> <span class="variable">shuai</span><span class="variable">@genome</span><span class="operator">.</span><span class="variable">stanford</span><span class="operator">.</span><span class="variable">edu</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

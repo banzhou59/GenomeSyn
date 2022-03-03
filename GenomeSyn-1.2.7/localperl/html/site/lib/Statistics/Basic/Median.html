@@ -1,0 +1,119 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#METHODS">METHODS</a></li>
+  <li><a href="#OVERLOADS">OVERLOADS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Statistics::Basic::Median - find the median of a list</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Invoke it this way:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$median</span> <span class="operator">=</span> <span class="variable">median</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Or this way:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$v1</span>  <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$med</span> <span class="operator">=</span> <span class="variable">median</span><span class="operator">(</span><span class="variable">$v1</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>And then either query the values or print them like so:</p>
+
+<pre><code><code>    <span class="keyword">print</span> <span class="string">"The median of </span><span class="variable">$v1</span><span class="string">: </span><span class="variable">$med</span><span class="string">\n"</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$mq</span> <span class="operator">=</span> <span class="variable">$med</span><span class="operator">-&gt;</span><span class="variable">query</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$m0</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">+</span><span class="variable">$med</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Create a 20 point &quot;moving&quot; median like so:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(:all nofill)</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$sth</span> <span class="operator">=</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">prepare</span><span class="operator">(</span><span class="string">"select col1 from data where something"</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$len</span> <span class="operator">=</span> <span class="number">20</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$med</span> <span class="operator">=</span> <span class="variable">median</span><span class="operator">()-&gt;</span><span class="variable">set_size</span><span class="operator">(</span><span class="variable">$len</span><span class="operator">);</span>
+    
+    <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">execute</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">errstr</span><span class="operator">;</span>
+    <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">bind_columns</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$val</span> <span class="operator">)</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">errstr</span><span class="operator">;</span>
+    
+    <span class="keyword">while</span><span class="operator">(</span> <span class="variable">$sth</span><span class="operator">-&gt;</span><span class="variable">fetch</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="variable">$med</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span> <span class="variable">$val</span> <span class="operator">);</span>
+        <span class="keyword">if</span><span class="operator">(</span> <span class="keyword">defined</span><span class="operator">(</span> <span class="variable">$m</span> <span class="operator">=</span> <span class="variable">$med</span><span class="operator">-&gt;</span><span class="variable">query</span> <span class="operator">)</span> <span class="operator">)</span> <span class="operator">{</span>
+            <span class="keyword">print</span> <span class="string">"Median: </span><span class="variable">$m</span><span class="string">\n"</span><span class="operator">;</span>
+        <span class="operator">}</span>
+    
+        <span class="comment"># This would also work:</span>
+        <span class="comment"># print "Median: $med\n" if $med-&gt;query_filled;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="METHODS">METHODS</h1>
+
+<dl>
+
+<dt id="new-"><b>new()</b></dt>
+<dd>
+
+<p>The constructor takes a single array ref or a single <a href="../../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Vector.html">Statistics::Basic::Vector</a> as arguments. It returns a <a href="../../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Median.html">Statistics::Basic::Median</a> object.</p>
+
+<p>Note: normally you&#39;d use the <a href="../../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic.html#median-">median()</a> constructor, rather than building these by hand using <code><code>new()</code></code>.</p>
+
+</dd>
+<dt id="OVB::import-"><b>_OVB::import()</b></dt>
+<dd>
+
+<p>This module also inherits all the overloads and methods from <a href="../../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/_OneVectorBase.html">Statistics::Basic::_OneVectorBase</a>.</p>
+
+</dd>
+</dl>
+
+<h1 id="OVERLOADS">OVERLOADS</h1>
+
+<p>This object is overloaded. It tries to return an appropriate string for the calculation or the value of the computation in numeric context.</p>
+
+<p>In boolean context, this object is always true (even when empty).</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Paul Miller <code><code>&lt;jettero@cpan.org&gt;</code></code></p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright 2012 Paul Miller -- Licensed under the LGPL</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>perl(1), <a href="../../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic.html">Statistics::Basic</a>, <a href="../../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/_OneVectorBase.html">Statistics::Basic::_OneVectorBase</a>, <a href="../../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Vector.html">Statistics::Basic::Vector</a></p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,324 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#METHODS">METHODS</a></li>
+  <li><a href="#CONSTRUCTORS">CONSTRUCTORS</a></li>
+  <li><a href="#OBJECT-METHODS">OBJECT METHODS</a></li>
+  <li><a href="#AUTHORS-AND-CONTRIBUTORS">AUTHORS AND CONTRIBUTORS</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Align::Graphics - Graphic Rendering of Bio::Align::AlignI Objects</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Align::Graphics</span><span class="operator">;</span>
+  
+  <span class="comment">#Get an AlignI object, usually by using Bio::AlignIO</span>
+  
+  <span class="keyword">my</span> <span class="variable">$file</span><span class="operator">=</span><span class="keyword">shift</span> <span class="variable">@ARGV</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$in</span><span class="operator">=</span><span class="variable">new</span> <span class="variable">Bio::AlignIO</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$file</span><span class="operator">,</span> <span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'clustalw'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$aln</span><span class="operator">=</span><span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_aln</span><span class="operator">();</span>
+  
+  
+  <span class="comment">#Create a new Graphics object</span>
+  <span class="keyword">my</span> <span class="variable">$print_align</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::Align::Graphics</span><span class="operator">(</span><span class="string">align</span> <span class="operator">=&gt;</span> <span class="variable">$aln</span><span class="operator">);</span>
+  
+  <span class="comment">#Draw the alignment</span>
+  <span class="variable">$print_align</span><span class="operator">-&gt;</span><span class="variable">draw</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::Align::Graphics is a module designed to create image files out of Bio::Align::AlignI objects. An alignment may be manipulated with various formatting and highlighting options.</p>
+
+<p>An example:</p>
+
+<pre><code><code>        <span class="comment">#!/usr/bin/perl -w</span>
+        
+        <span class="keyword">use</span> <span class="variable">Bio::AlignIO</span><span class="operator">;</span>
+        <span class="keyword">use</span> <span class="variable">Bio::Align::Graphics</span><span class="operator">;</span>
+        <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+        
+        <span class="comment">#Get an alignment file</span>
+        <span class="keyword">my</span> <span class="variable">$file</span> <span class="operator">=</span> <span class="keyword">shift</span> <span class="variable">@ARGV</span><span class="operator">;</span>
+        
+        <span class="comment">#Create an AlignI object using AlignIO</span>
+        <span class="keyword">my</span> <span class="variable">$in</span><span class="operator">=</span><span class="variable">new</span> <span class="variable">Bio::AlignIO</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="variable">$file</span><span class="operator">,</span> <span class="string">-format</span><span class="operator">=&gt;</span><span class="string">'clustalw'</span><span class="operator">);</span>
+        
+        <span class="comment">#Read the alignment</span>
+        <span class="keyword">my</span> <span class="variable">$aln</span><span class="operator">=</span><span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_aln</span><span class="operator">();</span>
+        
+        <span class="comment">#Create some domains for highlighting</span>
+        <span class="keyword">my</span> <span class="variable">@domain_start</span> <span class="operator">=</span> <span class="operator">(</span> <span class="number">25</span> <span class="operator">,</span> <span class="number">50</span><span class="operator">,</span> <span class="number">80</span> <span class="operator">);</span>
+        <span class="keyword">my</span> <span class="variable">@domain_end</span> <span class="operator">=</span> <span class="operator">(</span> <span class="number">40</span> <span class="operator">,</span> <span class="number">60</span> <span class="operator">,</span> <span class="number">100</span> <span class="operator">);</span>
+        <span class="keyword">my</span> <span class="variable">@domain_color</span> <span class="operator">=</span> <span class="operator">(</span> <span class="string">'red'</span> <span class="operator">,</span> <span class="string">'cyan'</span> <span class="operator">,</span> <span class="string">'green'</span> <span class="operator">);</span>
+        
+        <span class="comment">#Create Labels for the domains</span>
+        <span class="keyword">my</span> <span class="variable">@dml</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">"CARD"</span><span class="operator">,</span> <span class="string">"Proline Rich"</span><span class="operator">,</span> <span class="string">"Transmembrane"</span><span class="operator">);</span>
+        <span class="keyword">my</span> <span class="variable">@dml_start</span> <span class="operator">=</span> <span class="operator">(</span><span class="number">25</span><span class="operator">,</span> <span class="number">50</span><span class="operator">,</span> <span class="number">80</span><span class="operator">);</span>
+        <span class="keyword">my</span> <span class="variable">@dml_end</span> <span class="operator">=</span> <span class="operator">(</span><span class="number">40</span><span class="operator">,</span> <span class="number">60</span><span class="operator">,</span> <span class="number">100</span><span class="operator">);</span>
+        <span class="keyword">my</span> <span class="variable">@dml_color</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">"lightpink"</span><span class="operator">,</span> <span class="string">"lightblue"</span><span class="operator">,</span> <span class="string">"lightgreen"</span><span class="operator">);</span>
+        
+        
+        <span class="comment">#Create individual labels</span>
+        <span class="keyword">my</span> <span class="variable">%labels</span> <span class="operator">=</span> <span class="operator">(</span> <span class="number">145</span> <span class="operator">=&gt;</span> <span class="string">"Hep-c target"</span><span class="operator">);</span>
+        
+        
+        <span class="keyword">my</span> <span class="variable">$print_align</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">Bio::Align::Graphics</span><span class="operator">(</span> <span class="string">align</span> <span class="operator">=&gt;</span> <span class="variable">$aln</span><span class="operator">,</span>
+                                        <span class="string">pad_bottom</span> <span class="operator">=&gt;</span> <span class="number">5</span><span class="operator">,</span>
+                                        <span class="string">domain_start</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@domain_start</span><span class="operator">,</span>
+                                        <span class="string">domain_end</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@domain_end</span><span class="operator">,</span>
+                                        <span class="string">dm_color</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@domain_color</span><span class="operator">,</span>
+                                        <span class="string">dm_labels</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@dml</span><span class="operator">,</span>
+                                        <span class="string">dm_label_start</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@dml_start</span><span class="operator">,</span>
+                                        <span class="string">dm_label_end</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@dml_end</span><span class="operator">,</span>
+                                        <span class="string">dm_label_color</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@dml_color</span><span class="operator">,</span>
+                                        <span class="string">labels</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">%labels</span><span class="operator">,</span>
+                                        <span class="string">out_format</span> <span class="operator">=&gt;</span> <span class="string">"png"</span><span class="operator">);</span>
+                                        
+        <span class="variable">$print_align</span><span class="operator">-&gt;</span><span class="variable">draw</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="METHODS">METHODS</h1>
+
+<p>This section describes the class and object methods for Bio::Align::Graphics.</p>
+
+<p>Typically you will begin by creating a Bio::Align::Graphics object, passing it an alignment object created using Bio::AlignIO. The Bio::Align::Graphics-&gt;new() method has a number of configuration variables that allow you to control the appearance of the final image.</p>
+
+<p>You will then call the draw() method to output the final image.</p>
+
+<h1 id="CONSTRUCTORS">CONSTRUCTORS</h1>
+
+<p>new() is the constructor for Bio::Align::Graphics:</p>
+
+<dl>
+
+<dt id="print_align-Bio::Align::Graphics-new-options-">$print_align = Bio::Align::Graphics-&gt;new(@options)</dt>
+<dd>
+
+<p>The new() method creates a new graphics object. The options are a set of tag/value pairs as follows:</p>
+
+<pre><code><code>  Option         Value                                  Default
+  ------         -----                                  -------
+
+  align          Bio::AlignI object                     None, must be 
+                                                        supplied to draw
+                                                        an alignment
+
+  output         Filename to print image to             STDOUT
+
+  out_format     png, jpeg, gif, gd                     png
+
+  font           Size of font, ranging from 1 to 5      2
+                 and equal to the standard GD fonts
+                 ranging from gdTinyFont to 
+                 gdGiantFont
+
+  x_label        Draws a scale numbering alignment      true
+                 bases along top of image, every x
+                 bases are numbered, where x is the
+                 block_size option
+
+  y_label        Draws sequence ids of alignment        true
+                 along left side of image
+
+  bg_color       Background color of the image          white
+
+  font_color     Color of the font used for drawing     black
+                 the alignment characters
+
+  x_label_color  Color of the font used for drawing     red
+                 the base scale characters
+
+  y_label_color  Color of the font used for drawing     blue
+                 the sequence id characters
+
+  p_color        Colors protein bases according to      false
+                 a coloring scheme proposed by W.R.
+                 Taylor(Protein Engineering, vol 10
+                 no 7, 1997), only works with
+                 protein alignments
+
+  pad_top        Additional whitespace characters       5
+                 between top of image and x-label
+
+  pad_bottom     Additional whitespace characters       5
+                 between bottom of image and
+                 alignment
+
+  pad_left       Additional whitespace characters       5
+                 between left side of image and 
+                 y-label
+
+  pad_right      Additional whitespace characters       5
+                 between right side of image and 
+                 alignment
+
+  x_label_space  Additional whitespace characters       1
+                 between x_label and alignment
+
+  y_label_space  Additional whitespace characters       1
+                 between y_label and alignment
+
+  reference      Characters which are identical to      false
+                 the reference sequence are replaced
+                 with the match character
+
+  reference_id   Sequence id of the sequence to use     First sequence
+                 as the reference                       supplied in alignment
+
+  match_char     Character to replace identical bases   .
+                 in aligned sequences
+
+  block_size     Number of bases to group together      10
+                 when printing alignment, groups are
+                 separated by whitespace
+
+  block_space    Amount of character whitespace to      2
+                 separate groups of bases by
+
+  labels         A hash containing labels to be         none
+                 printed beneath the alignment, 
+                 where the keys are the bases to
+                 print the values at
+
+  dm_start       An array containing start bases        none
+                 for highlighting of segments of
+                 the alignment, paired with dm_end
+                 option
+
+  dm_end         An array containing end bases          none
+                 for highlighting of segments of
+                 the alignment, paired with dm_start
+                 options
+
+  dm_color       An array containing colors for         silver
+                 highlighting segments of bases
+                 denoted by the coordinates
+                 located in the dm_start and dm_end
+                 options
+
+  dml_start      An array containing start bases        none
+                 for addition of domain labels
+                 underneath the alignment, paired
+                 with dml_end
+
+  dml_end        An array containing end bases          none
+                 for addition of domain labels
+                 underneath the alignment, paired
+                 with dml_start
+
+  dml_color      An array containing colors for         silver
+                 the domain labels denoted by the
+                 coordinates located in the 
+                 dml_start and dml_end options
+
+  dm_labels      An array containing labels to be       none
+                 printed underneath specified
+                 domains, each label should
+                 correspond with the base position
+                 located in the dml_start option
+                 
+  show_nonsynonymous  Boolean value to turn option      false
+                 on or off. If 0 (or undef), option
+                 is off. If 1 (or non-0), option is on.
+                 Only valid for nucleotide alignments.
+                 Output images are wider with this option on.</code></code></pre>
+
+<p>Note that all arrays and hashes must be passed by reference.</p>
+
+</dd>
+</dl>
+
+<h1 id="OBJECT-METHODS">OBJECT METHODS</h1>
+
+<dl>
+
+<dt id="draw_align-draw-">$draw_align-&gt;draw();</dt>
+<dd>
+
+<p>The draw() method draws the image with the options that were specified with new().</p>
+
+</dd>
+<dt id="draw_align-width-">$draw_align-&gt;width();</dt>
+<dd>
+
+<p>Get the width of the image created with new(), in pixels.</p>
+
+</dd>
+<dt id="draw_align-height-">$draw_align-&gt;height();</dt>
+<dd>
+
+<p>Get the height of the image created with new(), in pixels.</p>
+
+</dd>
+<dt id="draw_align-aln_length-">$draw_align-&gt;aln_length();</dt>
+<dd>
+
+<p>Get the length of the alignment submitted to new().</p>
+
+</dd>
+<dt id="draw_align-aln_format-">$draw_align-&gt;aln_format();</dt>
+<dd>
+
+<p>Get the format of the alignment submitted to new().</p>
+
+</dd>
+<dt id="draw_align-no_sequences-">$draw_align-&gt;no_sequences();</dt>
+<dd>
+
+<p>Get the number of sequences in the alignment submitted to new().</p>
+
+</dd>
+</dl>
+
+<h1 id="AUTHORS-AND-CONTRIBUTORS">AUTHORS AND CONTRIBUTORS</h1>
+
+<p>William McCaig, &lt;wmccaig@gmail.com&gt;</p>
+
+<p>Mikhail Bekarev, &lt;mbekarev@hunter.cuny.edu&gt;</p>
+
+<p>Y&ouml;zen Hern&aacute;ndez, &lt;yzhernand@gmail.com&gt;</p>
+
+<p>Weigang Qiu (Corresponding Developer), &lt;weigang@genectr.hunter.cuny.edu&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (C) 2006-2008 by William McCaig</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself, either Perl version 5.8.3 or, at your option, any later version of Perl 5 you may have available.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Align/AlignI.html">Bio::Align::AlignI</a>, <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/AlignIO.html">Bio::AlignIO</a>, <a href="../../../../lib/GD.html">GD</a>, <a href="../../../../lib/GD/Simple.html">GD::Simple</a></p>
+
+
+</body>
+
+</html>
+
+

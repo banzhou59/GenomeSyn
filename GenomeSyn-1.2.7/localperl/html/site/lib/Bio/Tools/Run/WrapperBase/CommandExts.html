@@ -1,0 +1,702 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#DEVELOPER-INTERFACE">DEVELOPER INTERFACE</a>
+    <ul>
+      <li><a href="#Implementing-Composite-Commands">Implementing Composite Commands</a></li>
+      <li><a href="#Implementing-Pseudo-programs">Implementing Pseudo-programs</a></li>
+      <li><a href="#Config-Globals">Config Globals</a></li>
+    </ul>
+  </li>
+  <li><a href="#USER-INTERFACE">USER INTERFACE</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new-">new()</a></li>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#register_program_commands-">_register_program_commands()</a></li>
+      <li><a href="#set_program_options">_set_program_options</a></li>
+      <li><a href="#translate_params">_translate_params</a></li>
+      <li><a href="#executable-">executable()</a></li>
+      <li><a href="#executables-">executables()</a></li>
+      <li><a href="#find_executable-">_find_executable()</a></li>
+      <li><a href="#register_composite_commands-">_register_composite_commands()</a></li>
+      <li><a href="#create_factory_set-">_create_factory_set()</a></li>
+      <li><a href="#collate_subcmd_args-">_collate_subcmd_args()</a></li>
+      <li><a href="#run">_run</a></li>
+      <li><a href="#no_throw_on_crash-">no_throw_on_crash()</a></li>
+      <li><a href="#last_execution-">last_execution()</a></li>
+      <li><a href="#dash_switch-">_dash_switch()</a></li>
+      <li><a href="#stdout-">stdout()</a></li>
+      <li><a href="#stderr-">stderr()</a></li>
+      <li><a href="#is_pseudo-">is_pseudo()</a></li>
+      <li><a href="#AUTOLOAD">AUTOLOAD</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio:ParameterBaseI-compliance">Bio:ParameterBaseI compliance</a>
+    <ul>
+      <li><a href="#set_parameters-">set_parameters()</a></li>
+      <li><a href="#reset_parameters-">reset_parameters()</a></li>
+      <li><a href="#parameters_changed-">parameters_changed()</a></li>
+      <li><a href="#available_parameters-">available_parameters()</a></li>
+      <li><a href="#get_parameters-">get_parameters()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::WrapperBase::CommandExts - Extensions to WrapperBase for handling programs with commands *ALPHA*</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Devs, see <a href="#DEVELOPER-INTERFACE">&quot;DEVELOPER INTERFACE&quot;</a>. Users, see <a href="#USER-INTERFACE">&quot;USER INTERFACE&quot;</a>.</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is a developer-focused experimental module. The main idea is to extend <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Tools/Run/WrapperBase.html">Bio::Tools::Run::WrapperBase</a> to make it relatively easy to create run wrappers around <i>suites</i> of related programs, like <code><code>samtools</code></code> or <code><code>blast+</code></code>.</p>
+
+<p>Some definitions:</p>
+
+<ul>
+
+<li><p>program</p>
+
+<p>The program is the command-line frontend application. <code><code>samtools</code></code>, for example, is run from the command line as follows:</p>
+
+<pre><code><code> $ samtools view -bS in.bam &gt; out.sam
+ $ samtools faidx</code></code></pre>
+
+</li>
+<li><p>command</p>
+
+<p>The command is the specific component of a suite run by executing the program. In the example above, <code><code>view</code></code> and <code><code>faidx</code></code> are commands.</p>
+
+</li>
+<li><p>command prefix</p>
+
+<p>The command prefix is an abbreviation of the command name used internally by <code><code>CommandExts</code></code> method, and sometimes by the user of the factory for specifying command line parameters to subcommands of composite commands.</p>
+
+</li>
+<li><p>composite command</p>
+
+<p>A composite command is a pipeline or script representing a series of separate executions of different commands. Composite commands can be specified by configuring <code><code>CommandExts</code></code> appropriately; the composite command can be run by the user from a factory in the same way as ordinary commands.</p>
+
+</li>
+<li><p>options, parameters, switches and filespecs</p>
+
+<p>An option is any command-line option; i.e., a specification set off by a command-line by a specifier (like <code><code>-v</code></code> or <code><code>--outfile</code></code>). Parameters are command-line options that accept a value (<code><code>-title mydb</code></code>); switches are boolean flags (<code><code>--no-filter</code></code>). Filespecs are barewords at the end of the command line that usually indicate input or output files. In this module, this includes files that capture STDIN, STDOUT, or STDERR via redirection.</p>
+
+</li>
+<li><p>pseudo-program</p>
+
+<p>A &quot;pseudo-program&quot; is a way to refer to a collection of related applications that are run independently from the command line, rather than via a frontend program. The <code><code>blast+</code></code> suite of programs is an example: <code><code>blastn</code></code>, <code><code>makeblastdb</code></code>, etc. <code><code>CommandExts</code></code> can be configured to create a single factory for a suite of related, independent programs that treats each independent program as a &quot;pseudo-program&quot; command.</p>
+
+</li>
+</ul>
+
+<p>This module essentially adds the non-assembler-specific wrapper machinery of fangly&#39;s <a>Bio::Tools::Run::AssemblerBase</a> to the <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Tools/Run/WrapperBase.html">Bio::Tools::Run::WrapperBase</a> namespace, adding the general command-handling capability of <a>Bio::Tools::Run::BWA</a>. It creates run factories that are automatically Bio::ParameterBaseI compliant, meaning that <code><code>available_parameters()</code></code>, <code><code>set_parameters()</code></code>, <code><code>get_parameters</code></code>, <code><code>reset_parameters()</code></code>, and <code><code>parameters_changed()</code></code> are available.</p>
+
+<h1 id="DEVELOPER-INTERFACE">DEVELOPER INTERFACE</h1>
+
+<p><code><code>CommandExts</code></code> is currently set up to read particular package globals which define the program, the commands available, command-line options for those commands, and human-readable aliases for those options.</p>
+
+<p>The easiest way to use <code><code>CommandExts</code></code> is probably to create two modules:</p>
+
+<pre><code><code> Bio::Tools::Run::YourRunPkg
+ Bio::Tools::Run::YourRunPkg::Config</code></code></pre>
+
+<p>The package globals should be defined in the <code><code>Config</code></code> module, and the run package itself should begin with the following mantra:</p>
+
+<pre><code><code> <span class="keyword">use</span> <span class="variable">YourRunPkg::Config</span><span class="operator">;</span>
+ <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::WrapperBase</span><span class="operator">;</span>
+ <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::WrapperBase::CommandExts</span><span class="operator">;</span>
+ <span class="keyword">sub</span><span class="variable"> new </span><span class="operator">{</span>
+     <span class="keyword">my</span> <span class="variable">$class</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+     <span class="keyword">my</span> <span class="variable">@args</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+     <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="variable">$class</span><span class="operator">-&gt;</span><span class="variable">SUPER::new</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">);</span>
+     <span class="operator">...</span>
+     <span class="keyword">return</span> <span class="variable">$self</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>The following globals can/should be defined in the <code><code>Config</code></code> module:</p>
+
+<pre><code><code>  $program_name
+  $program_dir
+  $use_dash
+  $join
+  @program_commands 
+  %command_prefixes
+  @program_params
+  @program_switches 
+  %param_translation
+  %composite_commands
+  %command_files</code></code></pre>
+
+<p>See <a href="#Config-Globals">&quot;Config Globals&quot;</a> for detailed descriptions.</p>
+
+<p>The work of creating a run wrapper with <code><code>CommandExts</code></code> lies mainly in setting up the globals. The key methods for the developer interface are:</p>
+
+<ul>
+
+<li><p>program_dir($path_to_programs)</p>
+
+<p>Set this to point the factory to the executables.</p>
+
+</li>
+<li><p>_run(@file_args)</p>
+
+<p>Runs an instantiated factory with the given file args. Use in the <code><code>run()</code></code> method override.</p>
+
+</li>
+<li><p>_create_factory_set()</p>
+
+<p>Returns a hash of instantiated factories for each true command from a composite command factory. The hash keys are the true command names, so you could do</p>
+
+<pre><code><code> <span class="variable">$cmds</span> <span class="operator">=</span> <span class="variable">$composite_fac</span><span class="operator">-&gt;</span><span class="variable">_create_factory_set</span><span class="operator">;</span>
+ <span class="keyword">for</span> <span class="operator">(</span><span class="variable">@true_commands</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">$cmds</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$_</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">_run</span><span class="operator">(</span><span class="variable">@file_args</span><span class="operator">);</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+</li>
+<li><p>executables($cmd,[$fullpath])</p>
+
+<p>For pseudo-programs, this gets/sets the full path to the executable of the true program corresponding to the command <code><code>$cmd</code></code>.</p>
+
+</li>
+</ul>
+
+<h2 id="Implementing-Composite-Commands">Implementing Composite Commands</h2>
+
+<h2 id="Implementing-Pseudo-programs">Implementing Pseudo-programs</h2>
+
+<p>To indicate that a package wraps disparate programs under a single pseudo program, use an asterisk before the program name:</p>
+
+<pre><code><code> <span class="keyword">package</span> <span class="variable">Bio::Tools::Run::YourPkg::Config</span><span class="operator">;</span>
+ <span class="operator">...</span>
+ <span class="keyword">our</span> <span class="variable">$program_name</span> <span class="operator">=</span> <span class="string">'*blast+'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>and <code><code>_run</code></code> will know what to do. Specify the rest of the globals as if the desired programs were commands. Use the basename of the programs for the command names.</p>
+
+<p>If all the programs can be found in a single directory, just specify that directory in <code><code>program_dir()</code></code>. If not, use <code><code>executables()</code></code> to set the paths to each program explicitly:</p>
+
+<pre><code><code> <span class="keyword">foreach</span> <span class="operator">(</span><span class="keyword">keys</span> <span class="variable">%cmdpaths</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">executables</span><span class="operator">(</span><span class="variable">$_</span><span class="operator">,</span> <span class="variable">$cmdpaths</span><span class="operator">{</span><span class="variable">$_</span><span class="operator">}</span><span class="operator">);</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="Config-Globals">Config Globals</h2>
+
+<p>Here is an example config file. Further details in prose are below.</p>
+
+<pre><code><code> <span class="keyword">package</span> <span class="variable">Dummy::Config</span><span class="operator">;</span>
+ <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+ <span class="keyword">use</span> <span class="variable">warnings</span><span class="operator">;</span>
+ <span class="keyword">no</span> <span class="variable">warnings</span> <span class="string">qw(qw)</span><span class="operator">;</span>
+ <span class="keyword">use</span> <span class="variable">Exporter</span><span class="operator">;</span>
+ <span class="keyword">our</span> <span class="operator">(</span><span class="variable">@ISA</span><span class="operator">,</span> <span class="variable">@EXPORT</span><span class="operator">,</span> <span class="variable">@EXPORT_OK</span><span class="operator">);</span>
+ <span class="keyword">push</span> <span class="variable">@ISA</span><span class="operator">,</span> <span class="string">'Exporter'</span><span class="operator">;</span>
+ <span class="variable">@EXPORT</span> <span class="operator">=</span> <span class="string">qw(
+              $program_name
+              $program_dir
+              $use_dash
+              $join
+              @program_commands
+              %command_prefixes
+              @program_params
+              @program_switches
+              %param_translation
+              %command_files
+              %composite_commands
+             )</span><span class="operator">;</span>
+ 
+ <span class="keyword">our</span> <span class="variable">$program_name</span> <span class="operator">=</span> <span class="string">'*flurb'</span><span class="operator">;</span>
+ <span class="keyword">our</span> <span class="variable">$program_dir</span> <span class="operator">=</span> <span class="string">'C:\cygwin\usr\local\bin'</span><span class="operator">;</span>
+ <span class="keyword">our</span> <span class="variable">$use_dash</span> <span class="operator">=</span> <span class="string">'mixed'</span><span class="operator">;</span>
+ <span class="keyword">our</span> <span class="variable">$join</span> <span class="operator">=</span> <span class="string">' '</span><span class="operator">;</span>
+ 
+ <span class="keyword">our</span> <span class="variable">@program_commands</span> <span class="operator">=</span> <span class="string">qw(
+  rpsblast
+  cat
+  goob
+  blorb
+  multiglob
+   )</span><span class="operator">;</span>
+ 
+ <span class="keyword">our</span> <span class="variable">%command_prefixes</span> <span class="operator">=</span> <span class="operator">(</span>
+     <span class="string">blastp</span> <span class="operator">=&gt;</span> <span class="string">'blp'</span><span class="operator">,</span>
+     <span class="string">tblastn</span> <span class="operator">=&gt;</span> <span class="string">'tbn'</span><span class="operator">,</span>
+     <span class="string">goob</span> <span class="operator">=&gt;</span> <span class="string">'g'</span><span class="operator">,</span>
+     <span class="string">blorb</span> <span class="operator">=&gt;</span> <span class="string">'b'</span><span class="operator">,</span>
+     <span class="string">multiglob</span> <span class="operator">=&gt;</span> <span class="string">'m'</span>
+     <span class="operator">);</span>
+ 
+ <span class="keyword">our</span> <span class="variable">@program_params</span> <span class="operator">=</span> <span class="string">qw(
+     command
+     g|narf
+     g|schlurb
+     b|scroob
+     b|frelb
+     m|trud
+ )</span><span class="operator">;</span>
+ 
+ <span class="keyword">our</span> <span class="variable">@program_switches</span> <span class="operator">=</span> <span class="string">qw(
+     g|freen
+     b|klep
+ )</span><span class="operator">;</span>
+ 
+ <span class="keyword">our</span> <span class="variable">%param_translation</span> <span class="operator">=</span> <span class="operator">(</span>
+     <span class="string">'g|narf'</span>     <span class="operator">=&gt;</span> <span class="string">'n'</span><span class="operator">,</span>
+     <span class="string">'g|schlurb'</span>  <span class="operator">=&gt;</span> <span class="string">'schlurb'</span><span class="operator">,</span>
+     <span class="string">'g|freen'</span>    <span class="operator">=&gt;</span> <span class="string">'f'</span><span class="operator">,</span>
+     <span class="string">'b|scroob'</span>   <span class="operator">=&gt;</span> <span class="string">'s'</span><span class="operator">,</span>
+     <span class="string">'b|frelb'</span>    <span class="operator">=&gt;</span> <span class="string">'frelb'</span>
+     <span class="operator">);</span>
+ 
+ <span class="keyword">our</span> <span class="variable">%command_files</span> <span class="operator">=</span> <span class="operator">(</span>
+     <span class="string">'goob'</span>       <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">qw( fas faq )</span><span class="operator">]</span><span class="operator">,</span>
+     <span class="operator">);</span>
+ 
+ <span class="keyword">our</span> <span class="variable">%composite_commands</span> <span class="operator">=</span> <span class="operator">(</span>
+     <span class="string">'multiglob'</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">qw( blorb goob )</span><span class="operator">]</span>
+     <span class="operator">);</span>
+ <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<p><code><code>$use_dash</code></code> can be one of <code><code>single</code></code>, <code><code>double</code></code>, or <code><code>mixed</code></code>. See <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Tools/Run/WrapperBase.html">Bio::Tools::Run::WrapperBase</a>.</p>
+
+<p>There is a syntax for the <code><code>%command_files</code></code> specification. The token matching <code><code>[a-zA-Z0-9_]+</code></code> in each element of each arrayref becomes the named filespec parameter for the <code><code>_run()</code></code> method in the wrapper class. Additional symbols surrounding this token indicate how this argument should be handled. Some examples:</p>
+
+<pre><code><code> &gt;out  : stdout is redirected into the file 
+         specified by (..., -out =&gt; $file,... )
+ &lt;in   : stdin is accepted from the file 
+         specified by (..., -in =&gt; $file,... )
+ 2&gt;log : stderr is redirected into the file
+         specified by (..., -log =&gt; $file,... )
+ #opt  : this filespec argument is optional
+         (no throw if -opt =&gt; $option is missing)
+ 2&gt;#log: if -log is not specified in the arguments, the stderr() 
+         method will capture stderr
+ *lst  : this filespec can take multiple arguments,
+         specify using an arrayref (..., -lst =&gt; [$file1, $file2], ...)
+ *#lst : an optional list</code></code></pre>
+
+<p>The tokens above are examples; they can be anything matching the above regexp.</p>
+
+<h1 id="USER-INTERFACE">USER INTERFACE</h1>
+
+<p>Using a wrapper created with <code><code>Bio::Tools::Run::WrapperBase::CommandExts</code></code>:</p>
+
+<ul>
+
+<li><p>Getting a list of available commands, parameters, and filespecs:</p>
+
+<p>To get a list of commands, simply:</p>
+
+<pre><code><code> <span class="variable">@commands</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::ThePkg</span><span class="operator">-&gt;</span><span class="variable">available_commands</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The wrapper will generally have human-readable aliases for each of the command-line options for the wrapped program and commands. To obtain a list of the parameters and switches available for a particular command, do</p>
+
+<pre><code><code> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::ThePkg</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-command</span> <span class="operator">=&gt;</span> <span class="string">'glurb'</span> <span class="operator">);</span>
+ <span class="variable">@params</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">(</span><span class="string">'params'</span><span class="operator">);</span>
+ <span class="variable">@switches</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">(</span><span class="string">'switches'</span><span class="operator">);</span>
+ <span class="variable">@filespec</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">(</span><span class="string">'filespec'</span><span class="operator">);</span>
+ <span class="variable">@filespec</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">filespec</span><span class="operator">;</span> <span class="comment"># alias</span>
+</code></code></pre>
+
+</li>
+<li><p>Create factories</p>
+
+<p>The factory is a handle on the program and command you wish to run. Create a factory using <code><code>new</code></code> to set command-line parameters:</p>
+
+<pre><code><code> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::ThePkg</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-command</span> <span class="operator">=&gt;</span> <span class="string">'glurb'</span><span class="operator">,</span> 
+                                          <span class="string">-freen</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                                          <span class="string">-furschlugginer</span> <span class="operator">=&gt;</span> <span class="string">'vreeble'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>A shorthand for this is:</p>
+
+<pre><code><code> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::ThePkg</span><span class="operator">-&gt;</span><span class="variable">new_glurb</span><span class="operator">(</span> 
+                                       <span class="string">-freen</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span> 
+                                       <span class="string">-furschlugginer</span> <span class="operator">=&gt;</span> <span class="string">'vreeble'</span> <span class="operator">);</span>
+</code></code></pre>
+
+</li>
+<li><p>Running programs</p>
+
+<p>To run the program, use the <code><code>run</code></code> method, providing filespecs as arguments</p>
+
+<pre><code><code> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::ThePkg</span><span class="operator">-&gt;</span><span class="variable">new_assemble</span><span class="operator">(</span> <span class="string">-min_qual</span> <span class="operator">=&gt;</span> <span class="number">63</span> <span class="operator">);</span>
+ <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">-faq1</span> <span class="operator">=&gt;</span> <span class="string">'read1.fq'</span><span class="operator">,</span> <span class="string">-faq2</span> <span class="operator">=&gt;</span> <span class="string">'read2.fq'</span><span class="operator">,</span> 
+                <span class="string">-ref</span> <span class="operator">=&gt;</span> <span class="string">'refseq.fas'</span><span class="operator">,</span> <span class="string">-out</span> <span class="operator">=&gt;</span> <span class="string">'new.sam'</span> <span class="operator">);</span>
+ <span class="comment"># do another</span>
+ <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span> <span class="string">-faq1</span> <span class="operator">=&gt;</span> <span class="string">'read-old1.fq'</span><span class="operator">,</span> <span class="string">-faq2</span> <span class="operator">=&gt;</span> <span class="string">'read-old2.fq'</span><span class="operator">,</span> 
+                <span class="string">-ref</span> <span class="operator">=&gt;</span> <span class="string">'refseq.fas'</span><span class="operator">,</span> <span class="string">-out</span> <span class="operator">=&gt;</span> <span class="string">'old.sam'</span> <span class="operator">);</span> 
+</code></code></pre>
+
+<p>Messages on STDOUT and STDERR are dumped into their respective attributes:</p>
+
+<pre><code><code> <span class="variable">$stdout</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">stdout</span><span class="operator">;</span>
+ <span class="variable">$stderr</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">stderr</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>unless STDOUT and/or STDERR are part of the named files in the filespec.</p>
+
+</li>
+<li><p>Setting/getting/resetting/polling parameters.</p>
+
+<p>A <code><code>CommandExts</code></code>-based factory is always <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/ParameterBaseI.html">Bio::ParameterBaseI</a> compliant. That means that you may set, get, and reset parameters using <code><code>set_parameters()</code></code>, <code><code>get_parameters()</code></code>, and <code><code>reset_parameters</code></code>. You can ask whether parameters have changed since they were last accessed by using the predicate <code><code>parameters_changed</code></code>. See <a href="../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/ParameterBaseI.html">Bio::ParameterBaseI</a> for more details.</p>
+
+<p>Once set, parameters become attributes of the factory. Thus, you can get their values as follows:</p>
+
+<pre><code><code> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">freen</span><span class="operator">)</span> <span class="operator">{</span> 
+    <span class="variable">$furs</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">furshlugginer</span><span class="operator">;</span>
+    <span class="comment">#...</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+</li>
+</ul>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><a>bioperl-l@bioperl.org</a></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Mark-A.-Jensen">AUTHOR - Mark A. Jensen</h1>
+
+<p>Email maj -at- fortinbras -dot- us</p>
+
+<p>Describe contact details here</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Dan Kortschak ( dan -dot- kortschak -at- adelaide -dot- edu -dot- au )</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new-">new()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">constructor</span> <span class="keyword">for</span> <span class="variable">WrapperBase::CommandExts</span> <span class="operator">;</span> 
+           <span class="variable">correctly</span> <span class="variable">binds</span> <span class="variable">configuration</span> <span class="variable">variables</span>
+           <span class="variable">to</span> <span class="variable">the</span> <span class="variable">WrapperBase</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Tools::Run::WrapperBase</span> <span class="variable">object</span> <span class="variable">with</span> <span class="variable">command</span> <span class="variable">extensions</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> 
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">subsumes</span> <span class="variable">the</span> <span class="variable">old</span> <span class="variable">_register_program_commands</span> <span class="keyword">and</span>
+           <span class="variable">_set_program_options</span><span class="operator">,</span> <span class="variable">leaving</span> <span class="variable">out</span> <span class="variable">the</span> <span class="variable">assembler</span><span class="operator">-</span><span class="variable">specific</span>
+           <span class="variable">parms</span> <span class="operator">(</span><span class="variable">$qual_param</span> <span class="keyword">and</span> <span class="variable">out_type</span><span class="operator">())</span>
+</code></code></pre>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : $factory-&gt;program_name($name)
+ Function: get/set the executable name
+ Returns:  string
+ Args    : string</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> Title   : program_dir
+ Usage   : $factory-&gt;program_dir($dir)
+ Function: get/set the program dir
+ Returns:  string
+ Args    : string</code></code></pre>
+
+<h2 id="register_program_commands-">_register_program_commands()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_register_program_commands</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">_register_program_commands</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">@commands</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%prefixes</span> <span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Register</span> <span class="variable">the</span> <span class="variable">commands</span> <span class="variable">a</span> <span class="variable">program</span> <span class="variable">accepts</span> <span class="operator">(</span><span class="keyword">for</span> <span class="variable">programs</span> <span class="variable">that</span> <span class="variable">act</span>
+           <span class="variable">as</span> <span class="variable">frontends</span> <span class="keyword">for</span> <span class="variable">a</span> <span class="variable">set</span> <span class="variable">of</span> <span class="variable">commands</span><span class="operator">,</span> <span class="keyword">each</span> <span class="variable">command</span> <span class="variable">having</span> <span class="variable">its</span> <span class="variable">own</span>
+           <span class="variable">set</span> <span class="variable">of</span> <span class="variable">params</span><span class="operator">/</span><span class="variable">switches</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">true</span> <span class="variable">on</span> <span class="variable">success</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">arrayref</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">commands</span> <span class="operator">(</span><span class="keyword">scalar</span> <span class="variable">strings</span><span class="operator">),</span>
+           <span class="variable">hashref</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">translation</span> <span class="variable">table</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">form</span>
+           <span class="operator">{</span> <span class="variable">$prefix1</span> <span class="operator">=&gt;</span> <span class="variable">$command1</span><span class="operator">,</span> <span class="operator">...</span> <span class="operator">}</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">To</span> <span class="variable">implement</span> <span class="variable">a</span> <span class="variable">program</span> <span class="variable">with</span> <span class="variable">this</span> <span class="variable">kind</span> <span class="variable">of</span> <span class="variable">calling</span> <span class="variable">structure</span><span class="operator">,</span> 
+           <span class="variable">include</span> <span class="variable">a</span> <span class="variable">parameter</span> <span class="variable">called</span> <span class="string">'command'</span> <span class="variable">in</span> <span class="variable">the</span> 
+           <span class="variable">@program_params</span> <span class="variable">global</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">The</span> <span class="variable">translation</span> <span class="variable">table</span> <span class="variable">is</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">associate</span> <span class="variable">parameters</span> <span class="keyword">and</span> 
+           <span class="variable">switches</span> <span class="variable">specified</span> <span class="variable">in</span> <span class="variable">_set_program_options</span> <span class="variable">with</span> <span class="variable">the</span> <span class="variable">correct</span>
+           <span class="variable">program</span> <span class="variable">command</span><span class="operator">.</span> <span class="variable">In</span> <span class="variable">the</span> <span class="variable">globals</span> <span class="variable">@program_params</span> <span class="keyword">and</span>
+           <span class="variable">@program_switches</span><span class="operator">,</span> <span class="variable">specify</span> <span class="variable">elements</span> <span class="variable">as</span> <span class="string">'prefix1|param'</span> <span class="keyword">and</span> 
+           <span class="string">'prefix1|switch'</span><span class="operator">,</span> <span class="variable">etc</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="set_program_options">_set_program_options</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_set_program_options</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">_set_program_options</span><span class="operator">(</span> <span class="operator">\@ </span><span class="variable">args</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Register</span> <span class="variable">the</span> <span class="variable">parameters</span> <span class="keyword">and</span> <span class="variable">flags</span> <span class="variable">that</span> <span class="variable">an</span> <span class="variable">assembler</span> <span class="variable">takes</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">1</span> <span class="keyword">for</span> <span class="variable">success</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">-</span> <span class="variable">arguments</span> <span class="variable">passed</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">user</span>
+           <span class="operator">-</span> <span class="variable">parameters</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">program</span> <span class="variable">accepts</span><span class="operator">,</span> <span class="variable">optional</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">:</span> <span class="variable">none</span><span class="operator">)</span>
+           <span class="operator">-</span> <span class="variable">switches</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">program</span> <span class="variable">accepts</span><span class="operator">,</span> <span class="variable">optional</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">:</span> <span class="variable">none</span><span class="operator">)</span>
+           <span class="operator">-</span> <span class="variable">parameter</span> <span class="variable">translation</span><span class="operator">,</span> <span class="variable">optional</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">:</span> <span class="keyword">no</span> <span class="variable">translation</span> <span class="variable">occurs</span><span class="operator">)</span>
+           <span class="operator">-</span> <span class="variable">dash</span> <span class="variable">option</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">program</span> <span class="variable">parameters</span><span class="operator">,</span> <span class="operator">[</span><span class="number">1</span><span class="operator">|</span><span class="variable">single</span><span class="operator">|</span><span class="variable">double</span><span class="operator">|</span><span class="variable">mixed</span><span class="operator">]</span><span class="operator">,</span>
+             <span class="variable">optional</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">:</span> <span class="variable">yes</span><span class="operator">,</span> <span class="keyword">use</span> <span class="variable">single</span> <span class="variable">dashes</span> <span class="variable">only</span><span class="operator">)</span>
+           <span class="operator">-</span> <span class="keyword">join</span><span class="operator">,</span> <span class="variable">optional</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">:</span> <span class="string">' '</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="translate_params">_translate_params</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_translate_params</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@options</span> <span class="operator">=</span> <span class="variable">$assembler</span><span class="operator">-&gt;</span><span class="variable">_translate_params</span><span class="operator">(</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Translate</span> <span class="variable">the</span> <span class="variable">Bioperl</span> <span class="variable">arguments</span> <span class="variable">into</span> <span class="variable">the</span> <span class="variable">arguments</span> <span class="variable">to</span> <span class="variable">pass</span> <span class="variable">to</span> <span class="variable">the</span>
+           <span class="variable">program</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">command</span> <span class="variable">line</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Arrayref</span> <span class="variable">of</span> <span class="variable">arguments</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="executable-">executable()</h2>
+
+<pre><code><code> Title   : executable
+ Usage   : 
+ Function: find the full path to the main executable,
+           or to the command executable for pseudo-programs
+ Returns : full path, if found
+ Args    : [optional] explicit path to the executable
+           (will set the appropriate command exec if
+            applicable)
+           [optional] boolean flag whether or not to warn when exe no found
+ Note    : overrides WrapperBase.pm
+            </code></code></pre>
+
+<h2 id="executables-">executables()</h2>
+
+<pre><code><code> Title   : executables
+ Usage   : 
+ Function: find the full path to a command&#39;s executable
+ Returns : full path (scalar string)
+ Args    : command (scalar string), 
+           [optional] explicit path to this command exe
+           [optional] boolean flag whether or not to warn when exe no found</code></code></pre>
+
+<h2 id="find_executable-">_find_executable()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_find_executable</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$exe_path</span> <span class="operator">=</span> <span class="variable">$fac</span><span class="operator">-&gt;</span><span class="variable">_find_executable</span><span class="operator">(</span><span class="variable">$exe</span><span class="operator">,</span> <span class="variable">$warn</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">find</span> <span class="variable">the</span> <span class="variable">full</span> <span class="variable">path</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">named</span> <span class="variable">executable</span><span class="operator">,</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">full</span> <span class="variable">path</span><span class="operator">,</span> <span class="keyword">if</span> <span class="variable">found</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">executable</span> <span class="variable">to</span> <span class="variable">find</span>
+           <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">boolean</span> <span class="variable">flag</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="variable">to</span> <span class="keyword">warn</span> <span class="keyword">when</span> <span class="variable">exe</span> <span class="keyword">no</span> <span class="variable">found</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">differs</span> <span class="variable">from</span> <span class="variable">executable</span> <span class="keyword">and</span> <span class="variable">executables</span> <span class="variable">in</span> <span class="keyword">not</span>
+           <span class="variable">setting</span> <span class="variable">any</span> <span class="variable">object</span> <span class="variable">attributes</span>
+</code></code></pre>
+
+<h2 id="register_composite_commands-">_register_composite_commands()</h2>
+
+<pre><code><code> Title   : _register_composite_commands
+ Usage   : 
+ Function: adds subcomand params and switches for composite commands
+ Returns : true on success
+ Args    : \%composite_commands,
+           \@program_params,
+           \@program_switches</code></code></pre>
+
+<h2 id="create_factory_set-">_create_factory_set()</h2>
+
+<pre><code><code> Title   : _create_factory_set
+ Usage   : @facs = $self-&gt;_create_factory_set
+ Function: instantiate a set of individual command factories for
+           a given composite command
+           Factories will have the correct parameter fields set for
+           their own subcommand
+ Returns : hash of factories: ( $subcmd_prefix =&gt; $subcmd_factory, ... )
+ Args    : none</code></code></pre>
+
+<h2 id="collate_subcmd_args-">_collate_subcmd_args()</h2>
+
+<pre><code><code> Title   : _collate_subcmd_args
+ Usage   : $args_hash = $self-&gt;_collate_subcmd_args
+ Function: collate parameters and switches into command-specific
+           arg lists for passing to new()
+ Returns : hash of named argument lists
+ Args    : [optional] composite cmd prefix (scalar string) 
+           [default is &#39;run&#39;]</code></code></pre>
+
+<h2 id="run">_run</h2>
+
+<pre><code><code> Title   : _run
+ Usage   : $fac-&gt;_run( @file_args )
+ Function: Run a command as specified during object contruction
+ Returns : true on success
+ Args    : a specification of the files to operate on according
+           to the filespec</code></code></pre>
+
+<h2 id="no_throw_on_crash-">no_throw_on_crash()</h2>
+
+<pre><code><code> Title   : no_throw_on_crash
+ Usage   : 
+ Function: prevent throw on execution error
+ Returns : 
+ Args    : [optional] boolean</code></code></pre>
+
+<h2 id="last_execution-">last_execution()</h2>
+
+<pre><code><code> Title   : last_execution
+ Usage   : 
+ Function: return the last executed command with options
+ Returns : string of command line sent to IPC::Run
+ Args    : </code></code></pre>
+
+<h2 id="dash_switch-">_dash_switch()</h2>
+
+<pre><code><code> Title   : _dash_switch
+ Usage   : $version = $fac-&gt;_dash_switch( $switch )
+ Function: Returns an appropriately dashed switch for the executable
+ Args    : A string containing a switch without dashes
+ Returns : string containing an appropriately dashed switch for the current executable</code></code></pre>
+
+<h2 id="stdout-">stdout()</h2>
+
+<pre><code><code> Title   : stdout
+ Usage   : $fac-&gt;stdout()
+ Function: store the output from STDOUT for the run, 
+           if no file specified in _run arguments
+ Example : 
+ Returns : scalar string
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="stderr-">stderr()</h2>
+
+<pre><code><code> Title   : stderr
+ Usage   : $fac-&gt;stderr()
+ Function: store the output from STDERR for the run, 
+           if no file is specified in _run arguments
+ Example : 
+ Returns : scalar string
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="is_pseudo-">is_pseudo()</h2>
+
+<pre><code><code> Title   : is_pseudo
+ Usage   : $obj-&gt;is_pseudo($newval)
+ Function: returns true if this factory represents
+           a pseudo-program
+ Example : 
+ Returns : value of is_pseudo (boolean)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="AUTOLOAD">AUTOLOAD</h2>
+
+<p>AUTOLOAD permits</p>
+
+<pre><code><code> <span class="variable">$class</span><span class="operator">-&gt;</span><span class="variable">new_yourcommand</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>as an alias for</p>
+
+<pre><code><code> <span class="variable">$class</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-command</span> <span class="operator">=&gt;</span> <span class="string">'yourcommand'</span><span class="operator">,</span> <span class="variable">@args</span> <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="Bio:ParameterBaseI-compliance">Bio:ParameterBaseI compliance</h1>
+
+<h2 id="set_parameters-">set_parameters()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">set_parameters</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">set_parameters</span><span class="operator">(</span><span class="variable">%params</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">sets</span> <span class="variable">the</span> <span class="variable">parameters</span> <span class="variable">listed</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">hash</span> <span class="keyword">or</span> <span class="variable">array</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">true</span> <span class="variable">on</span> <span class="variable">success</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">hash</span> <span class="keyword">or</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">parameter</span><span class="operator">/</span><span class="keyword">values</span><span class="operator">.</span>  
+</code></code></pre>
+
+<h2 id="reset_parameters-">reset_parameters()</h2>
+
+<pre><code><code> Title   : reset_parameters
+ Usage   : resets values
+ Function: resets parameters to either undef or value in passed hash
+ Returns : none
+ Args    : [optional] hash of parameter-value pairs</code></code></pre>
+
+<h2 id="parameters_changed-">parameters_changed()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">parameters_changed</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">parameters_changed</span><span class="operator">)</span> <span class="operator">{...}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">boolean</span> <span class="variable">true</span> <span class="operator">(</span><span class="number">1</span><span class="operator">)</span> <span class="keyword">if</span> <span class="variable">parameters</span> <span class="variable">have</span> <span class="variable">changed</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Boolean</span> <span class="operator">(</span><span class="number">0</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">Boolean</span>
+</code></code></pre>
+
+<h2 id="available_parameters-">available_parameters()</h2>
+
+<pre><code><code> Title   : available_parameters
+ Usage   : @params = $pobj-&gt;available_parameters()
+ Function: Returns a list of the available parameters
+ Returns : Array of parameters
+ Args    : &#39;params&#39; for settable program parameters
+           &#39;switches&#39; for boolean program switches
+           default: all </code></code></pre>
+
+<h2 id="get_parameters-">get_parameters()</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_parameters</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">%params</span> <span class="operator">=</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">get_parameters</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">key</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span> <span class="variable">of</span> <span class="string">parameter</span> <span class="operator">=&gt;</span> <span class="variable">value</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">List</span> <span class="variable">of</span> <span class="variable">key</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">A</span> <span class="variable">string</span> <span class="variable">is</span> <span class="variable">allowed</span> <span class="keyword">if</span> <span class="variable">subsets</span> <span class="variable">are</span> <span class="variable">wanted</span> <span class="keyword">or</span> <span class="operator">(</span><span class="keyword">if</span> <span class="variable">a</span>
+           <span class="variable">parameter</span> <span class="variable">subset</span> <span class="variable">is</span> <span class="keyword">default</span><span class="operator">)</span> <span class="string">'all'</span> <span class="variable">to</span> <span class="keyword">return</span> <span class="variable">all</span> <span class="variable">parameters</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

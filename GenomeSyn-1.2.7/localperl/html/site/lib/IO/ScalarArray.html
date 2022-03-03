@@ -1,0 +1,356 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#PUBLIC-INTERFACE">PUBLIC INTERFACE</a>
+    <ul>
+      <li><a href="#Construction">Construction</a></li>
+      <li><a href="#Input-and-output">Input and output</a></li>
+      <li><a href="#Seeking-telling-and-other-attributes">Seeking/telling and other attributes</a></li>
+    </ul>
+  </li>
+  <li><a href="#WARNINGS">WARNINGS</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a>
+    <ul>
+      <li><a href="#Primary-Maintainer">Primary Maintainer</a></li>
+      <li><a href="#Principal-author">Principal author</a></li>
+      <li><a href="#Other-contributors">Other contributors</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>IO::ScalarArray - IO:: interface for reading/writing an array of scalars</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Perform I/O on strings, using the basic OO interface...</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">IO::ScalarArray</span><span class="operator">;</span>
+    <span class="variable">@data</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">"My mes"</span><span class="operator">,</span> <span class="string">"sage:\n"</span><span class="operator">);</span>
+    
+    <span class="comment">### Open a handle on an array, and append to it:</span>
+    <span class="variable">$AH</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">IO::ScalarArray</span> <span class="operator">\</span><span class="variable">@data</span><span class="operator">;</span>
+    <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">print</span><span class="operator">(</span><span class="string">"Hello"</span><span class="operator">);</span>       
+    <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">print</span><span class="operator">(</span><span class="string">", world!\nBye now!\n"</span><span class="operator">);</span>  
+    <span class="keyword">print</span> <span class="string">"The array is now: "</span><span class="operator">,</span> <span class="variable">@data</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+    
+    <span class="comment">### Open a handle on an array, read it line-by-line, then close it:</span>
+    <span class="variable">$AH</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">IO::ScalarArray</span> <span class="operator">\</span><span class="variable">@data</span><span class="operator">;</span>
+    <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">defined</span><span class="operator">(</span><span class="variable">$_</span> <span class="operator">=</span> <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">getline</span><span class="operator">))</span> <span class="operator">{</span> 
+        <span class="keyword">print</span> <span class="string">"Got line: </span><span class="variable">$_</span><span class="string">"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">close</span><span class="operator">;</span>
+    
+    <span class="comment">### Open a handle on an array, and slurp in all the lines:</span>
+    <span class="variable">$AH</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">IO::ScalarArray</span> <span class="operator">\</span><span class="variable">@data</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"All lines:\n"</span><span class="operator">,</span> <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">getlines</span><span class="operator">;</span> 
+    
+    <span class="comment">### Get the current position (either of two ways):</span>
+    <span class="variable">$pos</span> <span class="operator">=</span> <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">getpos</span><span class="operator">;</span>         
+    <span class="variable">$offset</span> <span class="operator">=</span> <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">tell</span><span class="operator">;</span>  
+    
+    <span class="comment">### Set the current position (either of two ways):</span>
+    <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">setpos</span><span class="operator">(</span><span class="variable">$pos</span><span class="operator">);</span>        
+    <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">seek</span><span class="operator">(</span><span class="variable">$offset</span><span class="operator">,</span> <span class="number">0</span><span class="operator">);</span>
+    
+    <span class="comment">### Open an anonymous temporary array:</span>
+    <span class="variable">$AH</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">IO::ScalarArray</span><span class="operator">;</span>
+    <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">print</span><span class="operator">(</span><span class="string">"Hi there!"</span><span class="operator">);</span>
+    <span class="keyword">print</span> <span class="string">"I printed: "</span><span class="operator">,</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">aref</span><span class="operator">}</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>      <span class="comment">### get at value</span>
+</code></code></pre>
+
+<p>Don&#39;t like OO for your I/O? No problem. Thanks to the magic of an invisible tie(), the following now works out of the box, just as it does with IO::Handle:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">IO::ScalarArray</span><span class="operator">;</span>
+    <span class="variable">@data</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">"My mes"</span><span class="operator">,</span> <span class="string">"sage:\n"</span><span class="operator">);</span>
+    
+    <span class="comment">### Open a handle on an array, and append to it:</span>
+    <span class="variable">$AH</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">IO::ScalarArray</span> <span class="operator">\</span><span class="variable">@data</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="variable">$AH</span> <span class="string">"Hello"</span><span class="operator">;</span>    
+    <span class="keyword">print</span> <span class="variable">$AH</span> <span class="string">", world!\nBye now!\n"</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"The array is now: "</span><span class="operator">,</span> <span class="variable">@data</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+    
+    <span class="comment">### Open a handle on a string, read it line-by-line, then close it:</span>
+    <span class="variable">$AH</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">IO::ScalarArray</span> <span class="operator">\</span><span class="variable">@data</span><span class="operator">;</span>
+    <span class="keyword">while</span> <span class="operator">(&lt;</span><span class="variable">$AH</span><span class="operator">&gt;)</span> <span class="operator">{</span>
+        <span class="keyword">print</span> <span class="string">"Got line: </span><span class="variable">$_</span><span class="string">"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    <span class="keyword">close</span> <span class="variable">$AH</span><span class="operator">;</span>
+    
+    <span class="comment">### Open a handle on a string, and slurp in all the lines:</span>
+    <span class="variable">$AH</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">IO::ScalarArray</span> <span class="operator">\</span><span class="variable">@data</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"All lines:\n"</span><span class="operator">,</span> <span class="operator">&lt;</span><span class="variable">$AH</span><span class="operator">&gt;;</span>
+    
+    <span class="comment">### Get the current position (WARNING: requires 5.6):</span>
+    <span class="variable">$offset</span> <span class="operator">=</span> <span class="keyword">tell</span> <span class="variable">$AH</span><span class="operator">;</span>
+    
+    <span class="comment">### Set the current position (WARNING: requires 5.6):</span>
+    <span class="keyword">seek</span> <span class="variable">$AH</span><span class="operator">,</span> <span class="variable">$offset</span><span class="operator">,</span> <span class="number">0</span><span class="operator">;</span>
+    
+    <span class="comment">### Open an anonymous temporary scalar:</span>
+    <span class="variable">$AH</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">IO::ScalarArray</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="variable">$AH</span> <span class="string">"Hi there!"</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"I printed: "</span><span class="operator">,</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">aref</span><span class="operator">}</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>      <span class="comment">### get at value</span>
+</code></code></pre>
+
+<p>And for you folks with 1.x code out there: the old tie() style still works, though this is <i>unnecessary and deprecated</i>:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">IO::ScalarArray</span><span class="operator">;</span>
+    
+    <span class="comment">### Writing to a scalar...</span>
+    <span class="keyword">my</span> <span class="variable">@a</span><span class="operator">;</span> 
+    <span class="keyword">tie</span> <span class="variable">*OUT</span><span class="operator">,</span> <span class="string">'IO::ScalarArray'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@a</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="variable">OUT</span> <span class="string">"line 1\nline 2\n"</span><span class="operator">,</span> <span class="string">"line 3\n"</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"Array is now: "</span><span class="operator">,</span> <span class="variable">@a</span><span class="operator">,</span> <span class="string">"\n"</span>
+    
+    <span class="comment">### Reading and writing an anonymous scalar... </span>
+    <span class="keyword">tie</span> <span class="variable">*OUT</span><span class="operator">,</span> <span class="string">'IO::ScalarArray'</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="variable">OUT</span> <span class="string">"line 1\nline 2\n"</span><span class="operator">,</span> <span class="string">"line 3\n"</span><span class="operator">;</span>
+    <span class="keyword">tied</span><span class="operator">(</span><span class="variable">OUT</span><span class="operator">)-&gt;</span><span class="variable">seek</span><span class="operator">(</span><span class="number">0</span><span class="operator">,</span><span class="number">0</span><span class="operator">);</span>
+    <span class="keyword">while</span> <span class="operator">(&lt;</span><span class="variable">OUT</span><span class="operator">&gt;)</span> <span class="operator">{</span> 
+        <span class="keyword">print</span> <span class="string">"Got line: "</span><span class="operator">,</span> <span class="variable">$_</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This class is part of the IO::Stringy distribution; see <a href="../../../../.cpan/build/IO-stringy-2.110-OD_fIZ/blib/lib/IO/Stringy.html">IO::Stringy</a> for change log and general information.</p>
+
+<p>The IO::ScalarArray class implements objects which behave just like IO::Handle (or FileHandle) objects, except that you may use them to write to (or read from) arrays of scalars. Logically, an array of scalars defines an in-core &quot;file&quot; whose contents are the concatenation of the scalars in the array. The handles created by this class are automatically tiehandle&#39;d (though please see <a href="#WARNINGS">&quot;WARNINGS&quot;</a> for information relevant to your Perl version).</p>
+
+<p>For writing large amounts of data with individual print() statements, this class is likely to be more efficient than IO::Scalar.</p>
+
+<p>Basically, this:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@a</span><span class="operator">;</span>
+    <span class="variable">$AH</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">IO::ScalarArray</span> <span class="operator">\</span><span class="variable">@a</span><span class="operator">;</span>
+    <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">print</span><span class="operator">(</span><span class="string">"Hel"</span><span class="operator">,</span> <span class="string">"lo, "</span><span class="operator">);</span>         <span class="comment">### OO style</span>
+    <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">print</span><span class="operator">(</span><span class="string">"world!\n"</span><span class="operator">);</span>            <span class="comment">### ditto</span>
+</code></code></pre>
+
+<p>Or this:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@a</span><span class="operator">;</span>
+    <span class="variable">$AH</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">IO::ScalarArray</span> <span class="operator">\</span><span class="variable">@a</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="variable">$AH</span> <span class="string">"Hel"</span><span class="operator">,</span> <span class="string">"lo, "</span><span class="operator">;</span>           <span class="comment">### non-OO style</span>
+    <span class="keyword">print</span> <span class="variable">$AH</span> <span class="string">"world!\n"</span><span class="operator">;</span>              <span class="comment">### ditto</span>
+</code></code></pre>
+
+<p>Causes @a to be set to the following array of 3 strings:</p>
+
+<pre><code><code>    ( &quot;Hel&quot; , 
+      &quot;lo, &quot; , 
+      &quot;world!\n&quot; )</code></code></pre>
+
+<p>See <a href="../../../../.cpan/build/IO-stringy-2.110-OD_fIZ/blib/lib/IO/Scalar.html">IO::Scalar</a> and compare with this class.</p>
+
+<h1 id="PUBLIC-INTERFACE">PUBLIC INTERFACE</h1>
+
+<h2 id="Construction">Construction</h2>
+
+<dl>
+
+<dt id="new-ARGS...-">new [ARGS...]</dt>
+<dd>
+
+<p><i>Class method.</i> Return a new, unattached array handle. If any arguments are given, they&#39;re sent to open().</p>
+
+</dd>
+<dt id="open-ARRAYREF-">open [ARRAYREF]</dt>
+<dd>
+
+<p><i>Instance method.</i> Open the array handle on a new array, pointed to by ARRAYREF. If no ARRAYREF is given, a &quot;private&quot; array is created to hold the file data.</p>
+
+<p>Returns the self object on success, undefined on error.</p>
+
+</dd>
+<dt id="opened">opened</dt>
+<dd>
+
+<p><i>Instance method.</i> Is the array handle opened on something?</p>
+
+</dd>
+<dt id="close">close</dt>
+<dd>
+
+<p><i>Instance method.</i> Disassociate the array handle from its underlying array. Done automatically on destroy.</p>
+
+</dd>
+</dl>
+
+<h2 id="Input-and-output">Input and output</h2>
+
+<dl>
+
+<dt id="flush">flush</dt>
+<dd>
+
+<p><i>Instance method.</i> No-op, provided for OO compatibility.</p>
+
+</dd>
+<dt id="getc">getc</dt>
+<dd>
+
+<p><i>Instance method.</i> Return the next character, or undef if none remain. This does a read(1), which is somewhat costly.</p>
+
+</dd>
+<dt id="getline">getline</dt>
+<dd>
+
+<p><i>Instance method.</i> Return the next line, or undef on end of data. Can safely be called in an array context. Currently, lines are delimited by &quot;\n&quot;.</p>
+
+</dd>
+<dt id="getlines">getlines</dt>
+<dd>
+
+<p><i>Instance method.</i> Get all remaining lines. It will croak() if accidentally called in a scalar context.</p>
+
+</dd>
+<dt id="print-ARGS...">print ARGS...</dt>
+<dd>
+
+<p><i>Instance method.</i> Print ARGS to the underlying array.</p>
+
+<p>Currently, this always causes a &quot;seek to the end of the array&quot; and generates a new array entry. This may change in the future.</p>
+
+</dd>
+<dt id="read-BUF-NBYTES-OFFSET-">read BUF, NBYTES, [OFFSET];</dt>
+<dd>
+
+<p><i>Instance method.</i> Read some bytes from the array. Returns the number of bytes actually read, 0 on end-of-file, undef on error.</p>
+
+</dd>
+<dt id="write-BUF-NBYTES-OFFSET-">write BUF, NBYTES, [OFFSET];</dt>
+<dd>
+
+<p><i>Instance method.</i> Write some bytes into the array.</p>
+
+</dd>
+</dl>
+
+<h2 id="Seeking-telling-and-other-attributes">Seeking/telling and other attributes</h2>
+
+<dl>
+
+<dt id="autoflush">autoflush</dt>
+<dd>
+
+<p><i>Instance method.</i> No-op, provided for OO compatibility.</p>
+
+</dd>
+<dt id="binmode">binmode</dt>
+<dd>
+
+<p><i>Instance method.</i> No-op, provided for OO compatibility.</p>
+
+</dd>
+<dt id="clearerr">clearerr</dt>
+<dd>
+
+<p><i>Instance method.</i> Clear the error and EOF flags. A no-op.</p>
+
+</dd>
+<dt id="eof">eof</dt>
+<dd>
+
+<p><i>Instance method.</i> Are we at end of file?</p>
+
+</dd>
+<dt id="seek-POS-WHENCE">seek POS,WHENCE</dt>
+<dd>
+
+<p><i>Instance method.</i> Seek to a given position in the stream. Only a WHENCE of 0 (SEEK_SET) is supported.</p>
+
+</dd>
+<dt id="tell">tell</dt>
+<dd>
+
+<p><i>Instance method.</i> Return the current position in the stream, as a numeric offset.</p>
+
+</dd>
+<dt id="setpos-POS">setpos POS</dt>
+<dd>
+
+<p><i>Instance method.</i> Seek to a given position in the array, using the opaque getpos() value. Don&#39;t expect this to be a number.</p>
+
+</dd>
+<dt id="getpos">getpos</dt>
+<dd>
+
+<p><i>Instance method.</i> Return the current position in the array, as an opaque value. Don&#39;t expect this to be a number.</p>
+
+</dd>
+<dt id="aref">aref</dt>
+<dd>
+
+<p><i>Instance method.</i> Return a reference to the underlying array.</p>
+
+</dd>
+</dl>
+
+<h1 id="WARNINGS">WARNINGS</h1>
+
+<p>Perl&#39;s TIEHANDLE spec was incomplete prior to 5.005_57; it was missing support for <code><code>seek()</code></code>, <code><code>tell()</code></code>, and <code><code>eof()</code></code>. Attempting to use these functions with an IO::ScalarArray will not work prior to 5.005_57. IO::ScalarArray will not have the relevant methods invoked; and even worse, this kind of bug can lie dormant for a while. If you turn warnings on (via <code><code>$^W</code></code> or <code><code>perl -w</code></code>), and you see something like this...</p>
+
+<pre><code><code>    attempt to seek on unopened filehandle</code></code></pre>
+
+<p>...then you are probably trying to use one of these functions on an IO::ScalarArray with an old Perl. The remedy is to simply use the OO version; e.g.:</p>
+
+<pre><code><code>    <span class="variable">$AH</span><span class="operator">-&gt;</span><span class="variable">seek</span><span class="operator">(</span><span class="number">0</span><span class="operator">,</span><span class="number">0</span><span class="operator">);</span>    <span class="comment">### GOOD: will work on any 5.005</span>
+    <span class="keyword">seek</span><span class="operator">(</span><span class="variable">$AH</span><span class="operator">,</span><span class="number">0</span><span class="operator">,</span><span class="number">0</span><span class="operator">);</span>     <span class="comment">### WARNING: will only work on 5.005_57 and beyond</span>
+</code></code></pre>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>$Id: ScalarArray.pm,v 1.7 2005/02/10 21:21:53 dfs Exp $</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<h2 id="Primary-Maintainer">Primary Maintainer</h2>
+
+<p>David F. Skoll (<i>dfs@roaringpenguin.com</i>).</p>
+
+<h2 id="Principal-author">Principal author</h2>
+
+<p>Eryq (<i>eryq@zeegee.com</i>). President, ZeeGee Software Inc (<i>http://www.zeegee.com</i>).</p>
+
+<h2 id="Other-contributors">Other contributors</h2>
+
+<p>Thanks to the following individuals for their invaluable contributions (if I&#39;ve forgotten or misspelled your name, please email me!):</p>
+
+<p><i>Andy Glew,</i> for suggesting <code><code>getc()</code></code>.</p>
+
+<p><i>Brandon Browning,</i> for suggesting <code><code>opened()</code></code>.</p>
+
+<p><i>Eric L. Brine,</i> for his offset-using read() and write() implementations.</p>
+
+<p><i>Doug Wilson,</i> for the IO::Handle inheritance and automatic tie-ing.</p>
+
+
+</body>
+
+</html>
+
+

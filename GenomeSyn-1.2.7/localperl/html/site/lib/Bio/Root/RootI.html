@@ -1,0 +1,422 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Using-throw_not_implemented-">Using throw_not_implemented()</a></li>
+    </ul>
+  </li>
+  <li><a href="#CONTACT">CONTACT</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#throw">throw</a></li>
+      <li><a href="#warn">warn</a></li>
+      <li><a href="#deprecated">deprecated</a></li>
+      <li><a href="#stack_trace_dump">stack_trace_dump</a></li>
+      <li><a href="#stack_trace">stack_trace</a></li>
+      <li><a href="#rearrange">_rearrange</a></li>
+      <li><a href="#set_from_args">_set_from_args</a></li>
+      <li><a href="#register_for_cleanup">_register_for_cleanup</a></li>
+      <li><a href="#unregister_for_cleanup">_unregister_for_cleanup</a></li>
+      <li><a href="#cleanup_methods">_cleanup_methods</a></li>
+      <li><a href="#throw_not_implemented">throw_not_implemented</a></li>
+      <li><a href="#warn_not_implemented">warn_not_implemented</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Root::RootI - Abstract interface to root object code</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># any bioperl or bioperl compliant object is a RootI </span>
+  <span class="comment"># compliant object</span>
+  
+  <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">throw</span><span class="operator">(</span><span class="string">"This is an exception"</span><span class="operator">);</span>
+  
+  <span class="keyword">eval</span> <span class="operator">{</span>
+      <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">throw</span><span class="operator">(</span><span class="string">"This is catching an exception"</span><span class="operator">);</span>
+  <span class="operator">};</span>
+  
+  <span class="keyword">if</span><span class="operator">(</span> <span class="variable">$@</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="string">"Caught exception"</span><span class="operator">;</span>
+  <span class="operator">}</span> <span class="keyword">else</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="string">"no exception"</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># Using throw_not_implemented() within a RootI-based interface module:</span>
+  
+  <span class="keyword">package</span> <span class="variable">Foo</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">base</span> <span class="string">qw(Bio::Root::RootI)</span><span class="operator">;</span>
+  
+  <span class="keyword">sub</span><span class="variable"> foo </span><span class="operator">{</span>
+      <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+      <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">throw_not_implemented</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is just a set of methods which do not assume <b>anything</b> about the object they are on. The methods provide the ability to throw exceptions with nice stack traces.</p>
+
+<p>This is what should be inherited by all Bioperl compliant interfaces, even if they are exotic XS/CORBA/Other perl systems.</p>
+
+<h2 id="Using-throw_not_implemented-">Using throw_not_implemented()</h2>
+
+<p>The method <a>throw_not_implemented()</a> should be called by all methods within interface modules that extend RootI so that if an implementation fails to override them, an exception will be thrown.</p>
+
+<p>For example, say there is an interface module called <code><code>FooI</code></code> that provides a method called <code><code>foo()</code></code>. Since this method is considered abstract within FooI and should be implemented by any module claiming to implement <code><code>FooI</code></code>, the <code><code>FooI::foo()</code></code> method should consist of the following:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> foo </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">throw_not_implemented</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>So, if an implementer of <code><code>FooI</code></code> forgets to implement <code><code>foo()</code></code> and a user of the implementation calls <code><code>foo()</code></code>, a <a>Bio::Exception::NotImplemented</a> exception will result.</p>
+
+<p>Unfortunately, failure to implement a method can only be determined at run time (i.e., you can&#39;t verify that an implementation is complete by running <code><code>perl -wc</code></code> on it). So it should be standard practice for a test of an implementation to check each method and verify that it doesn&#39;t throw a <a>Bio::Exception::NotImplemented</a>.</p>
+
+<h1 id="CONTACT">CONTACT</h1>
+
+<p>Functions originally from Steve Chervitz. Refactored by Ewan Birney. Re-refactored by Lincoln Stein. Added to by Sendu Bala.</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="throw">throw</h2>
+
+<pre><code><code> Title   : throw
+ Usage   : $obj-&gt;throw(&quot;throwing exception message&quot;)
+ Function: Throws an exception, which, if not caught with an eval brace
+           will provide a nice stack trace to STDERR with the message
+ Returns : nothing
+ Args    : A string giving a descriptive error message</code></code></pre>
+
+<h2 id="warn">warn</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="keyword">warn</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$object</span><span class="operator">-&gt;</span><span class="variable">warn</span><span class="operator">(</span><span class="string">"Warning message"</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Places</span> <span class="variable">a</span> <span class="variable">warning</span><span class="operator">.</span> <span class="variable">What</span> <span class="variable">happens</span> <span class="variable">now</span> <span class="variable">is</span> <span class="variable">down</span> <span class="variable">to</span> <span class="variable">the</span>
+           <span class="variable">verbosity</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">object</span>  <span class="operator">(</span><span class="variable">value</span> <span class="variable">of</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">verbose</span><span class="operator">)</span> 
+            <span class="variable">verbosity</span> <span class="number">0</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="string">set</span> <span class="operator">=&gt;</span> <span class="variable">small</span> <span class="variable">warning</span>
+            <span class="variable">verbosity</span> <span class="operator">-</span><span class="number">1</span> <span class="operator">=&gt;</span> <span class="keyword">no</span> <span class="variable">warning</span>
+            <span class="variable">verbosity</span> <span class="number">1</span> <span class="operator">=&gt;</span> <span class="variable">warning</span> <span class="variable">with</span> <span class="variable">stack</span> <span class="variable">trace</span>
+            <span class="variable">verbosity</span> <span class="number">2</span> <span class="operator">=&gt;</span> <span class="variable">converts</span> <span class="variable">warnings</span> <span class="variable">into</span> <span class="variable">throw</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">the</span> <span class="variable">warning</span> <span class="variable">message</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="deprecated">deprecated</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">deprecated</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">deprecated</span><span class="operator">(</span><span class="string">"Method X is deprecated"</span><span class="operator">);</span>
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">deprecated</span><span class="operator">(</span><span class="string">"Method X is deprecated"</span><span class="operator">,</span> <span class="number">1.007</span><span class="operator">);</span>
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">deprecated</span><span class="operator">(</span><span class="string">-message</span> <span class="operator">=&gt;</span> <span class="string">"Method X is deprecated"</span><span class="operator">);</span>
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">deprecated</span><span class="operator">(</span><span class="string">-message</span> <span class="operator">=&gt;</span> <span class="string">"Method X is deprecated"</span><span class="operator">,</span>
+                            <span class="string">-version</span> <span class="operator">=&gt;</span> <span class="number">1.007</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Prints</span> <span class="variable">a</span> <span class="variable">message</span> <span class="variable">about</span> <span class="variable">deprecation</span> <span class="keyword">unless</span> <span class="variable">verbose</span> <span class="variable">is</span> <span class="operator">&lt;</span> <span class="number">0</span>
+           <span class="operator">(</span><span class="variable">which</span> <span class="variable">means</span> <span class="variable">be</span> <span class="variable">quiet</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Message</span> <span class="variable">string</span> <span class="variable">to</span> <span class="keyword">print</span> <span class="variable">to</span> <span class="variable">STDERR</span>
+           <span class="variable">Version</span> <span class="variable">of</span> <span class="variable">BioPerl</span> <span class="variable">where</span> <span class="keyword">use</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">method</span> <span class="variable">results</span> <span class="variable">in</span> <span class="variable">an</span> <span class="variable">exception</span>
+ <span class="variable">Notes</span>   <span class="operator">:</span> <span class="variable">The</span> <span class="variable">method</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">called</span> <span class="variable">two</span> <span class="variable">ways</span><span class="operator">,</span> <span class="variable">either</span> <span class="variable">by</span> <span class="variable">positional</span> <span class="variable">arguments</span><span class="operator">:</span>
+           
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">deprecated</span><span class="operator">(</span><span class="string">'This module is deprecated'</span><span class="operator">,</span> <span class="number">1.006</span><span class="operator">);</span>
+           
+           <span class="keyword">or</span> <span class="variable">by</span> <span class="variable">named</span> <span class="variable">arguments</span><span class="operator">:</span>
+           
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">deprecated</span><span class="operator">(</span>
+                <span class="string">-message</span> <span class="operator">=&gt;</span> <span class="string">'use of the method foo() is deprecated, use bar() instead'</span><span class="operator">,</span>
+                <span class="string">-version</span> <span class="operator">=&gt;</span> <span class="number">1.006</span>  <span class="comment"># throw if $VERSION is &gt;= this version</span>
+                <span class="operator">);</span>
+ 
+           <span class="keyword">or</span> <span class="variable">timed</span> <span class="variable">to</span> <span class="variable">go</span> <span class="variable">off</span> <span class="variable">at</span> <span class="variable">a</span> <span class="variable">certain</span> <span class="variable">point</span><span class="operator">:</span>
+           
+           <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">deprecated</span><span class="operator">(</span>
+                <span class="string">-message</span> <span class="operator">=&gt;</span> <span class="string">'use of the method foo() is deprecated, use bar() instead'</span><span class="operator">,</span>
+                <span class="string">-warn_version</span>    <span class="operator">=&gt;</span> <span class="number">1.006</span> <span class="comment"># warn if $VERSION is &gt;= this version</span>
+                <span class="operator">-</span><span class="string">throw_version</span>   <span class="operator">=&gt;</span> <span class="number">1.007</span> <span class="comment"># throw if $VERSION is &gt;= this version</span>
+                <span class="operator">);</span>
+           
+           <span class="variable">Using</span> <span class="variable">the</span> <span class="keyword">last</span> <span class="variable">two</span> <span class="variable">named</span> <span class="variable">argument</span> <span class="variable">versions</span> <span class="variable">is</span> <span class="variable">suggested</span> <span class="keyword">and</span> <span class="variable">will</span>
+           <span class="variable">likely</span> <span class="variable">be</span> <span class="variable">the</span> <span class="variable">only</span> <span class="variable">supported</span> <span class="variable">way</span> <span class="variable">of</span> <span class="variable">calling</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">future</span>
+           <span class="variable">Yes</span><span class="operator">,</span> <span class="variable">we</span> <span class="variable">see</span> <span class="variable">the</span> <span class="variable">irony</span> <span class="variable">of</span> <span class="variable">deprecating</span> <span class="variable">that</span> <span class="variable">particular</span> <span class="variable">usage</span> <span class="variable">of</span>
+           <span class="variable">deprecated</span><span class="operator">().</span>
+           
+           <span class="variable">The</span> <span class="variable">main</span> <span class="variable">difference</span> <span class="variable">between</span> <span class="variable">usage</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">two</span> <span class="variable">named</span> <span class="variable">argument</span> <span class="variable">versions</span>
+           <span class="variable">is</span> <span class="variable">that</span> <span class="variable">by</span> <span class="variable">designating</span> <span class="variable">a</span> <span class="string">'warn_version'</span> <span class="variable">one</span> <span class="variable">indicates</span> <span class="variable">the</span>
+           <span class="variable">functionality</span> <span class="variable">is</span> <span class="variable">officially</span> <span class="variable">deprecated</span> <span class="variable">beginning</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">future</span> <span class="variable">version</span>
+           <span class="variable">of</span> <span class="variable">BioPerl</span> <span class="operator">(</span><span class="variable">so</span> <span class="variable">warnings</span> <span class="variable">are</span> <span class="variable">issued</span> <span class="variable">only</span> <span class="variable">after</span> <span class="variable">that</span> <span class="variable">point</span><span class="operator">),</span> <span class="variable">whereas</span>
+           <span class="variable">setting</span> <span class="variable">either</span> <span class="string">'version'</span> <span class="keyword">or</span> <span class="string">'throw_version'</span> <span class="operator">(</span><span class="variable">synonyms</span><span class="operator">)</span> <span class="variable">converts</span> <span class="variable">the</span>
+           <span class="variable">deprecation</span> <span class="variable">warning</span> <span class="variable">to</span> <span class="variable">an</span> <span class="variable">exception</span><span class="operator">.</span>
+           
+           <span class="variable">For</span> <span class="variable">proper</span> <span class="variable">comparisons</span> <span class="variable">one</span> <span class="variable">must</span> <span class="keyword">use</span> <span class="variable">a</span> <span class="variable">version</span> <span class="variable">in</span> <span class="variable">lines</span> <span class="variable">with</span> <span class="variable">the</span>
+           <span class="variable">current</span> <span class="variable">versioning</span> <span class="variable">scheme</span> <span class="keyword">for</span> <span class="variable">Perl</span> <span class="keyword">and</span> <span class="variable">BioPerl</span><span class="operator">,</span> <span class="operator">(</span><span class="variable">i</span><span class="operator">.</span><span class="variable">e</span><span class="operator">.</span> <span class="variable">where</span> <span class="number">1.006000</span>
+           <span class="variable">indicates</span> <span class="variable">v1</span><span class="number">.6</span><span class="operator">.</span><span class="number">0</span><span class="operator">,</span> <span class="number">5.010000</span> <span class="keyword">for</span> <span class="variable">v5</span><span class="number">.10</span><span class="operator">.</span><span class="number">0</span><span class="operator">,</span> <span class="variable">etc</span><span class="operator">.).</span>
+</code></code></pre>
+
+<h2 id="stack_trace_dump">stack_trace_dump</h2>
+
+<pre><code><code> Title   : stack_trace_dump
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :</code></code></pre>
+
+<h2 id="stack_trace">stack_trace</h2>
+
+<pre><code><code> Title   : stack_trace
+ Usage   : @stack_array_ref= $self-&gt;stack_trace
+ Function: gives an array to a reference of arrays with stack trace info
+           each coming from the caller(stack_number) call
+ Returns : array containing a reference of arrays
+ Args    : none</code></code></pre>
+
+<h2 id="rearrange">_rearrange</h2>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$object</span><span class="operator">-&gt;</span><span class="variable">_rearrange</span><span class="operator">(</span> <span class="variable">array_ref</span><span class="operator">,</span> <span class="variable">list_of_arguments</span><span class="operator">)</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Rearranges</span> <span class="variable">named</span> <span class="variable">parameters</span> <span class="variable">to</span> <span class="variable">requested</span> <span class="variable">order</span><span class="operator">.</span>
+ <span class="variable">Example</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_rearrange</span><span class="operator">(</span><span class="operator">[</span><span class="string">qw(SEQUENCE ID DESC)</span><span class="operator">]</span><span class="operator">,</span><span class="variable">@param</span><span class="operator">);</span>
+           <span class="operator">:</span> <span class="variable">Where</span> <span class="variable">@param</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">-sequence</span> <span class="operator">=&gt;</span> <span class="variable">$s</span><span class="operator">,</span>
+           <span class="operator">:</span>                 <span class="string">-desc</span>     <span class="operator">=&gt;</span> <span class="variable">$d</span><span class="operator">,</span>
+           <span class="operator">:</span>                 <span class="string">-id</span>       <span class="operator">=&gt;</span> <span class="variable">$i</span><span class="operator">);</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">@params</span> <span class="operator">-</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">parameters</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">requested</span> <span class="variable">order</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="variable">The</span> <span class="variable">above</span> <span class="variable">example</span> <span class="variable">would</span> <span class="keyword">return</span> <span class="operator">(</span><span class="variable">$s</span><span class="operator">,</span> <span class="variable">$i</span><span class="operator">,</span> <span class="variable">$d</span><span class="operator">).</span>
+           <span class="operator">:</span> <span class="variable">Unspecified</span> <span class="variable">parameters</span> <span class="variable">will</span> <span class="keyword">return</span> <span class="keyword">undef</span><span class="operator">.</span> <span class="variable">For</span> <span class="variable">example</span><span class="operator">,</span> <span class="keyword">if</span>
+           <span class="operator">:</span>        <span class="variable">@param</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">-sequence</span> <span class="operator">=&gt;</span> <span class="variable">$s</span><span class="operator">);</span>
+           <span class="operator">:</span> <span class="variable">the</span> <span class="variable">above</span> <span class="variable">_rearrange</span> <span class="variable">call</span> <span class="variable">would</span> <span class="keyword">return</span> <span class="operator">(</span><span class="variable">$s</span><span class="operator">,</span> <span class="keyword">undef</span><span class="operator">,</span> <span class="keyword">undef</span><span class="operator">)</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="variable">$order</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">which</span> <span class="variable">describes</span> <span class="variable">the</span> <span class="variable">desired</span>
+           <span class="operator">:</span>          <span class="variable">order</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">named</span> <span class="variable">parameters</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="variable">@param</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">parameters</span><span class="operator">,</span> <span class="variable">either</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">list</span> <span class="operator">(</span><span class="variable">in</span>
+           <span class="operator">:</span>          <span class="variable">which</span> <span class="variable">case</span> <span class="variable">the</span> <span class="variable">function</span> <span class="variable">simply</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">list</span><span class="operator">),</span>
+           <span class="operator">:</span>          <span class="keyword">or</span> <span class="variable">as</span> <span class="variable">an</span> <span class="variable">associative</span> <span class="variable">array</span> <span class="variable">with</span> <span class="variable">hyphenated</span> <span class="variable">tags</span>
+           <span class="operator">:</span>          <span class="operator">(</span><span class="variable">in</span> <span class="variable">which</span> <span class="variable">case</span> <span class="variable">the</span> <span class="variable">function</span> <span class="variable">sorts</span> <span class="variable">the</span> <span class="keyword">values</span> 
+           <span class="operator">:</span>          <span class="variable">according</span> <span class="variable">to</span> <span class="variable">@</span><span class="operator">{</span><span class="variable">$order</span><span class="operator">}</span> <span class="keyword">and</span> <span class="variable">returns</span> <span class="variable">that</span> <span class="variable">new</span> <span class="variable">array</span><span class="operator">.)</span>
+           <span class="operator">:</span>          <span class="variable">The</span> <span class="variable">tags</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">upper</span><span class="operator">,</span> <span class="variable">lower</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">mixed</span> <span class="variable">case</span>
+           <span class="operator">:</span>          <span class="variable">but</span> <span class="variable">they</span> <span class="variable">must</span> <span class="variable">start</span> <span class="variable">with</span> <span class="variable">a</span> <span class="variable">hyphen</span> <span class="operator">(</span><span class="variable">at</span> <span class="variable">least</span> <span class="variable">the</span>
+           <span class="operator">:</span>          <span class="variable">first</span> <span class="variable">one</span> <span class="variable">should</span> <span class="variable">be</span> <span class="variable">hyphenated</span><span class="operator">.)</span>
+ <span class="variable">Source</span>    <span class="operator">:</span> <span class="variable">This</span> <span class="variable">function</span> <span class="variable">was</span> <span class="variable">taken</span> <span class="variable">from</span> <span class="variable">CGI</span><span class="operator">.</span><span class="variable">pm</span><span class="operator">,</span> <span class="variable">written</span> <span class="variable">by</span> <span class="variable">Dr</span><span class="operator">.</span> <span class="variable">Lincoln</span>
+           <span class="operator">:</span> <span class="variable">Stein</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">adapted</span> <span class="keyword">for</span> <span class="keyword">use</span> <span class="variable">in</span> <span class="variable">Bio::Seq</span> <span class="variable">by</span> <span class="variable">Richard</span> <span class="variable">Resnick</span> <span class="keyword">and</span>
+           <span class="operator">:</span> <span class="variable">then</span> <span class="variable">adapted</span> <span class="keyword">for</span> <span class="keyword">use</span> <span class="variable">in</span> <span class="variable">Bio::Root::Object</span><span class="operator">.</span><span class="variable">pm</span> <span class="variable">by</span> <span class="variable">Steve</span> <span class="variable">Chervitz</span><span class="operator">,</span>
+           <span class="operator">:</span> <span class="variable">then</span> <span class="variable">migrated</span> <span class="variable">into</span> <span class="variable">Bio::Root::RootI</span><span class="operator">.</span><span class="variable">pm</span> <span class="variable">by</span> <span class="variable">Ewan</span> <span class="variable">Birney</span><span class="operator">.</span>
+ <span class="variable">Comments</span>  <span class="operator">:</span>
+           <span class="operator">:</span> <span class="variable">Uppercase</span> <span class="variable">tags</span> <span class="variable">are</span> <span class="variable">the</span> <span class="variable">norm</span><span class="operator">,</span> 
+           <span class="operator">:</span> <span class="operator">(</span><span class="variable">SAC</span><span class="operator">)</span>
+           <span class="operator">:</span> <span class="variable">This</span> <span class="variable">method</span> <span class="variable">may</span> <span class="keyword">not</span> <span class="variable">be</span> <span class="variable">appropriate</span> <span class="keyword">for</span> <span class="variable">method</span> <span class="variable">calls</span> <span class="variable">that</span> <span class="variable">are</span>
+           <span class="operator">:</span> <span class="variable">within</span> <span class="variable">in</span> <span class="variable">an</span> <span class="variable">inner</span> <span class="variable">loop</span> <span class="keyword">if</span> <span class="variable">efficiency</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">concern</span><span class="operator">.</span>
+           <span class="operator">:</span>
+           <span class="operator">:</span> <span class="variable">Parameters</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">specified</span> <span class="variable">using</span> <span class="variable">any</span> <span class="variable">of</span> <span class="variable">these</span> <span class="variable">formats</span><span class="operator">:</span>
+           <span class="operator">:</span>  <span class="variable">@param</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">-name</span><span class="operator">=&gt;</span><span class="string">'me'</span><span class="operator">,</span> <span class="string">-color</span><span class="operator">=&gt;</span><span class="string">'blue'</span><span class="operator">);</span>
+           <span class="operator">:</span>  <span class="variable">@param</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">-NAME</span><span class="operator">=&gt;</span><span class="string">'me'</span><span class="operator">,</span> <span class="string">-COLOR</span><span class="operator">=&gt;</span><span class="string">'blue'</span><span class="operator">);</span>
+           <span class="operator">:</span>  <span class="variable">@param</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">-Name</span><span class="operator">=&gt;</span><span class="string">'me'</span><span class="operator">,</span> <span class="string">-Color</span><span class="operator">=&gt;</span><span class="string">'blue'</span><span class="operator">);</span>
+           <span class="operator">:</span>  <span class="variable">@param</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'me'</span><span class="operator">,</span> <span class="string">'blue'</span><span class="operator">);</span>
+           <span class="operator">:</span> <span class="variable">A</span> <span class="variable">leading</span> <span class="variable">hyphenated</span> <span class="variable">argument</span> <span class="variable">is</span> <span class="variable">used</span> <span class="variable">by</span> <span class="variable">this</span> <span class="variable">function</span> <span class="variable">to</span> 
+           <span class="operator">:</span> <span class="variable">indicate</span> <span class="variable">that</span> <span class="variable">named</span> <span class="variable">parameters</span> <span class="variable">are</span> <span class="variable">being</span> <span class="variable">used</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="variable">Therefore</span><span class="operator">,</span> <span class="variable">the</span> <span class="operator">(</span><span class="string">'me'</span><span class="operator">,</span> <span class="string">'blue'</span><span class="operator">)</span> <span class="variable">list</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="variable">as</span><span class="operator">-</span><span class="variable">is</span><span class="operator">.</span>
+           <span class="operator">:</span>
+           <span class="operator">:</span> <span class="variable">Note</span> <span class="variable">that</span> <span class="variable">Perl</span> <span class="variable">will</span> <span class="variable">confuse</span> <span class="variable">unquoted</span><span class="operator">,</span> <span class="variable">hyphenated</span> <span class="variable">tags</span> <span class="variable">as</span> 
+           <span class="operator">:</span> <span class="variable">function</span> <span class="variable">calls</span> <span class="keyword">if</span> <span class="variable">there</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">function</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">name</span> 
+           <span class="operator">:</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">namespace</span><span class="operator">:</span>
+           <span class="operator">:</span>    <span class="string">-name</span> <span class="operator">=&gt;</span> <span class="string">'foo'</span> <span class="variable">is</span> <span class="variable">interpreted</span> <span class="variable">as</span> <span class="operator">-&amp;</span><span class="string">name</span> <span class="operator">=&gt;</span> <span class="string">'foo'</span>
+           <span class="operator">:</span>
+           <span class="operator">:</span> <span class="variable">For</span> <span class="variable">ultimate</span> <span class="variable">safety</span><span class="operator">,</span> <span class="variable">put</span> <span class="variable">single</span> <span class="variable">quotes</span> <span class="variable">around</span> <span class="variable">the</span> <span class="variable">tag</span><span class="operator">:</span>
+           <span class="operator">:</span> <span class="operator">(</span><span class="string">'-name'</span><span class="operator">=&gt;</span><span class="string">'me'</span><span class="operator">,</span> <span class="string">'-color'</span> <span class="operator">=&gt;</span><span class="string">'blue'</span><span class="operator">);</span>
+           <span class="operator">:</span> <span class="variable">This</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">a</span> <span class="variable">bit</span> <span class="variable">cumbersome</span> <span class="keyword">and</span> <span class="variable">I</span> <span class="variable">find</span> <span class="keyword">not</span> <span class="variable">as</span> <span class="variable">readable</span>
+           <span class="operator">:</span> <span class="variable">as</span> <span class="variable">using</span> <span class="variable">all</span> <span class="variable">uppercase</span><span class="operator">,</span> <span class="variable">which</span> <span class="variable">is</span> <span class="variable">also</span> <span class="variable">fairly</span> <span class="variable">safe</span><span class="operator">:</span>
+           <span class="operator">:</span> <span class="operator">(</span><span class="string">-NAME</span><span class="operator">=&gt;</span><span class="string">'me'</span><span class="operator">,</span> <span class="string">-COLOR</span> <span class="operator">=&gt;</span><span class="string">'blue'</span><span class="operator">);</span>
+           <span class="operator">:</span>
+           <span class="operator">:</span> <span class="variable">Personal</span> <span class="variable">note</span> <span class="operator">(</span><span class="variable">SAC</span><span class="operator">):</span> <span class="variable">I</span> <span class="variable">have</span> <span class="variable">found</span> <span class="variable">all</span> <span class="variable">uppercase</span> <span class="variable">tags</span> <span class="variable">to</span>
+           <span class="operator">:</span> <span class="variable">be</span> <span class="variable">more</span> <span class="variable">manageable</span><span class="operator">:</span> <span class="variable">it</span> <span class="variable">involves</span> <span class="variable">less</span> <span class="variable">single</span><span class="operator">-</span><span class="variable">quoting</span><span class="operator">,</span>
+           <span class="operator">:</span> <span class="variable">the</span> <span class="variable">key</span> <span class="variable">names</span> <span class="variable">stand</span> <span class="variable">out</span> <span class="variable">better</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">there</span> <span class="variable">are</span> <span class="keyword">no</span> <span class="variable">method</span> <span class="variable">naming</span> 
+           <span class="operator">:</span> <span class="variable">conflicts</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="variable">The</span> <span class="variable">drawbacks</span> <span class="variable">are</span> <span class="variable">that</span> <span class="variable">it's</span> <span class="keyword">not</span> <span class="variable">as</span> <span class="variable">easy</span> <span class="variable">to</span> <span class="variable">type</span> <span class="variable">as</span> <span class="variable">lowercase</span><span class="operator">,</span>
+           <span class="operator">:</span> <span class="keyword">and</span> <span class="variable">lots</span> <span class="variable">of</span> <span class="variable">uppercase</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">hard</span> <span class="variable">to</span> <span class="keyword">read</span><span class="operator">.</span>
+           <span class="operator">:</span>
+           <span class="operator">:</span> <span class="variable">Regardless</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">style</span><span class="operator">,</span> <span class="variable">it</span> <span class="variable">greatly</span> <span class="variable">helps</span> <span class="variable">to</span> <span class="variable">line</span>
+           <span class="operator">:</span> <span class="variable">the</span> <span class="variable">parameters</span> <span class="variable">up</span> <span class="variable">vertically</span> <span class="keyword">for</span> <span class="variable">long</span><span class="operator">/</span><span class="variable">complex</span> <span class="variable">lists</span><span class="operator">.</span>
+           <span class="operator">:</span>
+           <span class="operator">:</span> <span class="variable">Note</span> <span class="variable">that</span> <span class="keyword">if</span> <span class="variable">@param</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">single</span> <span class="variable">string</span> <span class="variable">that</span> <span class="variable">happens</span> <span class="variable">to</span> <span class="variable">start</span> <span class="variable">with</span>
+           <span class="operator">:</span> <span class="variable">a</span> <span class="variable">dash</span><span class="operator">,</span> <span class="variable">it</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">treated</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="variable">key</span> <span class="keyword">and</span> <span class="variable">probably</span> <span class="variable">fail</span> <span class="variable">to</span>
+           <span class="operator">:</span> <span class="variable">match</span> <span class="variable">anything</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">array_ref</span><span class="operator">,</span> <span class="variable">so</span> <span class="keyword">not</span> <span class="variable">be</span> <span class="variable">returned</span> <span class="variable">as</span> <span class="variable">normally</span>
+           <span class="operator">:</span> <span class="variable">happens</span> <span class="keyword">when</span> <span class="variable">@param</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">simple</span> <span class="variable">list</span> <span class="keyword">and</span> <span class="keyword">not</span> <span class="variable">an</span> <span class="variable">associative</span> <span class="variable">array</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="set_from_args">_set_from_args</h2>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$object</span><span class="operator">-&gt;</span><span class="variable">_set_from_args</span><span class="operator">(\</span><span class="variable">%args</span><span class="operator">,</span> <span class="string">-methods</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@methods</span><span class="operator">)</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Takes</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="variable">of</span> <span class="variable">user</span><span class="operator">-</span><span class="variable">supplied</span> <span class="variable">args</span> <span class="variable">whose</span> <span class="keyword">keys</span> <span class="variable">match</span> <span class="variable">method</span> <span class="variable">names</span><span class="operator">,</span>
+           <span class="operator">:</span> <span class="keyword">and</span> <span class="variable">calls</span> <span class="variable">the</span> <span class="variable">method</span> <span class="variable">supplying</span> <span class="variable">it</span> <span class="variable">the</span> <span class="variable">corresponding</span> <span class="variable">value</span><span class="operator">.</span>
+ <span class="variable">Example</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_set_from_args</span><span class="operator">(\</span><span class="variable">%args</span><span class="operator">,</span> <span class="string">-methods</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">qw(sequence id desc)</span><span class="operator">]</span><span class="operator">);</span>
+           <span class="operator">:</span> <span class="variable">Where</span> <span class="variable">%args</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">-sequence</span>    <span class="operator">=&gt;</span> <span class="variable">$s</span><span class="operator">,</span>
+           <span class="operator">:</span>                <span class="string">-description</span> <span class="operator">=&gt;</span> <span class="variable">$d</span><span class="operator">,</span>
+           <span class="operator">:</span>                <span class="string">-ID</span>          <span class="operator">=&gt;</span> <span class="variable">$i</span><span class="operator">);</span>
+           <span class="operator">:</span>
+           <span class="operator">:</span> <span class="variable">the</span> <span class="variable">above</span> <span class="variable">_set_from_args</span> <span class="variable">calls</span> <span class="variable">the</span> <span class="variable">following</span> <span class="variable">methods</span><span class="operator">:</span>
+           <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">sequence</span><span class="operator">(</span><span class="variable">$s</span><span class="operator">);</span>
+           <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">(</span><span class="variable">$i</span><span class="operator">);</span>
+           <span class="operator">:</span> <span class="operator">(</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">description</span><span class="operator">(</span><span class="variable">$i</span><span class="operator">)</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">called</span> <span class="variable">because</span> <span class="string">'description'</span> <span class="variable">wasn't</span>
+           <span class="operator">:</span>   <span class="variable">one</span> <span class="variable">of</span> <span class="variable">the</span> <span class="keyword">given</span> <span class="variable">methods</span> <span class="operator">)</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="operator">\</span><span class="variable">%args</span> <span class="operator">|</span> <span class="operator">\</span><span class="variable">@args</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="keyword">ref</span> <span class="keyword">or</span> <span class="variable">associative</span> <span class="variable">array</span> <span class="keyword">ref</span> <span class="variable">of</span> <span class="variable">arguments</span>
+           <span class="operator">:</span>                   <span class="variable">where</span> <span class="keyword">keys</span> <span class="variable">are</span> <span class="variable">any</span><span class="operator">-</span><span class="variable">case</span> <span class="variable">strings</span> <span class="variable">corresponding</span> <span class="variable">to</span>
+           <span class="operator">:</span>                   <span class="variable">method</span> <span class="variable">names</span> <span class="variable">but</span> <span class="variable">optionally</span> <span class="variable">prefixed</span> <span class="variable">with</span>
+           <span class="operator">:</span>                   <span class="variable">hyphens</span><span class="operator">,</span> <span class="keyword">and</span> <span class="keyword">values</span> <span class="variable">are</span> <span class="variable">the</span> <span class="keyword">values</span> <span class="variable">the</span> <span class="variable">method</span>
+           <span class="operator">:</span>                   <span class="variable">should</span> <span class="variable">be</span> <span class="variable">supplied</span><span class="operator">.</span> <span class="variable">If</span> <span class="keyword">keys</span> <span class="variable">contain</span> <span class="variable">internal</span>
+           <span class="operator">:</span>                   <span class="variable">hyphens</span> <span class="operator">(</span><span class="variable">eg</span><span class="operator">.</span> <span class="variable">to</span> <span class="variable">separate</span> <span class="variable">multi</span><span class="operator">-</span><span class="variable">word</span> <span class="variable">args</span><span class="operator">)</span> <span class="variable">they</span>
+           <span class="operator">:</span>                   <span class="variable">are</span> <span class="variable">converted</span> <span class="variable">to</span> <span class="variable">underscores</span><span class="operator">,</span> <span class="variable">since</span> <span class="variable">method</span> <span class="variable">names</span>
+           <span class="operator">:</span>                   <span class="variable">cannot</span> <span class="variable">contain</span> <span class="variable">dashes</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="string">-methods</span> <span class="operator">=&gt;</span> <span class="operator">[]</span>  <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span> <span class="variable">only</span> <span class="variable">call</span> <span class="variable">methods</span> <span class="variable">with</span> <span class="variable">names</span> <span class="variable">in</span> <span class="variable">this</span>
+           <span class="operator">:</span>                   <span class="variable">array</span> <span class="keyword">ref</span><span class="operator">.</span> <span class="variable">Can</span> <span class="variable">instead</span> <span class="variable">supply</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="keyword">ref</span> <span class="variable">where</span>
+           <span class="operator">:</span>                   <span class="keyword">keys</span> <span class="variable">are</span> <span class="variable">method</span> <span class="variable">names</span> <span class="operator">(</span><span class="variable">of</span> <span class="variable">real</span> <span class="variable">existing</span> <span class="variable">methods</span>
+           <span class="operator">:</span>                   <span class="keyword">unless</span> <span class="operator">-</span><span class="variable">create</span> <span class="variable">is</span> <span class="variable">in</span> <span class="variable">effect</span><span class="operator">)</span> <span class="keyword">and</span> <span class="keyword">values</span> <span class="variable">are</span> <span class="variable">array</span>
+           <span class="operator">:</span>                   <span class="variable">refs</span> <span class="variable">of</span> <span class="variable">synonyms</span> <span class="variable">to</span> <span class="variable">allow</span> <span class="variable">access</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">method</span>
+           <span class="operator">:</span>                   <span class="variable">using</span> <span class="variable">synonyms</span><span class="operator">.</span> <span class="variable">If</span> <span class="variable">there</span> <span class="variable">is</span> <span class="variable">only</span> <span class="variable">one</span> <span class="variable">synonym</span> <span class="variable">it</span>
+           <span class="operator">:</span>                   <span class="variable">can</span> <span class="variable">be</span> <span class="variable">supplied</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">instead</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">single</span><span class="operator">-</span>
+           <span class="operator">:</span>                   <span class="variable">element</span> <span class="variable">array</span> <span class="keyword">ref</span>
+           <span class="operator">:</span> <span class="string">-force</span> <span class="operator">=&gt;</span> <span class="variable">bool</span>  <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">,</span> <span class="keyword">default</span> <span class="number">0</span><span class="operator">)</span> <span class="variable">call</span> <span class="variable">methods</span> <span class="variable">that</span> <span class="variable">don't</span>
+           <span class="operator">:</span>                   <span class="variable">seem</span> <span class="variable">to</span> <span class="variable">exist</span><span class="operator">,</span> <span class="variable">ie</span><span class="operator">.</span> <span class="variable">let</span> <span class="keyword">AUTOLOAD</span> <span class="variable">handle</span> <span class="variable">them</span>
+           <span class="operator">:</span> <span class="string">-create</span> <span class="operator">=&gt;</span> <span class="variable">bool</span> <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">,</span> <span class="keyword">default</span> <span class="number">0</span><span class="operator">)</span> <span class="keyword">when</span> <span class="variable">a</span> <span class="variable">method</span> <span class="variable">doesn't</span>
+           <span class="operator">:</span>                   <span class="variable">exist</span><span class="operator">,</span> <span class="variable">create</span> <span class="variable">it</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">simple</span> <span class="variable">getter</span><span class="operator">/</span><span class="variable">setter</span>
+           <span class="operator">:</span>                   <span class="operator">(</span><span class="variable">combined</span> <span class="variable">with</span> <span class="operator">-</span><span class="variable">methods</span> <span class="variable">it</span> <span class="variable">would</span> <span class="variable">create</span> <span class="variable">all</span> <span class="variable">the</span>
+           <span class="operator">:</span>                   <span class="variable">supplied</span> <span class="variable">methods</span> <span class="variable">that</span> <span class="variable">didn't</span> <span class="variable">exist</span><span class="operator">,</span> <span class="variable">even</span> <span class="keyword">if</span> <span class="keyword">not</span>
+           <span class="operator">:</span>                   <span class="variable">mentioned</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">supplied</span> <span class="variable">%args</span><span class="operator">)</span>
+           <span class="operator">:</span> <span class="string">-code</span> <span class="operator">=&gt;</span> <span class="string">''</span> <span class="operator">|</span> <span class="operator">{}:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span> <span class="keyword">when</span> <span class="variable">creating</span> <span class="variable">methods</span> <span class="keyword">use</span> <span class="variable">the</span> <span class="variable">supplied</span>
+           <span class="operator">:</span>                   <span class="variable">code</span> <span class="operator">(</span><span class="variable">a</span> <span class="variable">string</span> <span class="variable">which</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">evaulated</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">sub</span><span class="operator">).</span>
+           <span class="operator">:</span>                   <span class="variable">The</span> <span class="keyword">default</span> <span class="variable">code</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">simple</span> <span class="variable">get</span><span class="operator">/</span><span class="variable">setter</span><span class="operator">.</span>
+           <span class="operator">:</span>                   <span class="variable">Alternatively</span> <span class="variable">you</span> <span class="variable">can</span> <span class="variable">supply</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="keyword">ref</span> <span class="variable">where</span>
+           <span class="operator">:</span>                   <span class="variable">the</span> <span class="keyword">keys</span> <span class="variable">are</span> <span class="variable">method</span> <span class="variable">names</span> <span class="keyword">and</span> <span class="variable">the</span> <span class="keyword">values</span> <span class="variable">are</span>
+           <span class="operator">:</span>                   <span class="variable">code</span> <span class="variable">strings</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">variable</span> <span class="string">'$method'</span> <span class="variable">will</span> <span class="variable">be</span>
+           <span class="operator">:</span>                   <span class="variable">available</span> <span class="variable">at</span> <span class="variable">evaluation</span> <span class="keyword">time</span><span class="operator">,</span> <span class="variable">so</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">used</span> <span class="variable">in</span>
+           <span class="operator">:</span>                   <span class="variable">your</span> <span class="variable">code</span> <span class="variable">strings</span><span class="operator">.</span> <span class="variable">Beware</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">strict</span> <span class="variable">pragma</span>
+           <span class="operator">:</span>                   <span class="variable">will</span> <span class="variable">be</span> <span class="variable">in</span> <span class="variable">effect</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="string">-case_sensitive</span> <span class="operator">=&gt;</span> <span class="variable">bool</span> <span class="operator">:</span> <span class="keyword">require</span> <span class="variable">case</span> <span class="variable">sensitivity</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">part</span> <span class="variable">of</span>
+           <span class="operator">:</span>                           <span class="variable">user</span> <span class="operator">(</span><span class="variable">ie</span><span class="operator">.</span> <span class="variable">a</span><span class="operator">()</span> <span class="keyword">and</span> <span class="variable">A</span><span class="operator">()</span> <span class="variable">are</span> <span class="variable">two</span> <span class="variable">different</span>
+           <span class="operator">:</span>                           <span class="variable">methods</span> <span class="keyword">and</span> <span class="variable">the</span> <span class="variable">user</span> <span class="variable">must</span> <span class="variable">be</span> <span class="variable">careful</span>
+           <span class="operator">:</span>                           <span class="variable">which</span> <span class="variable">they</span> <span class="keyword">use</span><span class="operator">).</span>
+ <span class="variable">Comments</span>  <span class="operator">:</span>
+           <span class="operator">:</span> <span class="variable">The</span> <span class="operator">\</span><span class="variable">%args</span> <span class="variable">argument</span> <span class="variable">will</span> <span class="variable">usually</span> <span class="variable">be</span> <span class="variable">the</span> <span class="variable">args</span> <span class="variable">received</span> <span class="variable">during</span> <span class="variable">new</span><span class="operator">()</span>
+           <span class="operator">:</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">user</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">user</span> <span class="variable">is</span> <span class="variable">allowed</span> <span class="variable">to</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">case</span> <span class="variable">wrong</span><span class="operator">,</span> <span class="variable">include</span>
+           <span class="operator">:</span> <span class="number">0</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">than</span> <span class="variable">one</span> <span class="variable">hyphens</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">prefix</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">to</span> <span class="variable">include</span> <span class="variable">hyphens</span> <span class="variable">as</span>
+           <span class="operator">:</span> <span class="variable">multi</span><span class="operator">-</span><span class="variable">word</span> <span class="variable">arg</span> <span class="variable">separators</span><span class="operator">:</span> <span class="string">'--an-arg'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span> <span class="string">-an_arg</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="keyword">and</span>
+           <span class="operator">:</span> <span class="string">An_Arg</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="variable">are</span> <span class="variable">all</span> <span class="variable">equivalent</span><span class="operator">,</span> <span class="variable">calling</span> <span class="variable">an_arg</span><span class="operator">(</span><span class="number">1</span><span class="operator">).</span> <span class="variable">However</span><span class="operator">,</span> <span class="variable">in</span>
+           <span class="operator">:</span> <span class="variable">documentation</span> <span class="variable">users</span> <span class="variable">should</span> <span class="variable">only</span> <span class="variable">be</span> <span class="variable">told</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="variable">the</span> <span class="variable">standard</span> <span class="variable">form</span>
+           <span class="operator">:</span> <span class="operator">-</span><span class="variable">an_arg</span> <span class="variable">to</span> <span class="variable">avoid</span> <span class="variable">confusion</span><span class="operator">.</span> <span class="variable">A</span> <span class="variable">possible</span> <span class="variable">exception</span> <span class="variable">to</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">a</span>
+           <span class="operator">:</span> <span class="variable">wrapper</span> <span class="variable">module</span> <span class="variable">where</span> <span class="string">'--an-arg'</span> <span class="variable">is</span> <span class="variable">what</span> <span class="variable">the</span> <span class="variable">user</span> <span class="variable">is</span> <span class="variable">used</span> <span class="variable">to</span>
+           <span class="operator">:</span> <span class="variable">supplying</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">program</span> <span class="variable">being</span> <span class="variable">wrapped</span><span class="operator">.</span>
+           <span class="operator">:</span>
+           <span class="operator">:</span> <span class="variable">Another</span> <span class="variable">issue</span> <span class="variable">with</span> <span class="variable">wrapper</span> <span class="variable">modules</span> <span class="variable">is</span> <span class="variable">that</span> <span class="variable">there</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">an</span>
+           <span class="operator">:</span> <span class="variable">argument</span> <span class="variable">that</span> <span class="variable">has</span> <span class="variable">meaning</span> <span class="variable">both</span> <span class="variable">to</span> <span class="variable">Bioperl</span> <span class="keyword">and</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">program</span><span class="operator">,</span> <span class="variable">eg</span><span class="operator">.</span>
+           <span class="operator">:</span> <span class="operator">-</span><span class="variable">verbose</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">recommended</span> <span class="variable">way</span> <span class="variable">of</span> <span class="variable">dealing</span> <span class="variable">with</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">to</span> <span class="variable">leave</span>
+           <span class="operator">:</span> <span class="operator">-</span><span class="variable">verbose</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">Bioperl</span> <span class="variable">verbosity</span> <span class="variable">whilst</span> <span class="variable">requesting</span> <span class="variable">users</span> <span class="keyword">use</span>
+           <span class="operator">:</span> <span class="variable">an</span> <span class="variable">invented</span> <span class="operator">-</span><span class="variable">program_verbose</span> <span class="operator">(</span><span class="keyword">or</span> <span class="variable">similar</span><span class="operator">)</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">the</span> <span class="variable">program</span>
+           <span class="operator">:</span> <span class="variable">verbosity</span><span class="operator">.</span> <span class="variable">This</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">resolved</span> <span class="variable">back</span> <span class="variable">with</span>
+           <span class="operator">:</span> <span class="variable">Bio::Tools::Run::WrapperBase's</span> <span class="variable">_setparams</span><span class="operator">()</span> <span class="variable">method</span> <span class="keyword">and</span> <span class="variable">code</span> <span class="variable">along</span>
+           <span class="operator">:</span> <span class="variable">the</span> <span class="variable">lines</span> <span class="variable">of</span><span class="operator">:</span>
+           <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">%methods</span> <span class="operator">=</span> <span class="keyword">map</span> <span class="operator">{</span> <span class="variable">$_</span> <span class="operator">=&gt;</span> <span class="variable">$_</span> <span class="operator">}</span> <span class="variable">@LIST_OF_ALL_ALLOWED_PROGRAM_ARGS</span>
+           <span class="operator">:</span> <span class="keyword">delete</span> <span class="variable">$methods</span><span class="operator">{</span><span class="string">'verbose'</span><span class="operator">}</span><span class="operator">;</span>
+           <span class="operator">:</span> <span class="variable">$methods</span><span class="operator">{</span><span class="string">'program_verbose'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'verbose'</span><span class="operator">;</span>
+           <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$param_string</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_setparams</span><span class="operator">(</span><span class="string">-methods</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">%methods</span><span class="operator">);</span>
+           <span class="operator">:</span> <span class="keyword">system</span><span class="operator">(</span><span class="string">"</span><span class="variable">$exe</span><span class="string"> </span><span class="variable">$param_string</span><span class="string">"</span><span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="register_for_cleanup">_register_for_cleanup</h2>
+
+<pre><code><code> Title   : _register_for_cleanup
+ Usage   : -- internal --
+ Function: Register a method to be called at DESTROY time. This is useful
+           and sometimes essential in the case of multiple inheritance for
+           classes coming second in the sequence of inheritance.
+ Returns : 
+ Args    : a code reference</code></code></pre>
+
+<p>The code reference will be invoked with the object as the first argument, as per a method. You may register an unlimited number of cleanup methods.</p>
+
+<h2 id="unregister_for_cleanup">_unregister_for_cleanup</h2>
+
+<pre><code><code> Title   : _unregister_for_cleanup
+ Usage   : -- internal --
+ Function: Remove a method that has previously been registered to be called
+           at DESTROY time.  If called with a method to be called at DESTROY time.
+           Has no effect if the code reference has not previously been registered.
+ Returns : nothing
+ Args    : a code reference</code></code></pre>
+
+<h2 id="cleanup_methods">_cleanup_methods</h2>
+
+<pre><code><code> Title   : _cleanup_methods
+ Usage   : -- internal --
+ Function: Return current list of registered cleanup methods.
+ Returns : list of coderefs
+ Args    : none</code></code></pre>
+
+<h2 id="throw_not_implemented">throw_not_implemented</h2>
+
+<pre><code><code> <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Throws</span> <span class="variable">a</span> <span class="variable">Bio::Root::NotImplemented</span> <span class="variable">exception</span><span class="operator">.</span>
+           <span class="variable">Intended</span> <span class="keyword">for</span> <span class="keyword">use</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">method</span> <span class="variable">definitions</span> <span class="variable">of</span> 
+           <span class="variable">abstract</span> <span class="variable">interface</span> <span class="variable">modules</span> <span class="variable">where</span> <span class="variable">methods</span> <span class="variable">are</span> <span class="keyword">defined</span>
+           <span class="variable">but</span> <span class="variable">are</span> <span class="variable">intended</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">overridden</span> <span class="variable">by</span> <span class="variable">subclasses</span><span class="operator">.</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$object</span><span class="operator">-&gt;</span><span class="variable">throw_not_implemented</span><span class="operator">();</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="keyword">sub</span><span class="variable"> method_foo </span><span class="operator">{</span> 
+             <span class="variable">$self</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span> 
+             <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">throw_not_implemented</span><span class="operator">();</span>
+           <span class="operator">}</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+ <span class="variable">Throws</span>  <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Root::NotImplemented</span> <span class="variable">exception</span><span class="operator">.</span>
+           <span class="variable">The</span> <span class="variable">message</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">exception</span> <span class="variable">contains</span>
+             <span class="operator">-</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">method</span>
+             <span class="operator">-</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">interface</span>
+             <span class="operator">-</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">implementing</span> <span class="variable">class</span>
+ 
+           <span class="variable">If</span> <span class="variable">this</span> <span class="variable">object</span> <span class="variable">has</span> <span class="variable">a</span> <span class="variable">throw</span><span class="operator">()</span> <span class="variable">method</span><span class="operator">,</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">throw</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">used</span><span class="operator">.</span>
+           <span class="variable">If</span> <span class="variable">the</span> <span class="variable">object</span> <span class="variable">doesn't</span> <span class="variable">have</span> <span class="variable">a</span> <span class="variable">throw</span><span class="operator">()</span> <span class="variable">method</span><span class="operator">,</span> 
+           <span class="variable">Carp::confess</span><span class="operator">()</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">used</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="warn_not_implemented">warn_not_implemented</h2>
+
+<pre><code><code> <span class="variable">Purpose</span> <span class="operator">:</span> <span class="variable">Generates</span> <span class="variable">a</span> <span class="variable">warning</span> <span class="variable">that</span> <span class="variable">a</span> <span class="variable">method</span> <span class="variable">has</span> <span class="keyword">not</span> <span class="variable">been</span> <span class="variable">implemented</span><span class="operator">.</span>
+           <span class="variable">Intended</span> <span class="keyword">for</span> <span class="keyword">use</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">method</span> <span class="variable">definitions</span> <span class="variable">of</span> 
+           <span class="variable">abstract</span> <span class="variable">interface</span> <span class="variable">modules</span> <span class="variable">where</span> <span class="variable">methods</span> <span class="variable">are</span> <span class="keyword">defined</span>
+           <span class="variable">but</span> <span class="variable">are</span> <span class="variable">intended</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">overridden</span> <span class="variable">by</span> <span class="variable">subclasses</span><span class="operator">.</span>
+           <span class="variable">Generally</span><span class="operator">,</span> <span class="variable">throw_not_implemented</span><span class="operator">()</span> <span class="variable">should</span> <span class="variable">be</span> <span class="variable">used</span><span class="operator">,</span>
+           <span class="variable">but</span> <span class="variable">warn_not_implemented</span><span class="operator">()</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">used</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="variable">method</span> <span class="variable">isn't</span>
+           <span class="variable">considered</span> <span class="variable">essential</span> <span class="keyword">and</span> <span class="variable">convenient</span> <span class="keyword">no</span><span class="operator">-</span><span class="variable">op</span> <span class="variable">behavior</span> <span class="variable">can</span> <span class="variable">be</span> 
+           <span class="variable">provided</span> <span class="variable">within</span> <span class="variable">the</span> <span class="variable">interface</span><span class="operator">.</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$object</span><span class="operator">-&gt;</span><span class="variable">warn_not_implemented</span><span class="operator">(</span> <span class="variable">method</span><span class="operator">-</span><span class="variable">name</span><span class="operator">-</span><span class="variable">string</span> <span class="operator">);</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">warn_not_implemented</span><span class="operator">(</span> <span class="string">"get_foobar"</span> <span class="operator">);</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Calls</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">warn</span> <span class="variable">on</span> <span class="variable">this</span> <span class="variable">object</span><span class="operator">,</span> <span class="keyword">if</span> <span class="variable">available</span><span class="operator">.</span>
+           <span class="variable">If</span> <span class="variable">the</span> <span class="variable">object</span> <span class="variable">doesn't</span> <span class="variable">have</span> <span class="variable">a</span> <span class="keyword">warn</span><span class="operator">()</span> <span class="variable">method</span><span class="operator">,</span>
+           <span class="variable">Carp::carp</span><span class="operator">()</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">used</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

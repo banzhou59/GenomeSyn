@@ -1,0 +1,151 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#KNOWN-ISSUES-AND-LIMITATIONS">KNOWN ISSUES AND LIMITATIONS</a></li>
+  <li><a href="#STATUS">STATUS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#LICENCE-AND-COPYRIGHT">LICENCE AND COPYRIGHT</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DBD::Gofer::Transport::corostream - Async DBD::Gofer stream transport using Coro and AnyEvent</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   DBI_AUTOPROXY=&quot;dbi:Gofer:transport=corostream&quot; perl some-perl-script-using-dbi.pl</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>   <span class="variable">$dsn</span> <span class="operator">=</span> <span class="operator">...;</span> <span class="comment"># the DSN for the driver and database you want to use</span>
+   <span class="variable">$dbh</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">connect</span><span class="operator">(</span><span class="string">"dbi:Gofer:transport=corostream;dsn=</span><span class="variable">$dsn</span><span class="string">"</span><span class="operator">,</span> <span class="operator">...);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>The <i>BIG WIN</i> from using <a>Coro</a> is that it enables the use of existing DBI frameworks like <a>DBIx::Class</a>.</p>
+
+<h1 id="KNOWN-ISSUES-AND-LIMITATIONS">KNOWN ISSUES AND LIMITATIONS</h1>
+
+<pre><code><code>  - Uses Coro::Select so alters CORE::select globally
+    Parent class probably needs refactoring to enable a more encapsulated approach.
+
+  - Doesn&#39;t prevent multiple concurrent requests
+    Probably just needs a per-connection semaphore
+
+  - Coro has many caveats. Caveat emptor.</code></code></pre>
+
+<h1 id="STATUS">STATUS</h1>
+
+<p>THIS IS CURRENTLY JUST A PROOF-OF-CONCEPT IMPLEMENTATION FOR EXPERIMENTATION.</p>
+
+<p>Please note that I have no plans to develop this code further myself. I&#39;d very much welcome contributions. Interested? Let me know!</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Tim Bunce, <a href="http://www.tim.bunce.name">http://www.tim.bunce.name</a></p>
+
+<h1 id="LICENCE-AND-COPYRIGHT">LICENCE AND COPYRIGHT</h1>
+
+<p>Copyright (c) 2010, Tim Bunce, Ireland. All rights reserved.</p>
+
+<p>This module is free software; you can redistribute it and/or modify it under the same terms as Perl itself. See <a href="../../../../../lib/pod/perlartistic.html">perlartistic</a>.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../../lib/DBD/Gofer/Transport/stream.html">DBD::Gofer::Transport::stream</a></p>
+
+<p><a href="../../../../../lib/DBD/Gofer.html">DBD::Gofer</a></p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>Example code:</p>
+
+<pre><code><code>    <span class="comment">#!perl</span>
+    
+    <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">warnings</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Time::HiRes</span> <span class="string">qw(time)</span><span class="operator">;</span>
+    
+    <span class="keyword">BEGIN</span> <span class="operator">{</span> <span class="variable">$ENV</span><span class="operator">{</span><span class="string">PERL_ANYEVENT_STRICT</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span> <span class="variable">$ENV</span><span class="operator">{</span><span class="string">PERL_ANYEVENT_VERBOSE</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span> <span class="operator">}</span>
+    
+    <span class="keyword">use</span> <span class="variable">AnyEvent</span><span class="operator">;</span>
+    
+    <span class="keyword">BEGIN</span> <span class="operator">{</span> <span class="variable">$ENV</span><span class="operator">{</span><span class="string">DBI_TRACE</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span> <span class="variable">$ENV</span><span class="operator">{</span><span class="string">DBI_GOFER_TRACE</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span> <span class="variable">$ENV</span><span class="operator">{</span><span class="string">DBD_GOFER_TRACE</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span> <span class="operator">};</span>
+    
+    <span class="keyword">use</span> <span class="variable">DBI</span><span class="operator">;</span>
+    
+    <span class="variable">$ENV</span><span class="operator">{</span><span class="string">DBI_AUTOPROXY</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'dbi:Gofer:transport=corostream'</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$ticker</span> <span class="operator">=</span> <span class="variable">AnyEvent</span><span class="operator">-&gt;</span><span class="variable">timer</span><span class="operator">(</span> <span class="string">after</span> <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">,</span> <span class="string">interval</span> <span class="operator">=&gt;</span> <span class="number">0</span><span class="operator">.</span><span class="number">1</span><span class="operator">,</span> <span class="string">cb</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+        <span class="keyword">warn</span> <span class="keyword">sprintf</span> <span class="string">"-tick- %.2f\n"</span><span class="operator">,</span> <span class="keyword">time</span>
+    <span class="operator">}</span> <span class="operator">);</span>
+    
+    <span class="keyword">warn</span> <span class="string">"connecting...\n"</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$dbh</span> <span class="operator">=</span> <span class="variable">DBI</span><span class="operator">-&gt;</span><span class="variable">connect</span><span class="operator">(</span><span class="string">"dbi:NullP:"</span><span class="operator">);</span>
+    <span class="keyword">warn</span> <span class="string">"...connected\n"</span><span class="operator">;</span>
+    
+    <span class="keyword">for</span> <span class="operator">(</span><span class="number">1</span><span class="operator">..</span><span class="number">3</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">warn</span> <span class="string">"entering DBI...\n"</span><span class="operator">;</span>
+        <span class="variable">$dbh</span><span class="operator">-&gt;</span><span class="variable">do</span><span class="operator">(</span><span class="string">"sleep 0.3"</span><span class="operator">);</span> <span class="comment"># pseudo-sql understood by the DBD::NullP driver</span>
+        <span class="keyword">warn</span> <span class="string">"...returned\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    
+    <span class="keyword">warn</span> <span class="string">"done."</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Example output:</p>
+
+<pre><code><code>    $ perl corogofer.pl
+    connecting...
+    -tick- 1293631437.14
+    -tick- 1293631437.14
+    ...connected
+    entering DBI...
+    -tick- 1293631437.25
+    -tick- 1293631437.35
+    -tick- 1293631437.45
+    -tick- 1293631437.55
+    ...returned
+    entering DBI...
+    -tick- 1293631437.66
+    -tick- 1293631437.76
+    -tick- 1293631437.86
+    ...returned
+    entering DBI...
+    -tick- 1293631437.96
+    -tick- 1293631438.06
+    -tick- 1293631438.16
+    ...returned
+    done. at corogofer.pl line 39.</code></code></pre>
+
+<p>You can see that the timer callback is firing while the code &#39;waits&#39; inside the do() method for the response from the database. Normally that would block.</p>
+
+
+</body>
+
+</html>
+
+

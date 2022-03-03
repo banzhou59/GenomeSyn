@@ -1,0 +1,395 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Heikki-Lehvaslaiho">AUTHOR - Heikki Lehvaslaiho</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#in">in</a></li>
+      <li><a href="#out">out</a></li>
+      <li><a href="#strict">strict</a></li>
+      <li><a href="#nozero">nozero</a></li>
+      <li><a href="#graph">graph</a></li>
+      <li><a href="#peptide">peptide</a></li>
+      <li><a href="#peptide_offset">peptide_offset</a></li>
+      <li><a href="#peptide_length">peptide_length</a></li>
+      <li><a href="#exons">exons</a></li>
+      <li><a href="#clone_loc">_clone_loc</a></li>
+      <li><a href="#cds">cds</a></li>
+      <li><a href="#map">map</a></li>
+      <li><a href="#direction">direction</a></li>
+      <li><a href="#swap">swap</a></li>
+      <li><a href="#to_string">to_string</a></li>
+      <li><a href="#create_pair">_create_pair</a></li>
+      <li><a href="#translate">_translate</a></li>
+      <li><a href="#reverse_translate">_reverse_translate</a></li>
+      <li><a href="#check_direction">_check_direction</a></li>
+      <li><a href="#get_path">_get_path</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Coordinate::GeneMapper - transformations between gene related coordinate systems</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Coordinate::GeneMapper</span><span class="operator">;</span>
+  
+  <span class="comment"># get a Bio::RangeI representing the start, end and strand of the CDS</span>
+  <span class="comment"># in chromosomal (or entry) coordinates</span>
+  <span class="keyword">my</span> <span class="variable">$cds</span><span class="operator">;</span>
+  
+  <span class="comment"># get a Bio::Location::Split or an array of Bio::LocationI objects</span>
+  <span class="comment"># holding the start, end and strand of all the exons in chromosomal</span>
+  <span class="comment"># (or entry) coordinates</span>
+  <span class="keyword">my</span> <span class="variable">$exons</span><span class="operator">;</span>
+  
+  <span class="comment"># create a gene mapper and set it to map from chromosomal to cds coordinates</span>
+  <span class="keyword">my</span> <span class="variable">$gene</span> <span class="operator">=</span> <span class="variable">Bio::Coordinate::GeneMapper</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-in</span>   <span class="operator">=&gt;</span><span class="string">'chr'</span><span class="operator">,</span>
+                                              <span class="string">-out</span>  <span class="operator">=&gt;</span><span class="string">'cds'</span><span class="operator">,</span>
+                                              <span class="string">-cds</span>  <span class="operator">=&gt;</span><span class="variable">$cds</span><span class="operator">,</span>
+                                              <span class="string">-exons</span><span class="operator">=&gt;</span><span class="variable">$exons</span>
+                                             <span class="operator">);</span>
+  
+  <span class="comment"># get a a Bio::Location or sequence feature in input (chr) coordinates</span>
+  <span class="keyword">my</span> <span class="variable">$loc</span><span class="operator">;</span>
+  
+  <span class="comment"># map the location into output coordinates and get a new location object</span>
+  <span class="variable">$newloc</span> <span class="operator">=</span> <span class="variable">$gene</span><span class="operator">-&gt;</span><span class="variable">map</span><span class="operator">(</span><span class="variable">$loc</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::Coordinate::GeneMapper is a module for simplifying the mappings of coodinate locations between various gene related locations in human genetics. It also adds a special human genetics twist to coordinate systems by making it possible to disable the use of zero (0). Locations before position one start from -1. See method <a>nozero</a>.</p>
+
+<p>It understands by name the following coordinate systems and mapping between them:</p>
+
+<pre><code><code>                          peptide (peptide length)
+                             ^
+                             | -peptide_offset
+                             |
+                    frame  propeptide (propeptide length)
+                        ^    ^
+                         \   |
+             translate    \  |
+                           \ |
+                            cds  (transcript start and end)
+                             ^
+      negative_intron        | \
+              ^              |  \  transcribe
+               \             |   \
+              intron        exon  \
+               ^   ^         ^     /
+      splice    \   \      / |    /
+                 \   \    /  |   /
+                  \   inex   |  /
+                   \    ^    | /
+                    \    \   |/
+                     ----- gene (gene_length)
+                             ^
+                             | - gene_offset
+                             |
+                            chr (or entry)</code></code></pre>
+
+<p>This structure is kept in the global variable $DAG which is a representation of a Directed Acyclic Graph. The path calculations traversing this graph are done in a helper class. See <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Coordinate/Graph.html">Bio::Coordinate::Graph</a>.</p>
+
+<p>Of these, two operations are special cases, translate and splice. Translating and reverse translating are implemented as internal methods that do the simple 1&lt;-&gt;3 conversion. Splicing needs additional information that is provided by method <a>exons</a> which takes in an array of Bio::LocationI objects.</p>
+
+<p>Most of the coordinate system names should be selfexplanatory to anyone familiar with genes. Negative intron coordinate system is starts counting backwards from -1 as the last nucleotide in the intron. This used when only exon and a few flanking intron nucleotides are known.</p>
+
+<p>This class models coordinates within one transcript of a gene, so to tackle multiple transcripts you need several instances of the class. It is therefore valid to argue that the name of the class should be TranscriptMapper. GeneMapper is a catchier name, so it stuck.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing lists Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Heikki-Lehvaslaiho">AUTHOR - Heikki Lehvaslaiho</h1>
+
+<p>Email: heikki-at-bioperl-dot-org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="in">in</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">in</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">in</span><span class="operator">(</span><span class="string">'peptide'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span> <span class="keyword">and</span> <span class="keyword">read</span> <span class="variable">the</span> <span class="variable">input</span> <span class="variable">coordinate</span> <span class="keyword">system</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">input</span> <span class="keyword">system</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="out">out</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">out</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">out</span><span class="operator">(</span><span class="string">'peptide'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span> <span class="keyword">and</span> <span class="keyword">read</span> <span class="variable">the</span> <span class="variable">output</span> <span class="variable">coordinate</span> <span class="keyword">system</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">output</span> <span class="keyword">system</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="strict">strict</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">strict</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">strict</span><span class="operator">(</span><span class="string">'peptide'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span> <span class="keyword">and</span> <span class="keyword">read</span> <span class="variable">whether</span> <span class="variable">strict</span> <span class="variable">boundaried</span> <span class="variable">of</span> <span class="variable">coordinate</span>
+           <span class="variable">systems</span> <span class="variable">are</span> <span class="variable">enforced</span><span class="operator">.</span>
+           <span class="variable">When</span> <span class="variable">strict</span> <span class="variable">is</span> <span class="variable">on</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">end</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">coordinate</span> <span class="variable">range</span> <span class="variable">must</span> <span class="variable">be</span> <span class="keyword">defined</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">boolean</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">boolean</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="nozero">nozero</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">nozero</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">nozero</span><span class="operator">(</span><span class="number">1</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Flag</span> <span class="variable">to</span> <span class="variable">disable</span> <span class="variable">the</span> <span class="keyword">use</span> <span class="variable">of</span> <span class="variable">zero</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">input</span><span class="operator">,</span>
+           <span class="variable">output</span> <span class="keyword">or</span> <span class="variable">both</span> <span class="variable">coordinate</span> <span class="variable">systems</span><span class="operator">.</span> <span class="variable">Use</span> <span class="variable">of</span> <span class="variable">coordinate</span>
+           <span class="variable">systems</span> <span class="variable">without</span> <span class="variable">zero</span> <span class="variable">is</span> <span class="variable">a</span> <span class="variable">peculiarity</span>  <span class="variable">common</span> <span class="variable">in</span>
+           <span class="variable">human</span> <span class="variable">genetics</span> <span class="variable">community</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">0</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">),</span> <span class="keyword">or</span> <span class="string">'in'</span><span class="operator">,</span> <span class="string">'out'</span><span class="operator">,</span> <span class="string">'in&amp;out'</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="number">0</span> <span class="operator">(</span><span class="keyword">default</span><span class="operator">),</span> <span class="keyword">or</span> <span class="string">'in'</span><span class="operator">,</span> <span class="string">'out'</span><span class="operator">,</span> <span class="string">'in&amp;out'</span>
+</code></code></pre>
+
+<h2 id="graph">graph</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">graph</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">graph</span><span class="operator">(</span><span class="variable">$new_graph</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span> <span class="keyword">and</span> <span class="keyword">read</span> <span class="variable">the</span> <span class="variable">graph</span> <span class="variable">object</span> <span class="variable">representing</span> <span class="variable">relationships</span>
+           <span class="variable">between</span> <span class="variable">coordinate</span> <span class="variable">systems</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Coordinate::Graph</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">new</span> <span class="variable">Bio::Coordinate::Graph</span> <span class="variable">object</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="peptide">peptide</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">peptide</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">peptide_offset</span><span class="operator">(</span><span class="variable">$peptide_coord</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Read</span> <span class="keyword">and</span> <span class="keyword">write</span> <span class="variable">the</span> <span class="variable">offset</span> <span class="variable">of</span> <span class="variable">peptide</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">of</span> <span class="variable">propeptide</span>
+           <span class="keyword">and</span> <span class="variable">peptide</span> <span class="keyword">length</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Location::Simple</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::LocationI</span> <span class="variable">object</span>
+</code></code></pre>
+
+<h2 id="peptide_offset">peptide_offset</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">peptide_offset</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">peptide_offset</span><span class="operator">(</span><span class="number">20</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span> <span class="keyword">and</span> <span class="keyword">read</span> <span class="variable">the</span> <span class="variable">offset</span> <span class="variable">of</span> <span class="variable">peptide</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">of</span> <span class="variable">propeptide</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">set</span> <span class="variable">value</span> <span class="keyword">or</span> <span class="number">0</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="peptide_length">peptide_length</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">peptide_length</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">peptide_length</span><span class="operator">(</span><span class="number">20</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span> <span class="keyword">and</span> <span class="keyword">read</span> <span class="variable">the</span> <span class="variable">offset</span> <span class="variable">of</span> <span class="variable">peptide</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">of</span> <span class="variable">propeptide</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">set</span> <span class="variable">value</span> <span class="keyword">or</span> <span class="number">0</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="exons">exons</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">exons</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">exons</span><span class="operator">(</span><span class="variable">@exons</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span> <span class="keyword">and</span> <span class="keyword">read</span> <span class="variable">the</span> <span class="variable">offset</span> <span class="variable">of</span> <span class="variable">CDS</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">of</span> <span class="variable">transcript</span>
+           <span class="variable">You</span> <span class="keyword">do</span> <span class="keyword">not</span> <span class="variable">have</span> <span class="variable">to</span> <span class="keyword">sort</span> <span class="variable">the</span> <span class="variable">exons</span> <span class="variable">before</span> <span class="variable">calling</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">as</span>
+           <span class="variable">they</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">sorted</span> <span class="variable">automatically</span><span class="operator">.</span>
+           <span class="variable">If</span> <span class="variable">you</span> <span class="variable">have</span> <span class="keyword">not</span> <span class="keyword">defined</span> <span class="variable">the</span> <span class="variable">CDS</span><span class="operator">,</span> <span class="variable">is</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">set</span> <span class="variable">to</span> <span class="variable">span</span> <span class="variable">all</span>
+           <span class="variable">exons</span> <span class="variable">here</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">Bio::LocationI</span> <span class="variable">exons</span> <span class="variable">in</span> <span class="variable">genome</span> <span class="variable">coordinates</span> <span class="keyword">or</span> <span class="number">0</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">Bio::LocationI</span> <span class="variable">exons</span> <span class="variable">in</span> <span class="variable">genome</span> <span class="operator">(</span><span class="keyword">or</span> <span class="variable">entry</span><span class="operator">)</span> <span class="variable">coordinates</span>
+</code></code></pre>
+
+<h2 id="clone_loc">_clone_loc</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_clone_loc</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$copy_of_loc</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_clone_loc</span><span class="operator">(</span><span class="variable">$loc</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Make</span> <span class="variable">a</span> <span class="variable">deep</span> <span class="variable">copy</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">simple</span> <span class="variable">location</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Location::Simple</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Location::Simple</span> <span class="variable">object</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">cloned</span>
+</code></code></pre>
+
+<h2 id="cds">cds</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">cds</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">cds</span><span class="operator">(</span><span class="number">20</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Set</span> <span class="keyword">and</span> <span class="keyword">read</span> <span class="variable">the</span> <span class="variable">offset</span> <span class="variable">of</span> <span class="variable">CDS</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">of</span> <span class="variable">transcipt</span>
+ 
+           <span class="variable">Simple</span> <span class="variable">input</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">an</span> <span class="variable">integer</span> <span class="variable">which</span> <span class="variable">gives</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">of</span> <span class="variable">the</span>
+           <span class="variable">coding</span> <span class="variable">region</span> <span class="variable">in</span> <span class="variable">genomic</span> <span class="variable">coordinate</span><span class="operator">.</span> <span class="variable">If</span> <span class="variable">you</span> <span class="variable">want</span> <span class="variable">to</span> <span class="variable">provide</span>
+           <span class="variable">the</span> <span class="variable">end</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">coding</span> <span class="variable">region</span> <span class="keyword">or</span> <span class="variable">indicate</span> <span class="variable">the</span> <span class="keyword">use</span> <span class="variable">of</span> <span class="variable">the</span>
+           <span class="variable">opposite</span> <span class="variable">strand</span><span class="operator">,</span> <span class="variable">you</span> <span class="variable">have</span> <span class="variable">to</span> <span class="variable">pass</span> <span class="variable">a</span> <span class="variable">Bio::RangeI</span>
+           <span class="operator">(</span><span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.</span> <span class="variable">Bio::Location::Simple</span> <span class="keyword">or</span> <span class="variable">Bio::SegFeature::Generic</span><span class="operator">)</span>
+           <span class="variable">object</span> <span class="variable">to</span> <span class="variable">this</span> <span class="variable">method</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">set</span> <span class="variable">value</span> <span class="keyword">or</span> <span class="number">0</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="map">map</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="keyword">map</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$newpos</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">map</span><span class="operator">(</span><span class="number">5</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Map</span> <span class="variable">the</span> <span class="variable">location</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">input</span> <span class="variable">coordinate</span> <span class="keyword">system</span>
+           <span class="variable">to</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">value</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">output</span> <span class="variable">coordinate</span> <span class="keyword">system</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">new</span> <span class="variable">value</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">output</span> <span class="variable">coordiante</span> <span class="keyword">system</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Location::Simple</span>
+</code></code></pre>
+
+<h2 id="direction">direction</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">direction</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">direction</span><span class="operator">(</span><span class="string">'peptide'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Read</span><span class="operator">-</span><span class="variable">only</span> <span class="variable">method</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">direction</span> <span class="variable">of</span> <span class="variable">mapping</span> <span class="variable">deduced</span> <span class="variable">from</span>
+           <span class="variable">predefined</span> <span class="variable">input</span> <span class="keyword">and</span> <span class="variable">output</span> <span class="variable">coordinate</span> <span class="variable">names</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">1</span> <span class="keyword">or</span> <span class="operator">-</span><span class="number">1</span><span class="operator">,</span> <span class="variable">mapping</span> <span class="variable">direction</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">new</span> <span class="variable">value</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="swap">swap</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">swap</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">swap</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Swap</span> <span class="variable">the</span> <span class="variable">direction</span> <span class="variable">of</span> <span class="variable">transformation</span>
+           <span class="operator">(</span><span class="variable">input</span> <span class="operator">&lt;-&gt;</span> <span class="variable">output</span><span class="operator">)</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">1</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="to_string">to_string</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">to_string</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$newpos</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">to_string</span><span class="operator">(</span><span class="number">5</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Dump</span> <span class="variable">the</span> <span class="variable">internal</span> <span class="variable">mapper</span> <span class="keyword">values</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">human</span> <span class="variable">readable</span> <span class="keyword">format</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="create_pair">_create_pair</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_create_pair</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$mapper</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_create_pair</span><span class="operator">(</span><span class="string">'chr'</span><span class="operator">,</span> <span class="string">'gene'</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="number">2555</span><span class="operator">,</span> <span class="number">10000</span><span class="operator">,</span> <span class="operator">-</span><span class="number">1</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Internal</span> <span class="variable">helper</span> <span class="variable">method</span> <span class="variable">to</span> <span class="variable">create</span> <span class="variable">a</span> <span class="variable">mapper</span> <span class="variable">between</span>
+           <span class="variable">two</span> <span class="variable">coordinate</span> <span class="variable">systems</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Coordinate::Pair</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span><span class="operator">,</span> <span class="variable">input</span> <span class="variable">coordinate</span> <span class="keyword">system</span> <span class="variable">name</span><span class="operator">,</span>
+           <span class="variable">string</span><span class="operator">,</span> <span class="variable">output</span> <span class="variable">coordinate</span> <span class="keyword">system</span> <span class="variable">name</span><span class="operator">,</span>
+           <span class="variable">boolean</span><span class="operator">,</span> <span class="variable">strict</span> <span class="variable">mapping</span>
+           <span class="variable">positive</span> <span class="variable">integer</span><span class="operator">,</span> <span class="variable">offset</span>
+           <span class="variable">positive</span> <span class="variable">integer</span><span class="operator">,</span> <span class="keyword">length</span>
+           <span class="number">1</span> <span class="operator">||</span> <span class="operator">-</span><span class="number">1</span> <span class="operator">,</span> <span class="variable">strand</span>
+</code></code></pre>
+
+<h2 id="translate">_translate</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_translate</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$newpos</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_translate</span><span class="operator">(</span><span class="variable">$loc</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Translate</span> <span class="variable">the</span> <span class="variable">location</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">CDS</span> <span class="variable">coordinate</span> <span class="keyword">system</span>
+           <span class="variable">to</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">value</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">propeptide</span> <span class="variable">coordinate</span> <span class="keyword">system</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">new</span> <span class="variable">location</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Location::Simple</span> <span class="keyword">or</span> <span class="variable">Bio::Location::SplitLocationI</span>
+</code></code></pre>
+
+<h2 id="reverse_translate">_reverse_translate</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_reverse_translate</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$newpos</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_reverse_translate</span><span class="operator">(</span><span class="number">5</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Reverse</span> <span class="variable">translate</span> <span class="variable">the</span> <span class="variable">location</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">propeptide</span>
+           <span class="variable">coordinate</span> <span class="keyword">system</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">value</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">CSD</span><span class="operator">.</span>
+           <span class="variable">Note</span> <span class="variable">that</span> <span class="variable">a</span> <span class="variable">single</span> <span class="variable">peptide</span> <span class="variable">location</span> <span class="variable">expands</span> <span class="variable">to</span> <span class="variable">cover</span>
+           <span class="variable">the</span> <span class="variable">codon</span> <span class="variable">triplet</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">new</span> <span class="variable">location</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">CDS</span> <span class="variable">coordinate</span> <span class="keyword">system</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Location::Simple</span> <span class="keyword">or</span> <span class="variable">Bio::Location::SplitLocationI</span>
+</code></code></pre>
+
+<h2 id="check_direction">_check_direction</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_check_direction</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_check_direction</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Check</span> <span class="keyword">and</span> <span class="variable">swap</span> <span class="keyword">when</span> <span class="variable">needed</span> <span class="variable">the</span> <span class="variable">direction</span> <span class="variable">the</span> <span class="variable">location</span>
+           <span class="variable">mapping</span> <span class="variable">Pairs</span> <span class="variable">based</span> <span class="variable">on</span> <span class="variable">input</span> <span class="keyword">and</span> <span class="variable">output</span> <span class="keyword">values</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">new</span> <span class="variable">location</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Location::Simple</span>
+</code></code></pre>
+
+<h2 id="get_path">_get_path</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_get_path</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_get_path</span><span class="operator">(</span><span class="string">'peptide'</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">internal</span> <span class="variable">method</span> <span class="keyword">for</span> <span class="variable">finding</span> <span class="variable">that</span> <span class="variable">shortest</span> <span class="variable">path</span> <span class="variable">between</span>
+           <span class="variable">input</span> <span class="keyword">and</span> <span class="variable">output</span> <span class="variable">coordinate</span> <span class="variable">systems</span><span class="operator">.</span>
+           <span class="variable">Calculations</span> <span class="keyword">and</span> <span class="variable">caching</span> <span class="variable">are</span> <span class="variable">handled</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">graph</span> <span class="variable">class</span><span class="operator">.</span>
+           <span class="variable">See</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Coordinate::Graph</span><span class="operator">&gt;.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">mappers</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

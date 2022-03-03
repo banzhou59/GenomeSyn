@@ -1,0 +1,220 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#CONSTRUCTORS">CONSTRUCTORS</a>
+    <ul>
+      <li><a href="#Bio::ClusterIO-new-">Bio::ClusterIO-&gt;new()</a></li>
+    </ul>
+  </li>
+  <li><a href="#OBJECT-METHODS">OBJECT METHODS</a>
+    <ul>
+      <li><a href="#cluster-str-next_cluster-">$cluster = $str-&gt;next_cluster()</a></li>
+      <li><a href="#TIEHANDLE-READLINE-PRINT-">TIEHANDLE(), READLINE(), PRINT()</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Andrew-Macgregor">AUTHOR - Andrew Macgregor</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#next_cluster">next_cluster</a></li>
+      <li><a href="#cluster_factory">cluster_factory</a></li>
+      <li><a href="#object_factory">object_factory</a></li>
+      <li><a href="#load_format_module">_load_format_module</a></li>
+      <li><a href="#guess_format">_guess_format</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::ClusterIO - Handler for Cluster Formats</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment">#NB: This example is unigene specific</span>
+  
+  <span class="keyword">use</span> <span class="variable">Bio::ClusterIO</span><span class="operator">;</span>
+  
+  <span class="variable">$stream</span>  <span class="operator">=</span> <span class="variable">Bio::ClusterIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">'-file'</span> <span class="operator">=&gt;</span> <span class="string">"Hs.data"</span><span class="operator">,</span> 
+                                 <span class="string">'-format'</span> <span class="operator">=&gt;</span> <span class="string">"unigene"</span><span class="operator">);</span>
+  <span class="comment"># note: we quote -format to keep older perl's from complaining.</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$in</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_cluster</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">print</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">unigene_id</span><span class="operator">()</span> <span class="operator">.</span> <span class="string">"\n"</span><span class="operator">;</span>
+      <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$sequence</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+          <span class="keyword">print</span> <span class="variable">$sequence</span><span class="operator">-&gt;</span><span class="variable">accession_number</span><span class="operator">()</span> <span class="operator">.</span> <span class="string">"\n"</span><span class="operator">;</span>
+      <span class="operator">}</span>
+  <span class="operator">}</span>
+  <span class="comment"># Parsing errors are printed to STDERR.</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>The ClusterIO module works with the ClusterIO format module to read various cluster formats such as NCBI UniGene.</p>
+
+<h1 id="CONSTRUCTORS">CONSTRUCTORS</h1>
+
+<h2 id="Bio::ClusterIO-new-">Bio::ClusterIO-&gt;new()</h2>
+
+<pre><code><code>   <span class="variable">$str</span> <span class="operator">=</span> <span class="variable">Bio::ClusterIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'filename'</span><span class="operator">,</span>
+                              <span class="string">-format</span><span class="operator">=&gt;</span><span class="variable">$format</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The new() class method constructs a new Bio::ClusterIO object. The returned object can be used to retrieve or print cluster objects. new() accepts the following parameters:</p>
+
+<dl>
+
+<dt id="file">-file</dt>
+<dd>
+
+<p>A file path to be opened for reading.</p>
+
+</dd>
+<dt id="format">-format</dt>
+<dd>
+
+<p>Specify the format of the file. Supported formats include:</p>
+
+<pre><code><code>   unigene              *.data  UniGene build files.
+   dbsnp                *.xml   dbSNP XML files</code></code></pre>
+
+<p>If no format is specified and a filename is given, then the module will attempt to deduce it from the filename. If this is unsuccessful, the main UniGene build format is assumed.</p>
+
+<p>The format name is case insensitive. &#39;UNIGENE&#39;, &#39;UniGene&#39; and &#39;unigene&#39; are all supported, as are dbSNP, dbsnp, and DBSNP</p>
+
+</dd>
+</dl>
+
+<h1 id="OBJECT-METHODS">OBJECT METHODS</h1>
+
+<p>See below for more detailed summaries. The main methods are:</p>
+
+<h2 id="cluster-str-next_cluster-">$cluster = $str-&gt;next_cluster()</h2>
+
+<p>Fetch the next cluster from the stream.</p>
+
+<h2 id="TIEHANDLE-READLINE-PRINT-">TIEHANDLE(), READLINE(), PRINT()</h2>
+
+<p>These I&#39;ve left in here because they were in the SeqIO module. Feedback appreciated. There they provide the tie interface. See <a href="../../../lib/pod/perltie.html">perltie</a> for more details.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Andrew-Macgregor">AUTHOR - Andrew Macgregor</h1>
+
+<p>Email andrew@anatomy.otago.ac.nz</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new
+ Usage   : Bio::ClusterIO-&gt;new(-file =&gt; $filename, -format =&gt; &#39;format&#39;)
+ Function: Returns a new cluster stream
+ Returns : A Bio::ClusterIO::Handler initialised with the appropriate format
+ Args    : -file =&gt; $filename
+           -format =&gt; format</code></code></pre>
+
+<h2 id="next_cluster">next_cluster</h2>
+
+<pre><code><code> Title   : next_cluster
+ Usage   : $cluster = $stream-&gt;next_cluster()
+ Function: Reads the next cluster object from the stream and returns it.
+ Returns : a L&lt;Bio::ClusterI&gt; compliant object
+ Args    : none</code></code></pre>
+
+<h2 id="cluster_factory">cluster_factory</h2>
+
+<pre><code><code> Title   : cluster_factory
+ Usage   : $obj-&gt;cluster_factory($newval)
+ Function: Get/set the object factory to use for creating the cluster
+           objects.
+ Example : 
+ Returns : a L&lt;Bio::Factory::ObjectFactoryI&gt; compliant object
+ Args    : on set, new value (a L&lt;Bio::Factory::ObjectFactoryI&gt; 
+           compliant object or undef, optional)</code></code></pre>
+
+<h2 id="object_factory">object_factory</h2>
+
+<pre><code><code> Title   : object_factory
+ Usage   : $obj-&gt;object_factory($newval)
+ Function: This is an alias to cluster_factory with a more generic name.
+ Example : 
+ Returns : a L&lt;Bio::Factory::ObjectFactoryI&gt; compliant object
+ Args    : on set, new value (a L&lt;Bio::Factory::ObjectFactoryI&gt; 
+           compliant object or undef, optional)</code></code></pre>
+
+<h2 id="load_format_module">_load_format_module</h2>
+
+<pre><code><code> Title   : _load_format_module
+ Usage   : *INTERNAL ClusterIO stuff*
+ Function: Loads up (like use) a module at run time on demand
+ Example :
+ Returns :
+ Args    :</code></code></pre>
+
+<h2 id="guess_format">_guess_format</h2>
+
+<pre><code><code> Title   : _guess_format
+ Usage   : $obj-&gt;_guess_format($filename)
+ Function: guess format based on file suffix
+ Example :
+ Returns : guessed format of filename (lower case)
+ Args    :
+ Notes   : formats that _filehandle() will guess include unigene and dbsnp</code></code></pre>
+
+
+</body>
+
+</html>
+
+

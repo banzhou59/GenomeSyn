@@ -1,0 +1,316 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Heikki-Lehvaslaiho">AUTHOR - Heikki Lehvaslaiho</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#seq3">seq3</a></li>
+      <li><a href="#seq3in">seq3in</a></li>
+      <li><a href="#translate_3frames">translate_3frames</a></li>
+      <li><a href="#translate_6frames">translate_6frames</a></li>
+      <li><a href="#valid_aa">valid_aa</a></li>
+      <li><a href="#mutate">mutate</a></li>
+      <li><a href="#cat">cat</a></li>
+      <li><a href="#trunc_with_features">trunc_with_features</a></li>
+      <li><a href="#coord_adjust">_coord_adjust</a></li>
+      <li><a href="#revcom_with_features">revcom_with_features</a></li>
+      <li><a href="#feature_revcom">_feature_revcom</a></li>
+      <li><a href="#evolve">evolve</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqUtils - Additional methods for PrimarySeq objects</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Bio::SeqUtils</span><span class="operator">;</span>
+    <span class="comment"># get a Bio::PrimarySeqI compliant object, $seq, somehow</span>
+    <span class="variable">$util</span> <span class="operator">=</span> <span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+    <span class="variable">$polypeptide_3char</span> <span class="operator">=</span> <span class="variable">$util</span><span class="operator">-&gt;</span><span class="variable">seq3</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+    <span class="comment"># or</span>
+    <span class="variable">$polypeptide_3char</span> <span class="operator">=</span> <span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">seq3</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+    
+    <span class="comment"># set the sequence string (stored in one char code in the object)</span>
+    <span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">seq3</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">,</span> <span class="variable">$polypeptide_3char</span><span class="operator">);</span>
+    
+    <span class="comment"># translate a sequence in all six frames</span>
+    <span class="variable">@seqs</span> <span class="operator">=</span> <span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">translate_6frames</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+    
+    <span class="comment"># inplace editing of the sequence</span>
+    <span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">mutate</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">,</span>
+                          <span class="variable">Bio::LiveSeq::Mutation</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="string">'c'</span><span class="operator">,</span>
+                                                      <span class="string">-pos</span> <span class="operator">=&gt;</span> <span class="number">3</span>
+                                                     <span class="operator">));</span>
+    <span class="comment"># mutate a sequence to desired similarity%</span>
+    <span class="variable">$newseq</span> <span class="operator">=</span> <span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span> <span class="variable">evolve</span>
+        <span class="operator">(</span><span class="variable">$seq</span><span class="operator">,</span> <span class="variable">$similarity</span><span class="operator">,</span> <span class="variable">$transition_transversion_rate</span><span class="operator">);</span>
+    
+    
+    <span class="comment"># concatenate two or more sequences with annotations and features,</span>
+    <span class="comment"># the first sequence will be modified</span>
+    <span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">cat</span><span class="operator">(</span><span class="variable">@seqs</span><span class="operator">);</span>
+    
+    <span class="comment"># truncate a sequence, retaining features and adjusting their</span>
+    <span class="comment"># coordinates if necessary</span>
+    <span class="keyword">my</span> <span class="variable">$truncseq</span> <span class="operator">=</span> <span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">trunc_with_features</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">,</span> <span class="number">100</span><span class="operator">,</span> <span class="number">200</span><span class="operator">);</span>
+    
+    <span class="comment"># reverse complement a sequence and its features</span>
+    <span class="keyword">my</span> <span class="variable">$revcomseq</span> <span class="operator">=</span> <span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">revcom_with_features</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This class is a holder of methods that work on Bio::PrimarySeqI- compliant sequence objects, e.g. Bio::PrimarySeq and Bio::Seq. These methods are not part of the Bio::PrimarySeqI interface and should in general not be essential to the primary function of sequence objects. If you are thinking of adding essential functions, it might be better to create your own sequence class. See <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/PrimarySeqI.html">Bio::PrimarySeqI</a>, <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/PrimarySeq.html">Bio::PrimarySeq</a>, and <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Seq.html">Bio::Seq</a> for more.</p>
+
+<p>The methods take as their first argument a sequence object. It is possible to use methods without first creating a SeqUtils object, i.e. use it as an anonymous hash.</p>
+
+<p>The first two methods, seq3() and seq3in(), give out or read in protein sequences coded in three letter IUPAC amino acid codes.</p>
+
+<p>The next two methods, translate_3frames() and translate_6frames(), wrap around the standard translate method to give back an array of three forward or all six frame translations.</p>
+
+<p>The mutate() method mutates the sequence string with a mutation description object.</p>
+
+<p>The cat() method concatenates two or more sequences. The first sequence is modified by addition of the remaining sequences. All annotations and sequence features will be transferred.</p>
+
+<p>The revcom_with_features() and trunc_with_features() methods are similar to the revcom() and trunc() methods from Bio::Seq, but also adjust any features associated with the sequence as appropriate.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Heikki-Lehvaslaiho">AUTHOR - Heikki Lehvaslaiho</h1>
+
+<p>Email: heikki-at-bioperl-dot-org</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Roy R. Chaudhuri - roy.chaudhuri at gmail.com</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="seq3">seq3</h2>
+
+<pre><code><code> Title   : seq3
+ Usage   : $string = Bio::SeqUtils-&gt;seq3($seq)
+ Function: Read only method that returns the amino acid sequence as a
+           string of three letter codes. alphabet has to be
+           &#39;protein&#39;. Output follows the IUPAC standard plus &#39;Ter&#39; for
+           terminator. Any unknown character, including the default
+           unknown character &#39;X&#39;, is changed into &#39;Xaa&#39;. A noncoded
+           aminoacid selenocystein is recognized (Sec, U).
+
+ Returns : A scalar
+ Args    : character used for stop in the protein sequence optional,
+           defaults to &#39;*&#39; string used to separate the output amino
+           acid codes, optional, defaults to &#39;&#39;</code></code></pre>
+
+<h2 id="seq3in">seq3in</h2>
+
+<pre><code><code> Title   : seq3in
+ Usage   : $seq = Bio::SeqUtils-&gt;seq3in($seq, &#39;MetGlyTer&#39;)
+ Function: Method for changing of the sequence of a
+           Bio::PrimarySeqI sequence object. The three letter amino
+           acid input string is converted into one letter code.  Any
+           unknown character triplet, including the default &#39;Xaa&#39;, is
+           converted into &#39;X&#39;.
+
+ Returns : Bio::PrimarySeq object
+ Args    : sequence string
+           optional character to be used for stop in the protein sequence,
+              defaults to &#39;*&#39;
+           optional character to be used for unknown in the protein sequence,
+              defaults to &#39;X&#39;</code></code></pre>
+
+<h2 id="translate_3frames">translate_3frames</h2>
+
+<pre><code><code> Title   : translate_3frames
+ Usage   : @prots = Bio::SeqUtils-&gt;translate_3frames($seq)
+ Function: Translate a nucleotide sequence in three forward frames.
+           The IDs of the sequences are appended with &#39;-0F&#39;, &#39;-1F&#39;, &#39;-2F&#39;.
+ Returns : An array of seq objects
+ Args    : sequence object
+           same arguments as to Bio::PrimarySeqI::translate</code></code></pre>
+
+<h2 id="translate_6frames">translate_6frames</h2>
+
+<pre><code><code> Title   : translate_6frames
+ Usage   : @prots = Bio::SeqUtils-&gt;translate_6frames($seq)
+ Function: translate a nucleotide sequence in all six frames
+           The IDs of the sequences are appended with &#39;-0F&#39;, &#39;-1F&#39;, &#39;-2F&#39;,
+           &#39;-0R&#39;, &#39;-1R&#39;, &#39;-2R&#39;.
+ Returns : An array of seq objects
+ Args    : sequence object
+           same arguments as to Bio::PrimarySeqI::translate</code></code></pre>
+
+<h2 id="valid_aa">valid_aa</h2>
+
+<pre><code><code> Title   : valid_aa
+ Usage   : my @aa = $table-&gt;valid_aa
+ Function: Retrieves a list of the valid amino acid codes.
+           The list is ordered so that first 21 codes are for unique 
+           amino acids. The rest are [&#39;B&#39;, &#39;Z&#39;, &#39;X&#39;, &#39;*&#39;].
+ Returns : array of all the valid amino acid codes
+ Args    : [optional] $code =&gt; [0 -&gt; return list of 1 letter aa codes,
+                                1 -&gt; return list of 3 letter aa codes,
+                                2 -&gt; return associative array of both ]</code></code></pre>
+
+<h2 id="mutate">mutate</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">mutate</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">mutate</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">,</span><span class="variable">$mutation1</span><span class="operator">,</span> <span class="variable">$mutation2</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Inplace</span> <span class="variable">editing</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span><span class="operator">.</span>
+ 
+           <span class="variable">The</span> <span class="variable">second</span> <span class="variable">argument</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">a</span> <span class="variable">Bio::LiveSeq::Mutation</span> <span class="variable">object</span>
+           <span class="keyword">or</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">them</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">mutations</span> <span class="variable">are</span> <span class="variable">applied</span> <span class="variable">sequentially</span>
+           <span class="variable">checking</span> <span class="variable">only</span> <span class="variable">that</span> <span class="variable">their</span> <span class="variable">position</span> <span class="variable">is</span> <span class="variable">within</span> <span class="variable">the</span> <span class="variable">current</span>
+           <span class="variable">sequence</span><span class="operator">.</span>  <span class="variable">Insertions</span> <span class="variable">are</span> <span class="variable">inserted</span> <span class="variable">before</span> <span class="variable">the</span> <span class="keyword">given</span>
+           <span class="variable">position</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">boolean</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">sequence</span> <span class="variable">object</span>
+           <span class="variable">mutation</span><span class="operator">,</span> <span class="variable">a</span> <span class="variable">Bio::LiveSeq::Mutation</span> <span class="variable">object</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">them</span>
+</code></code></pre>
+
+<p>See <a href="../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/LiveSeq/Mutation.html">Bio::LiveSeq::Mutation</a>.</p>
+
+<h2 id="cat">cat</h2>
+
+<pre><code><code>  Title   : cat
+  Usage   : my $catseq = Bio::SeqUtils-&gt;cat(@seqs)
+  Function: Concatenates an array of Bio::Seq objects, using the first sequence
+            as a target. Annotations and sequence features are copied over 
+            from any additional objects. Adjusts the coordinates of copied 
+            features.
+  Returns : a boolean
+  Args    : array of sequence objects</code></code></pre>
+
+<p>Note that annotations have no sequence locations. If you concatenate sequences with the same annotations they will all be added.</p>
+
+<h2 id="trunc_with_features">trunc_with_features</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">trunc_with_features</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$trunc</span><span class="operator">=</span><span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">trunc_with_features</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">,</span> <span class="variable">$start</span><span class="operator">,</span> <span class="variable">$end</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Like</span> <span class="variable">Bio::Seq::trunc</span><span class="operator">,</span> <span class="variable">but</span> <span class="variable">keeps</span> <span class="variable">features</span> <span class="operator">(</span><span class="variable">adjusting</span> <span class="variable">coordinates</span>
+           <span class="variable">where</span> <span class="variable">necessary</span><span class="operator">.</span> <span class="variable">Features</span> <span class="variable">that</span> <span class="variable">partially</span> <span class="variable">overlap</span> <span class="variable">the</span> <span class="variable">region</span> <span class="variable">have</span>
+           <span class="variable">their</span> <span class="variable">location</span> <span class="variable">changed</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">Bio::Location::Fuzzy</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">new</span> <span class="variable">sequence</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">A</span> <span class="variable">sequence</span> <span class="variable">object</span><span class="operator">,</span> <span class="variable">start</span> <span class="variable">coordinate</span><span class="operator">,</span> <span class="variable">end</span> <span class="variable">coordinate</span> <span class="operator">(</span><span class="variable">inclusive</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="coord_adjust">_coord_adjust</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_coord_adjust</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$newfeat</span><span class="operator">=</span><span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">_coord_adjust</span><span class="operator">(</span><span class="variable">$feature</span><span class="operator">,</span> <span class="number">100</span><span class="operator">,</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Recursive</span> <span class="variable">subroutine</span> <span class="variable">to</span> <span class="variable">adjust</span> <span class="variable">the</span> <span class="variable">coordinates</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">feature</span>
+            <span class="keyword">and</span> <span class="variable">all</span> <span class="variable">its</span> <span class="variable">subfeatures</span><span class="operator">.</span> <span class="variable">If</span> <span class="variable">a</span> <span class="variable">sequence</span> <span class="keyword">length</span> <span class="variable">is</span> <span class="variable">specified</span><span class="operator">,</span> <span class="variable">then</span>
+            <span class="variable">any</span> <span class="variable">adjusted</span> <span class="variable">features</span> <span class="variable">that</span> <span class="variable">have</span> <span class="variable">locations</span> <span class="variable">beyond</span> <span class="variable">the</span> <span class="variable">boundaries</span>
+            <span class="variable">of</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">are</span> <span class="variable">converted</span> <span class="variable">to</span> <span class="variable">Bio::Location::Fuzzy</span> <span class="variable">objects</span><span class="operator">.</span>
+  
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">compliant</span> <span class="variable">object</span><span class="operator">.</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">compliant</span> <span class="variable">object</span><span class="operator">,</span>
+            <span class="variable">the</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">bases</span> <span class="variable">to</span> <span class="variable">add</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">coordinates</span>
+            <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span> <span class="variable">the</span> <span class="keyword">length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">parent</span> <span class="variable">sequence</span>
+</code></code></pre>
+
+<h2 id="revcom_with_features">revcom_with_features</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">revcom_with_features</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$revcom</span><span class="operator">=</span><span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">revcom_with_features</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Like</span> <span class="variable">Bio::Seq::revcom</span><span class="operator">,</span> <span class="variable">but</span> <span class="variable">keeps</span> <span class="variable">features</span> <span class="operator">(</span><span class="variable">adjusting</span> <span class="variable">coordinates</span>
+           <span class="variable">as</span> <span class="variable">appropriate</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">new</span> <span class="variable">sequence</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">A</span> <span class="variable">sequence</span> <span class="variable">object</span>
+</code></code></pre>
+
+<h2 id="feature_revcom">_feature_revcom</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_feature_revcom</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$newfeat</span><span class="operator">=</span><span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span><span class="variable">_feature_revcom</span><span class="operator">(</span><span class="variable">$feature</span><span class="operator">,</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">length</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Recursive</span> <span class="variable">subroutine</span> <span class="variable">to</span> <span class="keyword">reverse</span> <span class="variable">complement</span> <span class="variable">a</span> <span class="variable">feature</span> <span class="keyword">and</span>
+            <span class="variable">all</span> <span class="variable">its</span> <span class="variable">subfeatures</span><span class="operator">.</span> <span class="variable">The</span> <span class="keyword">length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">parent</span> <span class="variable">sequence</span> <span class="variable">must</span> <span class="variable">be</span>
+            <span class="variable">specified</span><span class="operator">.</span>
+  
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">compliant</span> <span class="variable">object</span><span class="operator">.</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqFeatureI</span> <span class="variable">compliant</span> <span class="variable">object</span><span class="operator">,</span>
+            <span class="variable">the</span> <span class="keyword">length</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">parent</span> <span class="variable">sequence</span>
+</code></code></pre>
+
+<h2 id="evolve">evolve</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">evolve</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$newseq</span> <span class="operator">=</span> <span class="variable">Bio::SeqUtils</span><span class="operator">-&gt;</span>
+                <span class="variable">evolve</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">,</span> <span class="variable">$similarity</span><span class="operator">,</span> <span class="variable">$transition_transversion_rate</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Mutates</span> <span class="variable">the</span> <span class="variable">sequence</span> <span class="variable">by</span> <span class="variable">point</span> <span class="variable">mutations</span> <span class="keyword">until</span> <span class="variable">the</span> <span class="variable">similarity</span> <span class="variable">of</span>
+            <span class="variable">the</span> <span class="variable">new</span> <span class="variable">sequence</span> <span class="variable">has</span> <span class="variable">decreased</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">required</span> <span class="variable">level</span><span class="operator">.</span> 
+            <span class="variable">Transition</span><span class="operator">/</span><span class="variable">transversion</span> <span class="variable">rate</span> <span class="variable">is</span> <span class="variable">adjustable</span><span class="operator">.</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">new</span> <span class="variable">Bio::PrimarySeq</span> <span class="variable">object</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">sequence</span> <span class="variable">object</span>
+            <span class="variable">percentage</span> <span class="variable">similarity</span> <span class="operator">(</span><span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.</span> <span class="number">80</span><span class="operator">)</span>
+            <span class="regex">tr/tv rate, optional, defaults to 1 (= 1:1)
+  </span>
+</code></code></pre>
+
+<p>Set the verbosity of the Bio::SeqUtils object to positive integer to see the mutations as they happen.</p>
+
+<p>This method works only on nucleotide sequences. It prints a warning if you set the target similarity to be less than 25%.</p>
+
+<p>Transition/transversion ratio is an observed attribute of an sequence comparison. We are dealing here with the transition/transversion rate that we set for our model of sequence evolution.</p>
+
+
+</body>
+
+</html>
+
+

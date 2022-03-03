@@ -1,0 +1,423 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#PARAMETERS-FOR-PROTDIST-COMPUTATION">PARAMETERS FOR PROTDIST COMPUTATION</a>
+    <ul>
+      <li><a href="#MODEL">MODEL</a></li>
+      <li><a href="#MULTIPLE">MULTIPLE</a></li>
+      <li><a href="#ALL-SUBSEQUENT-PARAMETERS-WILL-ONLY-WORK-IN-CONJUNCTION-WITH">ALL SUBSEQUENT PARAMETERS WILL ONLY WORK IN CONJUNCTION WITH</a></li>
+      <li><a href="#GENCODE">GENCODE</a></li>
+      <li><a href="#CATEGORY">CATEGORY</a></li>
+      <li><a href="#PROBCHANGE">PROBCHANGE</a></li>
+      <li><a href="#TRANS">TRANS</a></li>
+      <li><a href="#FREQ">FREQ</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#idlength">idlength</a></li>
+      <li><a href="#run">run</a></li>
+      <li><a href="#run1">_run</a></li>
+      <li><a href="#create_distance_matrix">create_distance_matrix</a></li>
+      <li><a href="#setinput-">_setinput()</a></li>
+      <li><a href="#setparams-">_setparams()</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::Tools::Run::Wrapper-methods">Bio::Tools::Run::Wrapper methods</a>
+    <ul>
+      <li><a href="#no_param_checks">no_param_checks</a></li>
+      <li><a href="#save_tempfiles">save_tempfiles</a></li>
+      <li><a href="#outfile_name">outfile_name</a></li>
+      <li><a href="#tempdir">tempdir</a></li>
+      <li><a href="#cleanup">cleanup</a></li>
+      <li><a href="#io">io</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::Phylo::Phylip::ProtDist - Wrapper for the phylip program protdist</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment">#Create a SimpleAlign object</span>
+  <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'ktuple'</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">,</span> <span class="string">'matrix'</span> <span class="operator">=&gt;</span> <span class="string">'BLOSUM'</span><span class="operator">);</span>
+  <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Alignment::Clustalw</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  <span class="variable">$inputfilename</span> <span class="operator">=</span> <span class="string">'t/data/cysprot.fa'</span><span class="operator">;</span>
+  <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$inputfilename</span><span class="operator">);</span> <span class="comment"># $aln is a SimpleAlign object.</span>
+  
+  
+  <span class="comment"># Create the Distance Matrix using a default PAM matrix and id name</span>
+  <span class="comment"># lengths limit of 30 note to use id name length greater than the</span>
+  <span class="comment"># standard 10 in protdist, you will need to modify the protdist source</span>
+  <span class="comment"># code</span>
+  
+  <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'MODEL'</span> <span class="operator">=&gt;</span> <span class="string">'PAM'</span><span class="operator">);</span>
+  <span class="variable">$protdist_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::ProtDist</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$matrix</span><span class="operator">)</span>  <span class="operator">=</span> <span class="variable">$protdist_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span> <span class="comment"># an array of Bio::Matrix::PhylipDist matrix</span>
+  
+  <span class="comment">#finding the distance between two sequences</span>
+  <span class="keyword">my</span> <span class="variable">$distance</span> <span class="operator">=</span> <span class="variable">$matrix</span><span class="operator">-&gt;</span><span class="variable">get_entry</span><span class="operator">(</span><span class="string">'protein_name_1'</span><span class="operator">,</span><span class="string">'protein_name_2'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@column</span>   <span class="operator">=</span> <span class="variable">$matrix</span><span class="operator">-&gt;</span><span class="variable">get_column</span><span class="operator">(</span><span class="string">'protein_name_1'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@row</span>      <span class="operator">=</span> <span class="variable">$martrix</span><span class="operator">-&gt;</span><span class="variable">get_row</span><span class="operator">(</span><span class="string">'protein_name_1'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@diag</span>     <span class="operator">=</span> <span class="variable">$matrix</span><span class="operator">-&gt;</span><span class="variable">get_diagonal</span><span class="operator">();</span>
+  <span class="keyword">print</span> <span class="variable">$matrix</span><span class="operator">-&gt;</span><span class="variable">print_matrix</span><span class="operator">;</span>
+  
+  
+  <span class="comment">#Alternatively, one can create the matrix by passing in a file </span>
+  <span class="comment">#name containing a multiple alignment in phylip format</span>
+  <span class="variable">$protdist_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::ProtDist</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$matrix</span><span class="operator">)</span>  <span class="operator">=</span> <span class="variable">$protdist_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">'/home/shawnh/prot.phy'</span><span class="operator">);</span>
+  
+  <span class="comment"># To prevent PHYLIP from truncating sequence names:</span>
+  <span class="comment"># Step 1. Shelf the original names:</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$aln_safe</span><span class="operator">,</span> <span class="variable">$ref_name</span><span class="operator">)=</span>                    <span class="comment">#   $aln_safe has serial names</span>
+               <span class="variable">$aln</span><span class="operator">-&gt;</span><span class="variable">set_displayname_safe</span><span class="operator">();</span>      <span class="comment">#   $ref_name holds original names</span>
+  <span class="comment"># Step 2. Run ProtDist and Neighbor:</span>
+    <span class="operator">(</span><span class="variable">$matrix</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$protdist_factory</span><span class="operator">-&gt;</span>
+               <span class="variable">create_distance_matrix</span><span class="operator">(</span><span class="variable">$aln_safe</span><span class="operator">);</span> <span class="comment">#  Use $aln_safe instead of $aln</span>
+    <span class="operator">(</span><span class="variable">$tree</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$neighbor_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$matrix</span><span class="operator">);</span>
+  <span class="comment"># Step 3. Retrieve orgininal OTU names:</span>
+    <span class="keyword">use</span> <span class="variable">Bio::Tree::Tree</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">@nodes</span><span class="operator">=</span><span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">get_nodes</span><span class="operator">();</span>
+    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$nd</span> <span class="operator">(</span><span class="variable">@nodes</span><span class="operator">){</span>
+       <span class="variable">$nd</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">(</span><span class="variable">$ref_name</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$nd</span><span class="operator">-&gt;</span><span class="variable">id_output</span><span class="operator">}</span><span class="operator">)</span> <span class="keyword">if</span> <span class="variable">$nd</span><span class="operator">-&gt;</span><span class="variable">is_Leaf</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Wrapper for protdist Joseph Felsentein for creating a distance matrix comparing protein sequences from a multiple alignment file or a <a href="../../../../../../../lib/perl5/Bio/SimpleAlign.html">Bio::SimpleAlign</a> object and returns a <a href="../../../../../../../lib/perl5/Bio/Matrix/PhylipDist.html">Bio::Matrix::PhylipDist</a> object;</p>
+
+<p>VERSION Support</p>
+
+<p>This wrapper currently supports v3.5 of phylip. There is also support for v3.6.</p>
+
+<h1 id="PARAMETERS-FOR-PROTDIST-COMPUTATION">PARAMETERS FOR PROTDIST COMPUTATION</h1>
+
+<h2 id="MODEL">MODEL</h2>
+
+<p>Title : MODEL Description : (optional)</p>
+
+<pre><code><code>                  <span class="variable">This</span> <span class="variable">sets</span> <span class="variable">the</span> <span class="variable">model</span> <span class="variable">of</span> <span class="variable">amino</span> <span class="variable">acid</span> <span class="variable">substitution</span> <span class="variable">used</span>
+                  <span class="variable">in</span> <span class="variable">the</span> <span class="variable">calculation</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">distances</span><span class="operator">.</span>  <span class="number">3</span> <span class="variable">different</span>
+                  <span class="variable">models</span> <span class="variable">are</span> <span class="variable">supported</span><span class="operator">:</span> 
+                  <span class="variable">PAM</span>     <span class="variable">Dayhoff</span> <span class="variable">PAM</span> <span class="variable">Matrix</span><span class="operator">(</span><span class="keyword">default</span><span class="operator">)</span> 
+                  <span class="variable">KIMURA</span>  <span class="variable">Kimura's</span> <span class="variable">Distance</span> <span class="variable">CAT</span>
+                  
+                  <span class="variable">Categories</span> <span class="variable">Distance</span> <span class="variable">Usage</span><span class="operator">:</span> <span class="variable">@params</span> <span class="operator">=</span>
+                  <span class="operator">(</span><span class="string">'model'</span><span class="operator">=&gt;</span><span class="string">'X'</span><span class="operator">);</span><span class="comment">#where X is one of the values above</span>
+                  
+                  <span class="variable">Defaults</span> <span class="variable">to</span> <span class="variable">PAM</span> <span class="variable">For</span> <span class="variable">more</span> <span class="variable">information</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">usage</span> <span class="variable">of</span>
+                  <span class="variable">the</span> <span class="variable">different</span> <span class="variable">models</span><span class="operator">,</span> <span class="variable">please</span> <span class="variable">refer</span> <span class="variable">to</span> <span class="variable">the</span>
+                  <span class="variable">documentation</span> 
+                  <span class="variable">defaults</span> <span class="variable">to</span> <span class="variable">Equal</span>
+                  <span class="operator">(</span><span class="number">0</span><span class="operator">.</span><span class="number">25</span><span class="operator">,</span><span class="number">0</span><span class="operator">.</span><span class="number">25</span><span class="operator">,</span><span class="number">0</span><span class="operator">.</span><span class="number">25</span><span class="operator">,</span><span class="number">0</span><span class="operator">.</span><span class="number">25</span><span class="operator">)</span> <span class="variable">found</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">phylip</span> <span class="keyword">package</span><span class="operator">.</span>
+                  
+                  <span class="variable">Additional</span> <span class="variable">models</span> <span class="variable">in</span> <span class="variable">PHYLIP</span> <span class="number">3.6</span>
+                  <span class="variable">PMB</span> <span class="operator">-</span> <span class="variable">Henikoff</span><span class="operator">/</span><span class="variable">Tillier</span> <span class="variable">PMB</span> <span class="variable">matrix</span>
+                  <span class="variable">JTT</span> <span class="operator">-</span> <span class="variable">Jones</span><span class="operator">/</span><span class="variable">Taylor</span><span class="operator">/</span><span class="variable">Thornton</span>
+</code></code></pre>
+
+<h2 id="MULTIPLE">MULTIPLE</h2>
+
+<p>Title : MULTIPLE Description: (optional)</p>
+
+<pre><code><code>          This allows multiple distance matrices to be generated from multiple
+          MSA.
+
+          Usage: @params = (&#39;MULTIPLE&#39;=&gt;100) where the value specifyies the 
+          number of aligments given.</code></code></pre>
+
+<h2 id="ALL-SUBSEQUENT-PARAMETERS-WILL-ONLY-WORK-IN-CONJUNCTION-WITH">ALL SUBSEQUENT PARAMETERS WILL ONLY WORK IN CONJUNCTION WITH</h2>
+
+<p>THE Categories Distance MODEL*</p>
+
+<h2 id="GENCODE">GENCODE</h2>
+
+<pre><code><code>  <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">GENCODE</span> 
+  <span class="variable">Description</span>   <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+  
+                  <span class="variable">This</span> <span class="variable">option</span> <span class="variable">allows</span> <span class="variable">the</span> <span class="variable">user</span> <span class="variable">to</span> <span class="keyword">select</span> <span class="variable">among</span> <span class="variable">various</span>
+                  <span class="variable">nuclear</span> <span class="keyword">and</span> <span class="variable">mitochondrial</span> <span class="variable">genetic</span> <span class="variable">codes</span><span class="operator">.</span>
+  
+                  <span class="variable">Acceptable</span> <span class="variable">Values</span><span class="operator">:</span>
+                  <span class="variable">U</span>           <span class="variable">Universal</span>
+                  <span class="variable">M</span>           <span class="variable">Mitochondrial</span>
+                  <span class="variable">V</span>           <span class="variable">Vertebrate</span> <span class="variable">mitochondrial</span>
+                  <span class="variable">F</span>           <span class="variable">Fly</span> <span class="variable">mitochondrial</span>
+                  <span class="variable">Y</span>           <span class="variable">Yeast</span> <span class="variable">mitochondrial</span>
+  <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'gencode'</span><span class="operator">=&gt;</span><span class="string">'X'</span><span class="operator">);</span> 
+                  <span class="variable">where</span> <span class="variable">X</span> <span class="variable">is</span> <span class="variable">one</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">letters</span> <span class="variable">above</span>
+                  <span class="variable">Defaults</span> <span class="variable">to</span> <span class="variable">U</span>
+</code></code></pre>
+
+<h2 id="CATEGORY">CATEGORY</h2>
+
+<p>Title : CATEGORY Description : (optional)</p>
+
+<pre><code><code>                  <span class="variable">This</span> <span class="variable">option</span> <span class="variable">sets</span> <span class="variable">the</span> <span class="variable">categorization</span> <span class="variable">of</span> <span class="variable">amino</span> <span class="variable">acids</span>
+                  <span class="variable">all</span> <span class="variable">have</span> <span class="variable">groups</span><span class="operator">:</span> <span class="operator">(</span><span class="variable">Glu</span> <span class="variable">Gln</span> <span class="variable">Asp</span> <span class="variable">Asn</span><span class="operator">),</span> <span class="operator">(</span><span class="variable">Lys</span> <span class="variable">Arg</span> <span class="variable">His</span><span class="operator">),</span>
+                  <span class="operator">(</span><span class="variable">Phe</span> <span class="variable">Tyr</span> <span class="variable">Trp</span><span class="operator">)</span>  <span class="variable">plus</span><span class="operator">:</span>
+                  <span class="variable">G</span>   <span class="variable">George</span><span class="operator">/</span><span class="variable">Hunt</span><span class="operator">/</span><span class="variable">Barker</span><span class="operator">:</span>
+                          <span class="operator">(</span><span class="variable">Cys</span><span class="operator">),</span> <span class="operator">(</span><span class="variable">Met</span>   <span class="variable">Val</span>  <span class="variable">Leu</span>  <span class="variable">Ileu</span><span class="operator">),</span> 
+                          <span class="operator">(</span><span class="variable">Gly</span>  <span class="variable">Ala</span>  <span class="variable">Ser</span>  <span class="variable">Thr</span>  <span class="variable">Pro</span><span class="operator">)</span>
+                  <span class="variable">C</span>   <span class="variable">Chemical</span><span class="operator">:</span>
+                          <span class="operator">(</span><span class="variable">Cys</span>   <span class="variable">Met</span><span class="operator">),</span> <span class="operator">(</span><span class="variable">Val</span>  <span class="variable">Leu</span>  <span class="variable">Ileu</span>  <span class="variable">Gly</span>  <span class="variable">Ala</span>  <span class="variable">Ser</span>  <span class="variable">Thr</span><span class="operator">),</span>
+                          <span class="operator">(</span><span class="variable">Pro</span><span class="operator">)</span>
+                  <span class="variable">H</span>   <span class="variable">Hall</span><span class="operator">:</span>
+                        <span class="operator">(</span><span class="variable">Cys</span><span class="operator">),</span> <span class="operator">(</span><span class="variable">Met</span>   <span class="variable">Val</span>  <span class="variable">Leu</span>  <span class="variable">Ileu</span><span class="operator">),</span> <span class="operator">(</span><span class="variable">Gly</span>  <span class="variable">Ala</span>  <span class="variable">Ser</span>  <span class="variable">Thr</span><span class="operator">),</span>
+                        <span class="operator">(</span><span class="variable">Pro</span><span class="operator">)</span>
+                  
+                    <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'category'</span><span class="operator">=&gt;</span><span class="string">'X'</span><span class="operator">);</span> 
+                  <span class="variable">where</span> <span class="variable">X</span> <span class="variable">is</span> <span class="variable">one</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">letters</span> <span class="variable">above</span>
+                  <span class="variable">Defaults</span> <span class="variable">to</span> <span class="variable">G</span>
+</code></code></pre>
+
+<h2 id="PROBCHANGE">PROBCHANGE</h2>
+
+<pre><code><code>  Title       : PROBCHANGE
+  Description : (optional)
+                 This option sets the ease of changing category of amino
+                 acid.  (1.0 if no difficulty of changing,less if less
+                 easy. Can&#39;t be negative)
+
+  Usage       : @params = (&#39;probchange&#39;=&gt;X) where 0&lt;=X&lt;=1
+                Defaults to 0.4570</code></code></pre>
+
+<h2 id="TRANS">TRANS</h2>
+
+<pre><code><code>  Title       : TRANS
+  Description : (optional)
+                This option sets transition/transversion ratio can be
+                any positive number
+
+  Usage        : @params = (&#39;trans&#39;=&gt;X) where X &gt;= 0
+                 Defaults to 2</code></code></pre>
+
+<h2 id="FREQ">FREQ</h2>
+
+<pre><code><code>  Title       : FREQ 
+  Description : (optional)
+                This option sets the frequency of each base (A,C,G,T)
+                The sum of the frequency must sum to 1.
+                For example A,C,G,T = (0.25,0.5,0.125,0.125) 
+
+  Usage       : @params = (&#39;freq&#39;=&gt;(&#39;W&#39;,&#39;X&#39;,&#39;Y&#39;,&#39;Z&#39;)
+                where W + X + Y + Z = 1
+                Defaults to Equal (0.25,0.25,0.25,0.25)</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</h1>
+
+<p>Email shawnh@fugu-sg.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : &gt;program_name()
+ Function: holds the program name
+ Returns:  string
+ Args    : None</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> Title   : program_dir
+ Usage   : -&gt;program_dir()
+ Function: returns the program directory, obtained from ENV variable.
+ Returns:  string
+ Args    :</code></code></pre>
+
+<h2 id="idlength">idlength</h2>
+
+<pre><code><code> Title   : idlength 
+ Usage   : $obj-&gt;idlength ($newval)
+ Function: 
+ Returns : value of idlength 
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="run">run</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">run</span> 
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+        <span class="variable">$inputfilename</span> <span class="operator">=</span> <span class="string">'t/data/prot.phy'</span><span class="operator">;</span>
+        <span class="variable">$matrix</span><span class="operator">=</span> <span class="variable">$prodistfactory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$inputfilename</span><span class="operator">);</span>
+ <span class="keyword">or</span>
+        <span class="variable">$seq_array_ref</span> <span class="operator">=</span> <span class="operator">\</span><span class="variable">@seq_array</span><span class="operator">;</span> <span class="variable">@seq_array</span> <span class="variable">is</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">Seq</span> <span class="variable">objs</span>
+        <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$protdistfactory</span><span class="operator">-&gt;</span><span class="variable">align</span><span class="operator">(</span><span class="variable">$seq_array_ref</span><span class="operator">);</span>
+        <span class="variable">$matrix</span> <span class="operator">=</span> <span class="variable">$protdistfactory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+ 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Create</span> <span class="variable">a</span> <span class="variable">distance</span> <span class="variable">matrix</span> <span class="variable">from</span> <span class="variable">a</span> <span class="variable">SimpleAlign</span> <span class="variable">object</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">multiple</span> <span class="variable">alignment</span> <span class="variable">file</span> 
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Matrix::PhylipDist</span><span class="operator">&gt;</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Name</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">a</span> <span class="variable">multiple</span> <span class="variable">alignment</span> <span class="variable">in</span> <span class="variable">Phylip</span> <span class="keyword">format</span>
+           <span class="keyword">or</span> <span class="variable">an</span> <span class="variable">SimpleAlign</span> <span class="variable">object</span> 
+ 
+ <span class="variable">Throws</span> <span class="variable">an</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">argument</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">either</span> <span class="variable">a</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">eg</span> <span class="variable">a</span>
+ <span class="variable">filename</span><span class="operator">)</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">Bio::SimpleAlign</span> <span class="variable">object</span><span class="operator">.</span> <span class="variable">If</span>
+ <span class="variable">argument</span> <span class="variable">is</span> <span class="variable">string</span><span class="operator">,</span> <span class="variable">throws</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">file</span> <span class="variable">corresponding</span> <span class="variable">to</span> <span class="variable">string</span>
+ <span class="variable">name</span> <span class="variable">can</span> <span class="keyword">not</span> <span class="variable">be</span> <span class="variable">found</span><span class="operator">.</span> 
+</code></code></pre>
+
+<h2 id="run1">_run</h2>
+
+<pre><code><code> Title   :  _run
+ Usage   :  Internal function, not to be called directly        
+ Function:  makes actual system call to protdist program
+ Example :
+ Returns : Bio::Tree object
+ Args    : Name of a file containing a set of multiple alignments in Phylip format 
+           and a parameter string to be passed to protdist</code></code></pre>
+
+<h2 id="create_distance_matrix">create_distance_matrix</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">create_distance_matrix</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$file</span> <span class="operator">=</span> <span class="variable">$app</span><span class="operator">-&gt;</span><span class="variable">create_distance_matrix</span><span class="operator">(</span><span class="variable">$treefile</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">This</span> <span class="variable">method</span> <span class="variable">is</span> <span class="variable">deprecated</span><span class="operator">.</span> <span class="variable">Please</span> <span class="keyword">use</span> <span class="variable">run</span> <span class="variable">method</span><span class="operator">.</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::Matrix::PhylipDist</span><span class="operator">&gt;</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Name</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">a</span> <span class="variable">multiple</span> <span class="variable">alignment</span> <span class="variable">in</span> <span class="variable">Phylip</span> <span class="keyword">format</span>
+           <span class="keyword">or</span> <span class="variable">an</span> <span class="variable">SimpleAlign</span> <span class="variable">object</span> 
+ 
+ <span class="variable">Throws</span> <span class="variable">an</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">argument</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">either</span> <span class="variable">a</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">eg</span> <span class="variable">a</span>
+ <span class="variable">filename</span><span class="operator">)</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">Bio::SimpleAlign</span> <span class="variable">object</span><span class="operator">.</span> <span class="variable">If</span>
+ <span class="variable">argument</span> <span class="variable">is</span> <span class="variable">string</span><span class="operator">,</span> <span class="variable">throws</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">file</span> <span class="variable">corresponding</span> <span class="variable">to</span> <span class="variable">string</span>
+ <span class="variable">name</span> <span class="variable">can</span> <span class="keyword">not</span> <span class="variable">be</span> <span class="variable">found</span><span class="operator">.</span> 
+</code></code></pre>
+
+<h2 id="setinput-">_setinput()</h2>
+
+<pre><code><code> Title   :  _setinput
+ Usage   :  Internal function, not to be called directly        
+ Function:   Create input file for protdist program
+ Example :
+ Returns : name of file containing a multiple alignment in Phylip format 
+ Args    : SimpleAlign object reference or input file name</code></code></pre>
+
+<h2 id="setparams-">_setparams()</h2>
+
+<pre><code><code> Title   :  _setparams
+ Usage   :  Internal function, not to be called directly        
+ Function:   Create parameter inputs for protdist program
+ Example :
+ Returns : parameter string to be passed to protdist
+ Args    : name of calling object</code></code></pre>
+
+<h1 id="Bio::Tools::Run::Wrapper-methods">Bio::Tools::Run::Wrapper methods</h1>
+
+<h2 id="no_param_checks">no_param_checks</h2>
+
+<pre><code><code> Title   : no_param_checks
+ Usage   : $obj-&gt;no_param_checks($newval)
+ Function: Boolean flag as to whether or not we should
+           trust the sanity checks for parameter values  
+ Returns : value of no_param_checks
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="save_tempfiles">save_tempfiles</h2>
+
+<pre><code><code> Title   : save_tempfiles
+ Usage   : $obj-&gt;save_tempfiles($newval)
+ Function: 
+ Returns : value of save_tempfiles
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="outfile_name">outfile_name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">outfile_name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$outfile</span> <span class="operator">=</span> <span class="variable">$protdist</span><span class="operator">-&gt;</span><span class="variable">outfile_name</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">output</span> <span class="variable">file</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">run</span>
+           <span class="operator">(</span><span class="keyword">if</span> <span class="variable">you</span> <span class="variable">wanted</span> <span class="variable">to</span> <span class="keyword">do</span> <span class="variable">something</span> <span class="variable">special</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">value</span> <span class="variable">to</span>
+</code></code></pre>
+
+<h2 id="tempdir">tempdir</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">tempdir</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$tmpdir</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">tempdir</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieve</span> <span class="variable">a</span> <span class="variable">temporary</span> <span class="variable">directory</span> <span class="variable">name</span> <span class="operator">(</span><span class="variable">which</span> <span class="variable">is</span> <span class="variable">created</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">which</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">temporary</span> <span class="variable">directory</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="cleanup">cleanup</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">cleanup</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$codeml</span><span class="operator">-&gt;</span><span class="variable">cleanup</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Will</span> <span class="variable">cleanup</span> <span class="variable">the</span> <span class="variable">tempdir</span> <span class="variable">directory</span> <span class="variable">after</span> <span class="variable">a</span> <span class="variable">ProtDist</span> <span class="variable">run</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="io">io</h2>
+
+<pre><code><code> Title   : io
+ Usage   : $obj-&gt;io($newval)
+ Function:  Gets a L&lt;Bio::Root::IO&gt; object
+ Returns : L&lt;Bio::Root::IO&gt;
+ Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

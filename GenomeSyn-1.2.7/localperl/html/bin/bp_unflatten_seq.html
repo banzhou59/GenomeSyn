@@ -1,0 +1,193 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../displayToc.js"></script>
+<script language="JavaScript" src="../tocParas.js"></script>
+<script language="JavaScript" src="../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#COMMAND-LINE-ARGUMENTS">COMMAND LINE ARGUMENTS</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>unflatten_seq - unflatten a genbank or genbank-style feature file into a nested SeqFeature hierarchy</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  unflatten_seq.PLS -e 3 -gff ~/cvs/bioperl-live/t/data/AE003644_Adh-genomic.gb
+
+  unflatten_seq.PLS --detail ~/cvs/bioperl-live/t/data/AE003644_Adh-genomic.gb
+
+  unflatten_seq.PLS -i foo.embl --from embl --to chadoxml -o out.chado.xml
+
+  unflatten_seq.PLS --notypemap --detail --to asciitree -ethresh 2 AE003644_Adh-genomic.gb</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This script will <b>unflatten</b> a genbank or genbank-style file of SeqFeatures into a nested hierarchy.</p>
+
+<p>See <a href="../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeature/Tools/Unflattener.html">Bio::SeqFeature::Tools::Unflattener</a></p>
+
+<p>In a GenBank/EMBL representation, features are &#39;flat&#39; - for example, there is no link between an mRNA and a CDS, other than implicit links (eg via tags or via splice site coordinates) which may be hard to code for.</p>
+
+<p>This is most easily illustrated with the default output format, <b>asciitree</b></p>
+
+<p>An unflattened genbank feature set may look like this (AB077698)</p>
+
+<pre><code><code>  Seq: AB077698
+    databank_entry                                   1..2701[+]
+    gene                                             
+      mRNA                                           
+        CDS hCHCR-G                                  80..1144[+]
+        exon                                         80..1144[+]
+      five_prime_UTR                                 1..79[+]
+      located_sequence_feature                       137..196[+]
+      located_sequence_feature                       239..292[+]
+      located_sequence_feature                       617..676[+]
+      located_sequence_feature                       725..778[+]
+      three_prime_UTR                                1145..2659[+]
+      polyA_site                                     1606..1606[+]
+      polyA_site                                     2660..2660[+]</code></code></pre>
+
+<p>Or like this (portion of AE003734)</p>
+
+<pre><code><code>  gene                                             
+    mRNA CG3320-RA                                 
+      CDS CG3320-PA                                53126..54971[-]
+      exon                                         52204..53323[-]
+      exon                                         53404..53631[-]
+      exon                                         53688..53735[-]
+      exon                                         53798..53918[-]
+      exon                                         54949..55287[-]
+    mRNA CG3320-RB                                 
+      CDS CG3320-PB                                53383..54971[-]
+      exon                                         52204..53631[-]
+      exon                                         53688..53735[-]
+      exon                                         53798..53918[-]
+      exon                                         54949..55287[-]</code></code></pre>
+
+<p>The unflattening will also &#39;normalize&#39; the containment hierarchy (in the sense of standardising it - e.g. making sure there is always a transcript record, even if genbank just specifies CDS and gene)</p>
+
+<p>By default, the GenBank types will be mapped to SO types</p>
+
+<p>See <a href="../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeature/Tools/TypeMapper.html">Bio::SeqFeature::Tools::TypeMapper</a></p>
+
+<h1 id="COMMAND-LINE-ARGUMENTS">COMMAND LINE ARGUMENTS</h1>
+
+<dl>
+
+<dt id="i-input-FILE">-i|input FILE</dt>
+<dd>
+
+<p>input file (can also be specified as last argument)</p>
+
+</dd>
+<dt id="from-FORMAT">-from FORMAT</dt>
+<dd>
+
+<p>input format (defaults to genbank)</p>
+
+<p>probably doesnt make so much sense to use this for non-flat formats; ie other than embl/genbank</p>
+
+</dd>
+<dt id="to-FORMAT">-to FORMAT</dt>
+<dd>
+
+<p>output format (defaults to asciitree)</p>
+
+<p>should really be a format that is nested SeqFeature aware; I think this is only asciitree, chadoxml and gff3</p>
+
+</dd>
+<dt id="gff">-gff</dt>
+<dd>
+
+<p>with export to GFF3 format (pre-3 GFFs make no sense with unflattened sequences, as they have no set way of representing feature graphs)</p>
+
+</dd>
+<dt id="o-output-FILE">-o|output FILE</dt>
+<dd>
+
+<p>outfile defaults to STDOUT</p>
+
+</dd>
+<dt id="detail">-detail</dt>
+<dd>
+
+<p>show extra detail on features (asciitree mode only)</p>
+
+</dd>
+<dt id="e-ethresh-INT">-e|ethresh INT</dt>
+<dd>
+
+<p>sets the error threshold on unflattening</p>
+
+<p>by default this script will throw a wobbly if it encounters weird stuff in the genbank file - raise the error threshold to signal these to be ignored (and reported on STDERR)</p>
+
+</dd>
+<dt id="nomagic">-nomagic</dt>
+<dd>
+
+<p>suppress use_magic in unflattening (see <a href="../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeature/Tools/Unflattener.html">Bio::SeqFeature::Tools::Unflattener</a></p>
+
+</dd>
+<dt id="notypemap">-notypemap</dt>
+<dd>
+
+<p>suppress type mapping (see <a href="../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeature/Tools/TypeMapper.html">Bio::SeqFeature::Tools::TypeMapper</a></p>
+
+</dd>
+</dl>
+
+<h1 id="TODO">TODO</h1>
+
+<p><a href="../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/SeqFeature/Tools/Unflattener.html">Bio::SeqFeature::Tools::Unflattener</a> allows fine-grained control over the unflattening process - need to add more options to allow this control at the command line</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via email or the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<pre><code><code> Chris Mungall E&lt;lt&gt;cjm-at-bioperl.orgE&lt;gt&gt;</code></code></pre>
+
+
+</body>
+
+</html>
+
+

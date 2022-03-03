@@ -1,0 +1,324 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#retrieve_parameter">retrieve_parameter</a></li>
+      <li><a href="#submit_parameter">submit_parameter</a></li>
+      <li><a href="#header">header</a></li>
+      <li><a href="#readmethod">readmethod</a></li>
+      <li><a href="#program">program</a></li>
+      <li><a href="#database">database</a></li>
+      <li><a href="#expect">expect</a></li>
+      <li><a href="#ua">ua</a></li>
+      <li><a href="#proxy">proxy</a></li>
+      <li><a href="#submit_blast">submit_blast</a></li>
+      <li><a href="#retrieve_blast">retrieve_blast</a></li>
+      <li><a href="#save_output">save_output</a></li>
+      <li><a href="#set_url_base">set_url_base</a></li>
+      <li><a href="#get_url_base">get_url_base</a></li>
+      <li><a href="#get_rtoe">get_rtoe</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::RemoteBlast - Object for remote execution of the NCBI Blast via HTTP</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment">#Remote-blast "factory object" creation and blast-parameter initialization</span>
+  
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::RemoteBlast</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$prog</span> <span class="operator">=</span> <span class="string">'blastp'</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$db</span>   <span class="operator">=</span> <span class="string">'swissprot'</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$e_val</span><span class="operator">=</span> <span class="string">'1e-10'</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span> <span class="string">'-prog'</span> <span class="operator">=&gt;</span> <span class="variable">$prog</span><span class="operator">,</span>
+         <span class="string">'-data'</span> <span class="operator">=&gt;</span> <span class="variable">$db</span><span class="operator">,</span>
+         <span class="string">'-expect'</span> <span class="operator">=&gt;</span> <span class="variable">$e_val</span><span class="operator">,</span>
+         <span class="string">'-readmethod'</span> <span class="operator">=&gt;</span> <span class="string">'SearchIO'</span> <span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::RemoteBlast</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="comment">#change a query parameter</span>
+  <span class="variable">$Bio::Tools::Run::RemoteBlast::HEADER</span><span class="operator">{</span><span class="string">'ENTREZ_QUERY'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'Homo sapiens [ORGN]'</span><span class="operator">;</span>
+  
+  <span class="comment">#change a retrieval parameter</span>
+  <span class="variable">$Bio::Tools::Run::RemoteBlast::RETRIEVALHEADER</span><span class="operator">{</span><span class="string">'DESCRIPTIONS'</span><span class="operator">}</span> <span class="operator">=</span> <span class="number">1000</span><span class="operator">;</span>
+  
+  <span class="comment">#remove a parameter</span>
+  <span class="keyword">delete</span> <span class="variable">$Bio::Tools::Run::RemoteBlast::HEADER</span><span class="operator">{</span><span class="string">'FILTER'</span><span class="operator">}</span><span class="operator">;</span>
+  
+  <span class="comment">#$v is just to turn on and off the messages</span>
+  <span class="keyword">my</span> <span class="variable">$v</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$str</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="string">'amino.fa'</span> <span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'fasta'</span> <span class="operator">);</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$input</span> <span class="operator">=</span> <span class="variable">$str</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">()){</span>
+    <span class="comment">#Blast a sequence against a database:</span>
+  
+    <span class="comment">#Alternatively, you could  pass in a file with many</span>
+    <span class="comment">#sequences rather than loop through sequence one at a time</span>
+    <span class="comment">#Remove the loop starting 'while (my $input = $str-&gt;next_seq())'</span>
+    <span class="comment">#and swap the two lines below for an example of that.</span>
+    <span class="keyword">my</span> <span class="variable">$r</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">submit_blast</span><span class="operator">(</span><span class="variable">$input</span><span class="operator">);</span>
+    <span class="comment">#my $r = $factory-&gt;submit_blast('amino.fa');</span>
+  
+    <span class="keyword">print</span> <span class="variable">STDERR</span> <span class="string">"waiting..."</span> <span class="keyword">if</span><span class="operator">(</span> <span class="variable">$v</span> <span class="operator">&gt;</span> <span class="number">0</span> <span class="operator">);</span>
+    <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">@rids</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">each_rid</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$rid</span> <span class="operator">(</span> <span class="variable">@rids</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">$rc</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">retrieve_blast</span><span class="operator">(</span><span class="variable">$rid</span><span class="operator">);</span>
+        <span class="keyword">if</span><span class="operator">(</span> <span class="operator">!</span><span class="keyword">ref</span><span class="operator">(</span><span class="variable">$rc</span><span class="operator">)</span> <span class="operator">)</span> <span class="operator">{</span>
+          <span class="keyword">if</span><span class="operator">(</span> <span class="variable">$rc</span> <span class="operator">&lt;</span> <span class="number">0</span> <span class="operator">)</span> <span class="operator">{</span>
+            <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">remove_rid</span><span class="operator">(</span><span class="variable">$rid</span><span class="operator">);</span>
+          <span class="operator">}</span>
+          <span class="keyword">print</span> <span class="variable">STDERR</span> <span class="string">"."</span> <span class="keyword">if</span> <span class="operator">(</span> <span class="variable">$v</span> <span class="operator">&gt;</span> <span class="number">0</span> <span class="operator">);</span>
+          <span class="keyword">sleep</span> <span class="number">5</span><span class="operator">;</span>
+        <span class="operator">}</span> <span class="keyword">else</span> <span class="operator">{</span>
+          <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$rc</span><span class="operator">-&gt;</span><span class="variable">next_result</span><span class="operator">();</span>
+          <span class="comment">#save the output</span>
+          <span class="keyword">my</span> <span class="variable">$filename</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">query_name</span><span class="operator">().</span><span class="string">"\.out"</span><span class="operator">;</span>
+          <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">save_output</span><span class="operator">(</span><span class="variable">$filename</span><span class="operator">);</span>
+          <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">remove_rid</span><span class="operator">(</span><span class="variable">$rid</span><span class="operator">);</span>
+          <span class="keyword">print</span> <span class="string">"\nQuery Name: "</span><span class="operator">,</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">query_name</span><span class="operator">(),</span> <span class="string">"\n"</span><span class="operator">;</span>
+          <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$hit</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">next_hit</span> <span class="operator">)</span> <span class="operator">{</span>
+            <span class="keyword">next</span> <span class="keyword">unless</span> <span class="operator">(</span> <span class="variable">$v</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="operator">);</span>
+            <span class="keyword">print</span> <span class="string">"\thit name is "</span><span class="operator">,</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">name</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+            <span class="keyword">while</span><span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$hsp</span> <span class="operator">=</span> <span class="variable">$hit</span><span class="operator">-&gt;</span><span class="variable">next_hsp</span> <span class="operator">)</span> <span class="operator">{</span>
+              <span class="keyword">print</span> <span class="string">"\t\tscore is "</span><span class="operator">,</span> <span class="variable">$hsp</span><span class="operator">-&gt;</span><span class="variable">score</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+            <span class="operator">}</span>
+          <span class="operator">}</span>
+        <span class="operator">}</span>
+      <span class="operator">}</span>
+    <span class="operator">}</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># This example shows how to change a CGI parameter:</span>
+  <span class="variable">$Bio::Tools::Run::RemoteBlast::HEADER</span><span class="operator">{</span><span class="string">'MATRIX_NAME'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'BLOSUM45'</span><span class="operator">;</span>
+  <span class="variable">$Bio::Tools::Run::RemoteBlast::HEADER</span><span class="operator">{</span><span class="string">'GAPCOSTS'</span><span class="operator">}</span> <span class="operator">=</span> <span class="string">'15 2'</span><span class="operator">;</span>
+  
+  <span class="comment"># And this is how to delete a CGI parameter:</span>
+  <span class="keyword">delete</span> <span class="variable">$Bio::Tools::Run::RemoteBlast::HEADER</span><span class="operator">{</span><span class="string">'FILTER'</span><span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Class for remote execution of the NCBI Blast via HTTP.</p>
+
+<p>For a description of the many CGI parameters see: http://www.ncbi.nlm.nih.gov/BLAST/Doc/urlapi.html</p>
+
+<p>Various additional options and input formats are available.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Please do NOT contact Jason directly about this module. Please post to the bioperl mailing list (<a>FEEDBACK</a>). If you would like to be the official maintainer of this module, please volunteer on the list and we will make it official in this POD.</p>
+
+<p>First written by Jason Stajich, many others have helped keep it running.</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="retrieve_parameter">retrieve_parameter</h2>
+
+<pre><code><code> Title   : retrieve_parameter
+ Usage   : my $db = $self-&gt;retrieve_parameter
+ Function: Get/Set the named parameter for the retrieve_blast operation.
+ Returns : string
+ Args    : $name : name of GET parameter
+         $val : optional value to set the parameter to</code></code></pre>
+
+<h2 id="submit_parameter">submit_parameter</h2>
+
+<pre><code><code> Title   : submit_parameter
+ Usage   : my $db = $self-&gt;submit_parameter
+ Function: Get/Set the named parameter for the submit_blast operation.
+ Returns : string
+ Args    : $name : name of PUT parameter
+    $val : optional value to set the parameter to</code></code></pre>
+
+<h2 id="header">header</h2>
+
+<pre><code><code> Title   : header
+ Usage   : my $header = $self-&gt;header
+ Function: Get HTTP header for blast query
+ Returns : string
+ Args    : none</code></code></pre>
+
+<h2 id="readmethod">readmethod</h2>
+
+<pre><code><code> Title   : readmethod
+ Usage   : my $readmethod = $self-&gt;readmethod
+ Function: Get/Set the method to read the blast report
+ Returns : string
+ Args    : string [ blast, blasttable, xml ]</code></code></pre>
+
+<h2 id="program">program</h2>
+
+<pre><code><code> Title   : program
+ Usage   : my $prog = $self-&gt;program
+ Function: Get/Set the program to run. Retained for backwards-compatibility.
+ Returns : string
+ Args    : string [ blastp, blastn, blastx, tblastn, tblastx ]</code></code></pre>
+
+<h2 id="database">database</h2>
+
+<pre><code><code> Title   : database
+ Usage   : my $db = $self-&gt;database
+ Function: Get/Set the database to search. Retained for backwards-compatibility.
+ Returns : string
+ Args    : string [ swissprot, nr, nt, etc... ]</code></code></pre>
+
+<h2 id="expect">expect</h2>
+
+<pre><code><code> Title   : expect
+ Usage   : my $expect = $self-&gt;expect
+ Function: Get/Set the E value cutoff. Retained for backwards-compatibility.
+ Returns : string
+ Args    : string [ &#39;1e-4&#39; ]</code></code></pre>
+
+<h2 id="ua">ua</h2>
+
+<pre><code><code> Title   : ua
+ Usage   : my $ua = $self-&gt;ua or
+           $self-&gt;ua($ua)
+ Function: Get/Set a LWP::UserAgent for use
+ Returns : reference to LWP::UserAgent Object
+ Args    : none
+ Comments: Will create a UserAgent if none has been requested before.</code></code></pre>
+
+<h2 id="proxy">proxy</h2>
+
+<pre><code><code> Title   : proxy
+ Usage   : $httpproxy = $db-&gt;proxy(&#39;http&#39;)  or
+           $db-&gt;proxy([&#39;http&#39;,&#39;ftp&#39;], &#39;http://myproxy&#39; )
+ Function: Get/Set a proxy for use of proxy
+ Returns : a string indicating the proxy
+ Args    : $protocol : an array ref of the protocol(s) to set/get
+           $proxyurl : url of the proxy to use for the specified protocol</code></code></pre>
+
+<h2 id="submit_blast">submit_blast</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">submit_blast</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">submit_blast</span><span class="operator">(</span><span class="operator">[</span><span class="variable">$seq1</span><span class="operator">,</span><span class="variable">$seq2</span><span class="operator">]</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Submit</span> <span class="variable">blast</span> <span class="variable">jobs</span> <span class="variable">to</span> <span class="variable">ncbi</span> <span class="variable">blast</span> <span class="variable">queue</span> <span class="variable">on</span> <span class="variable">sequence</span><span class="operator">(</span><span class="regex">s)
+ Returns : Blast report object as defined by </span><span class="variable">$self</span><span class="regex">-&gt;readmethod
+ Args    : input can be:
+           * sequence object
+           * array ref of sequence objects
+           * filename of file containing fasta formatted sequences
+ </span>
+</code></code></pre>
+
+<h2 id="retrieve_blast">retrieve_blast</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">retrieve_blast</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$blastreport</span> <span class="operator">=</span> <span class="variable">$blastfactory</span><span class="operator">-&gt;</span><span class="variable">retrieve_blast</span><span class="operator">(</span><span class="variable">$rid</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Attempts</span> <span class="variable">to</span> <span class="variable">retrieve</span> <span class="variable">a</span> <span class="variable">blast</span> <span class="variable">report</span> <span class="variable">from</span> <span class="variable">remote</span> <span class="variable">blast</span> <span class="variable">queue</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">scalar</span> <span class="keyword">int</span> <span class="operator">(</span><span class="variable">constant</span><span class="operator">)</span> <span class="keyword">or</span> <span class="variable">Bio::SearchIO</span> <span class="variable">object</span>
+           <span class="variable">Constants</span><span class="operator">:</span>
+            <span class="variable">NOT_FINISHED</span> <span class="operator">(=</span> <span class="number">0</span><span class="operator">)</span>   <span class="operator">:</span> <span class="string">'job not finished'</span>
+            <span class="variable">code</span> <span class="variable">on</span> <span class="variable">error</span><span class="operator">:</span>
+              <span class="variable">ERR_QBSTATUS</span> <span class="operator">(=</span> <span class="number">1</span><span class="operator">)</span> <span class="operator">:</span> <span class="keyword">return</span> <span class="variable">line</span> <span class="variable">matches</span> <span class="string">'Status=ERROR'</span>
+              <span class="variable">ERR_NOCONTENT</span> <span class="operator">(=</span> <span class="number">2</span><span class="operator">):</span> <span class="variable">HTTP</span> <span class="variable">request</span> <span class="variable">successful</span><span class="operator">,</span> <span class="variable">but</span> <span class="keyword">no</span> <span class="variable">content</span>
+                                   <span class="variable">returned</span>
+              <span class="variable">ERR_HTTPFAIL</span> <span class="operator">(=</span> <span class="number">4</span><span class="operator">)</span> <span class="operator">:</span> <span class="variable">HTTP</span> <span class="variable">request</span> <span class="variable">failed</span>
+              <span class="variable">ERR_QBNONSPEC</span> <span class="operator">(=</span> <span class="number">8</span><span class="operator">):</span> <span class="keyword">return</span> <span class="variable">line</span> <span class="variable">matches</span> <span class="string">'ERROR'</span> <span class="operator">(</span><span class="keyword">not</span> <span class="variable">status</span> <span class="variable">line</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Remote</span> <span class="variable">Blast</span> <span class="variable">ID</span> <span class="operator">(</span><span class="variable">RID</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="save_output">save_output</h2>
+
+<pre><code><code> Title   : saveoutput
+ Usage   : my $saveoutput = $self-&gt;save_output($filename)
+ Function: Method to save the blast report
+ Returns : 1 (throws error otherwise)
+ Args    : string [rid, filename]</code></code></pre>
+
+<h2 id="set_url_base">set_url_base</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">set_url_base</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">set_url_base</span><span class="operator">(</span><span class="variable">$url</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Method</span> <span class="variable">to</span> <span class="variable">override</span> <span class="variable">the</span> <span class="keyword">default</span> <span class="variable">NCBI</span> <span class="variable">BLAST</span> <span class="variable">database</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">None</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">database</span> <span class="variable">url</span> <span class="variable">like</span>
+ <span class="variable">NOTE</span>    <span class="operator">:</span> <span class="variable">This</span> <span class="variable">is</span> <span class="variable">highly</span> <span class="variable">experimental</span><span class="operator">;</span> <span class="variable">we</span> <span class="variable">cannot</span> <span class="variable">maintain</span> <span class="variable">support</span> <span class="variable">on</span>
+           <span class="variable">databases</span> <span class="variable">other</span> <span class="variable">than</span> <span class="variable">the</span> <span class="keyword">default</span> <span class="variable">NCBI</span> <span class="variable">database</span> <span class="variable">at</span> <span class="variable">this</span> <span class="keyword">time</span>
+</code></code></pre>
+
+<h2 id="get_url_base">get_url_base</h2>
+
+<pre><code><code> Title   : get_url_base
+ Usage   : my $url = $self-&gt;set_url_base
+ Function: Get the current URL for BLAST database searching
+ Returns : string (URL used for remote blast searches)
+ Args    : None</code></code></pre>
+
+<h2 id="get_rtoe">get_rtoe</h2>
+
+<pre><code><code> Title   : get_rtoe
+ Usage   : my $url = $self-&gt;rtoe
+ Function: Retrieve the retrieval time (defined after submit_blast())
+ Returns : number
+ Args    : None</code></code></pre>
+
+
+</body>
+
+</html>
+
+

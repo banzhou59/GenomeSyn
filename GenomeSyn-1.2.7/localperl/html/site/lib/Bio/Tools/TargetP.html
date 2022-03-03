@@ -1,0 +1,260 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHORS---Emmanuel-Quevillon">AUTHORS - Emmanuel Quevillon</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a></li>
+  <li><a href="#analysis_method">analysis_method</a></li>
+  <li><a href="#network">network</a></li>
+  <li><a href="#cleavage">cleavage</a></li>
+  <li><a href="#next_prediction">next_prediction</a></li>
+  <li><a href="#create_feature">create_feature</a>
+    <ul>
+      <li><a href="#PRIVATE-METHODS">PRIVATE METHODS</a></li>
+      <li><a href="#initialize_state">_initialize_state</a></li>
+      <li><a href="#predictions">_predictions</a></li>
+      <li><a href="#parsed">_parsed</a></li>
+      <li><a href="#parse_results">_parse_results</a></li>
+      <li><a href="#parse_line">_parse_line</a></li>
+      <li><a href="#add_feature">_add_feature</a></li>
+      <li><a href="#toString_location">_toString_location</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::TargetP - Results of one TargetP run</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="keyword">use</span> <span class="variable">Bio::Tools::TargetP</span><span class="operator">;</span>
+   
+   <span class="comment">#filename for  TargetP result :</span>
+   <span class="variable">$targetp</span> <span class="operator">=</span> <span class="variable">Bio::Tools::TargetP</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'targetp.out'</span><span class="operator">);</span>
+   
+   <span class="comment"># filehandle for TargetP :</span>
+   <span class="variable">$targetp</span> <span class="operator">=</span> <span class="variable">Bio::Tools::TargetP</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-fh</span>  <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">*INPUT</span> <span class="operator">);</span>
+   
+   <span class="comment">### targetp v1.1 prediction results ##################################</span>
+   <span class="comment">#Number of query sequences:  11</span>
+   <span class="comment">#Cleavage site predictions included.</span>
+   <span class="comment">#Using NON-PLANT networks.</span>
+   <span class="comment">#</span>
+   <span class="comment">#Name                  Len            mTP     SP  other  Loc  RC  TPlen</span>
+   <span class="comment">#----------------------------------------------------------------------</span>
+   <span class="comment">#swall|Q9LIP3|C72Y_AR  500          0.245  0.935  0.009   S    2     22</span>
+   <span class="comment">#swall|Q52813|AAPQ_RH  400          0.170  0.462  0.577   _    5      -</span>
+   <span class="comment">#swall|O86459|AAT_RHI  400          0.346  0.046  0.660   _    4      -</span>
+   
+   
+   
+   <span class="comment"># parse the results</span>
+   <span class="keyword">while</span><span class="operator">(</span><span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$targetp</span><span class="operator">-&gt;</span><span class="variable">next_prediction</span><span class="operator">())</span> <span class="operator">{</span>
+   
+           <span class="comment">#$feature is a Bio::SeqFeature::Generic object</span>
+           <span class="keyword">my</span> <span class="variable">$method</span>     <span class="operator">=</span> <span class="variable">$targetp</span><span class="operator">-&gt;</span><span class="variable">analysis_method</span><span class="operator">();</span>
+           <span class="keyword">my</span> <span class="variable">$vesion</span>     <span class="operator">=</span> <span class="variable">$targetp</span><span class="operator">-&gt;</span><span class="variable">analysis_method_version</span><span class="operator">()</span> <span class="operator">||</span> <span class="variable">$feature</span><span class="operator">-&gt;</span><span class="variable">source</span><span class="operator">();</span>
+           <span class="keyword">my</span> <span class="variable">$seqid</span>      <span class="operator">=</span> <span class="variable">$feature</span><span class="operator">-&gt;</span><span class="variable">seq_id</span><span class="operator">();</span>
+           <span class="comment"># ...</span>
+     <span class="operator">}</span>
+   
+   <span class="comment"># essential if you gave a filename at initialization (otherwise the file</span>
+   <span class="comment"># will stay open)</span>
+   <span class="variable">$targetp</span><span class="operator">-&gt;</span><span class="variable">close</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>TargetP modules will provides parsed information about protein localization. It reads in a targetp output file. It parses the results, and returns a Bio::SeqFeature::Generic object for each seqeunces found to have a subcellular localization</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHORS---Emmanuel-Quevillon">AUTHORS - Emmanuel Quevillon</h1>
+
+<p>Email emmanuel.quevillon@versailles.inra.fr</p>
+
+<p>Describe contact details here</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h1 id="analysis_method">analysis_method</h1>
+
+<pre><code><code> <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">analysis_method</span><span class="operator">();</span>
+ <span class="variable">Purpose</span>   <span class="operator">:</span> <span class="variable">Inherited</span> <span class="variable">method</span><span class="operator">.</span> <span class="variable">Overridden</span> <span class="variable">to</span> <span class="variable">ensure</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">matches</span>
+ <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">String</span>
+ <span class="variable">Argument</span>  <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span>
+</code></code></pre>
+
+<h1 id="network">network</h1>
+
+<pre><code><code>  Title   : network
+  Usage   : $self-&gt;network($network)
+  Function: This method Get/Set the network used for the analysis (PLANT or NON-PLANT)
+  Example :
+  Returns : string
+  Arguments: On set, the network used</code></code></pre>
+
+<h1 id="cleavage">cleavage</h1>
+
+<pre><code><code>  Title    :  cleavage
+  Usage    : $self-&gt;cleavage($cleavage)
+  Function : This method Get/Set if SignalP program was used to run TargetP
+  Example  :
+  Returns  : 1 or 0
+  Arguments: On set, the cleavage used or not</code></code></pre>
+
+<h1 id="next_prediction">next_prediction</h1>
+
+<pre><code><code>  Usage    : $targetp-&gt;next_prediction()
+  Purpose  : Returns the next TargetP prediction
+  Returns  : A Bio::SeqFeature::Generic object
+  Arguments: n/a</code></code></pre>
+
+<h1 id="create_feature">create_feature</h1>
+
+<pre><code><code>  <span class="variable">Title</span>     <span class="operator">:</span> <span class="variable">create_feature</span>
+  <span class="variable">Usage</span>     <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">create_feature</span><span class="operator">(\</span><span class="variable">%hash</span><span class="operator">);</span>
+  <span class="variable">Function</span>  <span class="operator">:</span> <span class="variable">This</span> <span class="variable">method</span> <span class="variable">creates</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::SeqFeature::Generic</span> <span class="variable">object</span>
+  <span class="variable">Example</span>   <span class="operator">:</span> 
+  <span class="variable">Returns</span>   <span class="operator">:</span> <span class="variable">Bio::SeqFeature::Generic</span>
+  <span class="variable">Arguments</span> <span class="operator">:</span> <span class="variable">hash</span> <span class="variable">reference</span>
+</code></code></pre>
+
+<h2 id="PRIVATE-METHODS">PRIVATE METHODS</h2>
+
+<h2 id="initialize_state">_initialize_state</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_initialize_state</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">n</span><span class="operator">/</span><span class="variable">a</span><span class="operator">;</span> <span class="variable">usually</span> <span class="variable">called</span> <span class="variable">by</span> <span class="variable">_initialize</span><span class="operator">()</span> <span class="variable">itself</span> <span class="variable">called</span> <span class="variable">by</span> <span class="variable">new</span><span class="operator">()</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">This</span> <span class="variable">method</span> <span class="variable">is</span> <span class="variable">supposed</span> <span class="variable">to</span> <span class="keyword">reset</span> <span class="variable">the</span> <span class="keyword">state</span> <span class="variable">such</span> <span class="variable">that</span> <span class="variable">any</span> <span class="string">'history'</span>
+           <span class="variable">is</span> <span class="variable">lost</span><span class="operator">.</span> <span class="variable">State</span> <span class="variable">information</span> <span class="variable">that</span> <span class="variable">does</span> <span class="keyword">not</span> <span class="variable">change</span> <span class="variable">during</span> <span class="variable">object</span>
+           <span class="variable">lifetime</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">considered</span> <span class="variable">as</span> <span class="variable">history</span><span class="operator">,</span> <span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.</span> <span class="variable">parent</span><span class="operator">,</span> <span class="variable">name</span><span class="operator">,</span> <span class="variable">etc</span> <span class="variable">shall</span>
+           <span class="keyword">not</span> <span class="variable">be</span> <span class="keyword">reset</span><span class="operator">.</span> <span class="variable">An</span> <span class="variable">inheriting</span> <span class="variable">object</span> <span class="variable">should</span> <span class="variable">only</span> <span class="variable">be</span> <span class="variable">concerned</span> <span class="variable">with</span>
+           <span class="keyword">state</span> <span class="variable">information</span> <span class="variable">it</span> <span class="variable">introduces</span> <span class="variable">itself</span><span class="operator">,</span> <span class="keyword">and</span> <span class="keyword">for</span> <span class="variable">everything</span> <span class="keyword">else</span>
+           <span class="variable">call</span> <span class="variable">SUPER::_initialize_state</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">).</span>
+ 
+           <span class="variable">The</span> <span class="variable">argument</span> <span class="variable">syntax</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">same</span> <span class="variable">as</span> <span class="keyword">for</span> <span class="variable">new</span><span class="operator">()</span> <span class="keyword">and</span> <span class="variable">_initialize</span><span class="operator">(),</span>
+           <span class="variable">i</span><span class="operator">.</span><span class="variable">e</span><span class="operator">.,</span> <span class="variable">named</span> <span class="variable">parameters</span> <span class="variable">following</span> <span class="variable">the</span> <span class="operator">-</span><span class="string">name</span><span class="operator">=&gt;</span><span class="variable">$value</span> <span class="variable">convention</span><span class="operator">.</span>
+           <span class="variable">The</span> <span class="variable">following</span> <span class="variable">parameters</span> <span class="variable">are</span> <span class="variable">dealt</span> <span class="variable">with</span> <span class="variable">by</span> <span class="variable">the</span> <span class="variable">implementation</span>
+           <span class="variable">provided</span> <span class="variable">here</span><span class="operator">:</span>
+              <span class="operator">-</span><span class="variable">INPUT</span><span class="operator">,</span> <span class="operator">-</span><span class="variable">FH</span><span class="operator">,</span> <span class="operator">-</span><span class="variable">FILE</span>
+           <span class="operator">(</span><span class="variable">tags</span> <span class="variable">are</span> <span class="variable">case</span><span class="operator">-</span><span class="variable">insensitive</span><span class="operator">).</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>
+</code></code></pre>
+
+<h2 id="predictions">_predictions</h2>
+
+<pre><code><code>  Usage    : $targetp-&gt;_prediction()
+  Purpose  : Returns the number of TargetP predictions
+  Returns  : A scalar (number)
+  Arguments: n/a</code></code></pre>
+
+<h2 id="parsed">_parsed</h2>
+
+<pre><code><code> Title     : _parsed
+ Usage     : $targetp-&gt;_parsed(1)
+ Function  : This method is used to know if the output result is parsed or not
+             For internal use only
+ Example   :
+ Returns   : 1/0
+ Arguments : 1/0 for setting</code></code></pre>
+
+<h2 id="parse_results">_parse_results</h2>
+
+<pre><code><code>  Title    : _parse_results
+  Usage    : $self-&gt;_parse_results()
+  Function : This method parses a TargetP output
+             For internal use only
+  Example  :
+  Returns  : n/a
+  Arguments: none</code></code></pre>
+
+<h2 id="parse_line">_parse_line</h2>
+
+<pre><code><code> Title    : _parse_line
+ Usage    : $self-&gt;_parse_line($line)
+ Function : This method parses the line result
+            For internal use only
+ Example  :
+ Returns  : Hash reference
+ Arguemnts: line to parse</code></code></pre>
+
+<h2 id="add_feature">_add_feature</h2>
+
+<pre><code><code> Title    : _add_feature
+ Usage    : $self-&gt;_add_feature($feature)
+ Function : This method stores a feature object
+            For internal use only
+ Example  :
+ Returns  : n/a
+ Arguments: Bio::SeqFeature::Generic</code></code></pre>
+
+<h2 id="toString_location">_toString_location</h2>
+
+<pre><code><code> Title    : _toString_location
+ Usage    : $self-&gt;_toString_location($key)
+ Function : This method convert the &#39;one letter code&#39; location to 
+            the corresponding definition
+            For internal use only
+ Example  :
+ Returns  : Location or undef
+ Arguments: String</code></code></pre>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,728 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#SHORTCUTS">SHORTCUTS</a></li>
+  <li><a href="#COMPUTED-VECTORS">COMPUTED VECTORS</a></li>
+  <li><a href="#MISSING-VALUES">MISSING VALUES</a></li>
+  <li><a href="#REUSE-DETAILS">REUSE DETAILS</a></li>
+  <li><a href="#QUERY-FUNCTIONS">QUERY FUNCTIONS</a></li>
+  <li><a href="#INSERT-and-SET-FUNCTIONS">INSERT and SET FUNCTIONS</a></li>
+  <li><a href="#OPTIONS">OPTIONS</a></li>
+  <li><a href="#ENVIRONMENT-VARIABLES">ENVIRONMENT VARIABLES</a></li>
+  <li><a href="#OVERLOADS">OVERLOADS</a></li>
+  <li><a href="#Authors-note-on-Statistics::Descriptive">Author&#39;s note on Statistics::Descriptive</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Statistics::Basic - A collection of very basic statistics modules</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(:all)</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>These actually return objects, not numbers. The objects will interpolate as nicely formated numbers (using <a href="../../../lib/perl5/Number/Format.html">Number::Format</a>). Or the actual number will be returned when the object is used as a number.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$median</span> <span class="operator">=</span> <span class="variable">median</span><span class="operator">(</span> <span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$mean</span>   <span class="operator">=</span> <span class="variable">mean</span><span class="operator">(</span>  <span class="operator">[</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">]</span><span class="operator">);</span> <span class="comment"># array refs are ok too</span>
+    
+    <span class="keyword">my</span> <span class="variable">$variance</span> <span class="operator">=</span> <span class="variable">variance</span><span class="operator">(</span> <span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$stddev</span>   <span class="operator">=</span> <span class="variable">stddev</span><span class="operator">(</span>   <span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Although passing unblessed numbers and array refs to these functions works, it&#39;s sometimes better to pass vector objects so the objects can reuse calculated values.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$v1</span>       <span class="operator">=</span> <span class="variable">$mean</span><span class="operator">-&gt;</span><span class="variable">query_vector</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$variance</span> <span class="operator">=</span> <span class="variable">variance</span><span class="operator">(</span> <span class="variable">$v1</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$stddev</span>   <span class="operator">=</span> <span class="variable">stddev</span><span class="operator">(</span>   <span class="variable">$v1</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Here, the mean used by the variance and the variance used by the standard deviation will not need to be recalculated. Now consider these two calculations.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$covariance</span>  <span class="operator">=</span> <span class="variable">covariance</span><span class="operator">(</span>  <span class="operator">[</span><span class="number">1</span> <span class="operator">..</span> <span class="number">3</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">[</span><span class="number">1</span> <span class="operator">..</span> <span class="number">3</span><span class="operator">]</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$correlation</span> <span class="operator">=</span> <span class="variable">correlation</span><span class="operator">(</span> <span class="operator">[</span><span class="number">1</span> <span class="operator">..</span> <span class="number">3</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">[</span><span class="number">1</span> <span class="operator">..</span> <span class="number">3</span><span class="operator">]</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>The covariance above would need to be recalculated by the correlation when these functions are called this way. But, if we instead built vectors first, that wouldn&#39;t happen:</p>
+
+<pre><code><code>    <span class="comment"># $v1 is defined above</span>
+    <span class="keyword">my</span> <span class="variable">$v2</span>  <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$cov</span> <span class="operator">=</span> <span class="variable">covariance</span><span class="operator">(</span>  <span class="variable">$v1</span><span class="operator">,</span> <span class="variable">$v2</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$cor</span> <span class="operator">=</span> <span class="variable">correlation</span><span class="operator">(</span> <span class="variable">$v1</span><span class="operator">,</span> <span class="variable">$v2</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Now <code><code>$cor</code></code> can reuse the variance calculated in <code><code>$cov</code></code>.</p>
+
+<p>All of the functions above return objects that interpolate or evaluate as a single string or as a number. <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/LeastSquareFit.html">Statistics::Basic::LeastSquareFit</a> and <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Mode.html">Statistics::Basic::Mode</a> are different:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$unimodal</span>   <span class="operator">=</span> <span class="variable">mode</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$multimodal</span> <span class="operator">=</span> <span class="variable">mode</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+    
+    <span class="keyword">print</span> <span class="string">"The modes are: </span><span class="variable">$unimodal</span><span class="string"> and </span><span class="variable">$multimodal</span><span class="string">.\n"</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"The first is multimodal... "</span> <span class="keyword">if</span> <span class="variable">$unimodal</span><span class="operator">-&gt;</span><span class="variable">is_multimodal</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"The second is multimodal.\n"</span> <span class="keyword">if</span> <span class="variable">$multimodal</span><span class="operator">-&gt;</span><span class="variable">is_multimodal</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>In the first case, <code><code>$unimodal</code></code> will interpolate as a string <b>and</b> function correctly as a number. However, in the second case, trying to use <code><code>$multimodal</code></code> as a number will <code><code>croak</code></code> an error -- it still interpolates fine though.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$lsf</span> <span class="operator">=</span> <span class="variable">leastsquarefit</span><span class="operator">(</span><span class="variable">$v1</span><span class="operator">,</span> <span class="variable">$v2</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>This <code><code>$lsf</code></code> will interpolate fine, showing <code><code>LSF( alpha: $alpha, beta: $beta )</code></code>, but it will <code><code>croak</code></code> if you try to use the object as a number.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$v3</span>             <span class="operator">=</span> <span class="variable">$multimodal</span><span class="operator">-&gt;</span><span class="variable">query</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$alpha</span><span class="operator">,</span> <span class="variable">$beta</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$lsf</span><span class="operator">-&gt;</span><span class="variable">query</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$average</span>        <span class="operator">=</span> <span class="variable">$mean</span><span class="operator">-&gt;</span><span class="variable">query</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>All of the objects allow you to explicitly query, if you&#39;re not in the mood to use <a href="../../../lib/overload.html">overload</a>.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@answers</span> <span class="operator">=</span> <span class="operator">(</span>
+        <span class="variable">$mode</span><span class="operator">-&gt;</span><span class="variable">query</span><span class="operator">,</span>
+        <span class="variable">$median</span><span class="operator">-&gt;</span><span class="variable">query</span><span class="operator">,</span>
+        <span class="variable">$stddev</span><span class="operator">-&gt;</span><span class="variable">query</span><span class="operator">,</span>
+    <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="SHORTCUTS">SHORTCUTS</h1>
+
+<p>The following shortcut functions can be used in place of calling the module&#39;s <code><code>new()</code></code> method directly.</p>
+
+<p>They all take either array refs <b>or</b> lists as arguments, with the exception of the shortcuts that need two vectors to process (e.g. <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Correlation.html">Statistics::Basic::Correlation</a>).</p>
+
+<dl>
+
+<dt id="vector-"><b>vector()</b></dt>
+<dd>
+
+<p>Returns a <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Vector.html">Statistics::Basic::Vector</a> object. Arguments to <code><code>vector()</code></code> can be any of: an array ref, a list of numbers, or a blessed vector object. If passed a blessed vector object, vector will just return the vector passed in.</p>
+
+</dd>
+<dt id="mean-average-avg-"><b>mean()</b> <b>average()</b> <b>avg()</b></dt>
+<dd>
+
+<p>Returns a <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Mean.html">Statistics::Basic::Mean</a> object. You can choose to call <code><code>mean()</code></code> as <code><code>average()</code></code> or <code><code>avg()</code></code>. Arguments can be any of: an array ref, a list of numbers, or a blessed vector object.</p>
+
+</dd>
+<dt id="median-"><b>median()</b></dt>
+<dd>
+
+<p>Returns a <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Median.html">Statistics::Basic::Median</a> object. Arguments can be any of: an array ref, a list of numbers, or a blessed vector object.</p>
+
+</dd>
+<dt id="mode-"><b>mode()</b></dt>
+<dd>
+
+<p>Returns a <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Mode.html">Statistics::Basic::Mode</a> object. Arguments can be any of: an array ref, a list of numbers, or a blessed vector object.</p>
+
+</dd>
+<dt id="variance-var-"><b>variance()</b> <b>var()</b></dt>
+<dd>
+
+<p>Returns a <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Variance.html">Statistics::Basic::Variance</a> object. You can choose to call <code><code>variance()</code></code> as <code><code>var()</code></code>. Arguments can be any of: an array ref, a list of numbers, or a blessed vector object. If you will also be calculating the mean of the same list of numbers it&#39;s recommended to do this:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$vec</span>  <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$mean</span> <span class="operator">=</span> <span class="variable">mean</span><span class="operator">(</span><span class="variable">$vec</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$var</span>  <span class="operator">=</span> <span class="variable">variance</span><span class="operator">(</span><span class="variable">$vec</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>This would also work:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$mean</span> <span class="operator">=</span> <span class="variable">mean</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$var</span>  <span class="operator">=</span> <span class="variable">variance</span><span class="operator">(</span><span class="variable">$mean</span><span class="operator">-&gt;</span><span class="variable">query_vector</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>This will calculate the same mean twice:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$mean</span> <span class="operator">=</span> <span class="variable">mean</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$var</span>  <span class="operator">=</span> <span class="variable">variance</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>If you really only need the variance, ignore the above and this is fine:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$variance</span> <span class="operator">=</span> <span class="variable">variance</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">,</span><span class="number">4</span><span class="operator">,</span><span class="number">5</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="stddev-"><b>stddev()</b></dt>
+<dd>
+
+<p>Returns a <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/StdDev.html">Statistics::Basic::StdDev</a> object. Arguments can be any of: an array ref, a list of numbers, or a blessed vector object. Pass a vector object to <code><code>stddev()</code></code> to avoid recalculating the variance and mean if applicable (see <code><code>variance()</code></code>).</p>
+
+</dd>
+<dt id="covariance-cov-"><b>covariance()</b> <b>cov()</b></dt>
+<dd>
+
+<p>Returns a <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Covariance.html">Statistics::Basic::Covariance</a> object. Arguments to <code><code>covariance()</code></code> or <code><code>cov()</code></code> must be array ref or vector objects. There must be precisely two arguments (or none, setting the vectors to two empty ones), and they must be the same length.</p>
+
+</dd>
+<dt id="correlation-cor-corr-"><b>correlation()</b> <b>cor()</b> <b>corr()</b></dt>
+<dd>
+
+<p>Returns a <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Correlation.html">Statistics::Basic::Correlation</a> object. Arguments to <code><code>correlation()</code></code> or <code><code>cor()</code></code>/<code><code>corr()</code></code> must be array ref or vector objects. There must be precisely two arguments (or none, setting the vectors to two empty ones), and they must be the same length.</p>
+
+</dd>
+<dt id="leastsquarefit-LSF-lsf-"><b>leastsquarefit()</b> <b>LSF()</b> <b>lsf()</b></dt>
+<dd>
+
+<p>Returns a <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/LeastSquareFit.html">Statistics::Basic::LeastSquareFit</a> object. Arguments to <code><code>leastsquarefit()</code></code> or <code><code>lsf()</code></code>/<code><code>LSF()</code></code> must be array ref or vector objects. There must be precisely two arguments (or none, setting the vectors to two empty ones), and they must be the same length.</p>
+
+</dd>
+<dt id="computed-"><b>computed()</b></dt>
+<dd>
+
+<p>Returns a <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/ComputedVector.html">Statistics::Basic::ComputedVector</a> object. Argument must be a blessed vector object. See the section on <a href="#COMPUTED-VECTORS">&quot;COMPUTED VECTORS&quot;</a> for more information on this.</p>
+
+</dd>
+<dt id="handle_missing_values-handle_missing-"><b>handle_missing_values()</b> <b>handle_missing()</b></dt>
+<dd>
+
+<p>Returns two <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/ComputedVector.html">Statistics::Basic::ComputedVector</a> objects. Arguments to this function should be two vector arguments. See the section on <a href="#MISSING-VALUES">&quot;MISSING VALUES&quot;</a> for further information on this function.</p>
+
+</dd>
+</dl>
+
+<h1 id="COMPUTED-VECTORS">COMPUTED VECTORS</h1>
+
+<p>Sometimes it will be handy to have a vector computed from another (or at least that updates based on the first). Consider the case of outliers:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@a</span> <span class="operator">=</span> <span class="operator">(</span> <span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">)</span> <span class="operator">x</span> <span class="number">7</span><span class="operator">,</span> <span class="number">15</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">@b</span> <span class="operator">=</span> <span class="operator">(</span> <span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">)</span> <span class="operator">x</span> <span class="number">7</span> <span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">$v1</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="variable">@a</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$v2</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="variable">@b</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$v3</span> <span class="operator">=</span> <span class="variable">computed</span><span class="operator">(</span><span class="variable">$v1</span><span class="operator">);</span>
+       <span class="variable">$v3</span><span class="operator">-&gt;</span><span class="variable">set_filter</span><span class="operator">(</span><span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+           <span class="keyword">my</span> <span class="variable">$m</span> <span class="operator">=</span> <span class="variable">mean</span><span class="operator">(</span><span class="variable">$v1</span><span class="operator">);</span>
+           <span class="keyword">my</span> <span class="variable">$s</span> <span class="operator">=</span> <span class="variable">stddev</span><span class="operator">(</span><span class="variable">$v1</span><span class="operator">);</span>
+    
+           <span class="keyword">grep</span> <span class="operator">{</span> <span class="keyword">abs</span><span class="operator">(</span><span class="variable">$_</span><span class="operator">-</span><span class="variable">$m</span><span class="operator">)</span> <span class="operator">&lt;=</span> <span class="variable">$s</span> <span class="operator">}</span> <span class="variable">@_</span><span class="operator">;</span>
+       <span class="operator">});</span>
+</code></code></pre>
+
+<p>This filter sets <code><code>$v3</code></code> to always be equal to <code><code>$v1</code></code> such that all the elements that differ from the mean by more than a standard deviation are removed. As such, <code><code>&quot;$v2&quot; eq &quot;$v3&quot;</code></code> since <code><code>15</code></code> is clearly an outlier by inspection.</p>
+
+<pre><code><code>    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$v1</span><span class="string">\n"</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$v3</span><span class="string">\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>... prints:</p>
+
+<pre><code><code>    [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 15]
+    [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]</code></code></pre>
+
+<h1 id="MISSING-VALUES">MISSING VALUES</h1>
+
+<p>Something I get asked about quite a lot is, &quot;can S::B handle missing values?&quot; The answer used to be, &quot;that really depends on your data set, use <a href="../../../lib/pod/perlfunc.html#grep">grep</a>,&quot; but I recently decided (5/29/09) that it was time to just go ahead and add this feature.</p>
+
+<p>Strictly speaking, the feature was already there. You simply need to add a couple filters to your data. See <code><code>t/75_filtered_missings.t</code></code> for the test example.</p>
+
+<p>This is what people usually mean when they ask if S::B can &quot;handle&quot; missing data:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$v1</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">,</span><span class="keyword">undef</span><span class="operator">,</span><span class="number">4</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$v2</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">,</span><span class="number">4</span><span class="operator">,</span> <span class="keyword">undef</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$v3</span> <span class="operator">=</span> <span class="variable">computed</span><span class="operator">(</span><span class="variable">$v1</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$v4</span> <span class="operator">=</span> <span class="variable">computed</span><span class="operator">(</span><span class="variable">$v2</span><span class="operator">);</span>
+    
+    <span class="variable">$v3</span><span class="operator">-&gt;</span><span class="variable">set_filter</span><span class="operator">(</span><span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">@v</span> <span class="operator">=</span> <span class="variable">$v2</span><span class="operator">-&gt;</span><span class="variable">query</span><span class="operator">;</span>
+        <span class="keyword">map</span> <span class="operator">{</span><span class="variable">$_</span><span class="operator">[</span><span class="variable">$_</span><span class="operator">]</span><span class="operator">}</span> <span class="keyword">grep</span> <span class="operator">{</span> <span class="keyword">defined</span> <span class="variable">$v</span><span class="operator">[</span><span class="variable">$_</span><span class="operator">]</span> <span class="keyword">and</span> <span class="keyword">defined</span> <span class="variable">$_</span><span class="operator">[</span><span class="variable">$_</span><span class="operator">]</span> <span class="operator">}</span> <span class="number">0</span> <span class="operator">..</span> <span class="variable">$#_</span><span class="operator">;</span>
+    <span class="operator">});</span>
+    
+    <span class="variable">$v4</span><span class="operator">-&gt;</span><span class="variable">set_filter</span><span class="operator">(</span><span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+        <span class="keyword">my</span> <span class="variable">@v</span> <span class="operator">=</span> <span class="variable">$v1</span><span class="operator">-&gt;</span><span class="variable">query</span><span class="operator">;</span>
+        <span class="keyword">map</span> <span class="operator">{</span><span class="variable">$_</span><span class="operator">[</span><span class="variable">$_</span><span class="operator">]</span><span class="operator">}</span> <span class="keyword">grep</span> <span class="operator">{</span> <span class="keyword">defined</span> <span class="variable">$v</span><span class="operator">[</span><span class="variable">$_</span><span class="operator">]</span> <span class="keyword">and</span> <span class="keyword">defined</span> <span class="variable">$_</span><span class="operator">[</span><span class="variable">$_</span><span class="operator">]</span> <span class="operator">}</span> <span class="number">0</span> <span class="operator">..</span> <span class="variable">$#_</span><span class="operator">;</span>
+    <span class="operator">});</span>
+    
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$v1</span><span class="string"> </span><span class="variable">$v2</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># prints: [1, 2, 3, _, 4] [1, 2, 3, 4, _]</span>
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$v3</span><span class="string"> </span><span class="variable">$v4</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># prints: [1, 2, 3] [1, 2, 3]</span>
+</code></code></pre>
+
+<p>But I&#39;ve made it even simpler. Since this is such a common request, I have provided a helper function to build the filters automatically:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$v1</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">,</span><span class="keyword">undef</span><span class="operator">,</span><span class="number">4</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$v2</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">,</span><span class="number">4</span><span class="operator">,</span> <span class="keyword">undef</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$f1</span><span class="operator">,</span> <span class="variable">$f2</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">handle_missing_values</span><span class="operator">(</span><span class="variable">$v1</span><span class="operator">,</span> <span class="variable">$v2</span><span class="operator">);</span>
+    
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$f1</span><span class="string"> </span><span class="variable">$f2</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># prints: [1, 2, 3] [1, 2, 3]</span>
+</code></code></pre>
+
+<p>Note that in practice, you would still manipulate (insert, and shift) <code><code>$v1</code></code> and <code><code>$v2</code></code>, <i>not</i> the computed vectors. But for correlations and the like, you would use <code><code>$f1</code></code> and <code><code>$f2</code></code>.</p>
+
+<pre><code><code>    <span class="variable">$v1</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="number">5</span><span class="operator">);</span>
+    <span class="variable">$v2</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="number">6</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">$correlation</span> <span class="operator">=</span> <span class="variable">correlation</span><span class="operator">(</span><span class="variable">$f1</span><span class="operator">,</span> <span class="variable">$f2</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>You can still insert on <code><code>$f1</code></code> and <code><code>$f2</code></code>, but it updates the input vector rather than the computed one (which is just a filter handler).</p>
+
+<h1 id="REUSE-DETAILS">REUSE DETAILS</h1>
+
+<p>Most of the objects have a variety of query functions that allow you to extract the objects used within. Although, the objects are smart enough to prevent needless duplication. That is, the following would test would pass:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(:all)</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$v1</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">,</span><span class="number">4</span><span class="operator">,</span><span class="number">5</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$v2</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="variable">$v1</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$sd</span> <span class="operator">=</span> <span class="variable">stddev</span><span class="operator">(</span> <span class="variable">$v1</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$v3</span> <span class="operator">=</span> <span class="variable">$sd</span><span class="operator">-&gt;</span><span class="variable">query_vector</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$m1</span> <span class="operator">=</span> <span class="variable">mean</span><span class="operator">(</span> <span class="variable">$v1</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$m2</span> <span class="operator">=</span> <span class="variable">$sd</span><span class="operator">-&gt;</span><span class="variable">query_mean</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$m3</span> <span class="operator">=</span> <span class="variable">Statistics::Basic::Mean</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="variable">$v1</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$v4</span> <span class="operator">=</span> <span class="variable">$m3</span><span class="operator">-&gt;</span><span class="variable">query_vector</span><span class="operator">;</span>
+    
+    <span class="keyword">use</span> <span class="variable">Scalar::Util</span> <span class="string">qw(refaddr)</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Test</span><span class="operator">;</span> <span class="variable">plan</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">5</span><span class="operator">;</span>
+    
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">refaddr</span><span class="operator">(</span><span class="variable">$v1</span><span class="operator">),</span> <span class="variable">refaddr</span><span class="operator">(</span><span class="variable">$v2</span><span class="operator">)</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">refaddr</span><span class="operator">(</span><span class="variable">$v2</span><span class="operator">),</span> <span class="variable">refaddr</span><span class="operator">(</span><span class="variable">$v3</span><span class="operator">)</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">refaddr</span><span class="operator">(</span><span class="variable">$m1</span><span class="operator">),</span> <span class="variable">refaddr</span><span class="operator">(</span><span class="variable">$m2</span><span class="operator">)</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">refaddr</span><span class="operator">(</span><span class="variable">$m2</span><span class="operator">),</span> <span class="variable">refaddr</span><span class="operator">(</span><span class="variable">$m3</span><span class="operator">)</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">refaddr</span><span class="operator">(</span><span class="variable">$v3</span><span class="operator">),</span> <span class="variable">refaddr</span><span class="operator">(</span><span class="variable">$v4</span><span class="operator">)</span> <span class="operator">);</span>
+    
+    <span class="comment"># this is t/54_* in the distribution</span>
+</code></code></pre>
+
+<p>Also, note that the mean is only calculated once even though we&#39;ve calculated a variance and a standard deviation above.</p>
+
+<p>Suppose you&#39;d like a copy of the <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Variance.html">Statistics::Basic::Variance</a> object that the <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/StdDev.html">Statistics::Basic::StdDev</a> object is using. All of the objects within should be accessible with query functions as follows.</p>
+
+<h1 id="QUERY-FUNCTIONS">QUERY FUNCTIONS</h1>
+
+<dl>
+
+<dt id="query-"><b>query()</b></dt>
+<dd>
+
+<p>This method exists in all of the objects. <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/LeastSquareFit.html">Statistics::Basic::LeastSquareFit</a> is the only one that returns two values (alpha and beta) as a list. <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Vector.html">Statistics::Basic::Vector</a> returns either the list of elements in the vector, or reference to that array (depending on the context). All of the other <code><code>query()</code></code> methods return a single number, the number the module purports to calculate.</p>
+
+</dd>
+<dt id="query_mean-"><b>query_mean()</b></dt>
+<dd>
+
+<p>Returns the <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Mean.html">Statistics::Basic::Mean</a> object used by <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Variance.html">Statistics::Basic::Variance</a> and <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/StdDev.html">Statistics::Basic::StdDev</a>.</p>
+
+</dd>
+<dt id="query_mean1-"><b>query_mean1()</b></dt>
+<dd>
+
+<p>Returns the first <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Mean.html">Statistics::Basic::Mean</a> object used by <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Covariance.html">Statistics::Basic::Covariance</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Correlation.html">Statistics::Basic::Correlation</a> and <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/LeastSquareFit.html">Statistics::Basic::LeastSquareFit</a>.</p>
+
+</dd>
+<dt id="query_mean2-"><b>query_mean2()</b></dt>
+<dd>
+
+<p>Returns the second <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Mean.html">Statistics::Basic::Mean</a> object used by <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Covariance.html">Statistics::Basic::Covariance</a>, and <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Correlation.html">Statistics::Basic::Correlation</a>.</p>
+
+</dd>
+<dt id="query_covariance-"><b>query_covariance()</b></dt>
+<dd>
+
+<p>Returns the <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Covariance.html">Statistics::Basic::Covariance</a> object used by <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Correlation.html">Statistics::Basic::Correlation</a> and <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/LeastSquareFit.html">Statistics::Basic::LeastSquareFit</a>.</p>
+
+</dd>
+<dt id="query_variance-"><b>query_variance()</b></dt>
+<dd>
+
+<p>Returns the <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Variance.html">Statistics::Basic::Variance</a> object used by <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/StdDev.html">Statistics::Basic::StdDev</a>.</p>
+
+</dd>
+<dt id="query_variance1-"><b>query_variance1()</b></dt>
+<dd>
+
+<p>Returns the first <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Variance.html">Statistics::Basic::Variance</a> object used by <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/LeastSquareFit.html">Statistics::Basic::LeastSquareFit</a>.</p>
+
+</dd>
+<dt id="query_vector-"><b>query_vector()</b></dt>
+<dd>
+
+<p>Returns the <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Vector.html">Statistics::Basic::Vector</a> object used by any of the single vector modules.</p>
+
+</dd>
+<dt id="query_vector1-"><b>query_vector1()</b></dt>
+<dd>
+
+<p>Returns the first <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Vector.html">Statistics::Basic::Vector</a> object used by any of the two vector modules.</p>
+
+</dd>
+<dt id="query_vector2-"><b>query_vector2()</b></dt>
+<dd>
+
+<p>Returns the second <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Vector.html">Statistics::Basic::Vector</a> object used by any of the two vector modules.</p>
+
+</dd>
+<dt id="is_multimodal-"><b>is_multimodal()</b></dt>
+<dd>
+
+<p><a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Mode.html">Statistics::Basic::Mode</a> objects sometimes return <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Vector.html">Statistics::Basic::Vector</a> objects instead of numbers. When <code><code>is_multimodal()</code></code> is true, the mode is a vector, not a scalar.</p>
+
+</dd>
+<dt id="y_given_x-"><b>y_given_x()</b></dt>
+<dd>
+
+<p><a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/LeastSquareFit.html">Statistics::Basic::LeastSquareFit</a> is meant for finding a line of best fit. This function can be used to find the <code><code>y</code></code> for a given <code><code>x</code></code> based on the calculated <code><code>$beta</code></code> (slope) and <code><code>$alpha</code></code> (y-offset).</p>
+
+</dd>
+<dt id="x_given_y-"><b>x_given_y()</b></dt>
+<dd>
+
+<p><a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/LeastSquareFit.html">Statistics::Basic::LeastSquareFit</a> is meant for finding a line of best fit. This function can be used to find the <code><code>x</code></code> for a given <code><code>y</code></code> based on the calculated <code><code>$beta</code></code> (slope) and <code><code>$alpha</code></code> (y-offset).</p>
+
+<p>This function can produce divide-by-zero errors since it must divide by the slope to find the <code><code>x</code></code> value. (The slope should rarely be zero though, that&#39;s a vertical line and would represent very odd data points.)</p>
+
+</dd>
+</dl>
+
+<h1 id="INSERT-and-SET-FUNCTIONS">INSERT and SET FUNCTIONS</h1>
+
+<p>These objects are all intended to be useful while processing long columns of data, like data you&#39;d find in a database.</p>
+
+<dl>
+
+<dt id="insert-"><b>insert()</b></dt>
+<dd>
+
+<p>Vectors try to stay the same size when they accept new elements, FIFO style.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$v1</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span> <span class="comment"># a 3 touple</span>
+       <span class="variable">$v1</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="number">4</span><span class="operator">);</span> <span class="comment"># still a 3 touple</span>
+    
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$v1</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># prints: [2, 3, 4]</span>
+    
+    <span class="variable">$v1</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="number">7</span><span class="operator">);</span> <span class="comment"># still a 3 touple</span>
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$v1</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># prints: [3, 4, 7]</span>
+</code></code></pre>
+
+<p>All of the other <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic.html">Statistics::Basic</a> modules have this function too. The modules that track two vectors will need two arguments to insert though.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$mean</span> <span class="operator">=</span> <span class="variable">mean</span><span class="operator">(</span><span class="operator">[</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">]</span><span class="operator">);</span>
+       <span class="variable">$mean</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="number">4</span><span class="operator">);</span>
+    
+    <span class="keyword">print</span> <span class="string">"mean: </span><span class="variable">$mean</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># prints 3 ... (2+3+4)/3</span>
+    
+    <span class="keyword">my</span> <span class="variable">$correlation</span> <span class="operator">=</span> <span class="variable">correlation</span><span class="operator">(</span><span class="variable">$mean</span><span class="operator">-&gt;</span><span class="variable">query_vector</span><span class="operator">,</span>
+        <span class="variable">$mean</span><span class="operator">-&gt;</span><span class="variable">query_vector</span><span class="operator">-&gt;</span><span class="variable">copy</span><span class="operator">);</span>
+    
+    <span class="keyword">print</span> <span class="string">"correlation: </span><span class="variable">$correlation</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># 1</span>
+    
+    <span class="variable">$correlation</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="number">3</span><span class="operator">,</span><span class="number">4</span><span class="operator">);</span>
+    <span class="keyword">print</span> <span class="string">"correlation: </span><span class="variable">$correlation</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># 0.5</span>
+</code></code></pre>
+
+<p>Also, note that the underlying vectors keep track of recalculating automatically.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$v</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$m</span> <span class="operator">=</span> <span class="variable">mean</span><span class="operator">(</span><span class="variable">$v</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$s</span> <span class="operator">=</span> <span class="variable">stddev</span><span class="operator">(</span><span class="variable">$v</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>The mean has not been calculated yet.</p>
+
+<pre><code><code>    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$s</span><span class="string">; </span><span class="variable">$m</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># 0.82; 2</span>
+</code></code></pre>
+
+<p>The mean has been calculated once (even though the <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/StdDev.html">Statistics::Basic::StdDev</a> uses it).</p>
+
+<pre><code><code>    <span class="variable">$v</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="number">4</span><span class="operator">);</span> <span class="keyword">print</span> <span class="string">"</span><span class="variable">$s</span><span class="string">; </span><span class="variable">$m</span><span class="string">\n"</span><span class="operator">;</span> <span class="number">0</span><span class="operator">.</span><span class="number">82</span><span class="operator">;</span> <span class="number">3</span>
+    <span class="variable">$m</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="number">5</span><span class="operator">);</span> <span class="keyword">print</span> <span class="string">"</span><span class="variable">$s</span><span class="string">; </span><span class="variable">$m</span><span class="string">\n"</span><span class="operator">;</span> <span class="number">0</span><span class="operator">.</span><span class="number">82</span><span class="operator">;</span> <span class="number">4</span>
+    <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="number">6</span><span class="operator">);</span> <span class="keyword">print</span> <span class="string">"</span><span class="variable">$s</span><span class="string">; </span><span class="variable">$m</span><span class="string">\n"</span><span class="operator">;</span> <span class="number">0</span><span class="operator">.</span><span class="number">82</span><span class="operator">;</span> <span class="number">5</span>
+</code></code></pre>
+
+<p>The mean has been calculated thrice more and only thrice more.</p>
+
+</dd>
+<dt id="append-ginsert-"><b>append()</b> <b>ginsert()</b></dt>
+<dd>
+
+<p>You can grow the vectors instead of sliding them (FIFO). For this, use <code><code>append()</code></code> (or <code><code>ginsert()</code></code>, same thing).</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$v</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$m</span> <span class="operator">=</span> <span class="variable">mean</span><span class="operator">(</span><span class="variable">$v</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$s</span> <span class="operator">=</span> <span class="variable">stddev</span><span class="operator">(</span><span class="variable">$v</span><span class="operator">);</span>
+    
+    <span class="variable">$v</span><span class="operator">-&gt;</span><span class="variable">append</span><span class="operator">(</span><span class="number">4</span><span class="operator">);</span> <span class="keyword">print</span> <span class="string">"</span><span class="variable">$s</span><span class="string">; </span><span class="variable">$m</span><span class="string">\n"</span><span class="operator">;</span> <span class="number">1.12</span><span class="operator">;</span> <span class="number">2.5</span>
+    <span class="variable">$m</span><span class="operator">-&gt;</span><span class="variable">append</span><span class="operator">(</span><span class="number">5</span><span class="operator">);</span> <span class="keyword">print</span> <span class="string">"</span><span class="variable">$s</span><span class="string">; </span><span class="variable">$m</span><span class="string">\n"</span><span class="operator">;</span> <span class="number">1.41</span><span class="operator">;</span> <span class="number">3</span>
+    <span class="variable">$s</span><span class="operator">-&gt;</span><span class="variable">append</span><span class="operator">(</span><span class="number">6</span><span class="operator">);</span> <span class="keyword">print</span> <span class="string">"</span><span class="variable">$s</span><span class="string">; </span><span class="variable">$m</span><span class="string">\n"</span><span class="operator">;</span> <span class="number">1.71</span><span class="operator">;</span> <span class="number">1.71</span>
+    
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$v</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># [1, 2, 3, 4, 5, 6]</span>
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$s</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># 1.71</span>
+</code></code></pre>
+
+<p>Of course, with a correlation, or a covariance, it&#39;d look more like this:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$c</span> <span class="operator">=</span> <span class="variable">correlation</span><span class="operator">(</span><span class="operator">[</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">[</span><span class="number">3</span><span class="operator">,</span><span class="number">4</span><span class="operator">,</span><span class="number">5</span><span class="operator">]</span><span class="operator">);</span>
+       <span class="variable">$c</span><span class="operator">-&gt;</span><span class="variable">append</span><span class="operator">(</span><span class="number">7</span><span class="operator">,</span><span class="number">7</span><span class="operator">);</span>
+    
+    <span class="keyword">print</span> <span class="string">"c=</span><span class="variable">$c</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># c=0.98</span>
+</code></code></pre>
+
+</dd>
+<dt id="set_vector-"><b>set_vector()</b></dt>
+<dd>
+
+<p>This allows you to set the vector to a known state. It takes either array ref or vector objects.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$v1</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$v2</span> <span class="operator">=</span> <span class="variable">$v1</span><span class="operator">-&gt;</span><span class="variable">copy</span><span class="operator">;</span>
+       <span class="variable">$v2</span><span class="operator">-&gt;</span><span class="variable">set_vector</span><span class="operator">(</span><span class="operator">[</span><span class="number">4</span><span class="operator">,</span><span class="number">5</span><span class="operator">,</span><span class="number">6</span><span class="operator">]</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">$m</span> <span class="operator">=</span> <span class="variable">mean</span><span class="operator">();</span>
+    
+    <span class="variable">$m</span><span class="operator">-&gt;</span><span class="variable">set_vector</span><span class="operator">(</span><span class="operator">[</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">]</span><span class="operator">);</span>
+    <span class="variable">$m</span><span class="operator">-&gt;</span><span class="variable">set_vector</span><span class="operator">(</span><span class="variable">$v2</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">$c</span> <span class="operator">=</span> <span class="variable">correlation</span><span class="operator">();</span>
+    
+    <span class="variable">$c</span><span class="operator">-&gt;</span><span class="variable">set_vector</span><span class="operator">(</span><span class="variable">$v1</span><span class="operator">,</span><span class="variable">$v2</span><span class="operator">);</span>
+    <span class="variable">$c</span><span class="operator">-&gt;</span><span class="variable">set_vector</span><span class="operator">(</span><span class="operator">[</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">[</span><span class="number">4</span><span class="operator">,</span><span class="number">5</span><span class="operator">,</span><span class="number">6</span><span class="operator">]</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="set_size-"><b>set_size()</b></dt>
+<dd>
+
+<p>This sets the size of the vector. When the vector is made bigger, the vector is filled to the new length with leading zeros (i.e., they are the first to be kicked out after new <code><code>insert()</code></code>s.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$v</span> <span class="operator">=</span> <span class="variable">vector</span><span class="operator">(</span><span class="number">1</span><span class="operator">,</span><span class="number">2</span><span class="operator">,</span><span class="number">3</span><span class="operator">);</span>
+       <span class="variable">$v</span><span class="operator">-&gt;</span><span class="variable">set_size</span><span class="operator">(</span><span class="number">7</span><span class="operator">);</span>
+    
+    <span class="keyword">print</span> <span class="string">"</span><span class="variable">$v</span><span class="string">\n"</span><span class="operator">;</span> <span class="comment"># [0, 0, 0, 0, 1, 2, 3]</span>
+    
+    <span class="keyword">my</span> <span class="variable">$m</span> <span class="operator">=</span> <span class="variable">mean</span><span class="operator">();</span>
+       <span class="variable">$m</span><span class="operator">-&gt;</span><span class="variable">set_size</span><span class="operator">(</span><span class="number">7</span><span class="operator">);</span>
+    
+    <span class="keyword">print</span> <span class="string">""</span><span class="operator">,</span> <span class="variable">$m</span><span class="operator">-&gt;</span><span class="variable">query_vector</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+     <span class="comment"># [0, 0, 0, 0, 0, 0, 0]</span>
+    
+    <span class="keyword">my</span> <span class="variable">$c</span> <span class="operator">=</span> <span class="variable">correlation</span><span class="operator">(</span><span class="operator">[</span><span class="number">3</span><span class="operator">]</span><span class="operator">,</span><span class="operator">[</span><span class="number">3</span><span class="operator">]</span><span class="operator">);</span>
+       <span class="variable">$c</span><span class="operator">-&gt;</span><span class="variable">set_size</span><span class="operator">(</span><span class="number">7</span><span class="operator">);</span>
+    
+    <span class="keyword">print</span> <span class="string">""</span><span class="operator">,</span> <span class="variable">$c</span><span class="operator">-&gt;</span><span class="variable">query_vector1</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="string">""</span><span class="operator">,</span> <span class="variable">$c</span><span class="operator">-&gt;</span><span class="variable">query_vector2</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+     <span class="comment"># [0, 0, 0, 0, 0, 0, 3]</span>
+     <span class="comment"># [0, 0, 0, 0, 0, 0, 3]</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h1 id="OPTIONS">OPTIONS</h1>
+
+<p>Each of the following options can be specified on package import like this.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(unbias=0)</span><span class="operator">;</span> <span class="comment"># start with unbias disabled</span>
+    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(unbias=1)</span><span class="operator">;</span> <span class="comment"># start with unbias enabled</span>
+</code></code></pre>
+
+<p>When specified on import, each option has certain defaults.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(unbias)</span><span class="operator">;</span> <span class="comment"># start with unbias enabled</span>
+    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(nofill)</span><span class="operator">;</span> <span class="comment"># start with nofill enabled</span>
+    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(toler)</span><span class="operator">;</span>  <span class="comment"># start with toler disabled</span>
+    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(ipres)</span><span class="operator">;</span>  <span class="comment"># start with ipres=2</span>
+</code></code></pre>
+
+<p>Additionally, with the exception of <a href="#ignore_env">&quot;ignore_env&quot;</a>, they can all be accessed via package variables of the same name in all upper case. Example:</p>
+
+<pre><code><code>    <span class="comment"># code code code</span>
+    
+    <span class="variable">$Statistics::Basic::UNBIAS</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span> <span class="comment"># turn UNBIAS off</span>
+    
+    <span class="comment"># code code code</span>
+    
+    <span class="variable">$Statistics::Basic::UNBIAS</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span> <span class="comment"># turn it back on</span>
+    
+    <span class="comment"># code code code</span>
+    
+    <span class="operator">{</span> 
+        <span class="keyword">local</span> <span class="variable">$Statistics::Basic::DEBUG_STATS_B</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span> <span class="comment"># debug, this block only</span>
+    <span class="operator">}</span>
+     
+</code></code></pre>
+
+<p>Special caveat: <a href="#toler">&quot;toler&quot;</a> can in fact be changed via the package var (e.g., <code><code>$Statistics::Basic::TOLER=0.0001</code></code>). But, for speed reasons, it must be <a href="../../../lib/pod/perlfunc.html#defined">defined</a> before any other packages are imported or it will not actually do anything when changed.</p>
+
+<dl>
+
+<dt id="unbias"><b>unbias</b></dt>
+<dd>
+
+<p>This module uses the <b>sum(X - mean(X))/N</b> definition of variance.</p>
+
+<p>If you wish to use the <i>unbiased</i>, <b>sum(X-mean(X)/(N-1)</b> definition, then set the <code><code>$Statistics::Basic::UNBIAS</code></code> true (possibly with <code><code>use Statistics::Basic qw(unbias)</code></code>).</p>
+
+<p>This can be changed at any time with the package variable or at compile time.</p>
+
+<p>This feature was requested by <code><code>Robert McGehee &lt;xxxxxxxx@wso.williams.edu&gt;</code></code>.</p>
+
+<p>[NOTE 2008-11-06: <a href="http://cpanratings.perl.org/dist/Statistics-Basic">http://cpanratings.perl.org/dist/Statistics-Basic</a>, this can also be called &quot;<b>population (n)</b>&quot; vs &quot;<b>sample (n-1)</b>&quot; and is indeed fully addressed right here!]</p>
+
+</dd>
+<dt id="ipres"><b>ipres</b></dt>
+<dd>
+
+<p><code><code>ipres</code></code> defaults to 2. It is passed to <a href="../../../lib/perl5/Number/Format.html">Number::Format</a> as the second argument to <a href="../../../lib/perl5/Number/Format.html#format_number">format_number()</a> during string interpolation (see: <a href="../../../lib/overload.html">overload</a>).</p>
+
+</dd>
+<dt id="toler"><b>toler</b></dt>
+<dd>
+
+<p>When set, <code><code>$Statistics::Basic::TOLER</code></code> (which is not enabled by default), instructs the stats objects to test true when <i>within</i> some tolerable range, pretty much like this:</p>
+
+<pre><code><code>    <span class="keyword">sub</span><span class="variable"> is_equal </span><span class="operator">{</span>
+        <span class="keyword">return</span> <span class="keyword">abs</span><span class="operator">(</span><span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-</span><span class="variable">$_</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">)&lt;</span><span class="variable">$Statistics::Basic::TOLER</span>
+            <span class="keyword">if</span> <span class="keyword">defined</span><span class="operator">(</span><span class="variable">$Statistics::Basic::TOLER</span><span class="operator">)</span>
+    
+        <span class="keyword">return</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span> <span class="operator">==</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>For performance reasons, this must be defined before the import of any other <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic.html">Statistics::Basic</a> modules or the modules will fail to overload the <code><code>==</code></code> operator.</p>
+
+<p><code><code>$Statistics::Basic::TOLER</code></code> totally disabled:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(:all toler)</span><span class="operator">;</span>
+</code></code></pre>
+
+<p><code><code>$Statistics::Basic::TOLER</code></code> disabled, but changeable:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(:all toler=0)</span><span class="operator">;</span>
+    
+    <span class="variable">$Statistics::Basic::TOLER</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">.</span><span class="number">000_001</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>You can <i>change</i> the tolerance at runtime, but it must be set (or unset) at compile time before the packages load.</p>
+
+</dd>
+<dt id="nofill"><b>nofill</b></dt>
+<dd>
+
+<p>Normally when you set the size of a vector it automatically fills with zeros on the first-out side of the vector. You can disable the autofilling with this option. It can be changed at any time.</p>
+
+</dd>
+<dt id="debug"><b>debug</b></dt>
+<dd>
+
+<p>Enable debugging with <code><code>use Statistics::Basic qw(debug)</code></code> or disable a specific level (including <code><code>0</code></code> to disable) with <code><code>use Statistics::Basic qw(debug=2)</code></code>.</p>
+
+<p>This is also accessible at runtime using <code><code>$Statistics::Basic::DEBUG_STATS_B</code></code> and can be switched on and off at any time.</p>
+
+</dd>
+<dt id="ignore_env"><b>ignore_env</b></dt>
+<dd>
+
+<p>Normally the defaults for these options can be changed in the environment of the program. Example:</p>
+
+<pre><code><code>    UNBIAS=1 perl ./myprog.pl</code></code></pre>
+
+<p>This does the same thing as <code><code>$Statistics::Basic::UNBIAS=1</code></code> or <code><code>use Statistics::Basic qw(unbias)</code></code> unless you disable the <code><code>%ENV</code></code> checking with this option.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Statistics::Basic</span> <span class="string">qw(ignore_env)</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h1 id="ENVIRONMENT-VARIABLES">ENVIRONMENT VARIABLES</h1>
+
+<p>You can change the defaults (assuming <a href="#ignore_env">ignore_env</a> is not used) from your bash prompt. Example:</p>
+
+<pre><code><code>    DEBUG_STATS_B=1 perl ./myprog.pl</code></code></pre>
+
+<dl>
+
+<dt id="ENV-DEBUG_STATS_B-"><b>$ENV{DEBUG_STATS_B}</b></dt>
+<dd>
+
+<p>Sets the default value of <a href="#debug">&quot;debug&quot;</a>.</p>
+
+</dd>
+<dt id="ENV-UNBIAS-"><b>$ENV{UNBIAS}</b></dt>
+<dd>
+
+<p>Sets the default value of <a href="#unbias">&quot;unbias&quot;</a>.</p>
+
+</dd>
+<dt id="ENV-NOFILL-"><b>$ENV{NOFILL}</b></dt>
+<dd>
+
+<p>Sets the default value of <a href="#nofill">&quot;nofill&quot;</a>.</p>
+
+</dd>
+<dt id="ENV-IPRES-"><b>$ENV{IPRES}</b></dt>
+<dd>
+
+<p>Sets the default value of <a href="#ipres">&quot;ipres&quot;</a>.</p>
+
+</dd>
+<dt id="ENV-TOLER-"><b>$ENV{TOLER}</b></dt>
+<dd>
+
+<p>Sets the default value of <a href="#toler">&quot;toler&quot;</a>.</p>
+
+</dd>
+</dl>
+
+<h1 id="OVERLOADS">OVERLOADS</h1>
+
+<p>All of the objects are true in numeric context. All of the objects print useful strings when evaluated as a string. Most of the objects evaluate usefully as numbers, although <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Vector.html">Statistics::Basic::Vector</a> objects, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/ComputedVector.html">Statistics::Basic::ComputedVector</a> objects, and <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/LeastSquareFit.html">Statistics::Basic::LeastSquareFit</a> objects do not -- they instead raise an error.</p>
+
+<h1 id="Authors-note-on-Statistics::Descriptive">Author&#39;s note on Statistics::Descriptive</h1>
+
+<p>I&#39;ve been asked a couple times now why I don&#39;t link to <a>Statistics::Descriptive</a> in my see also section. As a rule, I only link to packages there that I think are related or that I actually used in the package construction. I&#39;ve never personally used Descriptive, but it surely seems to do quite a lot more. In a sense, this package really doesn&#39;t do statistics, not like a scientist would think about it anyway. So I always figured people could find their own way to Descriptive anyway.</p>
+
+<p>The one thing this package does do, that I don&#39;t think Descriptive does (correct me if I&#39;m wrong) is time difference computations. If there are say, 200 things in the mean object, then after inserting (using this package) there&#39;ll still be 200 things, allowing the computation of a moving average, moving stddev, moving correlation, etc. You might argue that this is rarely needed, but it is really the only time I need to compute these things.</p>
+
+<pre><code><code>  <span class="keyword">while</span><span class="operator">(</span> <span class="variable">$data</span> <span class="operator">=</span> <span class="variable">$fetch_sth</span><span class="operator">-&gt;</span><span class="variable">fetchrow_arrayref</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="variable">$mean</span><span class="operator">-&gt;</span><span class="variable">insert</span><span class="operator">(</span><span class="variable">$data</span><span class="operator">);</span>
+      <span class="variable">$moving_avg_sth</span><span class="operator">-&gt;</span><span class="variable">execute</span><span class="operator">(</span><span class="number">0</span> <span class="operator">+</span> <span class="variable">$mean</span><span class="operator">);</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>Since I opened the topic I&#39;d also like to mention that I find this package easier to use. That is a matter of taste and since I wrote this, you might say I&#39;m a little biased. Your mileage may vary.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Paul Miller <code><code>&lt;jettero@cpan.org&gt;</code></code></p>
+
+<p>I am using this software in my own projects... If you find bugs, please please please let me know. :) Actually, let me know if you find it handy at all. Half the fun of releasing this stuff is knowing that people use it.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright 2012 Paul Miller -- Licensed under the LGPL version 2.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>perl(1), <a href="../../../lib/perl5/Number/Format.html">Number::Format</a>, <a href="../../../lib/overload.html">overload</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Vector.html">Statistics::Basic::Vector</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/ComputedVector.html">Statistics::Basic::ComputedVector</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/_OneVectorBase.html">Statistics::Basic::_OneVectorBase</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Mean.html">Statistics::Basic::Mean</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Median.html">Statistics::Basic::Median</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Mode.html">Statistics::Basic::Mode</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Variance.html">Statistics::Basic::Variance</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/StdDev.html">Statistics::Basic::StdDev</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/_TwoVectorBase.html">Statistics::Basic::_TwoVectorBase</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Correlation.html">Statistics::Basic::Correlation</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/Covariance.html">Statistics::Basic::Covariance</a>, <a href="../../../../.cpan/build/Statistics-Basic-1.6607-2yIFGD/blib/lib/Statistics/Basic/LeastSquareFit.html">Statistics::Basic::LeastSquareFit</a></p>
+
+
+</body>
+
+</html>
+
+

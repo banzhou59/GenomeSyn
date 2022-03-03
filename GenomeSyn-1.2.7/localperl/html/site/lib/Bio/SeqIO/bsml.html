@@ -1,0 +1,481 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DEPENDENCIES">DEPENDENCIES</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#NOTE:">NOTE:</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+      <li><a href="#Things-Still-to-Do">Things Still to Do</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Charles-Tilford">AUTHOR - Charles Tilford</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#next_seq">next_seq</a></li>
+      <li><a href="#to_bsml">to_bsml</a></li>
+      <li><a href="#write_seq">write_seq</a></li>
+    </ul>
+  </li>
+  <li><a href="#INTERNAL-METHODS------------------------------------------------------------------------------">INTERNAL METHODS #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-</a>
+    <ul>
+      <li><a href="#parse_location">_parse_location</a></li>
+      <li><a href="#parse_bsml_feature">_parse_bsml_feature</a></li>
+      <li><a href="#parse_bsml_location">_parse_bsml_location</a></li>
+      <li><a href="#parse_reference">_parse_reference</a></li>
+      <li><a href="#parse_annotation">_parse_annotation</a></li>
+      <li><a href="#parse_annotation_old">_parse_annotation_old</a></li>
+      <li><a href="#add_page">_add_page</a></li>
+      <li><a href="#addel">_addel</a></li>
+      <li><a href="#show_dna">_show_dna</a></li>
+      <li><a href="#initialize">_initialize</a></li>
+      <li><a href="#parseparams">_parseparams</a></li>
+      <li><a href="#parse_xml">_parse_xml</a></li>
+    </ul>
+  </li>
+  <li><a href="#TESTING-SCRIPT">TESTING SCRIPT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqIO::bsml - BSML sequence input/output stream</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code> <span class="variable">It</span> <span class="variable">is</span> <span class="variable">probably</span> <span class="variable">best</span> <span class="keyword">not</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="variable">this</span> <span class="variable">object</span> <span class="variable">directly</span><span class="operator">,</span> <span class="variable">but</span> <span class="variable">rather</span> <span class="variable">go</span>
+ <span class="variable">through</span> <span class="variable">the</span> <span class="variable">SeqIO</span> <span class="variable">handler</span> <span class="keyword">system</span><span class="operator">.</span> <span class="variable">To</span> <span class="keyword">read</span> <span class="variable">a</span> <span class="variable">BSML</span> <span class="variable">file</span><span class="operator">:</span>
+ 
+    <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'bsml'</span><span class="operator">);</span>
+ 
+    <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$bioSeqObj</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="comment"># do something with $bioSeqObj</span>
+    <span class="operator">}</span>
+ 
+ <span class="variable">To</span> <span class="keyword">write</span> <span class="variable">a</span> <span class="variable">Seq</span> <span class="variable">object</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">file</span> <span class="variable">handle</span> <span class="variable">in</span> <span class="variable">BSML</span> <span class="variable">XML</span> <span class="keyword">format</span><span class="operator">:</span>
+ 
+    <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span> <span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$seqObj</span><span class="operator">);</span>
+ 
+ <span class="variable">If</span> <span class="variable">instead</span> <span class="variable">you</span> <span class="variable">would</span> <span class="variable">like</span> <span class="variable">a</span> <span class="variable">XML::DOM</span> <span class="variable">object</span> <span class="variable">containing</span> <span class="variable">the</span> <span class="variable">BSML</span><span class="operator">,</span> <span class="keyword">use</span><span class="operator">:</span>
+ 
+    <span class="keyword">my</span> <span class="variable">$newXmlObject</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">to_bsml</span><span class="operator">(</span> <span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$seqObj</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DEPENDENCIES">DEPENDENCIES</h1>
+
+<pre><code><code> In addition to parts of the Bio:: hierarchy, this module uses:
+
+ XML::DOM</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<pre><code><code> This object can transform Bio::Seq objects to and from BSML (XML)
+ flatfiles.</code></code></pre>
+
+<h2 id="NOTE:">NOTE:</h2>
+
+<pre><code><code> 2/1/02 - I have changed the API to more closely match argument
+ passing used by other BioPerl methods ( -tag =&gt; value ). Internal
+ methods are using the same API, but you should not be calling those
+ anyway...</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<pre><code><code> Report bugs to the Bioperl bug tracking system to help us keep track
+ the bugs and their resolution.
+ Bug reports can be submitted via the web:
+
+  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h2 id="Things-Still-to-Do">Things Still to Do</h2>
+
+<pre><code><code> * The module now uses the new Collection.pm system. However,
+   Annotations associated with a Feature object still seem to use the
+   old system, so parsing with the old methods are included..
+
+ * Generate Seq objects with no sequence data but an assigned
+   length. This appears to be an issue with Bio::Seq. It is possible
+   (and reasonable) to make a BSML document with features but no
+   sequence data.
+
+ * Support &lt;Seq-data-import&gt;. Do not know how commonly this is used.
+
+ * Some features are awaiting implementation in later versions of
+   BSML. These include:
+
+       * Nested feature support
+
+       * Complex feature (ie joins)
+
+       * Unambiguity in strand (ie -1,0,1, not just  &#39;complement&#39; )
+
+       * More friendly dblink structures
+
+ * Location.pm (or RangeI::union?) appears to have a bug when &#39;expand&#39;
+   is used.
+
+ * More intelligent hunting for sequence and feature titles? It is not
+   terribly clear where the most appropriate field is located, better
+   grepping (eg looking for a reasonable count for spaces and numbers)
+   may allow for titles better than &quot;AE008041&quot;.</code></code></pre>
+
+<h1 id="AUTHOR---Charles-Tilford">AUTHOR - Charles Tilford</h1>
+
+<p>Bristol-Myers Squibb Bioinformatics</p>
+
+<p>Email tilfordc@bms.com</p>
+
+<p>I have developed the BSML specific code for this package, but have used code from other SeqIO packages for much of the nuts-and-bolts. In particular I have used code from the embl.pm module either directly or as a framework for many of the subroutines that are common to SeqIO modules.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="next_seq">next_seq</h2>
+
+<pre><code><code> Title   : next_seq
+ Usage   : my $bioSeqObj = $stream-&gt;next_seq
+ Function: Retrieves the next sequence from a SeqIO::bsml stream.
+ Returns : A reference to a Bio::Seq::RichSeq object
+ Args    :</code></code></pre>
+
+<h2 id="to_bsml">to_bsml</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">to_bsml</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$domDoc</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">to_bsml</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Generates</span> <span class="variable">an</span> <span class="variable">XML</span> <span class="variable">structure</span> <span class="keyword">for</span> <span class="variable">one</span> <span class="keyword">or</span> <span class="variable">more</span> <span class="variable">Bio::Seq</span> <span class="variable">objects</span><span class="operator">.</span>
+           <span class="variable">If</span> <span class="variable">$seqref</span> <span class="variable">is</span> <span class="variable">an</span> <span class="variable">array</span> <span class="keyword">ref</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">XML</span> <span class="variable">tree</span> <span class="variable">generated</span> <span class="variable">will</span> <span class="variable">include</span>
+           <span class="variable">all</span> <span class="variable">the</span> <span class="variable">sequences</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">array</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">XML</span> <span class="variable">DOM::Document</span> <span class="variable">object</span> <span class="variable">generated</span> <span class="operator">/</span> <span class="variable">modified</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Argument</span> <span class="variable">array</span> <span class="variable">in</span> <span class="variable">form</span> <span class="variable">of</span> <span class="operator">-</span><span class="string">key</span> <span class="operator">=&gt;</span> <span class="variable">val</span><span class="operator">.</span> <span class="variable">Recognized</span> <span class="keyword">keys</span><span class="operator">:</span>
+ 
+      <span class="operator">-</span><span class="variable">seq</span> <span class="variable">A</span> <span class="variable">Bio::Seq</span> <span class="variable">reference</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">reference</span> <span class="variable">of</span> <span class="variable">many</span> <span class="variable">of</span> <span class="variable">them</span>
+ 
+   <span class="operator">-</span><span class="variable">xmldoc</span> <span class="variable">Specifies</span> <span class="variable">an</span> <span class="variable">existing</span> <span class="variable">XML</span> <span class="variable">DOM</span> <span class="variable">document</span> <span class="variable">to</span> <span class="variable">add</span> <span class="variable">the</span> <span class="variable">sequences</span>
+           <span class="variable">to</span><span class="operator">.</span> <span class="variable">If</span> <span class="variable">included</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">only</span> <span class="variable">data</span> <span class="operator">(</span><span class="keyword">no</span> <span class="variable">page</span> <span class="variable">formatting</span><span class="operator">)</span> <span class="variable">will</span>
+           <span class="variable">be</span> <span class="variable">added</span><span class="operator">.</span> <span class="variable">If</span> <span class="keyword">not</span><span class="operator">,</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">XML::DOM::Document</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">made</span><span class="operator">,</span>
+           <span class="keyword">and</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">populated</span> <span class="variable">with</span> <span class="variable">both</span> <span class="operator">&lt;</span><span class="variable">Sequence</span><span class="operator">&gt;</span> <span class="variable">data</span><span class="operator">,</span> <span class="variable">as</span> <span class="variable">well</span> <span class="variable">as</span>
+           <span class="operator">&lt;</span><span class="variable">Page</span><span class="operator">&gt;</span> <span class="variable">display</span> <span class="variable">elements</span><span class="operator">.</span>
+ 
+   <span class="operator">-</span><span class="variable">nodisp</span> <span class="variable">Do</span> <span class="keyword">not</span> <span class="variable">generate</span> <span class="operator">&lt;</span><span class="variable">Display</span><span class="operator">&gt;</span> <span class="variable">elements</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">any</span> <span class="variable">children</span>
+           <span class="variable">thereof</span><span class="operator">,</span> <span class="variable">even</span> <span class="keyword">if</span> <span class="operator">-</span><span class="variable">xmldoc</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">set</span><span class="operator">.</span>
+ 
+ <span class="operator">-</span><span class="variable">skipfeat</span> <span class="variable">If</span> <span class="variable">set</span> <span class="variable">to</span> <span class="string">'all'</span><span class="operator">,</span> <span class="variable">all</span> <span class="operator">&lt;</span><span class="variable">Feature</span><span class="operator">&gt;</span><span class="regex">s will be skipped.  If it is
+           a hash reference, any &lt;Feature&gt; with a class matching a key
+           in the hash will</span> <span class="variable">be</span> <span class="variable">skipped</span> <span class="operator">-</span> <span class="keyword">for</span> <span class="variable">example</span><span class="operator">,</span> <span class="variable">to</span> <span class="variable">skip</span> <span class="string">'source'</span>
+           <span class="keyword">and</span> <span class="string">'score'</span> <span class="variable">features</span><span class="operator">,</span> <span class="keyword">use</span><span class="operator">:</span>
+ 
+               <span class="string">-skipfeat</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">source</span> <span class="operator">=&gt;</span> <span class="string">'Y'</span><span class="operator">,</span> <span class="string">score</span> <span class="operator">=&gt;</span> <span class="string">'Y'</span> <span class="operator">}</span>
+ 
+ <span class="operator">-</span><span class="variable">skiptags</span> <span class="variable">As</span> <span class="variable">above</span><span class="operator">:</span> <span class="keyword">if</span> <span class="variable">set</span> <span class="variable">to</span> <span class="string">'all'</span><span class="operator">,</span> <span class="keyword">no</span> <span class="variable">tags</span> <span class="variable">are</span> <span class="variable">included</span><span class="operator">,</span> <span class="keyword">and</span> <span class="keyword">if</span> <span class="variable">a</span>
+           <span class="variable">hash</span> <span class="variable">reference</span><span class="operator">,</span> <span class="variable">those</span> <span class="variable">specific</span> <span class="variable">tags</span> <span class="variable">will</span> <span class="variable">be</span> <span class="variable">ignored</span><span class="operator">.</span>
+ 
+           <span class="variable">Skipping</span> <span class="variable">some</span> <span class="keyword">or</span> <span class="variable">all</span> <span class="variable">tags</span> <span class="keyword">and</span> <span class="variable">features</span> <span class="variable">can</span> <span class="variable">result</span> <span class="variable">in</span>
+           <span class="variable">noticeable</span> <span class="variable">speed</span> <span class="variable">improvements</span><span class="operator">.</span>
+ 
+   <span class="operator">-</span><span class="variable">nodata</span> <span class="variable">If</span> <span class="variable">true</span><span class="operator">,</span> <span class="variable">then</span> <span class="operator">&lt;</span><span class="variable">Seq</span><span class="operator">-</span><span class="variable">data</span><span class="operator">&gt;</span> <span class="variable">will</span> <span class="keyword">not</span> <span class="variable">be</span> <span class="variable">included</span><span class="operator">.</span>  <span class="variable">This</span> <span class="variable">may</span> <span class="variable">be</span>
+           <span class="variable">useful</span> <span class="keyword">if</span> <span class="variable">you</span> <span class="variable">just</span> <span class="variable">want</span> <span class="variable">annotations</span> <span class="keyword">and</span> <span class="keyword">do</span> <span class="keyword">not</span> <span class="variable">care</span> <span class="variable">about</span>
+           <span class="variable">the</span> <span class="variable">raw</span> <span class="variable">ACTG</span> <span class="variable">information</span><span class="operator">.</span>
+ 
+   <span class="operator">-</span><span class="keyword">return</span> <span class="variable">Default</span> <span class="variable">is</span> <span class="string">'xml'</span><span class="operator">,</span> <span class="variable">which</span> <span class="variable">will</span> <span class="keyword">return</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">BSML</span>
+           <span class="variable">XML</span> <span class="variable">object</span><span class="operator">.</span> <span class="variable">If</span> <span class="variable">set</span> <span class="variable">to</span> <span class="string">'seq'</span> <span class="variable">will</span> <span class="keyword">return</span> <span class="variable">an</span> <span class="variable">array</span> <span class="keyword">ref</span> <span class="variable">of</span> <span class="variable">the</span>
+           <span class="operator">&lt;</span><span class="variable">Sequence</span><span class="operator">&gt;</span> <span class="variable">objects</span> <span class="variable">added</span> <span class="operator">(</span><span class="variable">rather</span> <span class="variable">than</span> <span class="variable">the</span> <span class="variable">whole</span> <span class="variable">XML</span> <span class="variable">object</span><span class="operator">)</span>
+ 
+    <span class="operator">-</span><span class="keyword">close</span> <span class="variable">Early</span> <span class="variable">BSML</span> <span class="variable">browsers</span> <span class="variable">will</span> <span class="variable">crash</span> <span class="keyword">if</span> <span class="variable">an</span> <span class="variable">element</span> <span class="variable">*could</span><span class="operator">*</span> <span class="variable">have</span>
+           <span class="variable">children</span> <span class="variable">but</span> <span class="variable">does</span> <span class="keyword">not</span><span class="operator">,</span> <span class="keyword">and</span> <span class="variable">is</span> <span class="variable">closed</span> <span class="variable">as</span> <span class="variable">an</span> <span class="variable">empty</span> <span class="variable">element</span>
+           <span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.</span> <span class="operator">&lt;</span><span class="variable">Styles</span><span class="operator">/&gt;.</span> <span class="variable">If</span> <span class="operator">-</span><span class="keyword">close</span> <span class="variable">is</span> <span class="variable">true</span><span class="operator">,</span> <span class="variable">then</span> <span class="variable">such</span> <span class="variable">tags</span> <span class="variable">are</span> <span class="keyword">given</span>
+           <span class="variable">a</span> <span class="variable">comment</span> <span class="variable">child</span> <span class="variable">to</span> <span class="variable">explicitly</span> <span class="keyword">close</span> <span class="variable">them</span> <span class="variable">e</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.</span>  <span class="operator">&lt;</span><span class="variable">Styles</span><span class="operator">&gt;&lt;!--</span>
+           <span class="operator">--&gt;&lt;/</span><span class="variable">Styles</span><span class="operator">&gt;.</span> <span class="variable">This</span> <span class="variable">is</span> <span class="keyword">default</span> <span class="variable">true</span><span class="operator">,</span> <span class="variable">set</span> <span class="variable">to</span> <span class="string">"0"</span> <span class="keyword">if</span> <span class="variable">you</span> <span class="keyword">do</span>
+           <span class="keyword">not</span> <span class="variable">want</span> <span class="variable">this</span> <span class="variable">behavior</span><span class="operator">.</span>
+ 
+ <span class="variable">Examples</span> <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$domObj</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">to_bsml</span><span class="operator">(</span> <span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@fourCoolSequenceObjects</span><span class="operator">,</span>
+                                           <span class="string">-skipfeat</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">source</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">}</span><span class="operator">,</span>
+                                           <span class="operator">);</span>
+ 
+            <span class="comment"># Or add sequences to an existing BSML document:</span>
+            <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">to_bsml</span><span class="operator">(</span> <span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@fourCoolSequenceObjects</span><span class="operator">,</span>
+                              <span class="string">-skipfeat</span> <span class="operator">=&gt;</span> <span class="operator">{</span> <span class="string">source</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">}</span><span class="operator">,</span>
+                              <span class="string">-xmldoc</span> <span class="operator">=&gt;</span> <span class="variable">$myBsmlDocumentInProgress</span><span class="operator">,</span>  <span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="write_seq">write_seq</h2>
+
+<pre><code><code> Title   : write_seq
+ Usage   : $obj-&gt;write_seq(@args)
+ Function: Prints out an XML structure for one or more Bio::Seq objects.
+           If $seqref is an array ref, the XML tree generated will include
+           all the sequences in the array. This method is fairly simple,
+           most of the processing is performed within to_bsml.
+ Returns : A reference to the XML object generated / modified
+ Args    : Argument array. Recognized keys:
+
+      -seq A Bio::Seq reference, or an array reference of many of them
+
+           Alternatively, the method may be called simply as...
+
+           $obj-&gt;write_seq( $bioseq )
+
+           ... if only a single argument is passed, it is assumed that
+           it is the sequence object (can also be an array ref of
+           many Seq objects )</code></code></pre>
+
+<p>-printmime If true prints &quot;Content-type: $mimetype\n\n&quot; at top of document, where $mimetype is the value designated by this key. For generic XML use text/xml, for BSML use text/x-bsml</p>
+
+<pre><code><code>   -return This option will be supressed, since the nature of this
+           method is to print out the XML document. If you wish to
+           retrieve the &lt;Sequence&gt; objects generated, use the to_bsml
+           method directly.</code></code></pre>
+
+<h1 id="INTERNAL-METHODS------------------------------------------------------------------------------">INTERNAL METHODS #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-</h1>
+
+<pre><code><code> The following methods are used for internal processing, and should probably
+ not be accessed by the user.</code></code></pre>
+
+<h2 id="parse_location">_parse_location</h2>
+
+<pre><code><code> Title   : _parse_location
+ Usage   : $obj-&gt;_parse_location($xmlDocument, $parentElem, $SeqFeatureObj)
+ Function: Adds &lt;Interval-loc&gt; and &lt;Site-loc&gt; children to &lt;$parentElem&gt; based
+           on locations / sublocations found in $SeqFeatureObj. If
+           sublocations exist, the original location will be ignored.
+ Returns : An array ref containing the elements added to the parent.
+           These will have already been added to &lt;$parentElem&gt;
+ Args    : 0 The DOM::Document being modified
+           1 The DOM::Element parent that you want to add to
+           2 Reference to the Bio::SeqFeature being analyzed</code></code></pre>
+
+<h2 id="parse_bsml_feature">_parse_bsml_feature</h2>
+
+<pre><code><code> Title   : _parse_bsml_feature
+ Usage   : $obj-&gt;_parse_bsml_feature($xmlFeature )
+ Function: Will examine the &lt;Feature&gt; element provided by $xmlFeature and
+           return a generic seq feature.
+ Returns : Bio::SeqFeature::Generic
+ Args    : 0 XML::DOM::Element &lt;Feature&gt; being analyzed.</code></code></pre>
+
+<h2 id="parse_bsml_location">_parse_bsml_location</h2>
+
+<pre><code><code> Title   : _parse_bsml_location
+ Usage   : $obj-&gt;_parse_bsml_feature( $intOrSiteLoc, $gsfObject )
+ Function: Will examine the &lt;Interval-loc&gt; or &lt;Site-loc&gt; element provided
+ Returns : Bio::SeqFeature::Generic
+ Args    : 0 XML::DOM::Element &lt;Interval/Site-loc&gt; being analyzed.
+           1 Optional SeqFeature::Generic to use</code></code></pre>
+
+<h2 id="parse_reference">_parse_reference</h2>
+
+<pre><code><code> Title   : _parse_reference
+ Usage   : $obj-&gt;_parse_reference(@args )
+ Function: Makes a new &lt;Reference&gt; object from a ::Reference, which is
+           then stored in an array provide by -refs. It will be
+           appended to the XML tree later.
+ Returns :
+ Args    : Argument array. Recognized keys:
+
+      -xml The DOM::Document being modified
+
+   -refobj The Annotation::Reference Object
+
+     -refs An array reference to hold the new &lt;Reference&gt; DOM object
+
+       -id Optional. If the XML id for the &#39;calling&#39; element is
+           provided, it will be placed in any &lt;Reference&gt; refs
+           attribute.</code></code></pre>
+
+<h2 id="parse_annotation">_parse_annotation</h2>
+
+<pre><code><code> Title   : _parse_annotation
+ Usage   : $obj-&gt;_parse_annotation(@args )
+ Function: Will examine any Annotations found in -obj. Data found in
+           ::Comment and ::DBLink structures, as well as Annotation
+           description fields are stored in -desc for later
+           generation of &lt;Attribute&gt;s. &lt;Reference&gt; objects are generated
+           from ::References, and are stored in -refs - these will
+           be appended to the XML tree later.
+ Returns :
+ Args    : Argument array. Recognized keys:
+
+      -xml The DOM::Document being modified
+
+      -obj Reference to the Bio object being analyzed
+
+    -descr An array reference for holding description text items
+
+     -refs An array reference to hold &lt;Reference&gt; DOM objects
+
+       -id Optional. If the XML id for the &#39;calling&#39; element is
+           provided, it will be placed in any &lt;Reference&gt; refs
+           attribute.</code></code></pre>
+
+<h2 id="parse_annotation_old">_parse_annotation_old</h2>
+
+<pre><code><code>    Title   : _parse_annotation_old
+ Usage   : $obj-&gt;_parse_annotation_old(@args)
+ Function: As above, but for the old Annotation system.
+           Apparently needed because Features are still using the old-style
+           annotations?
+ Returns :
+ Args    : Argument array. Recognized keys:
+
+      -xml The DOM::Document being modified
+
+      -obj Reference to the Bio object being analyzed
+
+    -descr An array reference for holding description text items
+
+     -refs An array reference to hold &lt;Reference&gt; DOM objects
+
+       -id Optional. If the XML id for the &#39;calling&#39; element is
+           provided, it will be placed in any &lt;Reference&gt; refs
+           attribute.</code></code></pre>
+
+<h2 id="add_page">_add_page</h2>
+
+<pre><code><code> Title   : _add_page
+ Usage   : $obj-&gt;_add_page($xmlDocument, $xmlSequenceObject)
+ Function: Adds a simple &lt;Page&gt; and &lt;View&gt; structure for a &lt;Sequence&gt;
+ Returns : a reference to the newly created &lt;Page&gt;
+ Args    : 0 The DOM::Document being modified
+           1 Reference to the &lt;Sequence&gt; object</code></code></pre>
+
+<h2 id="addel">_addel</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_addel</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_addel</span><span class="operator">(</span><span class="variable">$parentElem</span><span class="operator">,</span> <span class="string">'ChildName'</span><span class="operator">,</span>
+                        <span class="operator">{</span> <span class="string">anAttr</span> <span class="operator">=&gt;</span> <span class="string">'someValue'</span><span class="operator">,</span> <span class="string">anotherAttr</span> <span class="operator">=&gt;</span> <span class="string">'aValue'</span><span class="operator">,</span><span class="operator">}</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Add</span> <span class="variable">an</span> <span class="variable">element</span> <span class="variable">with</span> <span class="variable">attribute</span> <span class="keyword">values</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">DOM</span> <span class="variable">tree</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">newly</span> <span class="variable">added</span> <span class="variable">element</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="number">0</span> <span class="variable">The</span> <span class="variable">DOM::Element</span> <span class="variable">parent</span> <span class="variable">that</span> <span class="variable">you</span> <span class="variable">want</span> <span class="variable">to</span> <span class="variable">add</span> <span class="variable">to</span>
+           <span class="number">1</span> <span class="variable">The</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">new</span> <span class="variable">child</span> <span class="variable">element</span>
+           <span class="number">2</span> <span class="variable">Optional</span> <span class="variable">hash</span> <span class="variable">reference</span> <span class="variable">containing</span>
+             <span class="variable">attribute</span> <span class="string">name</span> <span class="operator">=&gt;</span> <span class="variable">attribute</span> <span class="variable">value</span> <span class="variable">assignments</span>
+</code></code></pre>
+
+<h2 id="show_dna">_show_dna</h2>
+
+<pre><code><code> Title   : _show_dna
+ Usage   : $obj-&gt;_show_dna($newval)
+ Function: (cut-and-pasted directly from embl.pm)
+ Returns : value of _show_dna
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="initialize">_initialize</h2>
+
+<pre><code><code> Title   : _initialize
+ Usage   : $dom = $obj-&gt;_initialize(@args)
+ Function: Coppied from embl.pm, and augmented with initialization of the
+           XML DOM tree
+ Returns :
+ Args    : -file =&gt; the XML file to be parsed</code></code></pre>
+
+<h2 id="parseparams">_parseparams</h2>
+
+<pre><code><code> Title   : _parseparams
+ Usage   : my $paramHash = $obj-&gt;_parseparams(@args)
+ Function: Borrowed from Bio::Parse.pm, who borrowed it from CGI.pm
+           Lincoln Stein -&gt; Richard Resnick -&gt; here
+ Returns : A hash reference of the parameter keys (uppercase) pointing to
+           their values.
+ Args    : An array of key, value pairs. Easiest to pass values as:
+           -key1 =&gt; value1, -key2 =&gt; value2, etc
+           Leading &quot;-&quot; are removed.</code></code></pre>
+
+<h2 id="parse_xml">_parse_xml</h2>
+
+<pre><code><code> Title   : _parse_xml
+ Usage   : $dom = $obj-&gt;_parse_xml($filename)
+ Function: uses XML::DOM to construct a DOM tree from the BSML document
+ Returns : a reference to the parsed DOM tree
+ Args    : 0 Path to the XML file needing to be parsed</code></code></pre>
+
+<h1 id="TESTING-SCRIPT">TESTING SCRIPT</h1>
+
+<pre><code><code> <span class="variable">The</span> <span class="variable">following</span> <span class="variable">script</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">used</span> <span class="variable">to</span> <span class="variable">test</span> <span class="variable">the</span> <span class="variable">conversion</span> <span class="variable">process</span><span class="operator">.</span> <span class="variable">You</span>
+ <span class="variable">will</span> <span class="variable">need</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">of</span> <span class="variable">the</span> <span class="keyword">format</span> <span class="variable">you</span> <span class="variable">wish</span> <span class="variable">to</span> <span class="variable">test</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">script</span> <span class="variable">will</span>
+ <span class="variable">convert</span> <span class="variable">the</span> <span class="variable">file</span> <span class="variable">to</span> <span class="variable">BSML</span><span class="operator">,</span> <span class="variable">store</span> <span class="variable">it</span> <span class="variable">in</span> <span class="operator">/</span><span class="variable">tmp</span><span class="operator">/</span><span class="variable">bsmltemp</span><span class="operator">,</span> <span class="keyword">read</span> <span class="variable">that</span> <span class="variable">file</span>
+ <span class="variable">into</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">SeqIO</span> <span class="variable">stream</span><span class="operator">,</span> <span class="keyword">and</span> <span class="keyword">write</span> <span class="variable">it</span> <span class="variable">back</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">original</span>
+ <span class="keyword">format</span><span class="operator">.</span> <span class="variable">Comparison</span> <span class="variable">of</span> <span class="variable">this</span> <span class="variable">second</span> <span class="variable">file</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">original</span> <span class="variable">input</span> <span class="variable">file</span>
+ <span class="variable">will</span> <span class="variable">allow</span> <span class="variable">you</span> <span class="variable">to</span> <span class="variable">track</span> <span class="variable">where</span> <span class="variable">data</span> <span class="variable">may</span> <span class="variable">be</span> <span class="variable">lost</span> <span class="keyword">or</span> <span class="variable">corrupted</span><span class="operator">.</span> <span class="variable">Note</span>
+ <span class="variable">that</span> <span class="variable">you</span> <span class="variable">will</span> <span class="variable">need</span> <span class="variable">to</span> <span class="variable">specify</span> <span class="variable">$readfile</span> <span class="keyword">and</span> <span class="variable">$readformat</span><span class="operator">.</span>
+ 
+ <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+ <span class="comment"># Tests preservation of details during round-trip conversion:</span>
+ <span class="comment"># $readformat -&gt; BSML -&gt; $readformat</span>
+ <span class="keyword">my</span> <span class="variable">$tempspot</span> <span class="operator">=</span> <span class="string">"/tmp/bsmltemp"</span><span class="operator">;</span>  <span class="comment"># temp folder to hold generated files</span>
+ <span class="keyword">my</span> <span class="variable">$readfile</span> <span class="operator">=</span> <span class="string">"rps4y.embl"</span><span class="operator">;</span>     <span class="comment"># The name of the file you want to test</span>
+ <span class="keyword">my</span> <span class="variable">$readformat</span> <span class="operator">=</span> <span class="string">"embl"</span><span class="operator">;</span>         <span class="comment"># The format of the file being tested</span>
+ 
+ <span class="keyword">system</span> <span class="string">"mkdir </span><span class="variable">$tempspot</span><span class="string">"</span> <span class="keyword">unless</span> <span class="operator">(</span><span class="keyword">-d</span> <span class="variable">$tempspot</span><span class="operator">);</span>
+ <span class="comment"># Make Seq object from the $readfile</span>
+ <span class="keyword">my</span> <span class="variable">$biostream</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"</span><span class="variable">$readfile</span><span class="string">"</span> <span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$biostream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">();</span>
+ 
+ <span class="comment"># Write BSML from SeqObject</span>
+ <span class="keyword">my</span> <span class="variable">$bsmlout</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'bsml'</span><span class="operator">,</span>
+                                   <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"&gt;</span><span class="variable">$tempspot</span><span class="string">/out.bsml"</span><span class="operator">);</span>
+ <span class="keyword">warn</span> <span class="string">"\nBSML written to </span><span class="variable">$tempspot</span><span class="string">/out.bsml\n"</span><span class="operator">;</span>
+ <span class="variable">$bsmlout</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$seq</span><span class="operator">);</span>
+ <span class="comment"># Need to kill object for following code to work... Why is this so?</span>
+ <span class="variable">$bsmlout</span> <span class="operator">=</span> <span class="string">""</span><span class="operator">;</span>
+ 
+ <span class="comment"># Make Seq object from BSML</span>
+ <span class="keyword">my</span> <span class="variable">$bsmlin</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"</span><span class="variable">$tempspot</span><span class="string">/out.bsml"</span><span class="operator">,</span>
+                                  <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'bsml'</span><span class="operator">);</span>
+ <span class="keyword">my</span> <span class="variable">$seq2</span> <span class="operator">=</span> <span class="variable">$bsmlin</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">();</span>
+ 
+ <span class="comment"># Write format back from Seq Object</span>
+ <span class="keyword">my</span> <span class="variable">$genout</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="variable">$readformat</span><span class="operator">,</span>
+                                   <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"&gt;</span><span class="variable">$tempspot</span><span class="string">/out.</span><span class="variable">$readformat</span><span class="string">"</span><span class="operator">);</span>
+ <span class="variable">$genout</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$seq2</span><span class="operator">);</span>
+ <span class="keyword">warn</span> <span class="string">"</span><span class="variable">$readformat</span><span class="string">  written to </span><span class="variable">$tempspot</span><span class="string">/out.</span><span class="variable">$readformat</span><span class="string">\n"</span><span class="operator">;</span>
+ 
+ <span class="comment"># BEING LOST:</span>
+ <span class="comment"># Join information (not possible in BSML 2.2)</span>
+ <span class="comment"># Sequence type (??)</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

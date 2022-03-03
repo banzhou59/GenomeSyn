@@ -1,0 +1,232 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Input-format">Input format</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Heikki-Lehvaslaiho">AUTHOR - Heikki Lehvaslaiho</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#Graph-structure-input-methods">Graph structure input methods</a></li>
+      <li><a href="#graph">graph</a></li>
+      <li><a href="#hash_of_arrays">hash_of_arrays</a></li>
+      <li><a href="#Methods-for-determining-the-shortest-path-in-the-graph">Methods for determining the shortest path in the graph</a></li>
+      <li><a href="#shortest_path">shortest_path</a></li>
+      <li><a href="#dijkstra">dijkstra</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Coordinate::Graph - Finds shortest path between nodes in a graph</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># get a hash of hashes representing the graph. E.g.:</span>
+  <span class="keyword">my</span> <span class="variable">$hash</span><span class="operator">=</span> <span class="operator">{</span>
+             <span class="string">'1'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                     <span class="string">'2'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+                    <span class="operator">}</span><span class="operator">,</span>
+             <span class="string">'2'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                     <span class="string">'4'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                     <span class="string">'3'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+                    <span class="operator">}</span><span class="operator">,</span>
+             <span class="string">'3'</span> <span class="operator">=&gt;</span> <span class="keyword">undef</span><span class="operator">,</span>
+             <span class="string">'4'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                     <span class="string">'5'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+                    <span class="operator">}</span><span class="operator">,</span>
+             <span class="string">'5'</span> <span class="operator">=&gt;</span> <span class="keyword">undef</span>
+            <span class="operator">}</span><span class="operator">;</span>
+  
+  <span class="comment"># create the object;</span>
+  <span class="keyword">my</span> <span class="variable">$graph</span> <span class="operator">=</span> <span class="variable">Bio::Coordinate::Graph</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-graph</span> <span class="operator">=&gt;</span> <span class="variable">$hash</span><span class="operator">);</span>
+  
+  <span class="comment"># find the shortest path between two nodes</span>
+  <span class="keyword">my</span> <span class="variable">$a</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$b</span> <span class="operator">=</span> <span class="number">6</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">@path</span> <span class="operator">=</span> <span class="variable">$graph</span><span class="operator">-&gt;</span><span class="variable">shortest_paths</span><span class="operator">(</span><span class="variable">$a</span><span class="operator">);</span>
+  <span class="keyword">print</span> <span class="keyword">join</span> <span class="operator">(</span><span class="string">", "</span><span class="operator">,</span> <span class="variable">@path</span><span class="operator">),</span> <span class="string">"\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This class calculates the shortest path between input and output coordinate systems in a graph that defines the relationships between them. This class is primarely designed to analyze gene-related coordinate systems. See <a href="../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Coordinate/GeneMapper.html">Bio::Coordinate::GeneMapper</a>.</p>
+
+<p>Note that this module can not be used to manage graphs.</p>
+
+<p>Technically the graph implemented here is known as Directed Acyclic Graph (DAG). DAG is composed of vertices (nodes) and edges (with optional weights) linking them. Nodes of the graph are the coordinate systems in gene mapper.</p>
+
+<p>The shortest path is found using the Dijkstra&#39;s algorithm. This algorithm is fast and greedy and requires all weights to be positive. All weights in the gene coordinate system graph are currently equal (1) making the graph unweighted. That makes the use of Dijkstra&#39;s algorithm an overkill. A simpler and faster breadth-first would be enough. Luckily the difference for small graphs is not significant and the implementation is capable of taking weights into account if needed at some later time.</p>
+
+<h2 id="Input-format">Input format</h2>
+
+<p>The graph needs to be primed using a hash of hashes where there is a key for each node. The second keys are the names of the downstream neighboring nodes and values are the weights for reaching them. Here is part of the gene coordiante system graph::</p>
+
+<pre><code><code>    <span class="variable">$hash</span> <span class="operator">=</span> <span class="operator">{</span>
+             <span class="string">'6'</span> <span class="operator">=&gt;</span> <span class="keyword">undef</span><span class="operator">,</span>
+             <span class="string">'3'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                     <span class="string">'6'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+                    <span class="operator">}</span><span class="operator">,</span>
+             <span class="string">'2'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                     <span class="string">'6'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                     <span class="string">'4'</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+                     <span class="string">'3'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+                    <span class="operator">}</span><span class="operator">,</span>
+             <span class="string">'1'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                     <span class="string">'2'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+                    <span class="operator">}</span><span class="operator">,</span>
+             <span class="string">'4'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                     <span class="string">'5'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+                    <span class="operator">}</span><span class="operator">,</span>
+             <span class="string">'5'</span> <span class="operator">=&gt;</span> <span class="keyword">undef</span>
+            <span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Note that the names need to be positive integers. Root should be &#39;1&#39; and directness of the graph is taken advantage of to speed calculations by assuming that downsream nodes always have larger number as name.</p>
+
+<p>An alternative (shorter) way of describing input is to use hash of arrays. See <a>Bio::Coordinate::Graph::hash_of_arrays</a>.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing lists Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Heikki-Lehvaslaiho">AUTHOR - Heikki Lehvaslaiho</h1>
+
+<p>Email: heikki-at-bioperl-dot-org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="Graph-structure-input-methods">Graph structure input methods</h2>
+
+<h2 id="graph">graph</h2>
+
+<pre><code><code> Title   : graph
+ Usage   : $obj-&gt;graph($my_graph)
+ Function: Read/write method for the graph structure
+ Example : 
+ Returns : hash of hashes grah structure
+ Args    : reference to a hash of hashes</code></code></pre>
+
+<h2 id="hash_of_arrays">hash_of_arrays</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">hash_of_arrays</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">hash_of_array</span><span class="operator">(</span><span class="variable">%hasharray</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">An</span> <span class="variable">alternative</span> <span class="variable">method</span> <span class="variable">to</span> <span class="keyword">read</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">graph</span> <span class="variable">structure</span><span class="operator">.</span>
+           <span class="variable">Hash</span> <span class="variable">arrays</span> <span class="variable">are</span> <span class="variable">easier</span> <span class="variable">to</span> <span class="variable">type</span><span class="operator">.</span> <span class="variable">This</span> <span class="variable">method</span> <span class="variable">converts</span>
+           <span class="variable">arrays</span> <span class="variable">into</span> <span class="variable">hashes</span> <span class="keyword">and</span> <span class="variable">assigns</span> <span class="variable">equal</span> <span class="keyword">values</span> <span class="string">"1"</span> <span class="variable">to</span>
+           <span class="variable">weights</span><span class="operator">.</span>
+ 
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">Here</span> <span class="variable">is</span> <span class="variable">an</span> <span class="variable">example</span> <span class="variable">of</span> <span class="variable">simple</span> <span class="variable">structure</span> <span class="variable">containing</span> <span class="variable">a</span> <span class="variable">graph</span><span class="operator">.</span>
+ 
+           <span class="keyword">my</span> <span class="variable">$DAG</span> <span class="operator">=</span> <span class="operator">{</span>
+                      <span class="number">6</span>  <span class="operator">=&gt;</span> <span class="operator">[]</span><span class="operator">,</span>
+                      <span class="number">5</span>  <span class="operator">=&gt;</span> <span class="operator">[]</span><span class="operator">,</span>
+                      <span class="number">4</span>  <span class="operator">=&gt;</span> <span class="operator">[</span><span class="number">5</span><span class="operator">]</span><span class="operator">,</span>
+                      <span class="number">3</span>  <span class="operator">=&gt;</span> <span class="operator">[</span><span class="number">6</span><span class="operator">]</span><span class="operator">,</span>
+                      <span class="number">2</span>  <span class="operator">=&gt;</span> <span class="operator">[</span><span class="number">3</span><span class="operator">,</span> <span class="number">4</span><span class="operator">,</span> <span class="number">6</span><span class="operator">]</span><span class="operator">,</span>
+                      <span class="number">1</span>  <span class="operator">=&gt;</span> <span class="operator">[</span><span class="number">2</span><span class="operator">]</span>
+                     <span class="operator">}</span><span class="operator">;</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">hash</span> <span class="variable">of</span> <span class="variable">hashes</span> <span class="variable">graph</span> <span class="variable">structure</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="variable">of</span> <span class="variable">arrays</span>
+</code></code></pre>
+
+<h2 id="Methods-for-determining-the-shortest-path-in-the-graph">Methods for determining the shortest path in the graph</h2>
+
+<h2 id="shortest_path">shortest_path</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">shortest_path</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">shortest_path</span><span class="operator">(</span><span class="variable">$a</span><span class="operator">,</span> <span class="variable">$b</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Method</span> <span class="keyword">for</span> <span class="variable">retrieving</span> <span class="variable">the</span> <span class="variable">shortest</span> <span class="variable">path</span> <span class="variable">between</span> <span class="variable">nodes</span><span class="operator">.</span>
+           <span class="variable">If</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">node</span> <span class="variable">remains</span> <span class="variable">the</span> <span class="variable">same</span><span class="operator">,</span> <span class="variable">the</span> <span class="variable">method</span> <span class="variable">is</span> <span class="variable">sometimes</span>
+           <span class="variable">able</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="variable">cached</span> <span class="variable">results</span><span class="operator">,</span> <span class="variable">otherwise</span> <span class="variable">it</span> <span class="variable">will</span> <span class="variable">recalculate</span>
+           <span class="variable">the</span> <span class="variable">paths</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">node</span> <span class="variable">names</span><span class="operator">,</span> <span class="variable">only</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">node</span> <span class="variable">name</span> <span class="keyword">if</span> <span class="keyword">no</span> <span class="variable">path</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">node</span>
+         <span class="operator">:</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">end</span> <span class="variable">node</span>
+</code></code></pre>
+
+<h2 id="dijkstra">dijkstra</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">dijkstra</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$graph</span><span class="operator">-&gt;</span><span class="variable">dijkstra</span><span class="operator">(</span><span class="number">1</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Implements</span> <span class="variable">Dijkstra's</span> <span class="variable">algorithm</span><span class="operator">.</span>
+           <span class="variable">Returns</span> <span class="keyword">or</span> <span class="variable">sets</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">mappers</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">returned</span> <span class="variable">path</span>
+           <span class="variable">description</span> <span class="variable">is</span> <span class="variable">always</span> <span class="variable">directed</span> <span class="variable">down</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">root</span><span class="operator">.</span>
+           <span class="variable">Called</span> <span class="variable">from</span> <span class="variable">shortest_path</span><span class="operator">().</span>
+ <span class="variable">Example</span> <span class="operator">:</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Reference</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="variable">of</span> <span class="variable">hashes</span> <span class="variable">representing</span> <span class="variable">a</span> <span class="variable">linked</span> <span class="variable">list</span>
+           <span class="variable">which</span> <span class="variable">contains</span> <span class="variable">shortest</span> <span class="variable">path</span> <span class="variable">down</span> <span class="variable">to</span> <span class="variable">all</span> <span class="variable">nodes</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">start</span>
+           <span class="variable">node</span><span class="operator">.</span> <span class="variable">E</span><span class="operator">.</span><span class="variable">g</span><span class="operator">.:</span>
+ 
+            <span class="variable">$res</span> <span class="operator">=</span> <span class="operator">{</span>
+                      <span class="string">'2'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                               <span class="string">'prev'</span> <span class="operator">=&gt;</span> <span class="string">'1'</span><span class="operator">,</span>
+                               <span class="string">'dist'</span> <span class="operator">=&gt;</span> <span class="number">1</span>
+                             <span class="operator">}</span><span class="operator">,</span>
+                      <span class="string">'1'</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+                               <span class="string">'prev'</span> <span class="operator">=&gt;</span> <span class="keyword">undef</span><span class="operator">,</span>
+                               <span class="string">'dist'</span> <span class="operator">=&gt;</span> <span class="number">0</span>
+                             <span class="operator">}</span><span class="operator">,</span>
+                    <span class="operator">}</span><span class="operator">;</span>
+ 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">start</span> <span class="variable">node</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

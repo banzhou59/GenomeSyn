@@ -1,0 +1,426 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Implementation">Implementation</a></li>
+    </ul>
+  </li>
+  <li><a href="#THE-TIGR-TASM-LASSIE-FORMAT">THE TIGR TASM LASSIE FORMAT</a>
+    <ul>
+      <li><a href="#Description">Description</a></li>
+      <li><a href="#Example">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Florent-E-Angly">AUTHOR - Florent E Angly</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#next_assembly">next_assembly</a></li>
+      <li><a href="#next_contig">next_contig</a></li>
+      <li><a href="#qual_hex2dec">_qual_hex2dec</a></li>
+      <li><a href="#qual_dec2hex">_qual_dec2hex</a></li>
+      <li><a href="#store_contig">_store_contig</a></li>
+      <li><a href="#store_read">_store_read</a></li>
+      <li><a href="#store_singlet">_store_singlet</a></li>
+      <li><a href="#write_assembly">write_assembly</a></li>
+      <li><a href="#write_contig">write_contig</a></li>
+      <li><a href="#write_header">write_header</a></li>
+      <li><a href="#write_footer">write_footer</a></li>
+      <li><a href="#perc_N">_perc_N</a></li>
+      <li><a href="#redundancy">_redundancy</a></li>
+      <li><a href="#ungap">_ungap</a></li>
+      <li><a href="#date_time">_date_time</a></li>
+      <li><a href="#split_seq_name_and_db">_split_seq_name_and_db</a></li>
+      <li><a href="#merge_seq_name_and_db">_merge_seq_name_and_db</a></li>
+      <li><a href="#coord">_coord</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Assembly::IO::tigr - Driver to read and write assembly files in the TIGR Assembler v2 default format.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment"># Building an input stream</span>
+    <span class="keyword">use</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">;</span>
+    
+    <span class="comment"># Assembly loading methods</span>
+    <span class="keyword">my</span> <span class="variable">$asmio</span> <span class="operator">=</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'SGC0-424.tasm'</span><span class="operator">,</span>
+                                        <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'tigr'</span> <span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">$scaffold</span> <span class="operator">=</span> <span class="variable">$asmio</span><span class="operator">-&gt;</span><span class="variable">next_assembly</span><span class="operator">;</span>
+    
+    <span class="comment"># Do some things on contigs...</span>
+    
+    <span class="comment"># Assembly writing methods</span>
+    <span class="keyword">my</span> <span class="variable">$outasm</span> <span class="operator">=</span> <span class="variable">Bio::Assembly::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">"&gt;SGC0-modified.tasm"</span><span class="operator">,</span>
+                                         <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'tigr'</span> <span class="operator">);</span>
+    <span class="variable">$outasm</span><span class="operator">-&gt;</span><span class="variable">write_assembly</span><span class="operator">(</span> <span class="string">-scaffold</span> <span class="operator">=&gt;</span> <span class="variable">$assembly</span><span class="operator">,</span>
+                             <span class="string">-singlets</span> <span class="operator">=&gt;</span> <span class="number">1</span> <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This package loads and writes assembly information in/from files in the default TIGR Assembler v2 format. The files are lassie-formatted and often have the .tasm extension. This module was written to be used as a driver module for Bio::Assembly::IO input/output.</p>
+
+<h2 id="Implementation">Implementation</h2>
+
+<p>Assemblies are loaded into Bio::Assembly::Scaffold objects composed of Bio::Assembly::Contig and Bio::Assembly::Singlet objects. Since aligned reads and contig gapped consensus can be obtained in the tasm files, only aligned/gapped sequences are added to the different BioPerl objects.</p>
+
+<p>Additional assembly information is stored as features. Contig objects have SeqFeature information associated with the primary_tag:</p>
+
+<pre><code><code>    _main_contig_feature:$contig_id -&gt; misc contig information
+    _quality_clipping:$read_id      -&gt; quality clipping position</code></code></pre>
+
+<p>Read objects have sub_seqFeature information associated with the primary_tag:</p>
+
+<pre><code><code>    _main_read_feature:$read_id     -&gt; misc read information</code></code></pre>
+
+<p>Singlets are considered by TIGR Assembler as contigs of one sequence. Contigs are represented here with features having these primary_tag:</p>
+
+<pre><code><code>    _main_contig_feature:$contig_id
+    _quality_clipping:$read_primary_id
+    _main_read_feature:$read_primary_id
+    _aligned_coord:$read_primary_id</code></code></pre>
+
+<h1 id="THE-TIGR-TASM-LASSIE-FORMAT">THE TIGR TASM LASSIE FORMAT</h1>
+
+<h2 id="Description">Description</h2>
+
+<p>In the TIGR tasm lassie format, contigs are separated by a line containing a single pipe character &quot;|&quot;, whereas the reads in a contig are separated by a blank line. Singlets can be present in the file and are represented as a contig composed of a single sequence.</p>
+
+<p>Other than the two above-mentioned separators, each line has an attribute name, followed a tab and then an attribute value.</p>
+
+<p>The tasm format is used by more TIGR applications than just TIGR Assembler. Some of the attributes are not used by TIGR Assembler or have constant values. They are indicated by an asterisk *</p>
+
+<p>Contigs have the following attributes:</p>
+
+<pre><code><code>    asmbl_id   -&gt; contig ID
+    sequence   -&gt; contig ungapped consensus sequence (ambiguities are lowercase)
+    lsequence  -&gt; gapped consensus sequence (lowercase ambiguities)
+    quality    -&gt; gapped consensus quality score (in hexadecimal)
+    seq_id     -&gt; *
+    com_name   -&gt; *
+    type       -&gt; *
+    method     -&gt; always &#39;asmg&#39; *
+    ed_status  -&gt; *
+    redundancy -&gt; fold coverage of the contig consensus
+    perc_N     -&gt; percent of ambiguities in the contig consensus
+    seq#       -&gt; number of sequences in the contig
+    full_cds   -&gt; *
+    cds_start  -&gt; start of coding sequence *
+    cds_end    -&gt; end of coding sequence *
+    ed_pn      -&gt; name of editor (always &#39;GRA&#39;) *
+    ed_date    -&gt; date and time of edition
+    comment    -&gt; some comments *
+    frameshift -&gt; *</code></code></pre>
+
+<p>Each read has the following attributes:</p>
+
+<pre><code><code>    seq_name  -&gt; read name
+    asm_lend  -&gt; position of first base on contig ungapped consensus sequence
+    asm_rend  -&gt; position of last base on contig ungapped consensus sequence
+    seq_lend  -&gt; start of quality-trimmed sequence (aligned read coordinates)
+    seq_rend  -&gt; end of quality-trimmed sequence (aligned read coordinates)
+    best      -&gt; always &#39;0&#39; *
+    comment   -&gt; some comments *
+    db        -&gt; database name associated with the sequence (e.g. &gt;my_db|seq1234)
+    offset    -&gt; offset of the sequence (gapped consensus coordinates)
+    lsequence -&gt; aligned read sequence (ambiguities are uppercase)</code></code></pre>
+
+<p>When asm_rend &lt; asm_lend, the sequence was on the complementary DNA strand but its reverse complement is shown in the aligned sequence of the assembly file, not the original read.</p>
+
+<p>Ambiguities are reflected in the contig consensus sequence as lowercase IUPAC characters: a c g t u m r w s y k x n . In the read sequences, however, ambiguities are uppercase: M R W S Y K X N</p>
+
+<h2 id="Example">Example</h2>
+
+<p>Example of a contig containing three sequences:</p>
+
+<pre><code><code>    sequence    CGATGCTGTACGGCTGTTGCGACAGATTGCGCTGGGTCGATACCGCGTTGGTGATCGGCTTGTTCAGCGGGCTCTGGTTCGGCGACAGCGCGGCGATCTTGGCGGCTGCGAAGGTTGCCGGCGCAATCATGCGCTGCTGACCGTTGACCTGGTCCTGCCAGTACACCCAGTCGCCCACCATGACCTTCAGCGCGTAGCTGTCACAGCCGGCTGTGGTCAGCGCAGTGGCGACGGTGGTGTAGGAGGCGCCAGCAACACCTTGGGTGATCATGTAGCAGCCTTCTGACAGGCCGTAGGTCAGCATGGTCGGCCACTGGGTACCAGTCAGTCGGGTCAACCGAGATTCGCAsCTGAGCGCCACTGCCGCGCAGAGCGTACATGCCCTTGCGGGTCGCGCCGGTAACACCATCCACGCCGATCAGAACTGCGTCGGTGATGGTGGTGTTACCCGAGGTGCCAGTGGTGAAGGCGACGGTCTGGGTGCTGGCCACAGGCGCCAGAGTGGTCGCGCCAACGGTGGCGATGACCAGTTGCGATGGGCCACGGATACCTGACTGCCCGTTGTTCACGGCGCTGACGATGTTCTGCCACAGCGCCAGGCCAGAGCCGGTGATGTTGTCGAACACTTCGGGCGCAACGCCAGGGAGCGAGACGGTCAGCTTCCAGCTCGAAGCAGCGGAGCCAGTAGCCAGGGCGGCGCTGAGCGAGTTGCCGAGCGTGCCGGTGTAGAACGCGGTCAGCGTGGCGCCGGTGGCGGCGGCAGTGTCCTTCAGCGCACTGGTCGCGGCGGTGTCGGTGCCGTCAGTGACGCGCACGGCGCGGATGTTCGAGGCGCCGCCCTGGATTGATACCGCCAGCGCGGTGCACAGGTCGTACTTGCGCACGGTCyGAGTGCCGAACTTCTGCGATGCGTCACCTGGCGAGCCGATAaGCGTGGCGCTGTTCACCGGCCCCCAGTCAGCAATGCCGACGATGCCGAGAATGTCAGTCGGGACGCCATTGATGTAGCGGGTCTTGGGCGCCACTATTTGTATGTACAAATCTGGCGCAGATAAAGCCGCCGTATTCAAATAACCAGCAGGATAGATAGGCATCACGCCTCCAGAATGAAAAAGGCCACCGATTAGGTGGCCTTTGTTGTGTTCGGCTGGCTGTTAGAGCAGCAGCCCGTTTTCCCGCGCAAACGCGAATGGGTCCTTGTCATGCTTCCTGCAATTGCAGGTAGGACAAAGAATTTGCAGGTTGGATTTGTCGTTCGATCCGCCCTTTGCAAGCGGGAACACGTGGTCAACGTGATACCCATCCCTTATGGATATAGTGCACATGGCGCATTTCCAGCGCTGAGCAGCCAGCAAAAATTTTATGTCGTCGCCGGTGTGTGAGCCGACAGCATTTTTCTTGCGAGCCTTGTATGTCCGCGAGAGTGAACGAACTTGCTCCTTGTTGGCTGTCTTCCAGAGCTTTTGAGTAAGCGCACAGAGATCCTTGTTTCTTGATCTCCACTCTCTGGTTGCGGAAAT
+    lsequence   CGATGCTGTACGGCTGTTGCGACAGATTGCGCTGGGTCGATACCGCGTTGGTGATCGGCTTGTTCAGCGGGCTCTGGTTCGGCGACAGCGCGGCGATCTTGGCGGCTGCGAAGGTTGCCGGCGCAATCATGCGCTGCTGACCGTTGACCTGGTCCTGCCAGTACACCCAGTCGCCCACCATGACCTTCAGCGCGTAGCTGTCACAGCCGGCTGTGGTCAGCGCAGTGGCGACGGTGGTGTAGGAGGCGCCAGCAACACCTTGGGTGATCATGTAGCAGCCTTCTGACAGGCCGTAGGTCAGCATGGTCGGCCACTGGGTACCAGTCAGTCGGGTCAACCGAGATTCG-CAsCTGAGCGCCACTGCCGCGCAGAGCGTACATGCCCTTGCGGGTCGCGCCGGTAACACCATCCACGCCGATCAGAACTGCGTCGGTGATGGTGGTGTTACCCGAGGTGCCAGTGGTGAAGGCGACGGTCTGGGTGCTGGCCACAGGCGCCAGAGTGGTCGCGCCAACGGTGGCGATGACCAGTTGCGATGGGCCACGGATACCTGACTGCCCGTTGTTCACGGCGCTGACGATGTTCTGCCACAGCGCCAGGCCAGAGCCGGTGATGTTGTCGAACACTTCGGGCGCAACGCCAGGGAGCGAGACGGTCAGCTTCCAGCTCGAAGCAGCGGAGCCAGTAGCCAGGGCGGCGCTGAGCGAGTTGCCGAGCGTGCCGGTGTAGAACGCGGTCAGCGTGGCGCCGGTGGCGGCGGCAGTGTCCTTCAGCGCACTGGTCGCGGCGGTGTCGGTGCCGTCAGTGACGCGCACGGCGCGGATGTTCGAGGCGCCGCCCTGGATTGATACCGCCAGCGCGGTGCACAGGTCGTACTTGCGCACGGTCyGAGTGCCGAACTTCTGCGATGCGTCACCTGGCGAGCCGATAaGCGTGGCGCTGTTCACCGGCCCCCAGTCAGCAATGCCGACGATGCCGAGAATGTCAGTCGGGACGCCATTGATGTAGCGGGTCTTGGGCGCCACTATTTGTATGTACAAATCTGGCGCAGATAAAGCCGCCGTATTCAAATAACCAGCAGGATAGATAGGCATCACGCCTCCAGAATGAAAAAGGCCACCGATTAGGTGGCCTTTGTTGTGTTCGGCTGGCTGTTAGAGCAGCAGCCCGTTTTCCCGCGCAAACGCGAATGGGTCCTTGTCATGCTTCCTGCAATTGCAGGTAGGACAAAGAATTTGCAGGTTGGATTTGTCGTTCGATCCGCCCTTTGCAAGCGGGAACACGTGGTCAACGTGATACCCATCCCTTATGGATATAGTGCACATGGCGCATTTCCAGCGCTGAGCAGCCAGCAAAAATTTTATGTCGTCGCCGGTGTGTGAGCCGACAGCATTTTTCTTGCGAGCCTTGTATGTCCGCGAGAGTGAACGAACTTGCTCCTTGTTGGCTGTCTTCCAGAGCTTTTGAGTAAGCGCACAGAGATCCTTGTTTCTTGATCTCCACTCTCTGGTTGCGGAAAT
+    quality     0x0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0505050505050505050E0505160505050505050505050505050505050505050505050505050505050303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0404040404040404041604040404040404040404040404040404040404040404040404040404040404040404040404040404040E0404040404040404040B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090909090B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B0B
+    asmbl_id    93
+    seq_id      
+    com_name    
+    type        
+    method      asmg
+    ed_status   
+    redundancy  1.11
+    perc_N      0.20
+    seq#        3
+    full_cds    
+    cds_start   
+    cds_end     
+    ed_pn       GRA
+    ed_date     08/16/07 17:10:12
+    comment     
+    frameshift  
+
+    seq_name    SDSU_RFPERU_010_C09.x01.phd.1
+    asm_lend    1
+    asm_rend    4423
+    seq_lend    1
+    seq_rend    442
+    best        0
+    comment     
+    db  
+    offset      0
+    lsequence   CGATGCTGTACGGCTGTTGCGACAGATTGCGCTGGGTCGATACCGCGTTGGTGATCGGCTTGTTCAGCGGGCTCTGGTTCGGCGACAGCGCGGCGATCTTGGCGGCTGCGAAGGTTGCCGGCGCAATCATGCGCTGCTGACCGTTGACCTGGTCCTGCCAGTACACCCAGTCGCCCACCATGACCTTCAGCGCGTAGCTGTCACAGCCGGCTGTGGTCAGCGCAGTGGCGACGGTGGTGTAGGAGGCGCCAGCAACACCTTGGGTGATCATGTAGCAGCCTTCTGACAGGCCGTAGGTCAGCATGGTCGGCCACTGGGTACCAGTCAGTCGGGTCAACCGAGATTCG-CAGCTGAGCGCCACTGCCGCGCAGAGCGTACATGCCCTTGCGGGTCGCGCCGGTAACACCATCCACGCCGATCAGAACTGCGTCGGTGATGGTGG
+
+    seq_name    SDSU_RFPERU_002_H12.x01.phd.1
+    asm_lend    339
+    asm_rend    940
+    seq_lend    1
+    seq_rend    602
+    best        0
+    comment     
+    db  
+    offset      338
+    lsequence   CGAGATTCGCCACCTGAGCGCCACTGCCGCGCAGAGCGTACATGCCCTTGCGGGTCGCGCCGGTAACACCATCCACGCCGATCAGAACTGCGTCGGTGATGGTGGTGTTACCCGAGGTGCCAGTGGTGAAGGCGACGGTCTGGGTGCTGGCCACAGGCGCCAGAGTGGTCGCGCCAACGGTGGCGATGACCAGTTGCGATGGGCCACGGATACCTGACTGCCCGTTGTTCACGGCGCTGACGATGTTCTGCCACAGCGCCAGGCCAGAGCCGGTGATGTTGTCGAACACTTCGGGCGCAACGCCAGGGAGCGAGACGGTCAGCTTCCAGCTCGAAGCAGCGGAGCCAGTAGCCAGGGCGGCGCTGAGCGAGTTGCCGAGCGTGCCGGTGTAGAACGCGGTCAGCGTGGCGCCGGTGGCGGCGGCAGTGTCCTTCAGCGCACTGGTCGCGGCGGTGTCGGTGCCGTCAGTGACGCGCACGGCGCGGATGTTCGAGGCGCCGCCCTGGATTGATACCGCCAGCGCGGTGCACAGGTCGTACTTGCGCACGGTCCGAGTGCCGAACTTCTGCGATGCGTCACCTGGCGAGCCGATA-GCGTGGCGC
+
+    seq_name    SDSU_RFPERU_009_E07.x01.phd.1
+    asm_lend    880
+    asm_rend    1520
+    seq_lend    641
+    seq_rend    1
+    best        0
+    comment     
+    db  
+    offset      8803
+    lsequence   CGCACGGTCTGAGTGCCGAACTTCTGCGATGCGTCACCTGGCGAGCCGATAAGCGTGGCGCTGTTCACCGGCCCCCAGTCAGCAATGCCGACGATGCCGAGAATGTCAGTCGGGACGCCATTGATGTAGCGGGTCTTGGGCGCCACTATTTGTATGTACAAATCTGGCGCAGATAAAGCCGCCGTATTCAAATAACCAGCAGGATAGATAGGCATCACGCCTCCAGAATGAAAAAGGCCACCGATTAGGTGGCCTTTGTTGTGTTCGGCTGGCTGTTAGAGCAGCAGCCCGTTTTCCCGCGCAAACGCGAATGGGTCCTTGTCATGCTTCCTGCAATTGCAGGTAGGACAAAGAATTTGCAGGTTGGATTTGTCGTTCGATCCGCCCTTTGCAAGCGGGAACACGTGGTCAACGTGATACCCATCCCTTATGGATATAGTGCACATGGCGCATTTCCAGCGCTGAGCAGCCAGCAAAAATTTTATGTCGTCGCCGGTGTGTGAGCCGACAGCATTTTTCTTGCGAGCCTTGTATGTCCGCGAGAGTGAACGAACTTGCTCCTTGTTGGCTGTCTTCCAGAGCTTTTGAGTAAGCGCACAGAGATCCTTGTTTCTTGATCTCCACTCTCTGGTTGCGGAAAT
+    |</code></code></pre>
+
+<p>...</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing lists Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the BioPerl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via email or the web:</p>
+
+<pre><code><code>  bioperl-bugs@bio.perl.org
+  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Florent-E-Angly">AUTHOR - Florent E Angly</h1>
+
+<p>Email florent dot angly at gmail dot com</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a &quot;_&quot;.</p>
+
+<h2 id="next_assembly">next_assembly</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_assembly</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$scaffold</span> <span class="operator">=</span> <span class="variable">$asmio</span><span class="operator">-&gt;</span><span class="variable">next_assembly</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="keyword">return</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">assembly</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">tasm</span><span class="operator">-</span><span class="variable">formatted</span> <span class="variable">stream</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Assembly::Scaffold</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="next_contig">next_contig</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_contig</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$contig</span> <span class="operator">=</span> <span class="variable">$asmio</span><span class="operator">-&gt;</span><span class="variable">next_contig</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="keyword">return</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">contig</span> <span class="keyword">or</span> <span class="variable">singlet</span> <span class="variable">TIGR</span><span class="operator">-</span><span class="variable">formatted</span> <span class="variable">stream</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Assembly::Contig</span> <span class="keyword">or</span> <span class="variable">Bio::Assembly::Singlet</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="qual_hex2dec">_qual_hex2dec</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_qual_hex2dec</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">dec_quality</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_qual_hex2dec</span><span class="operator">(</span><span class="variable">$hex_quality</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">convert</span> <span class="variable">an</span> <span class="variable">hexadecimal</span> <span class="variable">quality</span> <span class="variable">score</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">decimal</span> <span class="variable">quality</span> <span class="variable">score</span> 
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span>
+</code></code></pre>
+
+<h2 id="qual_dec2hex">_qual_dec2hex</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_qual_dec2hex</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">hex_quality</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_qual_dec2hex</span><span class="operator">(</span><span class="variable">$dec_quality</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">convert</span> <span class="variable">a</span> <span class="variable">decimal</span> <span class="variable">quality</span> <span class="variable">score</span> <span class="variable">into</span> <span class="variable">an</span> <span class="variable">hexadecimal</span> <span class="variable">quality</span> <span class="variable">score</span> 
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">string</span>
+</code></code></pre>
+
+<h2 id="store_contig">_store_contig</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_store_contig</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$contigobj</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_store_contig</span><span class="operator">(\</span><span class="variable">%contiginfo</span><span class="operator">,</span> <span class="variable">$contigobj</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">store</span> <span class="variable">information</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">contig</span> <span class="variable">belonging</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">scaffold</span> <span class="variable">in</span> <span class="variable">the</span>
+              <span class="variable">appropriate</span> <span class="variable">object</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Assembly::Contig</span> <span class="variable">object</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">hash</span><span class="operator">,</span> <span class="variable">Bio::Assembly::Contig</span>
+</code></code></pre>
+
+<h2 id="store_read">_store_read</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_store_read</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$readobj</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_store_read</span><span class="operator">(\</span><span class="variable">%readinfo</span><span class="operator">,</span> <span class="variable">$contigobj</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">store</span> <span class="variable">information</span> <span class="variable">of</span> <span class="variable">a</span> <span class="keyword">read</span> <span class="variable">belonging</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">contig</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">contig</span> <span class="variable">object</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::LocatableSeq</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">hash</span><span class="operator">,</span> <span class="variable">Bio::Assembly::Contig</span>
+</code></code></pre>
+
+<h2 id="store_singlet">_store_singlet</h2>
+
+<pre><code><code>    <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_store_singlet</span>
+    <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$singletobj</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_store_read</span><span class="operator">(\</span><span class="variable">%readinfo</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%contiginfo</span><span class="operator">);</span>
+    <span class="variable">Function</span><span class="operator">:</span> <span class="variable">store</span> <span class="variable">information</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">singlet</span> <span class="variable">belonging</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">scaffold</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">singlet</span> <span class="variable">object</span>
+    <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Assembly::Singlet</span>
+    <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">hash</span><span class="operator">,</span> <span class="variable">hash</span>
+</code></code></pre>
+
+<h2 id="write_assembly">write_assembly</h2>
+
+<pre><code><code>    Title   : write_assembly
+    Usage   : $asmio-&gt;write_assembly($assembly)
+    Function: Write the assembly object in TIGR Assembler compatible format. The
+              contig IDs are sorted naturally if the Sort::Naturally module is
+              present, or lexically otherwise. Internally, write_assembly use
+              the write_contig, write_footer and write_header methods. Use these
+              methods if you want more control on the writing process.
+    Returns : 1 on success, 0 for error
+    Args    : A Bio::Assembly::Scaffold object
+              1 to write singlets in the assembly file, 0 otherwise</code></code></pre>
+
+<h2 id="write_contig">write_contig</h2>
+
+<pre><code><code>    Title   : write_contig
+    Usage   : $asmio-&gt;write_contig($contig)
+    Function: Write a contig or singlet object in TIGR compatible format. Quality
+              scores are automatically generated if the contig does not contain
+              any
+    Returns : 1 on success, 0 for error
+    Args    : A Bio::Assembly::Contig or Singlet object</code></code></pre>
+
+<h2 id="write_header">write_header</h2>
+
+<pre><code><code>    Title   : write_header
+    Usage   : $asmio-&gt;write_header($assembly)
+    Function: In the TIGR Asseformat assembly driver, this does nothing. The
+              method is present for compatibility with other assembly drivers
+              that need to write a file header.
+    Returns : 1 on success, 0 for error
+    Args    : A Bio::Assembly::Scaffold object</code></code></pre>
+
+<h2 id="write_footer">write_footer</h2>
+
+<pre><code><code>    Title   : write_footer
+    Usage   : $asmio-&gt;write_footer($assembly)
+    Function: Write TIGR footer, i.e. do nothing except making sure that the
+              file does not end with a &#39;|&#39;.
+    Returns : 1 on success, 0 for error
+    Args    : A Bio::Assembly::Scaffold object</code></code></pre>
+
+<h2 id="perc_N">_perc_N</h2>
+
+<pre><code><code>    Title   : _perc_N
+    Usage   : my $perc_N = $asmio-&gt;_perc_N($sequence_string)
+    Function: Calculate the percent of ambiguities in a sequence.
+              M R W S Y K X N are regarded as ambiguities in an aligned read
+              sequence by TIGR Assembler. In the case of a gapped contig
+              consensus sequence, all lowercase symbols are ambiguities, i.e.:
+              a c g t u m r w s y k x n.
+    Returns : decimal number
+    Args    : string</code></code></pre>
+
+<h2 id="redundancy">_redundancy</h2>
+
+<pre><code><code>    Title   : _redundancy
+    Usage   : my $ref = $asmio-&gt;_redundancy($contigobj)
+    Function: Calculate the fold coverage (redundancy) of a contig consensus
+              (average number of read base pairs covering the consensus)
+    Returns : decimal number
+    Args    : Bio::Assembly::Contig</code></code></pre>
+
+<h2 id="ungap">_ungap</h2>
+
+<pre><code><code>    Title   : _ungap
+    Usage   : my $ungapped = $asmio-&gt;_ungap($gapped)
+    Function: Remove the gaps from a sequence. Gaps are - in TIGR Assembler
+    Returns : string
+    Args    : string</code></code></pre>
+
+<h2 id="date_time">_date_time</h2>
+
+<pre><code><code>    Title   : _date_time
+    Usage   : my $timepoint = $asmio-&gt;date_time
+    Function: Get date and time (MM//DD/YY HH:MM:SS)
+    Returns : string
+    Args    : none</code></code></pre>
+
+<h2 id="split_seq_name_and_db">_split_seq_name_and_db</h2>
+
+<pre><code><code>    Title   : _split_seq_name_and_db
+    Usage   : my ($seqname, $db) = $asmio-&gt;_split_seq_name_and_db($id)
+    Function: Extract seq_name and db from sequence id
+    Returns : seq_name, db
+    Args    : id</code></code></pre>
+
+<h2 id="merge_seq_name_and_db">_merge_seq_name_and_db</h2>
+
+<pre><code><code>    Title   : _merge_seq_name_and_db
+    Usage   : my $id = $asmio-&gt;_merge_seq_name_and_db($seq_name, $db)
+    Function: Construct id from seq_name and db
+    Returns : id
+    Args    : seq_name, db</code></code></pre>
+
+<h2 id="coord">_coord</h2>
+
+<pre><code><code>    Title   : _coord
+    Usage   : my $id = $asmio-&gt;__coord($readobj, $contigobj)
+    Function: Get different coordinates for the read
+    Returns : number, number, number, number, number
+    Args    : Bio::Assembly::Seq, Bio::Assembly::Contig</code></code></pre>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,343 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#PARAMETERS-FOR-SEQBOOT">PARAMETERS FOR SEQBOOT</a>
+    <ul>
+      <li><a href="#MODEL">MODEL</a></li>
+      <li><a href="#PERMUTE">PERMUTE</a></li>
+      <li><a href="#REPLICATES">REPLICATES</a></li>
+      <li><a href="#ALLELES">ALLELES</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#idlength">idlength</a></li>
+      <li><a href="#run">run</a></li>
+      <li><a href="#run1">_run</a></li>
+      <li><a href="#setinput-">_setinput()</a></li>
+      <li><a href="#setparams-">_setparams()</a></li>
+    </ul>
+  </li>
+  <li><a href="#Bio::Tools::Run::Wrapper-methods">Bio::Tools::Run::Wrapper methods</a>
+    <ul>
+      <li><a href="#no_param_checks">no_param_checks</a></li>
+      <li><a href="#save_tempfiles">save_tempfiles</a></li>
+      <li><a href="#outfile_name">outfile_name</a></li>
+      <li><a href="#tempdir">tempdir</a></li>
+      <li><a href="#cleanup">cleanup</a></li>
+      <li><a href="#io">io</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::Phylo::Phylip::SeqBoot - Wrapper for the phylip program SeqBoot</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment">#Create a SimpleAlign object</span>
+  <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'ktuple'</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">,</span> <span class="string">'matrix'</span> <span class="operator">=&gt;</span> <span class="string">'BLOSUM'</span><span class="operator">);</span>
+  <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Alignment::Clustalw</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  <span class="variable">$inputfilename</span> <span class="operator">=</span> <span class="string">'t/data/cysprot.fa'</span><span class="operator">;</span>
+  <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">align</span><span class="operator">(</span><span class="variable">$inputfilename</span><span class="operator">);</span> <span class="comment"># $aln is a SimpleAlign object.</span>
+  
+  <span class="comment"># Use seqboot to generate bootstap alignments</span>
+  <span class="keyword">my</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'datatype'</span><span class="operator">=&gt;</span><span class="string">'SEQUENCE'</span><span class="operator">,</span><span class="string">'replicates'</span><span class="operator">=&gt;</span><span class="number">100</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::SeqBoot</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$aln_ref</span> <span class="operator">=</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$aio</span> <span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span><span class="operator">=&gt;</span><span class="string">"&gt;alignment.bootstrap"</span><span class="operator">,</span><span class="string">-format</span><span class="operator">=&gt;</span><span class="string">"phylip"</span><span class="operator">);</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$ai</span><span class="operator">(</span><span class="variable">@</span><span class="operator">{</span><span class="variable">$aln_ref</span><span class="operator">}</span><span class="operator">){</span>
+         <span class="variable">$aio</span><span class="operator">-&gt;</span><span class="variable">write_aln</span><span class="operator">(</span><span class="variable">$ai</span><span class="operator">);</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># To prevent PHYLIP from truncating sequence names:</span>
+  <span class="comment"># Step 1. Shelf the original names:</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$aln_safe</span><span class="operator">,</span> <span class="variable">$ref_name</span><span class="operator">)=</span>                  <span class="comment">#  $aln_safe has serial names</span>
+             <span class="variable">$aln</span><span class="operator">-&gt;</span><span class="variable">set_displayname_safe</span><span class="operator">();</span>    <span class="comment">#  $ref_name holds orginal names </span>
+  <span class="comment"># Step 2. Run PHYLIP programs:</span>
+  <span class="variable">$aln_ref</span> <span class="operator">=</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$aln_safe</span><span class="operator">);</span>            <span class="comment">#  Use $aln_safe instead of $aln</span>
+  <span class="comment"># Step 3. Retrieve orgininal names</span>
+  <span class="variable">$aio</span> <span class="operator">=</span> <span class="variable">Bio::AlignIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+             <span class="string">-file</span><span class="operator">=&gt;</span><span class="string">"&gt;alignment.bootstrap"</span><span class="operator">,</span>
+             <span class="string">-format</span><span class="operator">=&gt;</span><span class="string">"fasta"</span><span class="operator">);</span>               <span class="comment">#  FASTA output to view full names</span>
+  <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$ai</span><span class="operator">(</span><span class="variable">@</span><span class="operator">{</span><span class="variable">$aln_ref</span><span class="operator">}</span><span class="operator">){</span>
+         <span class="keyword">my</span> <span class="variable">$new_aln</span><span class="operator">=</span><span class="variable">$ai</span><span class="operator">-&gt;</span><span class="variable">restore_displayname</span><span class="operator">(</span><span class="variable">$ref_name</span><span class="operator">);</span> <span class="comment">#  Restore names</span>
+         <span class="variable">$aio</span><span class="operator">-&gt;</span><span class="variable">write_aln</span><span class="operator">(</span><span class="variable">$new_aln</span><span class="operator">);</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Wrapper for seqboot from the phylip package by Joseph Felsentein.</p>
+
+<p>Taken from phylip doc...</p>
+
+<p>&quot;SEQBOOT is a general boostrapping tool. It is intended to allow you to generate multiple data sets that are resampled versions of the input data set. SEQBOOT can handle molecular sequences, binary characters, restriction sites, or gene frequencies.&quot;</p>
+
+<p>More documentation on using seqboot and setting parameters may be found in the phylip package.</p>
+
+<p>VERSION Support This wrapper currently supports v3.5 of phylip. There is also support for v3.6 although this is still experimental as v3.6 is still under alpha release and not all functionalities maybe supported.</p>
+
+<h1 id="PARAMETERS-FOR-SEQBOOT">PARAMETERS FOR SEQBOOT</h1>
+
+<h2 id="MODEL">MODEL</h2>
+
+<p>Title : DATATYPE Description : (optional)</p>
+
+<pre><code><code>                  This program supports 3 different datatypes
+                  SEQUENCE: Molecular Sequences
+                  MORPH   : Discrete  Morphological  Characters
+                  REST    : Restriction Sites
+                  GENEFREQ: Gene  Frequencies
+
+             Defaults to SEQUENCE</code></code></pre>
+
+<h2 id="PERMUTE">PERMUTE</h2>
+
+<p>Title: PERMUTE Description: (optional)</p>
+
+<pre><code><code>             3 different resampling methods are available:
+
+             BOOTSTRAP : creating a new data set by sampling N
+                         characters randomly with replacement The
+                         resulting data set has the same size as the
+                         original, but some characters have been left
+                         out and others are duplicated
+
+             JACKKNIFE : Delete-half-jackknifing. It involves sampling
+                         a random half of the characters, and
+                         including them in the data but dropping the
+                         others The resulting data sets are half the
+                         size of the original, and no characters are
+                         duplicated.
+
+             PERMUTE : Permuting species within characters. It
+                       involves permuting the columns of the data
+                       matrix separately.  This produces data matrices
+                       that have the same number and kinds of
+                       characters but no taxonomic structure.
+
+             Defaults to BOOTSTRAP</code></code></pre>
+
+<h2 id="REPLICATES">REPLICATES</h2>
+
+<pre><code><code>  Title         : REPLICATES
+  Description   : (optional)
+
+                This options allows the user to set the number of
+                replicate data sets. Most statisticians would be
+                happiest with 1000 to 10,000 replicates in a
+                bootstrap, but 100 gives a good rough picture
+
+                Defaults to 100</code></code></pre>
+
+<h2 id="ALLELES">ALLELES</h2>
+
+<p>Title : ALLELES Description : (optional)</p>
+
+<pre><code><code>            This option is to be used with gene frequencies datatype
+            option to specify that all alleles at each locus are in
+            the input file.
+
+                  Defaults to NULL </code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</h1>
+
+<p>Email shawnh@fugu-sg.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : &gt;program_name()
+ Function: holds the program name
+ Returns:  string
+ Args    : None</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> Title   : program_dir
+ Usage   : -&gt;program_dir()
+ Function: returns the program directory, obtained from ENV variable.
+ Returns:  string
+ Args    :</code></code></pre>
+
+<h2 id="idlength">idlength</h2>
+
+<pre><code><code> Title   : idlength 
+ Usage   : $obj-&gt;idlength ($newval)
+ Function: 
+ Returns : value of idlength 
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="run">run</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">run</span> 
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+        <span class="variable">$inputfilename</span> <span class="operator">=</span> <span class="string">'t/data/prot.phy'</span><span class="operator">;</span>
+        <span class="variable">$matrix</span><span class="operator">=</span> <span class="variable">$seqboot_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$inputfilename</span><span class="operator">);</span>
+ <span class="keyword">or</span>
+        <span class="variable">$seq_array_ref</span> <span class="operator">=</span> <span class="operator">\</span><span class="variable">@seq_array</span><span class="operator">;</span> <span class="variable">@seq_array</span> <span class="variable">is</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">Seq</span> <span class="variable">objs</span>
+        <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$clustalw_factory</span><span class="operator">-&gt;</span><span class="variable">align</span><span class="operator">(</span><span class="variable">$seq_array_ref</span><span class="operator">);</span>
+        <span class="variable">$aln_ref</span> <span class="operator">=</span> <span class="variable">$SeqBootfactory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+ 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Create</span> <span class="variable">bootstrap</span> <span class="variable">sets</span> <span class="variable">of</span> <span class="variable">alignments</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">array</span> <span class="keyword">ref</span> <span class="variable">of</span> <span class="variable">L</span><span class="operator">&lt;</span><span class="variable">Bio::SimpleAlign</span><span class="operator">&gt;</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Name</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">a</span> <span class="variable">multiple</span> <span class="variable">alignment</span> <span class="variable">in</span> <span class="variable">Phylip</span> <span class="keyword">format</span>
+           <span class="keyword">or</span> <span class="variable">an</span> <span class="variable">SimpleAlign</span> <span class="variable">object</span> 
+ 
+ <span class="variable">Throws</span> <span class="variable">an</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">argument</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">either</span> <span class="variable">a</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">eg</span> <span class="variable">a</span>
+ <span class="variable">filename</span><span class="operator">)</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">Bio::SimpleAlign</span> <span class="variable">object</span><span class="operator">.</span> <span class="variable">If</span>
+ <span class="variable">argument</span> <span class="variable">is</span> <span class="variable">string</span><span class="operator">,</span> <span class="variable">throws</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">file</span> <span class="variable">corresponding</span> <span class="variable">to</span> <span class="variable">string</span>
+ <span class="variable">name</span> <span class="variable">can</span> <span class="keyword">not</span> <span class="variable">be</span> <span class="variable">found</span><span class="operator">.</span> 
+</code></code></pre>
+
+<h2 id="run1">_run</h2>
+
+<pre><code><code> Title   :  _run
+ Usage   :  Internal function, not to be called directly        
+ Function:  makes actual system call to SeqBoot program
+ Example :
+ Returns : an array ref of &lt;Bio::SimpleAlign&gt; 
+ Args    : Name of a file containing a set of multiple alignments in Phylip format 
+           and a parameter string to be passed to SeqBoot</code></code></pre>
+
+<h2 id="setinput-">_setinput()</h2>
+
+<pre><code><code> Title   :  _setinput
+ Usage   :  Internal function, not to be called directly        
+ Function:   Create input file for SeqBoot program
+ Example :
+ Returns : name of file containing a multiple alignment in Phylip format 
+ Args    : SimpleAlign object reference or input file name</code></code></pre>
+
+<h2 id="setparams-">_setparams()</h2>
+
+<pre><code><code> Title   :  _setparams
+ Usage   :  Internal function, not to be called directly        
+ Function:   Create parameter inputs for SeqBoot program
+ Example :
+ Returns : parameter string to be passed to SeqBoot
+ Args    : name of calling object</code></code></pre>
+
+<h1 id="Bio::Tools::Run::Wrapper-methods">Bio::Tools::Run::Wrapper methods</h1>
+
+<h2 id="no_param_checks">no_param_checks</h2>
+
+<pre><code><code> Title   : no_param_checks
+ Usage   : $obj-&gt;no_param_checks($newval)
+ Function: Boolean flag as to whether or not we should
+           trust the sanity checks for parameter values  
+ Returns : value of no_param_checks
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="save_tempfiles">save_tempfiles</h2>
+
+<pre><code><code> Title   : save_tempfiles
+ Usage   : $obj-&gt;save_tempfiles($newval)
+ Function: 
+ Returns : value of save_tempfiles
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="outfile_name">outfile_name</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">outfile_name</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$outfile</span> <span class="operator">=</span> <span class="variable">$SeqBoot</span><span class="operator">-&gt;</span><span class="variable">outfile_name</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span><span class="operator">/</span><span class="variable">Set</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">output</span> <span class="variable">file</span> <span class="keyword">for</span> <span class="variable">this</span> <span class="variable">run</span>
+           <span class="operator">(</span><span class="keyword">if</span> <span class="variable">you</span> <span class="variable">wanted</span> <span class="variable">to</span> <span class="keyword">do</span> <span class="variable">something</span> <span class="variable">special</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">string</span> <span class="variable">to</span> <span class="variable">set</span> <span class="variable">value</span> <span class="variable">to</span>
+</code></code></pre>
+
+<h2 id="tempdir">tempdir</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">tempdir</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$tmpdir</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">tempdir</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Retrieve</span> <span class="variable">a</span> <span class="variable">temporary</span> <span class="variable">directory</span> <span class="variable">name</span> <span class="operator">(</span><span class="variable">which</span> <span class="variable">is</span> <span class="variable">created</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">string</span> <span class="variable">which</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">temporary</span> <span class="variable">directory</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="cleanup">cleanup</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">cleanup</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$codeml</span><span class="operator">-&gt;</span><span class="variable">cleanup</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Will</span> <span class="variable">cleanup</span> <span class="variable">the</span> <span class="variable">tempdir</span> <span class="variable">directory</span> <span class="variable">after</span> <span class="variable">a</span> <span class="variable">SeqBoot</span> <span class="variable">run</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="io">io</h2>
+
+<pre><code><code> Title   : io
+ Usage   : $obj-&gt;io($newval)
+ Function:  Gets a L&lt;Bio::Root::IO&gt; object
+ Returns : L&lt;Bio::Root::IO&gt;
+ Args    : none</code></code></pre>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,395 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Hilmar-Lapp">AUTHOR - Hilmar Lapp</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#initialize_io">_initialize_io</a></li>
+      <li><a href="#fh">_fh</a></li>
+      <li><a href="#mode">mode</a></li>
+      <li><a href="#file">file</a></li>
+      <li><a href="#print">_print</a></li>
+      <li><a href="#insert">_insert</a></li>
+      <li><a href="#readline">_readline</a></li>
+      <li><a href="#pushback">_pushback</a></li>
+      <li><a href="#close">close</a></li>
+      <li><a href="#flush">flush</a></li>
+      <li><a href="#noclose">noclose</a></li>
+      <li><a href="#exists_exe">exists_exe</a></li>
+      <li><a href="#tempfile">tempfile</a></li>
+      <li><a href="#tempdir">tempdir</a></li>
+      <li><a href="#catfile">catfile</a></li>
+      <li><a href="#rmtree">rmtree</a></li>
+      <li><a href="#flush_on_write">_flush_on_write</a></li>
+      <li><a href="#save_tempfiles">save_tempfiles</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Root::IO - module providing several methods often needed when dealing with file IO</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="comment"># utilize stream I/O in your module</span>
+    <span class="variable">$self</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'io'</span><span class="operator">}</span> <span class="operator">=</span> <span class="variable">Bio::Root::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"myfile"</span><span class="operator">);</span>
+    <span class="variable">$self</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'io'</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">_print</span><span class="operator">(</span><span class="string">"some stuff"</span><span class="operator">);</span>
+    <span class="variable">$line</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'io'</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">_readline</span><span class="operator">();</span>
+    <span class="variable">$self</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'io'</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">_pushback</span><span class="operator">(</span><span class="variable">$line</span><span class="operator">);</span>
+    <span class="variable">$self</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">'io'</span><span class="operator">}</span><span class="operator">-&gt;</span><span class="variable">close</span><span class="operator">();</span>
+    
+    <span class="comment"># obtain platform-compatible filenames</span>
+    <span class="variable">$path</span> <span class="operator">=</span> <span class="variable">Bio::Root::IO</span><span class="operator">-&gt;</span><span class="variable">catfile</span><span class="operator">(</span><span class="variable">$dir</span><span class="operator">,</span> <span class="variable">$subdir</span><span class="operator">,</span> <span class="variable">$filename</span><span class="operator">);</span>
+    <span class="comment"># obtain a temporary file (created in $TEMPDIR)</span>
+    <span class="operator">(</span><span class="variable">$handle</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$io</span><span class="operator">-&gt;</span><span class="variable">tempfile</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module provides methods that will usually be needed for any sort of file- or stream-related input/output, e.g., keeping track of a file handle, transient printing and reading from the file handle, a close method, automatically closing the handle on garbage collection, etc.</p>
+
+<p>To use this for your own code you will either want to inherit from this module, or instantiate an object for every file or stream you are dealing with. In the first case this module will most likely not be the first class off which your class inherits; therefore you need to call _initialize_io() with the named parameters in order to set file handle, open file, etc automatically.</p>
+
+<p>Most methods start with an underscore, indicating they are private. In OO speak, they are not private but protected, that is, use them in your module code, but a client code of your module will usually not want to call them (except those not starting with an underscore).</p>
+
+<p>In addition this module contains a couple of convenience methods for cross-platform safe tempfile creation and similar tasks. There are some CPAN modules related that may not be available on all platforms. At present, File::Spec and File::Temp are attempted. This module defines $PATHSEP, $TEMPDIR, and $ROOTDIR, which will always be set, and $OPENFLAGS, which will be set if either of File::Spec or File::Temp fails.</p>
+
+<p>The -noclose boolean (accessed via the noclose method) prevents a filehandle from being closed when the IO object is cleaned up. This is special behavior when a object like a parser might share a filehandle with an object like an indexer where it is not proper to close the filehandle as it will continue to be reused until the end of the stream is reached. In general you won&#39;t want to play with this flag.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Hilmar-Lapp">AUTHOR - Hilmar Lapp</h1>
+
+<p>Email hlapp@gmx.net</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Mark A. Jensen ( maj -at- fortinbras -dot- us )</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> Title   : new 
+ Usage   : 
+ Function: Overridden here to automatically call _initialize_io().
+ Example :
+ Returns : new instance of this class
+ Args    : named parameters</code></code></pre>
+
+<h2 id="initialize_io">_initialize_io</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">initialize_io</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_initialize_io</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Initializes</span> <span class="variable">filehandle</span> <span class="keyword">and</span> <span class="variable">other</span> <span class="variable">properties</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">parameters</span><span class="operator">.</span>
+ 
+           <span class="variable">Currently</span> <span class="variable">recognizes</span> <span class="variable">the</span> <span class="variable">following</span> <span class="variable">named</span> <span class="variable">parameters</span><span class="operator">:</span>
+              <span class="operator">-</span><span class="variable">file</span>     <span class="variable">name</span> <span class="variable">of</span> <span class="variable">file</span> <span class="variable">to</span> <span class="keyword">open</span>
+              <span class="operator">-</span><span class="variable">string</span>   <span class="variable">a</span> <span class="variable">string</span> <span class="variable">that</span> <span class="variable">is</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">converted</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">filehandle</span>
+              <span class="operator">-</span><span class="variable">url</span>      <span class="variable">name</span> <span class="variable">of</span> <span class="variable">URL</span> <span class="variable">to</span> <span class="keyword">open</span>
+              <span class="operator">-</span><span class="variable">input</span>    <span class="variable">name</span> <span class="variable">of</span> <span class="variable">file</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">GLOB</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">IO::Handle</span> <span class="variable">object</span>
+              <span class="operator">-</span><span class="variable">fh</span>       <span class="variable">file</span> <span class="variable">handle</span> <span class="operator">(</span><span class="variable">mutually</span> <span class="variable">exclusive</span> <span class="variable">with</span> <span class="operator">-</span><span class="variable">file</span><span class="operator">)</span>
+              <span class="operator">-</span><span class="variable">flush</span>    <span class="variable">boolean</span> <span class="variable">flag</span> <span class="variable">to</span> <span class="variable">autoflush</span> <span class="variable">after</span> <span class="keyword">each</span> <span class="keyword">write</span>
+              <span class="operator">-</span><span class="variable">noclose</span>  <span class="variable">boolean</span> <span class="variable">flag</span><span class="operator">,</span> <span class="keyword">when</span> <span class="variable">set</span> <span class="variable">to</span> <span class="variable">true</span> <span class="variable">will</span> <span class="keyword">not</span> <span class="keyword">close</span> <span class="variable">a</span>
+                        <span class="variable">filehandle</span> <span class="operator">(</span><span class="variable">must</span> <span class="variable">explicitly</span> <span class="variable">call</span> <span class="keyword">close</span><span class="operator">(</span><span class="variable">$io</span><span class="operator">-&gt;</span><span class="variable">_fh</span><span class="operator">)</span>
+              <span class="operator">-</span><span class="variable">retries</span>  <span class="variable">number</span> <span class="variable">of</span> <span class="keyword">times</span> <span class="variable">to</span> <span class="variable">try</span> <span class="variable">a</span> <span class="variable">web</span> <span class="variable">fetch</span> <span class="variable">before</span> <span class="variable">failure</span>
+                        
+              <span class="operator">-</span><span class="variable">ua_parms</span> <span class="variable">hashref</span> <span class="variable">of</span> <span class="string">key</span> <span class="operator">=&gt;</span> <span class="variable">value</span> <span class="variable">parameters</span> <span class="variable">to</span> <span class="variable">pass</span> 
+                        <span class="variable">to</span> <span class="variable">LWP::UserAgent</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">()</span>
+                        <span class="operator">(</span><span class="variable">only</span> <span class="variable">meaningful</span> <span class="variable">with</span> <span class="operator">-</span><span class="variable">url</span> <span class="variable">is</span> <span class="variable">set</span><span class="operator">)</span>
+                        <span class="variable">A</span> <span class="variable">useful</span> <span class="variable">value</span> <span class="variable">might</span> <span class="variable">be</span><span class="operator">,</span> <span class="keyword">for</span> <span class="variable">example</span><span class="operator">,</span>
+                        <span class="operator">{</span> <span class="string">timeout</span> <span class="operator">=&gt;</span> <span class="number">60</span> <span class="operator">}</span> <span class="operator">(</span><span class="variable">ua</span> <span class="keyword">default</span> <span class="variable">is</span> <span class="number">180</span> <span class="variable">sec</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">TRUE</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">named</span> <span class="variable">parameters</span>
+</code></code></pre>
+
+<h2 id="fh">_fh</h2>
+
+<pre><code><code> Title   : _fh
+ Usage   : $obj-&gt;_fh($newval)
+ Function: Get/set the file handle for the stream encapsulated.
+ Example :
+ Returns : value of _filehandle
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="mode">mode</h2>
+
+<pre><code><code> Title   : mode
+ Usage   : $obj-&gt;mode()
+ Function:
+ Example :
+ Returns : mode of filehandle:
+           &#39;r&#39; for readable
+           &#39;w&#39; for writable
+           &#39;?&#39; if mode could not be determined
+ Args    : -force (optional), see notes.
+ Notes   : once mode() has been called, the filehandle&#39;s mode is cached
+           for further calls to mode().  to override this behavior so
+           that mode() re-checks the filehandle&#39;s mode, call with arg
+           -force</code></code></pre>
+
+<h2 id="file">file</h2>
+
+<pre><code><code> Title   : file
+ Usage   : $obj-&gt;file($newval)
+ Function: Get/set the filename, if one has been designated.
+ Example :
+ Returns : value of file
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="print">_print</h2>
+
+<pre><code><code> Title   : _print
+ Usage   : $obj-&gt;_print(@lines)
+ Function:
+ Example :
+ Returns : 1 on success, undef on failure</code></code></pre>
+
+<h2 id="insert">_insert</h2>
+
+<pre><code><code>    Title   : _insert
+    Usage   : $obj-&gt;_insert($string,1)
+    Function: Insert some text in a file at the given line number (1-based).
+    Returns : 1 on success
+    Args    : string to write in file
+              line number to insert the string at</code></code></pre>
+
+<h2 id="readline">_readline</h2>
+
+<pre><code><code> Title   : _readline
+ Usage   : $obj-&gt;_readline(%args)
+ Function: Reads a line of input.
+
+           Note that this method implicitely uses the value of $/ that is
+           in effect when called.
+
+           Note also that the current implementation does not handle pushed
+           back input correctly unless the pushed back input ends with the
+           value of $/.
+
+ Example :
+ Args    : Accepts a hash of arguments, currently only -raw is recognized
+           passing (-raw =&gt; 1) prevents \r\n sequences from being changed
+           to \n.  The default value of -raw is undef, allowing \r\n to be
+           converted to \n.
+ Returns : </code></code></pre>
+
+<h2 id="pushback">_pushback</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_pushback</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_pushback</span><span class="operator">(</span><span class="variable">$newvalue</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">puts</span> <span class="variable">a</span> <span class="variable">line</span> <span class="variable">previously</span> <span class="keyword">read</span> <span class="variable">with</span> <span class="variable">_readline</span> <span class="variable">back</span> <span class="variable">into</span> <span class="variable">a</span> <span class="variable">buffer</span><span class="operator">.</span>
+           <span class="variable">buffer</span> <span class="variable">can</span> <span class="variable">hold</span> <span class="variable">as</span> <span class="variable">many</span> <span class="variable">lines</span> <span class="variable">as</span> <span class="keyword">system</span> <span class="variable">memory</span> <span class="variable">permits</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">_pushback</span><span class="operator">(</span><span class="variable">$newvalue</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">none</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">newvalue</span>
+ <span class="variable">Note</span>    <span class="operator">:</span> <span class="variable">This</span> <span class="variable">is</span> <span class="variable">only</span> <span class="variable">supported</span> <span class="keyword">for</span> <span class="variable">pushing</span> <span class="variable">back</span> <span class="variable">data</span> <span class="variable">ending</span> <span class="variable">with</span> <span class="variable">the</span>
+           <span class="variable">current</span><span class="operator">,</span> <span class="variable">localized</span> <span class="variable">value</span> <span class="variable">of</span> <span class="variable">$/</span><span class="operator">.</span> <span class="variable">Using</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">to</span> <span class="keyword">push</span> <span class="variable">modified</span>
+           <span class="variable">data</span> <span class="variable">back</span> <span class="variable">onto</span> <span class="variable">the</span> <span class="variable">buffer</span> <span class="variable">stack</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">supported</span><span class="operator">;</span> <span class="variable">see</span> <span class="variable">bug</span> <span class="number">843.</span>
+</code></code></pre>
+
+<h2 id="close">close</h2>
+
+<pre><code><code> Title   : close
+ Usage   : $io-&gt;close()
+ Function: Closes the file handle associated with this IO instance.
+           Will not close the FH if  -noclose is specified
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="flush">flush</h2>
+
+<pre><code><code> Title   : flush
+ Usage   : $io-&gt;flush()
+ Function: Flushes the filehandle
+ Returns : none
+ Args    : none</code></code></pre>
+
+<h2 id="noclose">noclose</h2>
+
+<pre><code><code> Title   : noclose
+ Usage   : $obj-&gt;noclose($newval)
+ Function: Get/Set the NOCLOSE flag - setting this to true will
+           prevent a filehandle from being closed
+           when an object is cleaned up or explicitly closed
+           This is a bit of hack 
+ Returns : value of noclose (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="exists_exe">exists_exe</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">exists_exe</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$exists</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">exists_exe</span><span class="operator">(</span><span class="string">'clustalw'</span><span class="operator">);</span>
+           <span class="variable">$exists</span> <span class="operator">=</span> <span class="variable">Bio::Root::IO</span><span class="operator">-&gt;</span><span class="variable">exists_exe</span><span class="operator">(</span><span class="string">'clustalw'</span><span class="operator">)</span>
+           <span class="variable">$exists</span> <span class="operator">=</span> <span class="variable">Bio::Root::IO::exists_exe</span><span class="operator">(</span><span class="string">'clustalw'</span><span class="operator">)</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Determines</span> <span class="variable">whether</span> <span class="variable">the</span> <span class="keyword">given</span> <span class="variable">executable</span> <span class="keyword">exists</span> <span class="variable">either</span> <span class="variable">as</span> <span class="variable">file</span>
+           <span class="keyword">or</span> <span class="variable">within</span> <span class="variable">the</span> <span class="variable">path</span> <span class="variable">environment</span><span class="operator">.</span> <span class="variable">The</span> <span class="variable">latter</span> <span class="variable">requires</span> <span class="variable">File::Spec</span>
+           <span class="variable">to</span> <span class="variable">be</span> <span class="variable">installed</span><span class="operator">.</span>
+           <span class="variable">On</span> <span class="variable">Win32</span><span class="operator">-</span><span class="variable">based</span> <span class="keyword">system</span><span class="operator">,</span> <span class="operator">.</span><span class="variable">exe</span> <span class="variable">is</span> <span class="variable">automatically</span> <span class="variable">appended</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">program</span>
+           <span class="variable">name</span> <span class="keyword">unless</span> <span class="variable">the</span> <span class="variable">program</span> <span class="variable">name</span> <span class="variable">already</span> <span class="variable">ends</span> <span class="variable">in</span> <span class="operator">.</span><span class="variable">exe</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">1</span> <span class="keyword">if</span> <span class="variable">the</span> <span class="keyword">given</span> <span class="variable">program</span> <span class="variable">is</span> <span class="variable">callable</span> <span class="variable">as</span> <span class="variable">an</span> <span class="variable">executable</span><span class="operator">,</span> <span class="keyword">and</span> <span class="number">0</span> <span class="variable">otherwise</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">executable</span>
+</code></code></pre>
+
+<h2 id="tempfile">tempfile</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">tempfile</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$handle</span><span class="operator">,</span><span class="variable">$tempfile</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$io</span><span class="operator">-&gt;</span><span class="variable">tempfile</span><span class="operator">();</span> 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">a</span> <span class="variable">temporary</span> <span class="variable">filename</span> <span class="keyword">and</span> <span class="variable">a</span> <span class="variable">handle</span> <span class="variable">opened</span> <span class="keyword">for</span> <span class="variable">writing</span> <span class="keyword">and</span>
+           <span class="keyword">and</span> <span class="variable">reading</span><span class="operator">.</span>
+ 
+ <span class="variable">Caveats</span> <span class="operator">:</span> <span class="variable">If</span> <span class="variable">you</span> <span class="keyword">do</span> <span class="keyword">not</span> <span class="variable">have</span> <span class="variable">File::Temp</span> <span class="variable">on</span> <span class="variable">your</span> <span class="keyword">system</span> <span class="variable">you</span> <span class="variable">should</span> <span class="variable">avoid</span>
+           <span class="variable">specifying</span> <span class="variable">TEMPLATE</span> <span class="keyword">and</span> <span class="variable">SUFFIX</span><span class="operator">.</span> <span class="operator">(</span><span class="variable">We</span> <span class="variable">don't</span> <span class="variable">want</span> <span class="variable">to</span> <span class="variable">recode</span>
+           <span class="variable">everything</span><span class="operator">,</span> <span class="variable">okay</span><span class="operator">?)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="number">2</span><span class="operator">-</span><span class="variable">element</span> <span class="variable">array</span><span class="operator">,</span> <span class="variable">consisting</span> <span class="variable">of</span> <span class="variable">temporary</span> <span class="variable">handle</span> <span class="keyword">and</span> <span class="variable">temporary</span> 
+           <span class="variable">file</span> <span class="variable">name</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">named</span> <span class="variable">parameters</span> <span class="variable">compatible</span> <span class="variable">with</span> <span class="variable">File::Temp</span><span class="operator">:</span> <span class="variable">DIR</span> <span class="operator">(</span><span class="variable">defaults</span> <span class="variable">to</span>
+           <span class="variable">$Bio::Root::IO::TEMPDIR</span><span class="operator">),</span> <span class="variable">TEMPLATE</span><span class="operator">,</span> <span class="variable">SUFFIX</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="tempdir">tempdir</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">tempdir</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$tempdir</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$io</span><span class="operator">-&gt;</span><span class="variable">tempdir</span><span class="operator">(</span><span class="string">CLEANUP</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span> 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Creates</span> <span class="keyword">and</span> <span class="variable">returns</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">temporary</span> <span class="variable">directory</span><span class="operator">.</span>
+ 
+           <span class="variable">Note</span> <span class="variable">that</span> <span class="variable">you</span> <span class="variable">should</span> <span class="keyword">not</span> <span class="keyword">use</span> <span class="variable">this</span> <span class="variable">function</span> <span class="keyword">for</span> <span class="variable">obtaining</span> <span class="string">"the"</span>
+           <span class="variable">temp</span> <span class="variable">directory</span><span class="operator">.</span> <span class="variable">Use</span> <span class="variable">$Bio::Root::IO::TEMPDIR</span> <span class="keyword">for</span> <span class="variable">that</span><span class="operator">.</span> <span class="variable">Calling</span> <span class="variable">this</span>
+           <span class="variable">method</span> <span class="variable">will</span> <span class="variable">in</span> <span class="variable">fact</span> <span class="variable">create</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">directory</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">The</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">temporary</span> <span class="variable">directory</span><span class="operator">.</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">args</span> <span class="operator">-</span> <span class="operator">(</span> <span class="variable">key</span> <span class="variable">CLEANUP</span> <span class="operator">)</span> <span class="variable">indicates</span> <span class="variable">whether</span> <span class="keyword">or</span> <span class="keyword">not</span> <span class="variable">to</span> <span class="variable">cleanup</span> 
+           <span class="variable">dir</span> <span class="variable">on</span> <span class="variable">object</span> <span class="variable">destruction</span><span class="operator">,</span> <span class="variable">other</span> <span class="keyword">keys</span> <span class="variable">as</span> <span class="variable">specified</span> <span class="variable">by</span> <span class="variable">File::Temp</span>
+</code></code></pre>
+
+<h2 id="catfile">catfile</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">catfile</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$path</span> <span class="operator">=</span> <span class="variable">Bio::Root::IO</span><span class="operator">-&gt;</span><span class="variable">catfile</span><span class="operator">(</span><span class="variable">@dirs</span><span class="operator">,</span><span class="variable">$filename</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Constructs</span> <span class="variable">a</span> <span class="variable">full</span> <span class="variable">pathname</span> <span class="variable">in</span> <span class="variable">a</span> <span class="variable">cross</span><span class="operator">-</span><span class="variable">platform</span> <span class="variable">safe</span> <span class="variable">way</span><span class="operator">.</span>
+ 
+           <span class="variable">If</span> <span class="variable">File::Spec</span> <span class="keyword">exists</span> <span class="variable">on</span> <span class="variable">your</span> <span class="keyword">system</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">routine</span> <span class="variable">will</span> <span class="variable">merely</span>
+           <span class="variable">delegate</span> <span class="variable">to</span> <span class="variable">it</span><span class="operator">.</span> <span class="variable">Otherwise</span> <span class="variable">it</span> <span class="variable">tries</span> <span class="variable">to</span> <span class="variable">make</span> <span class="variable">a</span> <span class="variable">good</span> <span class="variable">guess</span><span class="operator">.</span>
+ 
+           <span class="variable">You</span> <span class="variable">should</span> <span class="keyword">use</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">whenever</span> <span class="variable">you</span> <span class="variable">construct</span> <span class="variable">a</span> <span class="variable">path</span> <span class="variable">name</span>
+           <span class="variable">from</span> <span class="variable">directory</span> <span class="keyword">and</span> <span class="variable">filename</span><span class="operator">.</span> <span class="variable">Otherwise</span> <span class="variable">you</span> <span class="variable">risk</span> <span class="variable">cross</span><span class="operator">-</span><span class="variable">platform</span>
+           <span class="variable">compatibility</span> <span class="variable">of</span> <span class="variable">your</span> <span class="variable">code</span><span class="operator">.</span>
+ 
+           <span class="variable">You</span> <span class="variable">can</span> <span class="variable">call</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">both</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">class</span> <span class="keyword">and</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">method</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">components</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">pathname</span> <span class="operator">(</span><span class="variable">directories</span> <span class="keyword">and</span> <span class="variable">filename</span><span class="operator">,</span> <span class="variable">NOT</span> <span class="variable">an</span>
+           <span class="variable">extension</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="rmtree">rmtree</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">rmtree</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">Bio::Root::IO</span><span class="operator">-&gt;</span><span class="variable">rmtree</span><span class="operator">(</span><span class="variable">$dirname</span> <span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Remove</span> <span class="variable">a</span> <span class="variable">full</span> <span class="variable">directory</span> <span class="variable">tree</span>
+ 
+           <span class="variable">If</span> <span class="variable">File::Path</span> <span class="keyword">exists</span> <span class="variable">on</span> <span class="variable">your</span> <span class="keyword">system</span><span class="operator">,</span> <span class="variable">this</span> <span class="variable">routine</span> <span class="variable">will</span> <span class="variable">merely</span>
+           <span class="variable">delegate</span> <span class="variable">to</span> <span class="variable">it</span><span class="operator">.</span> <span class="variable">Otherwise</span> <span class="variable">it</span> <span class="variable">runs</span> <span class="variable">a</span> <span class="keyword">local</span> <span class="variable">version</span> <span class="variable">of</span> <span class="variable">that</span> <span class="variable">code</span><span class="operator">.</span>
+ 
+           <span class="variable">You</span> <span class="variable">should</span> <span class="keyword">use</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">to</span> <span class="variable">remove</span> <span class="variable">directories</span> <span class="variable">which</span> <span class="variable">contain</span> 
+           <span class="variable">files</span><span class="operator">.</span>
+ 
+           <span class="variable">You</span> <span class="variable">can</span> <span class="variable">call</span> <span class="variable">this</span> <span class="variable">method</span> <span class="variable">both</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">class</span> <span class="keyword">and</span> <span class="variable">an</span> <span class="variable">instance</span> <span class="variable">method</span><span class="operator">.</span>
+ 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">number</span> <span class="variable">of</span> <span class="variable">files</span> <span class="variable">successfully</span> <span class="variable">deleted</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">roots</span> <span class="operator">-</span> <span class="variable">rootdir</span> <span class="variable">to</span> <span class="keyword">delete</span> <span class="keyword">or</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">dirs</span>
+ 
+           <span class="variable">verbose</span> <span class="operator">-</span> <span class="variable">a</span> <span class="variable">boolean</span> <span class="variable">value</span><span class="operator">,</span> <span class="variable">which</span> <span class="keyword">if</span> <span class="variable">TRUE</span> <span class="variable">will</span> <span class="variable">cause</span>
+                     <span class="variable">C</span><span class="operator">&lt;</span><span class="variable">rmtree</span><span class="operator">&gt;</span> <span class="variable">to</span> <span class="keyword">print</span> <span class="variable">a</span> <span class="variable">message</span> <span class="keyword">each</span> <span class="keyword">time</span> <span class="variable">it</span>
+                     <span class="variable">examines</span> <span class="variable">a</span> <span class="variable">file</span><span class="operator">,</span> <span class="variable">giving</span> <span class="variable">the</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">file</span><span class="operator">,</span> <span class="keyword">and</span>
+                     <span class="variable">indicating</span> <span class="variable">whether</span> <span class="variable">it's</span> <span class="variable">using</span> <span class="variable">C</span><span class="operator">&lt;</span><span class="keyword">rmdir</span><span class="operator">&gt;</span> <span class="keyword">or</span>
+                     <span class="variable">C</span><span class="operator">&lt;</span><span class="keyword">unlink</span><span class="operator">&gt;</span> <span class="variable">to</span> <span class="variable">remove</span> <span class="variable">it</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">that</span> <span class="variable">it's</span> <span class="variable">skipping</span> <span class="variable">it</span><span class="operator">.</span>
+                     <span class="operator">(</span><span class="variable">defaults</span> <span class="variable">to</span> <span class="variable">FALSE</span><span class="operator">)</span>
+ 
+           <span class="variable">safe</span> <span class="operator">-</span> <span class="variable">a</span> <span class="variable">boolean</span> <span class="variable">value</span><span class="operator">,</span> <span class="variable">which</span> <span class="keyword">if</span> <span class="variable">TRUE</span> <span class="variable">will</span> <span class="variable">cause</span> <span class="variable">C</span><span class="operator">&lt;</span><span class="variable">rmtree</span><span class="operator">&gt;</span>
+                  <span class="variable">to</span> <span class="variable">skip</span> <span class="variable">any</span> <span class="variable">files</span> <span class="variable">to</span> <span class="variable">which</span> <span class="variable">you</span> <span class="keyword">do</span> <span class="keyword">not</span> <span class="variable">have</span> <span class="keyword">delete</span>
+                  <span class="variable">access</span> <span class="operator">(</span><span class="keyword">if</span> <span class="variable">running</span> <span class="variable">under</span> <span class="variable">VMS</span><span class="operator">)</span> <span class="keyword">or</span> <span class="keyword">write</span> <span class="variable">access</span> <span class="operator">(</span><span class="keyword">if</span>
+                  <span class="variable">running</span> <span class="variable">under</span> <span class="variable">another</span> <span class="variable">OS</span><span class="operator">).</span>  <span class="variable">This</span> <span class="variable">will</span> <span class="variable">change</span> <span class="variable">in</span> <span class="variable">the</span>
+                  <span class="variable">future</span> <span class="keyword">when</span> <span class="variable">a</span> <span class="variable">criterion</span> <span class="keyword">for</span> <span class="string">'delete permission'</span>
+                  <span class="variable">under</span> <span class="variable">OSs</span> <span class="variable">other</span> <span class="variable">than</span> <span class="variable">VMS</span> <span class="variable">is</span> <span class="variable">settled</span><span class="operator">.</span>  <span class="operator">(</span><span class="variable">defaults</span> <span class="variable">to</span>
+                  <span class="variable">FALSE</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="flush_on_write">_flush_on_write</h2>
+
+<pre><code><code> Title   : _flush_on_write
+ Usage   : $obj-&gt;_flush_on_write($newval)
+ Function: Boolean flag to indicate whether to flush 
+           the filehandle on writing when the end of 
+           a component is finished (Sequences,Alignments,etc)
+ Returns : value of _flush_on_write
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="save_tempfiles">save_tempfiles</h2>
+
+<pre><code><code> Title   : save_tempfiles
+ Usage   : $obj-&gt;save_tempfiles(1)
+ Function: Boolean flag to indicate whether to retain tempfiles/tempdir
+ Returns : Boolean value : 1 = save tempfiles/tempdirs, 0 = remove (default)
+ Args    : Value evaluating to TRUE or FALSE</code></code></pre>
+
+
+</body>
+
+</html>
+
+

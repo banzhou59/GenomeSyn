@@ -1,0 +1,1136 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#I-love-it-when-a-plan-comes-together">I love it when a plan comes together</a></li>
+      <li><a href="#Test-names">Test names</a></li>
+      <li><a href="#Im-ok-youre-not-ok.">I&#39;m ok, you&#39;re not ok.</a></li>
+      <li><a href="#Module-tests">Module tests</a></li>
+      <li><a href="#Complex-data-structures">Complex data structures</a></li>
+      <li><a href="#Diagnostics">Diagnostics</a></li>
+      <li><a href="#Conditional-tests">Conditional tests</a></li>
+      <li><a href="#Test-control">Test control</a></li>
+      <li><a href="#Discouraged-comparison-functions">Discouraged comparison functions</a></li>
+      <li><a href="#Extending-and-Embedding-Test::More">Extending and Embedding Test::More</a></li>
+    </ul>
+  </li>
+  <li><a href="#EXIT-CODES">EXIT CODES</a></li>
+  <li><a href="#COMPATIBILITY">COMPATIBILITY</a></li>
+  <li><a href="#CAVEATS-and-NOTES">CAVEATS and NOTES</a></li>
+  <li><a href="#HISTORY">HISTORY</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a>
+    <ul>
+      <li><a href="#"></a></li>
+      <li><a href="#ALTERNATIVES">ALTERNATIVES</a></li>
+      <li><a href="#TESTING-FRAMEWORKS">TESTING FRAMEWORKS</a></li>
+      <li><a href="#ADDITIONAL-LIBRARIES">ADDITIONAL LIBRARIES</a></li>
+      <li><a href="#OTHER-COMPONENTS">OTHER COMPONENTS</a></li>
+      <li><a href="#BUNDLES">BUNDLES</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#MAINTAINERS">MAINTAINERS</a></li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#SOURCE">SOURCE</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Test::More - yet another framework for writing test scripts</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">23</span><span class="operator">;</span>
+  <span class="comment"># or</span>
+  <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">skip_all</span> <span class="operator">=&gt;</span> <span class="variable">$reason</span><span class="operator">;</span>
+  <span class="comment"># or</span>
+  <span class="keyword">use</span> <span class="variable">Test::More</span><span class="operator">;</span>   <span class="comment"># see done_testing()</span>
+  
+  <span class="variable">require_ok</span><span class="operator">(</span> <span class="string">'Some::Module'</span> <span class="operator">);</span>
+  
+  <span class="comment"># Various ways to say "ok"</span>
+  <span class="variable">ok</span><span class="operator">(</span><span class="variable">$got</span> <span class="keyword">eq</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="variable">$test_name</span><span class="operator">);</span>
+  
+  <span class="variable">is</span>  <span class="operator">(</span><span class="variable">$got</span><span class="operator">,</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="variable">$test_name</span><span class="operator">);</span>
+  <span class="variable">isnt</span><span class="operator">(</span><span class="variable">$got</span><span class="operator">,</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="variable">$test_name</span><span class="operator">);</span>
+  
+  <span class="comment"># Rather than print STDERR "# here's what went wrong\n"</span>
+  <span class="variable">diag</span><span class="operator">(</span><span class="string">"here's what went wrong"</span><span class="operator">);</span>
+  
+  <span class="variable">like</span>  <span class="operator">(</span><span class="variable">$got</span><span class="operator">,</span> <span class="string">qr/expected/</span><span class="operator">,</span> <span class="variable">$test_name</span><span class="operator">);</span>
+  <span class="variable">unlike</span><span class="operator">(</span><span class="variable">$got</span><span class="operator">,</span> <span class="string">qr/expected/</span><span class="operator">,</span> <span class="variable">$test_name</span><span class="operator">);</span>
+  
+  <span class="variable">cmp_ok</span><span class="operator">(</span><span class="variable">$got</span><span class="operator">,</span> <span class="string">'=='</span><span class="operator">,</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="variable">$test_name</span><span class="operator">);</span>
+  
+  <span class="variable">is_deeply</span><span class="operator">(</span><span class="variable">$got_complex_structure</span><span class="operator">,</span> <span class="variable">$expected_complex_structure</span><span class="operator">,</span> <span class="variable">$test_name</span><span class="operator">);</span>
+  
+  <span class="variable">SKIP</span><span class="operator">:</span> <span class="operator">{</span>
+      <span class="variable">skip</span> <span class="variable">$why</span><span class="operator">,</span> <span class="variable">$how_many</span> <span class="keyword">unless</span> <span class="variable">$have_some_feature</span><span class="operator">;</span>
+  
+      <span class="variable">ok</span><span class="operator">(</span> <span class="variable">foo</span><span class="operator">(),</span>       <span class="variable">$test_name</span> <span class="operator">);</span>
+      <span class="variable">is</span><span class="operator">(</span> <span class="variable">foo</span><span class="operator">(</span><span class="number">42</span><span class="operator">),</span> <span class="number">23</span><span class="operator">,</span> <span class="variable">$test_name</span> <span class="operator">);</span>
+  <span class="operator">};</span>
+  
+  <span class="variable">TODO</span><span class="operator">:</span> <span class="operator">{</span>
+      <span class="keyword">local</span> <span class="variable">$TODO</span> <span class="operator">=</span> <span class="variable">$why</span><span class="operator">;</span>
+  
+      <span class="variable">ok</span><span class="operator">(</span> <span class="variable">foo</span><span class="operator">(),</span>       <span class="variable">$test_name</span> <span class="operator">);</span>
+      <span class="variable">is</span><span class="operator">(</span> <span class="variable">foo</span><span class="operator">(</span><span class="number">42</span><span class="operator">),</span> <span class="number">23</span><span class="operator">,</span> <span class="variable">$test_name</span> <span class="operator">);</span>
+  <span class="operator">};</span>
+  
+  <span class="variable">can_ok</span><span class="operator">(</span><span class="variable">$module</span><span class="operator">,</span> <span class="variable">@methods</span><span class="operator">);</span>
+  <span class="variable">isa_ok</span><span class="operator">(</span><span class="variable">$object</span><span class="operator">,</span> <span class="variable">$class</span><span class="operator">);</span>
+  
+  <span class="variable">pass</span><span class="operator">(</span><span class="variable">$test_name</span><span class="operator">);</span>
+  <span class="variable">fail</span><span class="operator">(</span><span class="variable">$test_name</span><span class="operator">);</span>
+  
+  <span class="variable">BAIL_OUT</span><span class="operator">(</span><span class="variable">$why</span><span class="operator">);</span>
+  
+  <span class="comment"># UNIMPLEMENTED!!!</span>
+  <span class="keyword">my</span> <span class="variable">@status</span> <span class="operator">=</span> <span class="variable">Test::More::status</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><b>STOP!</b> If you&#39;re just getting started writing tests, have a look at <a href="../../../lib/Test/Simple.html">Test::Simple</a> first. This is a drop in replacement for Test::Simple which you can switch to once you get the hang of basic testing.</p>
+
+<p>The purpose of this module is to provide a wide range of testing utilities. Various ways to say &quot;ok&quot; with better diagnostics, facilities to skip tests, test future features and compare complicated data structures. While you can do almost anything with a simple <code><code>ok()</code></code> function, it doesn&#39;t provide good diagnostic output.</p>
+
+<h2 id="I-love-it-when-a-plan-comes-together">I love it when a plan comes together</h2>
+
+<p>Before anything else, you need a testing plan. This basically declares how many tests your script is going to run to protect against premature failure.</p>
+
+<p>The preferred way to do this is to declare a plan when you <code><code>use Test::More</code></code>.</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">23</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>There are cases when you will not know beforehand how many tests your script is going to run. In this case, you can declare your tests at the end.</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::More</span><span class="operator">;</span>
+  
+  <span class="operator">...</span> <span class="variable">run</span> <span class="variable">your</span> <span class="variable">tests</span> <span class="operator">...</span>
+  
+  <span class="variable">done_testing</span><span class="operator">(</span> <span class="variable">$number_of_tests_run</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Sometimes you really don&#39;t know how many tests were run, or it&#39;s too difficult to calculate. In which case you can leave off $number_of_tests_run.</p>
+
+<p>In some cases, you&#39;ll want to completely skip an entire testing script.</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">skip_all</span> <span class="operator">=&gt;</span> <span class="variable">$skip_reason</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Your script will declare a skip with the reason why you skipped and exit immediately with a zero (success). See <a href="../../../lib/Test/Harness.html">Test::Harness</a> for details.</p>
+
+<p>If you want to control what functions Test::More will export, you have to use the &#39;import&#39; option. For example, to import everything but &#39;fail&#39;, you&#39;d do:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">23</span><span class="operator">,</span> <span class="string">import</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'!fail'</span><span class="operator">]</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Alternatively, you can use the <code><code>plan()</code></code> function. Useful for when you have to calculate the number of tests.</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::More</span><span class="operator">;</span>
+  <span class="variable">plan</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="keyword">keys</span> <span class="variable">%Stuff</span> <span class="operator">*</span> <span class="number">3</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>or for deciding between running the tests at all:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::More</span><span class="operator">;</span>
+  <span class="keyword">if</span><span class="operator">(</span> <span class="variable">$^O</span> <span class="keyword">eq</span> <span class="string">'MacOS'</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="variable">plan</span> <span class="string">skip_all</span> <span class="operator">=&gt;</span> <span class="string">'Test irrelevant on MacOS'</span><span class="operator">;</span>
+  <span class="operator">}</span>
+  <span class="keyword">else</span> <span class="operator">{</span>
+      <span class="variable">plan</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">42</span><span class="operator">;</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<dl>
+
+<dt id="done_testing"><b>done_testing</b></dt>
+<dd>
+
+<pre><code><code>    <span class="variable">done_testing</span><span class="operator">();</span>
+    <span class="variable">done_testing</span><span class="operator">(</span><span class="variable">$number_of_tests</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>If you don&#39;t know how many tests you&#39;re going to run, you can issue the plan when you&#39;re done running tests.</p>
+
+<p>$number_of_tests is the same as <code><code>plan()</code></code>, it&#39;s the number of tests you expected to run. You can omit this, in which case the number of tests you ran doesn&#39;t matter, just the fact that your tests ran to conclusion.</p>
+
+<p>This is safer than and replaces the &quot;no_plan&quot; plan.</p>
+
+</dd>
+</dl>
+
+<h2 id="Test-names">Test names</h2>
+
+<p>By convention, each test is assigned a number in order. This is largely done automatically for you. However, it&#39;s often very useful to assign a name to each test. Which would you rather see:</p>
+
+<pre><code><code>  ok 4
+  not ok 5
+  ok 6</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>  ok 4 - basic multi-variable
+  not ok 5 - simple exponential
+  ok 6 - force == mass * acceleration</code></code></pre>
+
+<p>The later gives you some idea of what failed. It also makes it easier to find the test in your script, simply search for &quot;simple exponential&quot;.</p>
+
+<p>All test functions take a name argument. It&#39;s optional, but highly suggested that you use it.</p>
+
+<h2 id="Im-ok-youre-not-ok.">I&#39;m ok, you&#39;re not ok.</h2>
+
+<p>The basic purpose of this module is to print out either &quot;ok #&quot; or &quot;not ok #&quot; depending on if a given test succeeded or failed. Everything else is just gravy.</p>
+
+<p>All of the following print &quot;ok&quot; or &quot;not ok&quot; depending on if the test succeeded or failed. They all also return true or false, respectively.</p>
+
+<dl>
+
+<dt id="ok"><b>ok</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">ok</span><span class="operator">(</span><span class="variable">$got</span> <span class="keyword">eq</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="variable">$test_name</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>This simply evaluates any expression (<code><code>$got eq $expected</code></code> is just a simple example) and uses that to determine if the test succeeded or failed. A true expression passes, a false one fails. Very simple.</p>
+
+<p>For example:</p>
+
+<pre><code><code>    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$exp</span><span class="operator">{</span><span class="string">9</span><span class="operator">}</span> <span class="operator">==</span> <span class="number">81</span><span class="operator">,</span>                   <span class="string">'simple exponential'</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">Film</span><span class="operator">-&gt;</span><span class="variable">can</span><span class="operator">(</span><span class="string">'db_Main'</span><span class="operator">),</span>            <span class="string">'set_db()'</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$p</span><span class="operator">-&gt;</span><span class="variable">tests</span> <span class="operator">==</span> <span class="number">4</span><span class="operator">,</span>                  <span class="string">'saw tests'</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="operator">!</span><span class="keyword">grep</span><span class="operator">(!</span><span class="keyword">defined</span> <span class="variable">$_</span><span class="operator">,</span> <span class="variable">@items</span><span class="operator">),</span>      <span class="string">'all items defined'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>(Mnemonic: &quot;This is ok.&quot;)</p>
+
+<p>$test_name is a very short description of the test that will be printed out. It makes it very easy to find a test in your script when it fails and gives others an idea of your intentions. $test_name is optional, but we <b>very</b> strongly encourage its use.</p>
+
+<p>Should an <code><code>ok()</code></code> fail, it will produce some diagnostics:</p>
+
+<pre><code><code>    not ok 18 - sufficient mucus
+    #   Failed test &#39;sufficient mucus&#39;
+    #   in foo.t at line 42.</code></code></pre>
+
+<p>This is the same as <a href="../../../lib/Test/Simple.html">Test::Simple</a>&#39;s <code><code>ok()</code></code> routine.</p>
+
+</dd>
+<dt id="is"><b>is</b></dt>
+<dd>
+
+</dd>
+<dt id="isnt"><b>isnt</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">is</span>  <span class="operator">(</span> <span class="variable">$got</span><span class="operator">,</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="variable">$test_name</span> <span class="operator">);</span>
+  <span class="variable">isnt</span><span class="operator">(</span> <span class="variable">$got</span><span class="operator">,</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="variable">$test_name</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Similar to <code><code>ok()</code></code>, <code><code>is()</code></code> and <code><code>isnt()</code></code> compare their two arguments with <code><code>eq</code></code> and <code><code>ne</code></code> respectively and use the result of that to determine if the test succeeded or failed. So these:</p>
+
+<pre><code><code>    <span class="comment"># Is the ultimate answer 42?</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">ultimate_answer</span><span class="operator">(),</span> <span class="number">42</span><span class="operator">,</span>          <span class="string">"Meaning of Life"</span> <span class="operator">);</span>
+    
+    <span class="comment"># $foo isn't empty</span>
+    <span class="variable">isnt</span><span class="operator">(</span> <span class="variable">$foo</span><span class="operator">,</span> <span class="string">''</span><span class="operator">,</span>     <span class="string">"Got some foo"</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>are similar to these:</p>
+
+<pre><code><code>    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">ultimate_answer</span><span class="operator">()</span> <span class="keyword">eq</span> <span class="number">42</span><span class="operator">,</span>        <span class="string">"Meaning of Life"</span> <span class="operator">);</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$foo</span> <span class="keyword">ne</span> <span class="string">''</span><span class="operator">,</span>     <span class="string">"Got some foo"</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p><code><code>undef</code></code> will only ever match <code><code>undef</code></code>. So you can test a value against <code><code>undef</code></code> like this:</p>
+
+<pre><code><code>    <span class="variable">is</span><span class="operator">(</span><span class="variable">$not_defined</span><span class="operator">,</span> <span class="keyword">undef</span><span class="operator">,</span> <span class="string">"undefined as expected"</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>(Mnemonic: &quot;This is that.&quot; &quot;This isn&#39;t that.&quot;)</p>
+
+<p>So why use these? They produce better diagnostics on failure. <code><code>ok()</code></code> cannot know what you are testing for (beyond the name), but <code><code>is()</code></code> and <code><code>isnt()</code></code> know what the test was and why it failed. For example this test:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$foo</span> <span class="operator">=</span> <span class="string">'waffle'</span><span class="operator">;</span>  <span class="keyword">my</span> <span class="variable">$bar</span> <span class="operator">=</span> <span class="string">'yarblokos'</span><span class="operator">;</span>
+    <span class="variable">is</span><span class="operator">(</span> <span class="variable">$foo</span><span class="operator">,</span> <span class="variable">$bar</span><span class="operator">,</span>   <span class="string">'Is foo the same as bar?'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Will produce something like this:</p>
+
+<pre><code><code>    not ok 17 - Is foo the same as bar?
+    #   Failed test &#39;Is foo the same as bar?&#39;
+    #   in foo.t at line 139.
+    #          got: &#39;waffle&#39;
+    #     expected: &#39;yarblokos&#39;</code></code></pre>
+
+<p>So you can figure out what went wrong without rerunning the test.</p>
+
+<p>You are encouraged to use <code><code>is()</code></code> and <code><code>isnt()</code></code> over <code><code>ok()</code></code> where possible, however do not be tempted to use them to find out if something is true or false!</p>
+
+<pre><code><code>  <span class="comment"># XXX BAD!</span>
+  <span class="variable">is</span><span class="operator">(</span> <span class="keyword">exists</span> <span class="variable">$brooklyn</span><span class="operator">{</span><span class="string">tree</span><span class="operator">}</span><span class="operator">,</span> <span class="number">1</span><span class="operator">,</span> <span class="string">'A tree grows in Brooklyn'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>This does not check if <code><code><span class="keyword">exists</span> <span class="variable">$brooklyn</span><span class="operator">{</span><span class="string">tree</span><span class="operator">}</span>
+</code></code> is true, it checks if it returns 1. Very different. Similar caveats exist for false and 0. In these cases, use <code><code>ok()</code></code>.</p>
+
+<pre><code><code>  <span class="variable">ok</span><span class="operator">(</span> <span class="keyword">exists</span> <span class="variable">$brooklyn</span><span class="operator">{</span><span class="string">tree</span><span class="operator">}</span><span class="operator">,</span>    <span class="string">'A tree grows in Brooklyn'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>A simple call to <code><code>isnt()</code></code> usually does not provide a strong test but there are cases when you cannot say much more about a value than that it is different from some other value:</p>
+
+<pre><code><code>  <span class="variable">new_ok</span> <span class="variable">$obj</span><span class="operator">,</span> <span class="string">"Foo"</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$clone</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">clone</span><span class="operator">;</span>
+  <span class="variable">isa_ok</span> <span class="variable">$obj</span><span class="operator">,</span> <span class="string">"Foo"</span><span class="operator">,</span> <span class="string">"Foo-&gt;clone"</span><span class="operator">;</span>
+  
+  <span class="variable">isnt</span> <span class="variable">$obj</span><span class="operator">,</span> <span class="variable">$clone</span><span class="operator">,</span> <span class="string">"clone() produces a different object"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>For those grammatical pedants out there, there&#39;s an <code><code>isn&#39;t()</code></code> function which is an alias of <code><code>isnt()</code></code>.</p>
+
+</dd>
+<dt id="like"><b>like</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">like</span><span class="operator">(</span> <span class="variable">$got</span><span class="operator">,</span> <span class="string">qr/expected/</span><span class="operator">,</span> <span class="variable">$test_name</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Similar to <code><code>ok()</code></code>, <code><code>like()</code></code> matches $got against the regex <code><code>qr/expected/</code></code>.</p>
+
+<p>So this:</p>
+
+<pre><code><code>    <span class="variable">like</span><span class="operator">(</span><span class="variable">$got</span><span class="operator">,</span> <span class="string">qr/expected/</span><span class="operator">,</span> <span class="string">'this is like that'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>is similar to:</p>
+
+<pre><code><code>    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">$got</span> <span class="operator">=~</span> <span class="regex">m/expected/</span><span class="operator">,</span> <span class="string">'this is like that'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>(Mnemonic &quot;This is like that&quot;.)</p>
+
+<p>The second argument is a regular expression. It may be given as a regex reference (i.e. <code><code>qr//</code></code>) or (for better compatibility with older perls) as a string that looks like a regex (alternative delimiters are currently not supported):</p>
+
+<pre><code><code>    <span class="variable">like</span><span class="operator">(</span> <span class="variable">$got</span><span class="operator">,</span> <span class="string">'/expected/'</span><span class="operator">,</span> <span class="string">'this is like that'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Regex options may be placed on the end (<code><code>&#39;/expected/i&#39;</code></code>).</p>
+
+<p>Its advantages over <code><code>ok()</code></code> are similar to that of <code><code>is()</code></code> and <code><code>isnt()</code></code>. Better diagnostics on failure.</p>
+
+</dd>
+<dt id="unlike"><b>unlike</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">unlike</span><span class="operator">(</span> <span class="variable">$got</span><span class="operator">,</span> <span class="string">qr/expected/</span><span class="operator">,</span> <span class="variable">$test_name</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Works exactly as <code><code>like()</code></code>, only it checks if $got <b>does not</b> match the given pattern.</p>
+
+</dd>
+<dt id="cmp_ok"><b>cmp_ok</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">cmp_ok</span><span class="operator">(</span> <span class="variable">$got</span><span class="operator">,</span> <span class="variable">$op</span><span class="operator">,</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="variable">$test_name</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Halfway between <code><code>ok()</code></code> and <code><code>is()</code></code> lies <code><code>cmp_ok()</code></code>. This allows you to compare two arguments using any binary perl operator. The test passes if the comparison is true and fails otherwise.</p>
+
+<pre><code><code>    <span class="comment"># ok( $got eq $expected );</span>
+    <span class="variable">cmp_ok</span><span class="operator">(</span> <span class="variable">$got</span><span class="operator">,</span> <span class="string">'eq'</span><span class="operator">,</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="string">'this eq that'</span> <span class="operator">);</span>
+    
+    <span class="comment"># ok( $got == $expected );</span>
+    <span class="variable">cmp_ok</span><span class="operator">(</span> <span class="variable">$got</span><span class="operator">,</span> <span class="string">'=='</span><span class="operator">,</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="string">'this == that'</span> <span class="operator">);</span>
+    
+    <span class="comment"># ok( $got &amp;&amp; $expected );</span>
+    <span class="variable">cmp_ok</span><span class="operator">(</span> <span class="variable">$got</span><span class="operator">,</span> <span class="string">'&amp;&amp;'</span><span class="operator">,</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="string">'this &amp;&amp; that'</span> <span class="operator">);</span>
+    <span class="operator">...</span><span class="variable">etc</span><span class="operator">...</span>
+</code></code></pre>
+
+<p>Its advantage over <code><code>ok()</code></code> is when the test fails you&#39;ll know what $got and $expected were:</p>
+
+<pre><code><code>    not ok 1
+    #   Failed test in foo.t at line 12.
+    #     &#39;23&#39;
+    #         &amp;&amp;
+    #     undef</code></code></pre>
+
+<p>It&#39;s also useful in those cases where you are comparing numbers and <code><code>is()</code></code>&#39;s use of <code><code>eq</code></code> will interfere:</p>
+
+<pre><code><code>    <span class="variable">cmp_ok</span><span class="operator">(</span> <span class="variable">$big_hairy_number</span><span class="operator">,</span> <span class="string">'=='</span><span class="operator">,</span> <span class="variable">$another_big_hairy_number</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>It&#39;s especially useful when comparing greater-than or smaller-than relation between values:</p>
+
+<pre><code><code>    <span class="variable">cmp_ok</span><span class="operator">(</span> <span class="variable">$some_value</span><span class="operator">,</span> <span class="string">'&lt;='</span><span class="operator">,</span> <span class="variable">$upper_limit</span> <span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="can_ok"><b>can_ok</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">can_ok</span><span class="operator">(</span><span class="variable">$module</span><span class="operator">,</span> <span class="variable">@methods</span><span class="operator">);</span>
+  <span class="variable">can_ok</span><span class="operator">(</span><span class="variable">$object</span><span class="operator">,</span> <span class="variable">@methods</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Checks to make sure the $module or $object can do these @methods (works with functions, too).</p>
+
+<pre><code><code>    <span class="variable">can_ok</span><span class="operator">(</span><span class="string">'Foo'</span><span class="operator">,</span> <span class="string">qw(this that whatever)</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>is almost exactly like saying:</p>
+
+<pre><code><code>    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">Foo</span><span class="operator">-&gt;</span><span class="variable">can</span><span class="operator">(</span><span class="string">'this'</span><span class="operator">)</span> <span class="operator">&amp;&amp;</span> 
+        <span class="variable">Foo</span><span class="operator">-&gt;</span><span class="variable">can</span><span class="operator">(</span><span class="string">'that'</span><span class="operator">)</span> <span class="operator">&amp;&amp;</span> 
+        <span class="variable">Foo</span><span class="operator">-&gt;</span><span class="variable">can</span><span class="operator">(</span><span class="string">'whatever'</span><span class="operator">)</span> 
+      <span class="operator">);</span>
+</code></code></pre>
+
+<p>only without all the typing and with a better interface. Handy for quickly testing an interface.</p>
+
+<p>No matter how many @methods you check, a single <code><code>can_ok()</code></code> call counts as one test. If you desire otherwise, use:</p>
+
+<pre><code><code>    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$meth</span> <span class="operator">(</span><span class="variable">@methods</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="variable">can_ok</span><span class="operator">(</span><span class="string">'Foo'</span><span class="operator">,</span> <span class="variable">$meth</span><span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+</dd>
+<dt id="isa_ok"><b>isa_ok</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">isa_ok</span><span class="operator">(</span><span class="variable">$object</span><span class="operator">,</span>   <span class="variable">$class</span><span class="operator">,</span> <span class="variable">$object_name</span><span class="operator">);</span>
+  <span class="variable">isa_ok</span><span class="operator">(</span><span class="variable">$subclass</span><span class="operator">,</span> <span class="variable">$class</span><span class="operator">,</span> <span class="variable">$object_name</span><span class="operator">);</span>
+  <span class="variable">isa_ok</span><span class="operator">(</span><span class="variable">$ref</span><span class="operator">,</span>      <span class="variable">$type</span><span class="operator">,</span>  <span class="variable">$ref_name</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Checks to see if the given <code><code>$object-&gt;isa($class)</code></code>. Also checks to make sure the object was defined in the first place. Handy for this sort of thing:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Some::Module</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+    <span class="variable">isa_ok</span><span class="operator">(</span> <span class="variable">$obj</span><span class="operator">,</span> <span class="string">'Some::Module'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>where you&#39;d otherwise have to write</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Some::Module</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">;</span>
+    <span class="variable">ok</span><span class="operator">(</span> <span class="keyword">defined</span> <span class="variable">$obj</span> <span class="operator">&amp;&amp;</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">isa</span><span class="operator">(</span><span class="string">'Some::Module'</span><span class="operator">)</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>to safeguard against your test script blowing up.</p>
+
+<p>You can also test a class, to make sure that it has the right ancestor:</p>
+
+<pre><code><code>    <span class="variable">isa_ok</span><span class="operator">(</span> <span class="string">'Vole'</span><span class="operator">,</span> <span class="string">'Rodent'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>It works on references, too:</p>
+
+<pre><code><code>    <span class="variable">isa_ok</span><span class="operator">(</span> <span class="variable">$array_ref</span><span class="operator">,</span> <span class="string">'ARRAY'</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>The diagnostics of this test normally just refer to &#39;the object&#39;. If you&#39;d like them to be more specific, you can supply an $object_name (for example &#39;Test customer&#39;).</p>
+
+</dd>
+<dt id="new_ok"><b>new_ok</b></dt>
+<dd>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">new_ok</span><span class="operator">(</span> <span class="variable">$class</span> <span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">new_ok</span><span class="operator">(</span> <span class="variable">$class</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@args</span> <span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">new_ok</span><span class="operator">(</span> <span class="variable">$class</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@args</span><span class="operator">,</span> <span class="variable">$object_name</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>A convenience function which combines creating an object and calling <code><code>isa_ok()</code></code> on that object.</p>
+
+<p>It is basically equivalent to:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">$class</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@args</span><span class="operator">);</span>
+    <span class="variable">isa_ok</span> <span class="variable">$obj</span><span class="operator">,</span> <span class="variable">$class</span><span class="operator">,</span> <span class="variable">$object_name</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>If @args is not given, an empty list will be used.</p>
+
+<p>This function only works on <code><code>new()</code></code> and it assumes <code><code>new()</code></code> will return just a single object which isa <code><code>$class</code></code>.</p>
+
+</dd>
+<dt id="subtest"><b>subtest</b></dt>
+<dd>
+
+<pre><code><code>    <span class="variable">subtest</span> <span class="variable">$name</span> <span class="operator">=&gt;</span> <span class="operator">\&amp;</span><span class="variable">code</span><span class="operator">;</span>
+</code></code></pre>
+
+<p><code><code>subtest()</code></code> runs the &amp;code as its own little test with its own plan and its own result. The main test counts this as a single test using the result of the whole subtest to determine if its ok or not ok.</p>
+
+<p>For example...</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Test::More</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">3</span><span class="operator">;</span>
+   
+  <span class="variable">pass</span><span class="operator">(</span><span class="string">"First test"</span><span class="operator">);</span>
+  
+  <span class="variable">subtest</span> <span class="string">'An example subtest'</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+      <span class="variable">plan</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">;</span>
+  
+      <span class="variable">pass</span><span class="operator">(</span><span class="string">"This is a subtest"</span><span class="operator">);</span>
+      <span class="variable">pass</span><span class="operator">(</span><span class="string">"So is this"</span><span class="operator">);</span>
+  <span class="operator">};</span>
+  
+  <span class="variable">pass</span><span class="operator">(</span><span class="string">"Third test"</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>This would produce.</p>
+
+<pre><code><code>  1..3
+  ok 1 - First test
+      # Subtest: An example subtest
+      1..2
+      ok 1 - This is a subtest
+      ok 2 - So is this
+  ok 2 - An example subtest
+  ok 3 - Third test</code></code></pre>
+
+<p>A subtest may call <code><code>skip_all</code></code>. No tests will be run, but the subtest is considered a skip.</p>
+
+<pre><code><code>  <span class="variable">subtest</span> <span class="string">'skippy'</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+      <span class="variable">plan</span> <span class="string">skip_all</span> <span class="operator">=&gt;</span> <span class="string">'cuz I said so'</span><span class="operator">;</span>
+      <span class="variable">pass</span><span class="operator">(</span><span class="string">'this test will never be run'</span><span class="operator">);</span>
+  <span class="operator">};</span>
+</code></code></pre>
+
+<p>Returns true if the subtest passed, false otherwise.</p>
+
+<p>Due to how subtests work, you may omit a plan if you desire. This adds an implicit <code><code>done_testing()</code></code> to the end of your subtest. The following two subtests are equivalent:</p>
+
+<pre><code><code>  <span class="variable">subtest</span> <span class="string">'subtest with implicit done_testing()'</span><span class="operator">,</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+      <span class="variable">ok</span> <span class="number">1</span><span class="operator">,</span> <span class="string">'subtests with an implicit done testing should work'</span><span class="operator">;</span>
+      <span class="variable">ok</span> <span class="number">1</span><span class="operator">,</span> <span class="string">'... and support more than one test'</span><span class="operator">;</span>
+      <span class="variable">ok</span> <span class="number">1</span><span class="operator">,</span> <span class="string">'... no matter how many tests are run'</span><span class="operator">;</span>
+  <span class="operator">};</span>
+  
+  <span class="variable">subtest</span> <span class="string">'subtest with explicit done_testing()'</span><span class="operator">,</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+      <span class="variable">ok</span> <span class="number">1</span><span class="operator">,</span> <span class="string">'subtests with an explicit done testing should work'</span><span class="operator">;</span>
+      <span class="variable">ok</span> <span class="number">1</span><span class="operator">,</span> <span class="string">'... and support more than one test'</span><span class="operator">;</span>
+      <span class="variable">ok</span> <span class="number">1</span><span class="operator">,</span> <span class="string">'... no matter how many tests are run'</span><span class="operator">;</span>
+      <span class="variable">done_testing</span><span class="operator">();</span>
+  <span class="operator">};</span>
+</code></code></pre>
+
+</dd>
+<dt id="pass"><b>pass</b></dt>
+<dd>
+
+</dd>
+<dt id="fail"><b>fail</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">pass</span><span class="operator">(</span><span class="variable">$test_name</span><span class="operator">);</span>
+  <span class="variable">fail</span><span class="operator">(</span><span class="variable">$test_name</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Sometimes you just want to say that the tests have passed. Usually the case is you&#39;ve got some complicated condition that is difficult to wedge into an <code><code>ok()</code></code>. In this case, you can simply use <code><code>pass()</code></code> (to declare the test ok) or fail (for not ok). They are synonyms for <code><code>ok(1)</code></code> and <code><code>ok(0)</code></code>.</p>
+
+<p>Use these very, very, very sparingly.</p>
+
+</dd>
+</dl>
+
+<h2 id="Module-tests">Module tests</h2>
+
+<p>Sometimes you want to test if a module, or a list of modules, can successfully load. For example, you&#39;ll often want a first test which simply loads all the modules in the distribution to make sure they work before going on to do more complicated testing.</p>
+
+<p>For such purposes we have <code><code>use_ok</code></code> and <code><code>require_ok</code></code>.</p>
+
+<dl>
+
+<dt id="require_ok"><b>require_ok</b></dt>
+<dd>
+
+<pre><code><code>   <span class="variable">require_ok</span><span class="operator">(</span><span class="variable">$module</span><span class="operator">);</span>
+   <span class="variable">require_ok</span><span class="operator">(</span><span class="variable">$file</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Tries to <code><code>require</code></code> the given $module or $file. If it loads successfully, the test will pass. Otherwise it fails and displays the load error.</p>
+
+<p><code><code>require_ok</code></code> will guess whether the input is a module name or a filename.</p>
+
+<p>No exception will be thrown if the load fails.</p>
+
+<pre><code><code>    <span class="comment"># require Some::Module</span>
+    <span class="variable">require_ok</span> <span class="string">"Some::Module"</span><span class="operator">;</span>
+    
+    <span class="comment"># require "Some/File.pl";</span>
+    <span class="variable">require_ok</span> <span class="string">"Some/File.pl"</span><span class="operator">;</span>
+    
+    <span class="comment"># stop testing if any of your modules will not load</span>
+    <span class="keyword">for</span> <span class="keyword">my</span> <span class="variable">$module</span> <span class="operator">(</span><span class="variable">@module</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="variable">require_ok</span> <span class="variable">$module</span> <span class="keyword">or</span> <span class="variable">BAIL_OUT</span> <span class="string">"Can't load </span><span class="variable">$module</span><span class="string">"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+</dd>
+<dt id="use_ok"><b>use_ok</b></dt>
+<dd>
+
+<pre><code><code>   <span class="keyword">BEGIN</span> <span class="operator">{</span> <span class="variable">use_ok</span><span class="operator">(</span><span class="variable">$module</span><span class="operator">);</span> <span class="operator">}</span>
+   <span class="keyword">BEGIN</span> <span class="operator">{</span> <span class="variable">use_ok</span><span class="operator">(</span><span class="variable">$module</span><span class="operator">,</span> <span class="variable">@imports</span><span class="operator">);</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>Like <code><code>require_ok</code></code>, but it will <code><code>use</code></code> the $module in question and only loads modules, not files.</p>
+
+<p>If you just want to test a module can be loaded, use <code><code>require_ok</code></code>.</p>
+
+<p>If you just want to load a module in a test, we recommend simply using <code><code>use</code></code> directly. It will cause the test to stop.</p>
+
+<p>It&#39;s recommended that you run <code><code>use_ok()</code></code> inside a BEGIN block so its functions are exported at compile-time and prototypes are properly honored.</p>
+
+<p>If @imports are given, they are passed through to the use. So this:</p>
+
+<pre><code><code>   <span class="keyword">BEGIN</span> <span class="operator">{</span> <span class="variable">use_ok</span><span class="operator">(</span><span class="string">'Some::Module'</span><span class="operator">,</span> <span class="string">qw(foo bar)</span><span class="operator">)</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>is like doing this:</p>
+
+<pre><code><code>   <span class="keyword">use</span> <span class="variable">Some::Module</span> <span class="string">qw(foo bar)</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Version numbers can be checked like so:</p>
+
+<pre><code><code>   <span class="comment"># Just like "use Some::Module 1.02"</span>
+   <span class="keyword">BEGIN</span> <span class="operator">{</span> <span class="variable">use_ok</span><span class="operator">(</span><span class="string">'Some::Module'</span><span class="operator">,</span> <span class="number">1.02</span><span class="operator">)</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>Don&#39;t try to do this:</p>
+
+<pre><code><code>   <span class="keyword">BEGIN</span> <span class="operator">{</span>
+       <span class="variable">use_ok</span><span class="operator">(</span><span class="string">'Some::Module'</span><span class="operator">);</span>
+   
+       <span class="operator">...</span><span class="variable">some</span> <span class="variable">code</span> <span class="variable">that</span> <span class="variable">depends</span> <span class="variable">on</span> <span class="variable">the</span> <span class="keyword">use</span><span class="operator">...</span>
+       <span class="operator">...</span><span class="variable">happening</span> <span class="variable">at</span> <span class="variable">compile</span> <span class="keyword">time</span><span class="operator">...</span>
+   <span class="operator">}</span>
+</code></code></pre>
+
+<p>because the notion of &quot;compile-time&quot; is relative. Instead, you want:</p>
+
+<pre><code><code>  <span class="keyword">BEGIN</span> <span class="operator">{</span> <span class="variable">use_ok</span><span class="operator">(</span><span class="string">'Some::Module'</span><span class="operator">)</span> <span class="operator">}</span>
+  <span class="keyword">BEGIN</span> <span class="operator">{</span> <span class="operator">...</span><span class="variable">some</span> <span class="variable">code</span> <span class="variable">that</span> <span class="variable">depends</span> <span class="variable">on</span> <span class="variable">the</span> <span class="keyword">use</span><span class="operator">...</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>If you want the equivalent of <code><code>use Foo ()</code></code>, use a module but not import anything, use <code><code>require_ok</code></code>.</p>
+
+<pre><code><code>  <span class="keyword">BEGIN</span> <span class="operator">{</span> <span class="variable">require_ok</span> <span class="string">"Foo"</span> <span class="operator">}</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h2 id="Complex-data-structures">Complex data structures</h2>
+
+<p>Not everything is a simple eq check or regex. There are times you need to see if two data structures are equivalent. For these instances Test::More provides a handful of useful functions.</p>
+
+<p><b>NOTE</b> I&#39;m not quite sure what will happen with filehandles.</p>
+
+<dl>
+
+<dt id="is_deeply"><b>is_deeply</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">is_deeply</span><span class="operator">(</span> <span class="variable">$got</span><span class="operator">,</span> <span class="variable">$expected</span><span class="operator">,</span> <span class="variable">$test_name</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Similar to <code><code>is()</code></code>, except that if $got and $expected are references, it does a deep comparison walking each data structure to see if they are equivalent. If the two structures are different, it will display the place where they start differing.</p>
+
+<p><code><code>is_deeply()</code></code> compares the dereferenced values of references, the references themselves (except for their type) are ignored. This means aspects such as blessing and ties are not considered &quot;different&quot;.</p>
+
+<p><code><code>is_deeply()</code></code> currently has very limited handling of function reference and globs. It merely checks if they have the same referent. This may improve in the future.</p>
+
+<p><a href="../../../lib/Test/Differences.html">Test::Differences</a> and <a>Test::Deep</a> provide more in-depth functionality along these lines.</p>
+
+</dd>
+</dl>
+
+<h2 id="Diagnostics">Diagnostics</h2>
+
+<p>If you pick the right test function, you&#39;ll usually get a good idea of what went wrong when it failed. But sometimes it doesn&#39;t work out that way. So here we have ways for you to write your own diagnostic messages which are safer than just <code><code>print STDERR</code></code>.</p>
+
+<dl>
+
+<dt id="diag"><b>diag</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">diag</span><span class="operator">(</span><span class="variable">@diagnostic_message</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Prints a diagnostic message which is guaranteed not to interfere with test output. Like <code><code>print</code></code> @diagnostic_message is simply concatenated together.</p>
+
+<p>Returns false, so as to preserve failure.</p>
+
+<p>Handy for this sort of thing:</p>
+
+<pre><code><code>    <span class="variable">ok</span><span class="operator">(</span> <span class="keyword">grep</span><span class="operator">(</span><span class="regex">/foo/</span><span class="operator">,</span> <span class="variable">@users</span><span class="operator">),</span> <span class="string">"There's a foo user"</span> <span class="operator">)</span> <span class="keyword">or</span>
+        <span class="variable">diag</span><span class="operator">(</span><span class="string">"Since there's no foo, check that /etc/bar is set up right"</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>which would produce:</p>
+
+<pre><code><code>    not ok 42 - There&#39;s a foo user
+    #   Failed test &#39;There&#39;s a foo user&#39;
+    #   in foo.t at line 52.
+    # Since there&#39;s no foo, check that /etc/bar is set up right.</code></code></pre>
+
+<p>You might remember <code><code>ok() or diag()</code></code> with the mnemonic <code><code>open() or die()</code></code>.</p>
+
+<p><b>NOTE</b> The exact formatting of the diagnostic output is still changing, but it is guaranteed that whatever you throw at it won&#39;t interfere with the test.</p>
+
+</dd>
+<dt id="note"><b>note</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">note</span><span class="operator">(</span><span class="variable">@diagnostic_message</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Like <code><code>diag()</code></code>, except the message will not be seen when the test is run in a harness. It will only be visible in the verbose TAP stream.</p>
+
+<p>Handy for putting in notes which might be useful for debugging, but don&#39;t indicate a problem.</p>
+
+<pre><code><code>    <span class="variable">note</span><span class="operator">(</span><span class="string">"Tempfile is </span><span class="variable">$tempfile</span><span class="string">"</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="explain"><b>explain</b></dt>
+<dd>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">@dump</span> <span class="operator">=</span> <span class="variable">explain</span> <span class="variable">@diagnostic_message</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Will dump the contents of any references in a human readable format. Usually you want to pass this into <code><code>note</code></code> or <code><code>diag</code></code>.</p>
+
+<p>Handy for things like...</p>
+
+<pre><code><code>    <span class="variable">is_deeply</span><span class="operator">(</span><span class="variable">$have</span><span class="operator">,</span> <span class="variable">$want</span><span class="operator">)</span> <span class="operator">||</span> <span class="variable">diag</span> <span class="variable">explain</span> <span class="variable">$have</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>    <span class="variable">note</span> <span class="variable">explain</span> <span class="operator">\</span><span class="variable">%args</span><span class="operator">;</span>
+    <span class="variable">Some::Class</span><span class="operator">-&gt;</span><span class="variable">method</span><span class="operator">(</span><span class="variable">%args</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h2 id="Conditional-tests">Conditional tests</h2>
+
+<p>Sometimes running a test under certain conditions will cause the test script to die. A certain function or method isn&#39;t implemented (such as <code><code>fork()</code></code> on MacOS), some resource isn&#39;t available (like a net connection) or a module isn&#39;t available. In these cases it&#39;s necessary to skip tests, or declare that they are supposed to fail but will work in the future (a todo test).</p>
+
+<p>For more details on the mechanics of skip and todo tests see <a href="../../../lib/Test/Harness.html">Test::Harness</a>.</p>
+
+<p>The way Test::More handles this is with a named block. Basically, a block of tests which can be skipped over or made todo. It&#39;s best if I just show you...</p>
+
+<dl>
+
+<dt id="SKIP:-BLOCK"><b>SKIP: BLOCK</b></dt>
+<dd>
+
+<pre><code><code>  <span class="variable">SKIP</span><span class="operator">:</span> <span class="operator">{</span>
+      <span class="variable">skip</span> <span class="variable">$why</span><span class="operator">,</span> <span class="variable">$how_many</span> <span class="keyword">if</span> <span class="variable">$condition</span><span class="operator">;</span>
+  
+      <span class="operator">...</span><span class="variable">normal</span> <span class="variable">testing</span> <span class="variable">code</span> <span class="variable">goes</span> <span class="variable">here</span><span class="operator">...</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<p>This declares a block of tests that might be skipped, $how_many tests there are, $why and under what $condition to skip them. An example is the easiest way to illustrate:</p>
+
+<pre><code><code>    <span class="variable">SKIP</span><span class="operator">:</span> <span class="operator">{</span>
+        <span class="keyword">eval</span> <span class="operator">{</span> <span class="keyword">require</span> <span class="variable">HTML::Lint</span> <span class="operator">};</span>
+    
+        <span class="variable">skip</span> <span class="string">"HTML::Lint not installed"</span><span class="operator">,</span> <span class="number">2</span> <span class="keyword">if</span> <span class="variable">$@</span><span class="operator">;</span>
+    
+        <span class="keyword">my</span> <span class="variable">$lint</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">HTML::Lint</span><span class="operator">;</span>
+        <span class="variable">isa_ok</span><span class="operator">(</span> <span class="variable">$lint</span><span class="operator">,</span> <span class="string">"HTML::Lint"</span> <span class="operator">);</span>
+    
+        <span class="variable">$lint</span><span class="operator">-&gt;</span><span class="variable">parse</span><span class="operator">(</span> <span class="variable">$html</span> <span class="operator">);</span>
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$lint</span><span class="operator">-&gt;</span><span class="variable">errors</span><span class="operator">,</span> <span class="number">0</span><span class="operator">,</span> <span class="string">"No errors found in HTML"</span> <span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>If the user does not have HTML::Lint installed, the whole block of code <i>won&#39;t be run at all</i>. Test::More will output special ok&#39;s which Test::Harness interprets as skipped, but passing, tests.</p>
+
+<p>It&#39;s important that $how_many accurately reflects the number of tests in the SKIP block so the # of tests run will match up with your plan. If your plan is <code><code>no_plan</code></code> $how_many is optional and will default to 1.</p>
+
+<p>It&#39;s perfectly safe to nest SKIP blocks. Each SKIP block must have the label <code><code>SKIP</code></code>, or Test::More can&#39;t work its magic.</p>
+
+<p>You don&#39;t skip tests which are failing because there&#39;s a bug in your program, or for which you don&#39;t yet have code written. For that you use TODO. Read on.</p>
+
+</dd>
+<dt id="TODO:-BLOCK"><b>TODO: BLOCK</b></dt>
+<dd>
+
+<pre><code><code>    <span class="variable">TODO</span><span class="operator">:</span> <span class="operator">{</span>
+        <span class="keyword">local</span> <span class="variable">$TODO</span> <span class="operator">=</span> <span class="variable">$why</span> <span class="keyword">if</span> <span class="variable">$condition</span><span class="operator">;</span>
+    
+        <span class="operator">...</span><span class="variable">normal</span> <span class="variable">testing</span> <span class="variable">code</span> <span class="variable">goes</span> <span class="variable">here</span><span class="operator">...</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>Declares a block of tests you expect to fail and $why. Perhaps it&#39;s because you haven&#39;t fixed a bug or haven&#39;t finished a new feature:</p>
+
+<pre><code><code>    <span class="variable">TODO</span><span class="operator">:</span> <span class="operator">{</span>
+        <span class="keyword">local</span> <span class="variable">$TODO</span> <span class="operator">=</span> <span class="string">"URI::Geller not finished"</span><span class="operator">;</span>
+    
+        <span class="keyword">my</span> <span class="variable">$card</span> <span class="operator">=</span> <span class="string">"Eight of clubs"</span><span class="operator">;</span>
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">URI::Geller</span><span class="operator">-&gt;</span><span class="variable">your_card</span><span class="operator">,</span> <span class="variable">$card</span><span class="operator">,</span> <span class="string">'Is THIS your card?'</span> <span class="operator">);</span>
+    
+        <span class="keyword">my</span> <span class="variable">$spoon</span><span class="operator">;</span>
+        <span class="variable">URI::Geller</span><span class="operator">-&gt;</span><span class="variable">bend_spoon</span><span class="operator">;</span>
+        <span class="variable">is</span><span class="operator">(</span> <span class="variable">$spoon</span><span class="operator">,</span> <span class="string">'bent'</span><span class="operator">,</span>    <span class="string">"Spoon bending, that's original"</span> <span class="operator">);</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>With a todo block, the tests inside are expected to fail. Test::More will run the tests normally, but print out special flags indicating they are &quot;todo&quot;. <a href="../../../lib/Test/Harness.html">Test::Harness</a> will interpret failures as being ok. Should anything succeed, it will report it as an unexpected success. You then know the thing you had todo is done and can remove the TODO flag.</p>
+
+<p>The nice part about todo tests, as opposed to simply commenting out a block of tests, is it&#39;s like having a programmatic todo list. You know how much work is left to be done, you&#39;re aware of what bugs there are, and you&#39;ll know immediately when they&#39;re fixed.</p>
+
+<p>Once a todo test starts succeeding, simply move it outside the block. When the block is empty, delete it.</p>
+
+</dd>
+<dt id="todo_skip"><b>todo_skip</b></dt>
+<dd>
+
+<pre><code><code>    <span class="variable">TODO</span><span class="operator">:</span> <span class="operator">{</span>
+        <span class="variable">todo_skip</span> <span class="variable">$why</span><span class="operator">,</span> <span class="variable">$how_many</span> <span class="keyword">if</span> <span class="variable">$condition</span><span class="operator">;</span>
+    
+        <span class="operator">...</span><span class="variable">normal</span> <span class="variable">testing</span> <span class="variable">code</span><span class="operator">...</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>With todo tests, it&#39;s best to have the tests actually run. That way you&#39;ll know when they start passing. Sometimes this isn&#39;t possible. Often a failing test will cause the whole program to die or hang, even inside an <code><code>eval BLOCK</code></code> with and using <code><code>alarm</code></code>. In these extreme cases you have no choice but to skip over the broken tests entirely.</p>
+
+<p>The syntax and behavior is similar to a <code><code>SKIP: BLOCK</code></code> except the tests will be marked as failing but todo. <a href="../../../lib/Test/Harness.html">Test::Harness</a> will interpret them as passing.</p>
+
+</dd>
+<dt id="When-do-I-use-SKIP-vs.-TODO-">When do I use SKIP vs. TODO?</dt>
+<dd>
+
+<p><b>If it&#39;s something the user might not be able to do</b>, use SKIP. This includes optional modules that aren&#39;t installed, running under an OS that doesn&#39;t have some feature (like <code><code>fork()</code></code> or symlinks), or maybe you need an Internet connection and one isn&#39;t available.</p>
+
+<p><b>If it&#39;s something the programmer hasn&#39;t done yet</b>, use TODO. This is for any code you haven&#39;t written yet, or bugs you have yet to fix, but want to put tests in your testing script (always a good idea).</p>
+
+</dd>
+</dl>
+
+<h2 id="Test-control">Test control</h2>
+
+<dl>
+
+<dt id="BAIL_OUT"><b>BAIL_OUT</b></dt>
+<dd>
+
+<pre><code><code>    <span class="variable">BAIL_OUT</span><span class="operator">(</span><span class="variable">$reason</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Indicates to the harness that things are going so badly all testing should terminate. This includes the running of any additional test scripts.</p>
+
+<p>This is typically used when testing cannot continue such as a critical module failing to compile or a necessary external utility not being available such as a database connection failing.</p>
+
+<p>The test will exit with 255.</p>
+
+<p>For even better control look at <a>Test::Most</a>.</p>
+
+</dd>
+</dl>
+
+<h2 id="Discouraged-comparison-functions">Discouraged comparison functions</h2>
+
+<p>The use of the following functions is discouraged as they are not actually testing functions and produce no diagnostics to help figure out what went wrong. They were written before <code><code>is_deeply()</code></code> existed because I couldn&#39;t figure out how to display a useful diff of two arbitrary data structures.</p>
+
+<p>These functions are usually used inside an <code><code>ok()</code></code>.</p>
+
+<pre><code><code>    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">eq_array</span><span class="operator">(\</span><span class="variable">@got</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@expected</span><span class="operator">)</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p><code><code>is_deeply()</code></code> can do that better and with diagnostics.</p>
+
+<pre><code><code>    <span class="variable">is_deeply</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">@got</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@expected</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>They may be deprecated in future versions.</p>
+
+<dl>
+
+<dt id="eq_array"><b>eq_array</b></dt>
+<dd>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$is_eq</span> <span class="operator">=</span> <span class="variable">eq_array</span><span class="operator">(\</span><span class="variable">@got</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@expected</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Checks if two arrays are equivalent. This is a deep check, so multi-level structures are handled correctly.</p>
+
+</dd>
+<dt id="eq_hash"><b>eq_hash</b></dt>
+<dd>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$is_eq</span> <span class="operator">=</span> <span class="variable">eq_hash</span><span class="operator">(\</span><span class="variable">%got</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">%expected</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Determines if the two hashes contain the same keys and values. This is a deep check.</p>
+
+</dd>
+<dt id="eq_set"><b>eq_set</b></dt>
+<dd>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$is_eq</span> <span class="operator">=</span> <span class="variable">eq_set</span><span class="operator">(\</span><span class="variable">@got</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@expected</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Similar to <code><code>eq_array()</code></code>, except the order of the elements is <b>not</b> important. This is a deep check, but the irrelevancy of order only applies to the top level.</p>
+
+<pre><code><code>    <span class="variable">ok</span><span class="operator">(</span> <span class="variable">eq_set</span><span class="operator">(\</span><span class="variable">@got</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@expected</span><span class="operator">)</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Is better written:</p>
+
+<pre><code><code>    <span class="variable">is_deeply</span><span class="operator">(</span> <span class="operator">[</span><span class="keyword">sort</span> <span class="variable">@got</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">[</span><span class="keyword">sort</span> <span class="variable">@expected</span><span class="operator">]</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p><b>NOTE</b> By historical accident, this is not a true set comparison. While the order of elements does not matter, duplicate elements do.</p>
+
+<p><b>NOTE</b> <code><code>eq_set()</code></code> does not know how to deal with references at the top level. The following is an example of a comparison which might not work:</p>
+
+<pre><code><code>    <span class="variable">eq_set</span><span class="operator">(</span><span class="operator">[</span><span class="operator">\</span><span class="number">1</span><span class="operator">,</span> <span class="operator">\</span><span class="number">2</span><span class="operator">]</span><span class="operator">,</span> <span class="operator">[</span><span class="operator">\</span><span class="number">2</span><span class="operator">,</span> <span class="operator">\</span><span class="number">1</span><span class="operator">]</span><span class="operator">);</span>
+</code></code></pre>
+
+<p><a>Test::Deep</a> contains much better set comparison functions.</p>
+
+</dd>
+</dl>
+
+<h2 id="Extending-and-Embedding-Test::More">Extending and Embedding Test::More</h2>
+
+<p>Sometimes the Test::More interface isn&#39;t quite enough. Fortunately, Test::More is built on top of <a href="../../../lib/Test/Builder.html">Test::Builder</a> which provides a single, unified backend for any test library to use. This means two test libraries which both use &lt;Test::Builder&gt; <b>can</b> be used together in the same program&gt;.</p>
+
+<p>If you simply want to do a little tweaking of how the tests behave, you can access the underlying <a href="../../../lib/Test/Builder.html">Test::Builder</a> object like so:</p>
+
+<dl>
+
+<dt id="builder"><b>builder</b></dt>
+<dd>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$test_builder</span> <span class="operator">=</span> <span class="variable">Test::More</span><span class="operator">-&gt;</span><span class="variable">builder</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Returns the <a href="../../../lib/Test/Builder.html">Test::Builder</a> object underlying Test::More for you to play with.</p>
+
+</dd>
+</dl>
+
+<h1 id="EXIT-CODES">EXIT CODES</h1>
+
+<p>If all your tests passed, <a href="../../../lib/Test/Builder.html">Test::Builder</a> will exit with zero (which is normal). If anything failed it will exit with how many failed. If you run less (or more) tests than you planned, the missing (or extras) will be considered failures. If no tests were ever run <a href="../../../lib/Test/Builder.html">Test::Builder</a> will throw a warning and exit with 255. If the test died, even after having successfully completed all its tests, it will still be considered a failure and will exit with 255.</p>
+
+<p>So the exit codes are...</p>
+
+<pre><code><code>    0                   all tests successful
+    255                 test died or all passed but wrong # of tests run
+    any other number    how many failed (including missing or extras)</code></code></pre>
+
+<p>If you fail more than 254 tests, it will be reported as 254.</p>
+
+<p><b>NOTE</b> This behavior may go away in future versions.</p>
+
+<h1 id="COMPATIBILITY">COMPATIBILITY</h1>
+
+<p>Test::More works with Perls as old as 5.8.1.</p>
+
+<p>Thread support is not very reliable before 5.10.1, but that&#39;s because threads are not very reliable before 5.10.1.</p>
+
+<p>Although Test::More has been a core module in versions of Perl since 5.6.2, Test::More has evolved since then, and not all of the features you&#39;re used to will be present in the shipped version of Test::More. If you are writing a module, don&#39;t forget to indicate in your package metadata the minimum version of Test::More that you require. For instance, if you want to use <code><code>done_testing()</code></code> but want your test script to run on Perl 5.10.0, you will need to explicitly require Test::More &gt; 0.88.</p>
+
+<p>Key feature milestones include:</p>
+
+<dl>
+
+<dt id="subtests">subtests</dt>
+<dd>
+
+<p>Subtests were released in Test::More 0.94, which came with Perl 5.12.0. Subtests did not implicitly call <code><code>done_testing()</code></code> until 0.96; the first Perl with that fix was Perl 5.14.0 with 0.98.</p>
+
+</dd>
+<dt id="done_testing-"><code><code>done_testing()</code></code></dt>
+<dd>
+
+<p>This was released in Test::More 0.88 and first shipped with Perl in 5.10.1 as part of Test::More 0.92.</p>
+
+</dd>
+<dt id="cmp_ok-"><code><code>cmp_ok()</code></code></dt>
+<dd>
+
+<p>Although <code><code>cmp_ok()</code></code> was introduced in 0.40, 0.86 fixed an important bug to make it safe for overloaded objects; the fixed first shipped with Perl in 5.10.1 as part of Test::More 0.92.</p>
+
+</dd>
+<dt id="new_ok-note-and-explain-"><code><code>new_ok()</code></code> <code><code>note()</code></code> and <code><code>explain()</code></code></dt>
+<dd>
+
+<p>These were was released in Test::More 0.82, and first shipped with Perl in 5.10.1 as part of Test::More 0.92.</p>
+
+</dd>
+</dl>
+
+<p>There is a full version history in the Changes file, and the Test::More versions included as core can be found using <a href="../../../lib/Module/CoreList.html">Module::CoreList</a>:</p>
+
+<pre><code><code>    $ corelist -a Test::More</code></code></pre>
+
+<h1 id="CAVEATS-and-NOTES">CAVEATS and NOTES</h1>
+
+<dl>
+
+<dt id="utf8-Wide-character-in-print">utf8 / &quot;Wide character in print&quot;</dt>
+<dd>
+
+<p>If you use utf8 or other non-ASCII characters with Test::More you might get a &quot;Wide character in print&quot; warning. Using <code><code>binmode STDOUT, &quot;:utf8&quot;</code></code> will not fix it. <a href="../../../lib/Test/Builder.html">Test::Builder</a> (which powers Test::More) duplicates STDOUT and STDERR. So any changes to them, including changing their output disciplines, will not be seem by Test::More.</p>
+
+<p>One work around is to apply encodings to STDOUT and STDERR as early as possible and before Test::More (or any other Test module) loads.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="keyword">open</span> <span class="string">':std'</span><span class="operator">,</span> <span class="string">':encoding(utf8)'</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Test::More</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>A more direct work around is to change the filehandles used by <a href="../../../lib/Test/Builder.html">Test::Builder</a>.</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$builder</span> <span class="operator">=</span> <span class="variable">Test::More</span><span class="operator">-&gt;</span><span class="variable">builder</span><span class="operator">;</span>
+    <span class="keyword">binmode</span> <span class="variable">$builder</span><span class="operator">-&gt;</span><span class="variable">output</span><span class="operator">,</span>         <span class="string">":encoding(utf8)"</span><span class="operator">;</span>
+    <span class="keyword">binmode</span> <span class="variable">$builder</span><span class="operator">-&gt;</span><span class="variable">failure_output</span><span class="operator">,</span> <span class="string">":encoding(utf8)"</span><span class="operator">;</span>
+    <span class="keyword">binmode</span> <span class="variable">$builder</span><span class="operator">-&gt;</span><span class="variable">todo_output</span><span class="operator">,</span>    <span class="string">":encoding(utf8)"</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="Overloaded-objects">Overloaded objects</dt>
+<dd>
+
+<p>String overloaded objects are compared <b>as strings</b> (or in <code><code>cmp_ok()</code></code>&#39;s case, strings or numbers as appropriate to the comparison op). This prevents Test::More from piercing an object&#39;s interface allowing better blackbox testing. So if a function starts returning overloaded objects instead of bare strings your tests won&#39;t notice the difference. This is good.</p>
+
+<p>However, it does mean that functions like <code><code>is_deeply()</code></code> cannot be used to test the internals of string overloaded objects. In this case I would suggest <a>Test::Deep</a> which contains more flexible testing functions for complex data structures.</p>
+
+</dd>
+<dt id="Threads">Threads</dt>
+<dd>
+
+<p>Test::More will only be aware of threads if <code><code>use threads</code></code> has been done <i>before</i> Test::More is loaded. This is ok:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">threads</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">Test::More</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This may cause problems:</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Test::More</span>
+    <span class="keyword">use</span> <span class="variable">threads</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>5.8.1 and above are supported. Anything below that has too many bugs.</p>
+
+</dd>
+</dl>
+
+<h1 id="HISTORY">HISTORY</h1>
+
+<p>This is a case of convergent evolution with Joshua Pritikin&#39;s <a href="../../../lib/Test.html">Test</a> module. I was largely unaware of its existence when I&#39;d first written my own <code><code>ok()</code></code> routines. This module exists because I can&#39;t figure out how to easily wedge test names into Test&#39;s interface (along with a few other problems).</p>
+
+<p>The goal here is to have a testing utility that&#39;s simple to learn, quick to use and difficult to trip yourself up with while still providing more flexibility than the existing Test.pm. As such, the names of the most common routines are kept tiny, special cases and magic side-effects are kept to a minimum. WYSIWYG.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<h2 id=""></h2>
+
+<h2 id="ALTERNATIVES">ALTERNATIVES</h2>
+
+<p><a href="../../../lib/Test/Simple.html">Test::Simple</a> if all this confuses you and you just want to write some tests. You can upgrade to Test::More later (it&#39;s forward compatible).</p>
+
+<p><a>Test::Legacy</a> tests written with Test.pm, the original testing module, do not play well with other testing libraries. Test::Legacy emulates the Test.pm interface and does play well with others.</p>
+
+<h2 id="TESTING-FRAMEWORKS">TESTING FRAMEWORKS</h2>
+
+<p><a>Fennec</a> The Fennec framework is a testers toolbox. It uses <a href="../../../lib/Test/Builder.html">Test::Builder</a> under the hood. It brings enhancements for forking, defining state, and mocking. Fennec enhances several modules to work better together than they would if you loaded them individually on your own.</p>
+
+<p><a>Fennec::Declare</a> Provides enhanced (<a>Devel::Declare</a>) syntax for Fennec.</p>
+
+<h2 id="ADDITIONAL-LIBRARIES">ADDITIONAL LIBRARIES</h2>
+
+<p><a href="../../../lib/Test/Differences.html">Test::Differences</a> for more ways to test complex data structures. And it plays well with Test::More.</p>
+
+<p><a>Test::Class</a> is like xUnit but more perlish.</p>
+
+<p><a>Test::Deep</a> gives you more powerful complex data structure testing.</p>
+
+<p><a>Test::Inline</a> shows the idea of embedded testing.</p>
+
+<p><a>Mock::Quick</a> The ultimate mocking library. Easily spawn objects defined on the fly. Can also override, block, or reimplement packages as needed.</p>
+
+<p><a>Test::FixtureBuilder</a> Quickly define fixture data for unit tests.</p>
+
+<h2 id="OTHER-COMPONENTS">OTHER COMPONENTS</h2>
+
+<p><a href="../../../lib/Test/Harness.html">Test::Harness</a> is the test runner and output interpreter for Perl. It&#39;s the thing that powers <code><code>make test</code></code> and where the <code><code>prove</code></code> utility comes from.</p>
+
+<h2 id="BUNDLES">BUNDLES</h2>
+
+<p><a>Bundle::Test</a> installs a whole bunch of useful test modules.</p>
+
+<p><a>Test::Most</a> Most commonly needed test functions and features.</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Michael G Schwern &lt;schwern@pobox.com&gt; with much inspiration from Joshua Pritikin&#39;s Test module and lots of help from Barrie Slaymaker, Tony Bowden, blackstar.co.uk, chromatic, Fergal Daly and the perl-qa gang.</p>
+
+<h1 id="MAINTAINERS">MAINTAINERS</h1>
+
+<dl>
+
+<dt id="Chad-Granum-exodist-cpan.org">Chad Granum &lt;exodist@cpan.org&gt;</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>See <i>http://rt.cpan.org</i> to report and view bugs.</p>
+
+<h1 id="SOURCE">SOURCE</h1>
+
+<p>The source code repository for Test::More can be found at <i>http://github.com/Test-More/test-more/</i>.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright 2001-2008 by Michael G Schwern &lt;schwern@pobox.com&gt;.</p>
+
+<p>This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<p>See <i>http://www.perl.com/perl/misc/Artistic.html</i></p>
+
+
+</body>
+
+</html>
+
+

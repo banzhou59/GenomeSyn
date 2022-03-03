@@ -1,0 +1,198 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a>
+    <ul>
+      <li><a href="#APPENDIX">APPENDIX</a></li>
+      <li><a href="#tag_stack">_tag_stack</a></li>
+      <li><a href="#push_tag">_push_tag</a></li>
+      <li><a href="#pop_tag">_pop_tag</a></li>
+      <li><a href="#top_tag">_top_tag</a></li>
+      <li><a href="#chars_hash">_chars_hash</a></li>
+      <li><a href="#current_hash">_current_hash</a></li>
+      <li><a href="#visited_count_inc">_visited_count_inc</a></li>
+      <li><a href="#visited_count_dec">_visited_count_dec</a></li>
+      <li><a href="#visited_count">_visited_count</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::OntologyIO::Handlers::BaseSAXHandler base class for SAX Handlers</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>See description.</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module is an abstract module, serving as the base of any SAX Handler implementation. It tries to offer the framework that SAX handlers generally need, such as tag_stack, char_store, etc.</p>
+
+<p>In the implementation handler, you can take advantage of this based module by the following suggestions.</p>
+
+<p>1) In start_element,</p>
+
+<pre><code><code> <span class="keyword">sub</span><span class="variable"> start_element </span><span class="operator">{</span>
+     <span class="keyword">my</span> <span class="variable">$self</span><span class="operator">=</span><span class="keyword">shift</span><span class="operator">;</span>
+     <span class="keyword">my</span> <span class="variable">$tag</span><span class="operator">=</span><span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">Name</span><span class="operator">}</span><span class="operator">;</span>
+     <span class="keyword">my</span> <span class="variable">%args</span><span class="operator">=</span><span class="variable">%</span><span class="operator">{</span><span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">Attributes</span><span class="operator">}}</span><span class="operator">;</span>
+     <span class="comment"># Your code here.</span>
+ 
+     <span class="comment"># Before you conclude the method, write these 2 line.</span>
+     <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_visited_count_inc</span><span class="operator">(</span><span class="variable">$tag</span><span class="operator">);</span>
+     <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_push_tag</span><span class="operator">(</span><span class="variable">$tag</span><span class="operator">);</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>2) In end_element,</p>
+
+<pre><code><code> <span class="keyword">sub</span><span class="variable"> end_element </span><span class="operator">{</span>
+     <span class="keyword">my</span> <span class="variable">$self</span><span class="operator">=</span><span class="keyword">shift</span><span class="operator">;</span>
+     <span class="keyword">my</span> <span class="variable">$tag</span><span class="operator">=</span><span class="keyword">shift</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">Name</span><span class="operator">}</span><span class="operator">;</span>
+     <span class="comment"># Your code here.</span>
+ 
+     <span class="comment"># Before you conclude the method, write these 2 lines.</span>
+     <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_visited_count_dec</span><span class="operator">(</span><span class="variable">$tag</span><span class="operator">);</span>
+     <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_pop_tag</span><span class="operator">;</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+<p>3) In characters, or any other methods where you may use the tag stack or count</p>
+
+<pre><code><code> <span class="keyword">sub</span><span class="variable"> characters </span><span class="operator">{</span>
+     <span class="keyword">my</span> <span class="variable">$self</span><span class="operator">=</span><span class="keyword">shift</span><span class="operator">;</span>
+     <span class="keyword">my</span> <span class="variable">$text</span><span class="operator">=</span><span class="keyword">shift</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">Data</span><span class="operator">}</span><span class="operator">;</span>
+ 
+     <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_chars_hash</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_top_tag</span><span class="operator">}</span> <span class="operator">.=</span> <span class="variable">$text</span><span class="operator">;</span>
+ 
+ <span class="operator">}</span>
+ <span class="variable">$count</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_visited_count</span><span class="operator">(</span><span class="string">'myTag'</span><span class="operator">);</span>
+ <span class="variable">$tag</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_top_tag</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists.</p>
+
+<p>Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Juguang Xiao, juguang@tll.org.sg</p>
+
+<h2 id="APPENDIX">APPENDIX</h2>
+
+<p>The rest of the documentation details each of the object methods. Interal methods are usually preceded with a _</p>
+
+<h2 id="tag_stack">_tag_stack</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_tag_stack</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@tags</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_tag_stack</span><span class="operator">;</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Get</span> <span class="variable">an</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">tags</span> <span class="variable">that</span> <span class="variable">have</span> <span class="variable">been</span> <span class="variable">accessed</span> <span class="variable">but</span> <span class="keyword">not</span> <span class="variable">enclosed</span><span class="operator">.</span>
+  <span class="variable">Return</span>  <span class="operator">:</span> 
+  <span class="variable">Args</span>    <span class="operator">:</span>    
+</code></code></pre>
+
+<h2 id="push_tag">_push_tag</h2>
+
+<h2 id="pop_tag">_pop_tag</h2>
+
+<h2 id="top_tag">_top_tag</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_top_tag</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$top</span> <span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_top_tag</span><span class="operator">;</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">get</span> <span class="variable">the</span> <span class="variable">top</span> <span class="variable">tag</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">tag</span> <span class="variable">stack</span><span class="operator">.</span>
+  <span class="variable">Return</span>  <span class="operator">:</span> <span class="variable">a</span> <span class="variable">tag</span> <span class="variable">name</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">none</span><span class="operator">]</span>   
+</code></code></pre>
+
+<h2 id="chars_hash">_chars_hash</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_chars_hash</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$hash</span><span class="operator">=</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_chars_hash</span><span class="operator">;</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="keyword">return</span> <span class="variable">the</span> <span class="variable">character</span> <span class="variable">cache</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">specific</span> <span class="variable">tag</span>
+  <span class="variable">Return</span>  <span class="operator">:</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="variable">reference</span><span class="operator">,</span> <span class="variable">which</span> <span class="variable">is</span> <span class="variable">intent</span> <span class="keyword">for</span> <span class="variable">character</span> <span class="variable">storage</span> <span class="keyword">for</span> <span class="variable">tags</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">none</span><span class="operator">]</span>
+</code></code></pre>
+
+<h2 id="current_hash">_current_hash</h2>
+
+<h2 id="visited_count_inc">_visited_count_inc</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_vistied_count_inc</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">vistied_count_inc</span><span class="operator">(</span><span class="variable">$tag</span><span class="operator">);</span> <span class="comment"># the counter for the tag increase</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">the</span> <span class="variable">counter</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">tag</span> <span class="variable">increase</span>
+  <span class="variable">Return</span>  <span class="operator">:</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">count</span> <span class="variable">after</span> <span class="variable">this</span> <span class="variable">increment</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">the</span> <span class="variable">tag</span> <span class="variable">name</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]</span>
+</code></code></pre>
+
+<h2 id="visited_count_dec">_visited_count_dec</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">_visited_count_dec</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_visited_count_dec</span><span class="operator">(</span><span class="variable">$tag</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">the</span> <span class="variable">counter</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">tag</span> <span class="variable">decreases</span> <span class="variable">by</span> <span class="variable">one</span>
+  <span class="variable">Return</span>  <span class="operator">:</span> <span class="variable">the</span> <span class="variable">current</span> <span class="variable">count</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">specific</span> <span class="variable">tag</span> <span class="variable">after</span> <span class="variable">the</span> <span class="variable">decrement</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">the</span> <span class="variable">tag</span> <span class="variable">name</span> <span class="operator">[</span><span class="keyword">scalar</span><span class="operator">]</span>
+</code></code></pre>
+
+<h2 id="visited_count">_visited_count</h2>
+
+<pre><code><code>  Title   : _visited_count
+  Usage   : $count = $self-&gt;_visited_count
+  Function: return the counter for the tag
+  Return  : the current counter for the specific tag
+  Args    : the tag name [scalar]</code></code></pre>
+
+
+</body>
+
+</html>
+
+

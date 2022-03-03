@@ -1,0 +1,384 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#DISCLAIMER">DISCLAIMER</a></li>
+  <li><a href="#BUGS-AND-LIMITATIONS">BUGS AND LIMITATIONS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#initialize">_initialize</a></li>
+      <li><a href="#db">db</a></li>
+    </ul>
+  </li>
+  <li><a href="#Methods-implementing-Bio::DB::BiblioI-interface">Methods implementing Bio::DB::BiblioI interface</a>
+    <ul>
+      <li><a href="#get_collection_id">get_collection_id</a></li>
+      <li><a href="#reset_retrieval">reset_retrieval</a></li>
+      <li><a href="#get_next">get_next</a></li>
+      <li><a href="#get_more">get_more</a></li>
+      <li><a href="#has_next">has_next</a></li>
+      <li><a href="#find">find</a></li>
+      <li><a href="#get_all_ids">get_all_ids</a></li>
+      <li><a href="#get_all">get_all</a></li>
+      <li><a href="#exists">exists</a></li>
+      <li><a href="#destroy">destroy</a></li>
+      <li><a href="#get_vocabulary_names">get_vocabulary_names</a></li>
+      <li><a href="#contains">contains</a></li>
+      <li><a href="#get_entry_description">get_entry_description</a></li>
+      <li><a href="#get_all_values">get_all_values</a></li>
+      <li><a href="#get_all_entries">get_all_entries</a></li>
+    </ul>
+  </li>
+  <li><a href="#Internal-methods-unrelated-to-Bio::DB::BiblioI">Internal methods unrelated to Bio::DB::BiblioI</a>
+    <ul>
+      <li><a href="#cursor">cursor</a></li>
+      <li><a href="#twig">twig</a></li>
+      <li><a href="#ids">ids</a></li>
+      <li><a href="#collection_id">collection_id</a></li>
+      <li><a href="#count">count</a></li>
+      <li><a href="#query_key">query_key</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::Biblio::eutils - Access to PubMed&#39;s bibliographic query service</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Do not use this object directly, it is recommended to access it and use it through the <i>Bio::Biblio</i> module:</p>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::Biblio</span><span class="operator">;</span>
+  <span class="keyword">use</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$biblio</span> <span class="operator">=</span> <span class="variable">Bio::Biblio</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-access</span> <span class="operator">=&gt;</span> <span class="string">'eutils'</span> <span class="operator">);</span>
+  <span class="variable">$biblio</span><span class="operator">-&gt;</span><span class="variable">find</span><span class="operator">(</span><span class="string">"10336996"</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$xml</span> <span class="operator">=</span> <span class="variable">$biblio</span><span class="operator">-&gt;</span><span class="variable">get_next</span><span class="operator">;</span>
+  <span class="keyword">my</span> <span class="variable">$io</span> <span class="operator">=</span> <span class="variable">Bio::Biblio::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">-data</span> <span class="operator">=&gt;</span> <span class="variable">$xml</span><span class="operator">,</span> 
+                                 <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'medlinexml'</span> <span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$article</span> <span class="operator">=</span> <span class="variable">$io</span><span class="operator">-&gt;</span><span class="variable">next_bibref</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This object contains the real implementation of a Bibliographic Query Service as defined in <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/BiblioI.html">Bio::DB::BiblioI</a>.</p>
+
+<p><a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/BiblioI.html">Bio::DB::BiblioI</a> is not implemented as documented in the interface, particularly the find() method, which is not compatible with PubMed&#39;s query language.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Allen Day &lt;allenday@ucla.edu&gt;</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright (c) 2004 Allen Day, University of California, Los Angeles.</p>
+
+<p>This module is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="DISCLAIMER">DISCLAIMER</h1>
+
+<p>This software is provided &quot;as is&quot; without warranty of any kind.</p>
+
+<h1 id="BUGS-AND-LIMITATIONS">BUGS AND LIMITATIONS</h1>
+
+<ul>
+
+<li><p>More testing and debugging needed to ensure that returned citations are properly transferred even if they contain foreign characters.</p>
+
+</li>
+<li><p>Maximum record count (MAX_RECORDS) returned currently hard coded to 100K.</p>
+
+</li>
+<li><p>Biblio retrieval methods should be more tightly integrated with <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/Biblio/Ref.html">Bio::Biblio::Ref</a> and <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/MeSH.html">Bio::DB::MeSH</a>.</p>
+
+</li>
+</ul>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<pre><code><code> Pub Med Help:
+ http://eutils.ncbi.nlm.nih.gov/entrez/query/static/help/pmhelp.html
+
+ Entrez Utilities:
+ http://eutils.ncbi.nlm.nih.gov/entrez/query/static/eutils_help.html
+
+ Example code:
+ examples/biblio/biblio-eutils-example.pl</code></code></pre>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The main documentation details are to be found in <a href="../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/BiblioI.html">Bio::DB::BiblioI</a>.</p>
+
+<p>Here is the rest of the object methods. Interface methods first, followed by internal methods.</p>
+
+<h2 id="initialize">_initialize</h2>
+
+<pre><code><code> <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Biblio</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-access</span> <span class="operator">=&gt;</span> <span class="string">'eutils'</span> <span class="operator">...);</span>
+           <span class="operator">(</span><span class="variable">_initialize</span> <span class="variable">is</span> <span class="variable">internally</span> <span class="variable">called</span> <span class="variable">from</span> <span class="variable">this</span> <span class="variable">constructor</span><span class="operator">)</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">1</span> <span class="variable">on</span> <span class="variable">success</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<p>This is an actual new() method (except for the real object creation and its blessing which is done in the parent class Bio::Root::Root in method _create_object).</p>
+
+<p>Note that this method is called always as an <i>object</i> method (never as a <i>class</i> method) - and that the object who calls this method may already be partly initiated (from Bio::Biblio::new method); so if you need to do some tricks with the &#39;class invocation&#39; you need to change Bio::Biblio::new method, not this one.</p>
+
+<h2 id="db">db</h2>
+
+<pre><code><code> Title   : db
+ Usage   : $obj-&gt;db($newval)
+ Function: specifies the database to search.  valid values are:
+
+           pubmed, pmc, journals
+
+           it is also possible to add the following, and i will do
+           so on request:
+
+           genome, nucleotide, protein, popset, snp, sequence, taxonomy
+
+           pubmed is default.
+
+ Returns : value of db (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h1 id="Methods-implementing-Bio::DB::BiblioI-interface">Methods implementing Bio::DB::BiblioI interface</h1>
+
+<h2 id="get_collection_id">get_collection_id</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_collection_id</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$id</span> <span class="operator">=</span> <span class="variable">$biblio</span><span class="operator">-&gt;</span><span class="variable">get_collection_id</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="variable">WebEnv</span> <span class="variable">value</span> <span class="variable">from</span> <span class="variable">ESearch</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">ESearch</span> <span class="variable">WebEnv</span> <span class="variable">value</span> <span class="variable">as</span> <span class="variable">a</span> <span class="variable">string</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="reset_retrieval">reset_retrieval</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">reset_retrieval</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$biblio</span><span class="operator">-&gt;</span><span class="variable">reset_retrieval</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="keyword">reset</span> <span class="variable">cursor</span> <span class="variable">in</span> <span class="variable">id</span> <span class="variable">list</span><span class="operator">,</span> <span class="variable">see</span> <span class="variable">cursor</span><span class="operator">()</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">1</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="get_next">get_next</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_next</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$xml</span> <span class="operator">=</span> <span class="variable">$biblio</span><span class="operator">-&gt;</span><span class="variable">get_next</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="keyword">return</span> <span class="keyword">next</span> <span class="variable">record</span> <span class="variable">as</span> <span class="variable">xml</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">an</span> <span class="variable">xml</span> <span class="variable">string</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="get_more">get_more</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_more</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$xml</span> <span class="operator">=</span> <span class="variable">$biblio</span><span class="operator">-&gt;</span><span class="variable">get_more</span><span class="operator">(</span><span class="variable">$more</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">returns</span> <span class="keyword">next</span> <span class="variable">$more</span> <span class="variable">records</span> <span class="variable">concatenated</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">string</span> <span class="variable">containing</span> <span class="variable">multiple</span> <span class="variable">xml</span> <span class="variable">documents</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">an</span> <span class="variable">integer</span> <span class="variable">representing</span> <span class="variable">how</span> <span class="variable">many</span> <span class="variable">records</span> <span class="variable">to</span> <span class="variable">retrieve</span>
+</code></code></pre>
+
+<h2 id="has_next">has_next</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">has_next</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$has_next</span> <span class="operator">=</span> <span class="variable">$biblio</span><span class="operator">-&gt;</span><span class="variable">has_next</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">check</span> <span class="variable">to</span> <span class="variable">see</span> <span class="keyword">if</span> <span class="variable">there</span> <span class="variable">are</span> <span class="variable">more</span> <span class="variable">items</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">retrieved</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="number">1</span> <span class="variable">on</span> <span class="variable">true</span><span class="operator">,</span> <span class="keyword">undef</span> <span class="variable">on</span> <span class="variable">false</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="find">find</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">find</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$biblio</span> <span class="operator">=</span> <span class="variable">$biblio</span><span class="operator">-&gt;</span><span class="variable">find</span><span class="operator">(</span><span class="variable">$pubmed_query_phrase</span><span class="operator">);</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">perform</span> <span class="variable">a</span> <span class="variable">PubMed</span> <span class="variable">query</span> <span class="variable">using</span> <span class="variable">Entrez</span> <span class="variable">ESearch</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">reference</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">object</span> <span class="variable">on</span> <span class="variable">which</span> <span class="variable">the</span> <span class="variable">method</span> <span class="variable">was</span> <span class="variable">called</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">a</span> <span class="variable">PubMed</span> <span class="variable">query</span> <span class="variable">phrase</span><span class="operator">.</span>  <span class="variable">See</span>
+            <span class="variable">http</span><span class="operator">:</span><span class="regex">//eutils</span><span class="operator">.</span><span class="variable">ncbi</span><span class="operator">.</span><span class="variable">nlm</span><span class="operator">.</span><span class="variable">nih</span><span class="operator">.</span><span class="variable">gov</span><span class="operator">/</span><span class="variable">entrez</span><span class="operator">/</span><span class="variable">query</span><span class="operator">/</span><span class="variable">static</span><span class="operator">/</span><span class="variable">help</span><span class="operator">/</span><span class="variable">pmhelp</span><span class="operator">.</span><span class="variable">html</span>
+            <span class="keyword">for</span> <span class="variable">help</span> <span class="variable">on</span> <span class="variable">how</span> <span class="variable">to</span> <span class="variable">construct</span> <span class="variable">a</span> <span class="variable">query</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="get_all_ids">get_all_ids</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_all_ids</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$biblio</span><span class="operator">-&gt;</span><span class="variable">get_all_ids</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="keyword">return</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">PubMed</span> <span class="variable">ids</span> <span class="variable">resulting</span> <span class="variable">from</span> <span class="variable">call</span> <span class="variable">to</span> <span class="variable">find</span><span class="operator">()</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">PubMed</span> <span class="variable">ids</span><span class="operator">,</span> <span class="keyword">or</span> <span class="variable">an</span> <span class="variable">empty</span> <span class="variable">list</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="get_all">get_all</h2>
+
+<pre><code><code>  <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_all</span>
+  <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$xml</span> <span class="operator">=</span> <span class="variable">$biblio</span><span class="operator">-&gt;</span><span class="variable">get_all</span><span class="operator">();</span>
+  <span class="variable">Function</span><span class="operator">:</span> <span class="variable">retrieve</span> <span class="variable">all</span> <span class="variable">records</span> <span class="variable">from</span> <span class="variable">query</span>
+  <span class="variable">Returns</span> <span class="operator">:</span> <span class="keyword">return</span> <span class="variable">a</span> <span class="variable">large</span> <span class="variable">concatenated</span> <span class="variable">string</span> <span class="variable">of</span> <span class="variable">PubMed</span> <span class="variable">xml</span> <span class="variable">documents</span>
+  <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+<h2 id="exists">exists</h2>
+
+<pre><code><code>  Title   : exists
+  Usage   : do not use
+  Function: no-op.  this is here only for interface compatibility
+  Returns : undef
+  Args    : none</code></code></pre>
+
+<h2 id="destroy">destroy</h2>
+
+<pre><code><code>  Title   : destroy
+  Usage   : do not use
+  Function: no-op.  this is here only for interface compatibility
+  Returns : undef
+  Args    : none</code></code></pre>
+
+<h2 id="get_vocabulary_names">get_vocabulary_names</h2>
+
+<pre><code><code>  Title   : get_vocabulary_names
+  Usage   : do not use
+  Function: no-op.  this is here only for interface compatibility
+  Returns : empty arrayref
+  Args    : none</code></code></pre>
+
+<h2 id="contains">contains</h2>
+
+<pre><code><code>  Title   : contains
+  Usage   : do not use
+  Function: no-op.  this is here only for interface compatibility
+  Returns : undef
+  Args    : none</code></code></pre>
+
+<h2 id="get_entry_description">get_entry_description</h2>
+
+<pre><code><code>  Title   : get_entry_description
+  Usage   : do not use
+  Function: no-op.  this is here only for interface compatibility
+  Returns : undef
+  Args    : none</code></code></pre>
+
+<h2 id="get_all_values">get_all_values</h2>
+
+<pre><code><code>  Title   : get_all_values
+  Usage   : do not use
+  Function: no-op.  this is here only for interface compatibility
+  Returns : undef
+  Args    : none</code></code></pre>
+
+<h2 id="get_all_entries">get_all_entries</h2>
+
+<pre><code><code>  Title   : get_all_entries
+  Usage   : do not use
+  Function: no-op.  this is here only for interface compatibility
+  Returns : undef
+  Args    : none</code></code></pre>
+
+<h1 id="Internal-methods-unrelated-to-Bio::DB::BiblioI">Internal methods unrelated to Bio::DB::BiblioI</h1>
+
+<h2 id="cursor">cursor</h2>
+
+<pre><code><code>  Title   : cursor
+  Usage   : $obj-&gt;cursor($newval)
+  Function: holds position in reference collection
+  Returns : value of cursor (a scalar)
+  Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="twig">twig</h2>
+
+<pre><code><code>  Title   : twig
+  Usage   : $obj-&gt;twig($newval)
+  Function: holds an XML::Twig instance.
+  Returns : value of twig (a scalar)
+  Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="ids">ids</h2>
+
+<pre><code><code>  Title   : ids
+  Usage   : $obj-&gt;ids($newval)
+  Function: store pubmed ids resulting from find() query
+  Returns : value of ids (a scalar)
+  Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="collection_id">collection_id</h2>
+
+<pre><code><code>  Title   : collection_id
+  Usage   : $obj-&gt;collection_id($newval)
+  Function:
+  Returns : value of collection_id (a scalar)
+  Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="count">count</h2>
+
+<pre><code><code>  Title   : count
+  Usage   : $obj-&gt;count($newval)
+  Function:
+  Returns : value of count (a scalar)
+  Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+<h2 id="query_key">query_key</h2>
+
+<pre><code><code>  Title   : query_key
+  Usage   : $obj-&gt;query_key($newval)
+  Function: holds query_key from ESearch document
+  Returns : value of query_key (a scalar)
+  Args    : on set, new value (a scalar or undef, optional)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

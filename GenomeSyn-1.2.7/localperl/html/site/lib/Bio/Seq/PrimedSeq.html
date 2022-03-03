@@ -1,0 +1,249 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#get_primer">get_primer</a></li>
+      <li><a href="#annotated_sequence">annotated_sequence</a></li>
+      <li><a href="#amplicon">amplicon</a></li>
+      <li><a href="#seq">seq</a></li>
+      <li><a href="#place_seqs">_place_seqs</a></li>
+      <li><a href="#set_seqfeature">_set_seqfeature</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Seq::PrimedSeq - A representation of a sequence and two primers flanking a target region</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># The easiest way to use this is probably either, (i), get the</span>
+  <span class="comment"># output from Bio::Tools::Run::Primer3, Bio::Tools::Primer3, or </span>
+  <span class="comment"># Bio::Tools::PCRSimulation:</span>
+  
+      <span class="comment"># For example, start with a fasta file</span>
+      <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+      <span class="keyword">use</span> <span class="variable">Bio::Tools::Run::Primer3</span><span class="operator">;</span>
+  
+      <span class="keyword">my</span> <span class="variable">$file</span> <span class="operator">=</span> <span class="keyword">shift</span> <span class="operator">||</span> <span class="keyword">die</span> <span class="string">"need a file to read"</span><span class="operator">;</span>
+      <span class="keyword">my</span> <span class="variable">$seqin</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$file</span><span class="operator">);</span>
+      <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$seqin</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">;</span>
+  
+      <span class="comment"># use primer3 to design some primers</span>
+      <span class="keyword">my</span> <span class="variable">$primer3run</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Primer3</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$seq</span><span class="operator">);</span>
+      <span class="variable">$primer3run</span> <span class="operator">-&gt;</span> <span class="variable">run</span><span class="operator">;</span> <span class="comment"># run it with the default parameters</span>
+  
+      <span class="comment"># create a file to write the results to</span>
+      <span class="keyword">my</span> <span class="variable">$seqout</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"&gt;primed_sequence.gbk"</span><span class="operator">,</span> 
+                                   <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'genbank'</span><span class="operator">);</span>
+  
+      <span class="comment"># now just get all the results and write them out.</span>
+      <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$results</span> <span class="operator">=</span> <span class="variable">$primer3run</span><span class="operator">-&gt;</span><span class="variable">next_primer</span><span class="operator">)</span> <span class="operator">{</span>
+         <span class="variable">$seqout</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$results</span><span class="operator">-&gt;</span><span class="variable">annotated_seq</span><span class="operator">);</span>
+      <span class="operator">}</span>
+  
+  <span class="comment"># Or, (ii), to create a genbank file for a sequence and its cognate</span>
+  <span class="comment"># primers:</span>
+  
+     <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+     <span class="keyword">use</span> <span class="variable">Bio::Seq::PrimedSeq</span><span class="operator">;</span>
+  
+     <span class="comment"># have a sequence file ($file) with the template, and two primers</span>
+     <span class="comment"># that match it, in fasta format</span>
+  
+     <span class="keyword">my</span> <span class="variable">$file</span> <span class="operator">=</span> <span class="keyword">shift</span> <span class="operator">||</span> <span class="keyword">die</span> <span class="string">"</span><span class="variable">$0</span><span class="string"> &lt;file&gt;"</span><span class="operator">;</span>
+     <span class="keyword">my</span> <span class="variable">$seqin</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$file</span><span class="operator">);</span>
+  
+     <span class="comment"># read three sequences</span>
+     <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$template</span><span class="operator">,</span> <span class="variable">$leftprimer</span><span class="operator">,</span> <span class="variable">$rightprimer</span><span class="operator">)</span> <span class="operator">=</span>
+           <span class="operator">(</span><span class="variable">$seqin</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">,</span> <span class="variable">$seqin</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">,</span> <span class="variable">$seqin</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">);</span>
+     <span class="comment"># set up the primed sequence object</span>
+     <span class="keyword">my</span> <span class="variable">$primedseq</span> <span class="operator">=</span> <span class="variable">Bio::Seq::PrimedSeq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$template</span><span class="operator">,</span> 
+                                              <span class="string">-left_primer</span> <span class="operator">=&gt;</span> <span class="variable">$leftprimer</span><span class="operator">,</span>
+                                              <span class="string">-right_primer</span> <span class="operator">=&gt;</span> <span class="variable">$rightprimer</span><span class="operator">);</span>
+     <span class="comment"># open a file for output</span>
+     <span class="keyword">my</span> <span class="variable">$seqout</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"&gt;primed_sequence.gbk"</span><span class="operator">,</span>
+                                  <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'genbank'</span><span class="operator">);</span>
+     <span class="comment"># print the sequence out</span>
+     <span class="variable">$seqout</span><span class="operator">-&gt;</span><span class="variable">write_seq</span><span class="operator">(</span><span class="variable">$primedseq</span><span class="operator">-&gt;</span><span class="variable">annotated_sequence</span><span class="operator">);</span>
+  
+  <span class="comment"># This should output a genbank file with the two primers labeled.</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module is a slightly glorified capsule containing a primed sequence. It was created to address the fact that a primer is more than a seqfeature and there need to be ways to represent the primer-sequence complex and the behaviors and attributes that are associated with the complex.</p>
+
+<p>The primers are represented as Bio::SeqFeature::Primer objects, and should be instantiated first.</p>
+
+<p>A simple way to create a PrimedSeq object is as follows:</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$primedseq</span> <span class="operator">=</span> <span class="variable">Bio::Seq::PrimedSeq</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span>
+          <span class="string">-seq</span>          <span class="operator">=&gt;</span> <span class="variable">$seq</span><span class="operator">,</span>  <span class="comment"># Bio::Seq object,</span>
+          <span class="string">-left_primer</span>  <span class="operator">=&gt;</span> <span class="variable">$left</span><span class="operator">,</span> <span class="comment"># Bio::SeqFeature::Primer object,</span>
+          <span class="string">-right_primer</span> <span class="operator">=&gt;</span> <span class="variable">$right</span> <span class="comment"># Bio::SeqFeature::Primer object,</span>
+  <span class="operator">);</span>
+</code></code></pre>
+
+<p>From the PrimedSeq object you should be able to retrieve information about melting temperatures and what not on each of the primers and the amplicon.</p>
+
+<p>This is based on the PrimedSeq.pm module started by Chad Matsalla, with additions/improvements by Rob Edwards.</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Rob Edwards, redwards@utmem.edu</p>
+
+<p>Based on a module written by Chad Matsalla, bioinformatics1@dieselwurks.com</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span><span class="operator">()</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$primed_sequence</span> <span class="operator">=</span> <span class="variable">Bio::SeqFeature::Primer</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> 
+                                     <span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">$sequence</span><span class="operator">,</span>
+                                     <span class="string">-left_primer</span> <span class="operator">=&gt;</span> <span class="variable">$left_primer</span><span class="operator">,</span>
+                                     <span class="string">-right_primer</span> <span class="operator">=&gt;</span> <span class="variable">$right_primer</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">A</span> <span class="variable">constructor</span> <span class="keyword">for</span> <span class="variable">an</span> <span class="variable">object</span> <span class="variable">representing</span> <span class="variable">a</span> <span class="variable">primed</span> <span class="variable">sequence</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::Seq::PrimedSeq</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span>  <span class="string">-seq</span> <span class="operator">=&gt;</span> <span class="variable">a</span> <span class="variable">Bio::Seq</span> <span class="variable">object</span> <span class="operator">(</span><span class="variable">required</span><span class="operator">)</span>
+            <span class="string">-left_primer</span> <span class="operator">=&gt;</span> <span class="variable">a</span> <span class="variable">Bio::SeqFeature::Primer</span> <span class="variable">object</span> <span class="operator">(</span><span class="variable">required</span><span class="operator">)</span>
+            <span class="string">-right_primer</span> <span class="operator">=&gt;</span> <span class="variable">a</span> <span class="variable">Bio::SeqFeature::Primer</span> <span class="variable">object</span> <span class="operator">(</span><span class="variable">required</span><span class="operator">)</span>
+ 
+           <span class="variable">Many</span> <span class="variable">other</span> <span class="variable">parameters</span> <span class="variable">can</span> <span class="variable">be</span> <span class="variable">included</span> <span class="variable">including</span> <span class="variable">all</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">output</span>
+           <span class="variable">parameters</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">primer3</span> <span class="variable">program</span><span class="operator">.</span> <span class="variable">At</span> <span class="variable">the</span> <span class="variable">moment</span> <span class="variable">most</span> <span class="variable">of</span> <span class="variable">these</span>
+           <span class="variable">parameters</span> <span class="variable">will</span> <span class="keyword">not</span> <span class="keyword">do</span> <span class="variable">anything</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="get_primer">get_primer</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_primer</span><span class="operator">();</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$primer</span> <span class="operator">=</span> <span class="variable">$primedseq</span><span class="operator">-&gt;</span><span class="variable">get_primer</span><span class="operator">(</span><span class="variable">l</span><span class="operator">,</span> <span class="variable">left</span><span class="operator">,</span> <span class="variable">left_primer</span><span class="operator">,</span> 
+           <span class="operator">-</span><span class="variable">left_primer</span><span class="operator">)</span> <span class="variable">to</span> <span class="keyword">return</span> <span class="variable">the</span> <span class="variable">left</span> <span class="variable">primer</span> <span class="keyword">or</span> 
+                <span class="variable">$primer</span> <span class="operator">=</span> <span class="variable">$primedseq</span><span class="operator">-&gt;</span><span class="variable">get_primer</span><span class="operator">(</span><span class="variable">r</span><span class="operator">,</span> <span class="variable">right</span><span class="operator">,</span> <span class="variable">right_primer</span><span class="operator">,</span> 
+           <span class="operator">-</span><span class="variable">right_primer</span><span class="operator">)</span> <span class="variable">to</span> <span class="keyword">return</span> <span class="variable">the</span> <span class="variable">right</span> <span class="variable">primer</span> <span class="keyword">or</span>
+                <span class="variable">$primer</span> <span class="operator">=</span> <span class="variable">$primedseq</span><span class="operator">-&gt;</span><span class="variable">get_primer</span><span class="operator">(</span><span class="variable">b</span><span class="operator">,</span> <span class="variable">both</span><span class="operator">,</span> <span class="variable">both_primers</span><span class="operator">,</span> 
+           <span class="operator">-</span><span class="variable">both_primers</span><span class="operator">)</span>
+           <span class="variable">to</span> <span class="keyword">return</span> <span class="variable">the</span> <span class="variable">left</span> <span class="variable">primer</span><span class="operator">,</span> <span class="variable">right</span> <span class="variable">primer</span> <span class="variable">array</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">A</span> <span class="variable">getter</span> <span class="keyword">for</span> <span class="variable">the</span> <span class="variable">left</span> <span class="variable">primer</span> <span class="variable">in</span> <span class="variable">thie</span> <span class="variable">PrimedSeq</span> <span class="variable">object</span><span class="operator">.</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">A</span> <span class="variable">Bio::SeqFeature::Primer</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Either</span> <span class="variable">of</span> <span class="operator">(</span><span class="variable">l</span><span class="operator">,</span> <span class="variable">left</span><span class="operator">,</span> <span class="variable">left_primer</span><span class="operator">,</span> <span class="operator">-</span><span class="variable">left_primer</span><span class="operator">)</span> <span class="variable">to</span> <span class="variable">get</span> <span class="variable">left</span> 
+           <span class="variable">primer</span><span class="operator">.</span>
+           <span class="variable">Either</span> <span class="variable">of</span> <span class="operator">(</span><span class="variable">r</span><span class="operator">,</span> <span class="variable">right</span><span class="operator">,</span> <span class="variable">right_primer</span><span class="operator">,</span> <span class="operator">-</span><span class="variable">right_primer</span><span class="operator">)</span> <span class="variable">to</span> <span class="variable">get</span> 
+           <span class="variable">right</span> <span class="variable">primer</span>
+                <span class="variable">Either</span> <span class="variable">of</span> <span class="operator">(</span><span class="variable">b</span><span class="operator">,</span> <span class="variable">both</span><span class="operator">,</span> <span class="variable">both_primers</span><span class="operator">,</span> <span class="operator">-</span><span class="variable">both_primers</span><span class="operator">)</span> <span class="variable">to</span> <span class="variable">get</span> 
+           <span class="variable">both</span> <span class="variable">primers</span><span class="operator">.</span> 
+           <span class="variable">Note</span> <span class="variable">that</span> <span class="variable">this</span> <span class="variable">is</span> <span class="variable">plural</span><span class="operator">.</span> <span class="operator">[</span><span class="keyword">default</span><span class="operator">]</span>
+</code></code></pre>
+
+<h2 id="annotated_sequence">annotated_sequence</h2>
+
+<pre><code><code> Title   : annotated_sequence
+ Usage   : $annotated_sequence_object = $primedseq-&gt;annotated_sequence()
+ Function: Get an annotated sequence object containg the left and right 
+           primers
+ Returns : An annotated sequence object or 0 if not defined.
+ Args    : 
+ Note    : Use this method to return a sequence object that you can write
+           out (e.g. in GenBank format). See the example above.</code></code></pre>
+
+<h2 id="amplicon">amplicon</h2>
+
+<pre><code><code> Title   : amplicon
+ Usage   : my $amplicon = $primedseq-&gt;amplicon()
+ Function: Retrieve the amplicon as a sequence object
+ Returns : A seq object. To get the sequence use $amplicon-&gt;seq
+ Args    : None
+ Note    : </code></code></pre>
+
+<h2 id="seq">seq</h2>
+
+<pre><code><code> Title   : seq
+ Usage   : my $seqobj = $primedseq-&gt;seq()
+ Function: Retrieve the target sequence as a sequence object
+ Returns : A seq object. To get the sequence use $seqobj-&gt;seq
+ Args    : None
+ Note    : </code></code></pre>
+
+<h2 id="place_seqs">_place_seqs</h2>
+
+<pre><code><code> Title   : _place_seqs
+ Usage   : $self-&gt;_place_seqs()
+ Function: An internal method to place the primers on the sequence and 
+           set up the ranges of the sequences
+ Returns : Nothing
+ Args    : None
+ Note    : Internal use only</code></code></pre>
+
+<h2 id="set_seqfeature">_set_seqfeature</h2>
+
+<pre><code><code> Title   : _set_seqfeature
+ Usage   : $self-&gt;_set_seqfeature()
+ Function: An internal method to create Bio::SeqFeature::Generic objects
+           for the primed seq
+ Returns : Nothing
+ Args    : None
+ Note    : Internal use only. Should only call this once left and right 
+           primers have been placed on the sequence. This will then set 
+           them as sequence features so hopefully we can get a nice output 
+           with write_seq.</code></code></pre>
+
+
+</body>
+
+</html>
+
+

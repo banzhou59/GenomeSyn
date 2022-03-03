@@ -1,0 +1,127 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Importing">Importing</a>
+        <ul>
+          <li><a href="#import">import</a></li>
+          <li><a href="#import_extra">import_extra</a></li>
+        </ul>
+      </li>
+      <li><a href="#Builder">Builder</a>
+        <ul>
+          <li><a href="#builder">builder</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Test::Builder::Module - Base class for test modules</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># Emulates Test::Simple</span>
+  <span class="keyword">package</span> <span class="variable">Your::Module</span><span class="operator">;</span>
+  
+  <span class="keyword">my</span> <span class="variable">$CLASS</span> <span class="operator">=</span> <span class="keyword">__PACKAGE__</span><span class="operator">;</span>
+  
+  <span class="keyword">use</span> <span class="variable">base</span> <span class="string">'Test::Builder::Module'</span><span class="operator">;</span>
+  <span class="variable">@EXPORT</span> <span class="operator">=</span> <span class="string">qw(ok)</span><span class="operator">;</span>
+  
+  <span class="keyword">sub</span><span class="variable"> ok </span><span class="operator">(</span>$;$<span class="operator">)</span> <span class="operator">{</span>
+      <span class="keyword">my</span> <span class="variable">$tb</span> <span class="operator">=</span> <span class="variable">$CLASS</span><span class="operator">-&gt;</span><span class="variable">builder</span><span class="operator">;</span>
+      <span class="keyword">return</span> <span class="variable">$tb</span><span class="operator">-&gt;</span><span class="variable">ok</span><span class="operator">(</span><span class="variable">@_</span><span class="operator">);</span>
+  <span class="operator">}</span>
+  
+  <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is a superclass for <a href="../../../../lib/Test/Builder.html">Test::Builder</a>-based modules. It provides a handful of common functionality and a method of getting at the underlying <a href="../../../../lib/Test/Builder.html">Test::Builder</a> object.</p>
+
+<h2 id="Importing">Importing</h2>
+
+<p>Test::Builder::Module is a subclass of <a href="../../../../lib/Exporter.html">Exporter</a> which means your module is also a subclass of Exporter. @EXPORT, @EXPORT_OK, etc... all act normally.</p>
+
+<p>A few methods are provided to do the <code><code>use Your::Module tests =&gt; 23</code></code> part for you.</p>
+
+<h3 id="import">import</h3>
+
+<p>Test::Builder::Module provides an <code><code>import()</code></code> method which acts in the same basic way as <a href="../../../../lib/Test/More.html">Test::More</a>&#39;s, setting the plan and controlling exporting of functions and variables. This allows your module to set the plan independent of <a href="../../../../lib/Test/More.html">Test::More</a>.</p>
+
+<p>All arguments passed to <code><code>import()</code></code> are passed onto <code><code>Your::Module-&gt;builder-&gt;plan()</code></code> with the exception of <code><code>import =&gt;[qw(things to import)]</code></code>.</p>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">Your::Module</span> <span class="string">import</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">qw(this that)</span><span class="operator">]</span><span class="operator">,</span> <span class="string">tests</span> <span class="operator">=&gt;</span> <span class="number">23</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>says to import the functions <code><code>this()</code></code> and <code><code>that()</code></code> as well as set the plan to be 23 tests.</p>
+
+<p><code><code>import()</code></code> also sets the <code><code>exported_to()</code></code> attribute of your builder to be the caller of the <code><code>import()</code></code> function.</p>
+
+<p>Additional behaviors can be added to your <code><code>import()</code></code> method by overriding <code><code>import_extra()</code></code>.</p>
+
+<h3 id="import_extra">import_extra</h3>
+
+<pre><code><code>    <span class="variable">Your::Module</span><span class="operator">-&gt;</span><span class="variable">import_extra</span><span class="operator">(\</span><span class="variable">@import_args</span><span class="operator">);</span>
+</code></code></pre>
+
+<p><code><code>import_extra()</code></code> is called by <code><code>import()</code></code>. It provides an opportunity for you to add behaviors to your module based on its import list.</p>
+
+<p>Any extra arguments which shouldn&#39;t be passed on to <code><code>plan()</code></code> should be stripped off by this method.</p>
+
+<p>See <a href="../../../../lib/Test/More.html">Test::More</a> for an example of its use.</p>
+
+<p><b>NOTE</b> This mechanism is <i>VERY ALPHA AND LIKELY TO CHANGE</i> as it feels like a bit of an ugly hack in its current form.</p>
+
+<h2 id="Builder">Builder</h2>
+
+<p>Test::Builder::Module provides some methods of getting at the underlying Test::Builder object.</p>
+
+<h3 id="builder">builder</h3>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">$builder</span> <span class="operator">=</span> <span class="variable">Your::Class</span><span class="operator">-&gt;</span><span class="variable">builder</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This method returns the <a href="../../../../lib/Test/Builder.html">Test::Builder</a> object associated with Your::Class. It is not a constructor so you can call it as often as you like.</p>
+
+<p>This is the preferred way to get the <a href="../../../../lib/Test/Builder.html">Test::Builder</a> object. You should <i>not</i> get it via <code><code>Test::Builder-&gt;new</code></code> as was previously recommended.</p>
+
+<p>The object returned by <code><code>builder()</code></code> may change at runtime so you should call <code><code>builder()</code></code> inside each function rather than store it in a global.</p>
+
+<pre><code><code>  <span class="keyword">sub</span><span class="variable"> ok </span><span class="operator">{</span>
+      <span class="keyword">my</span> <span class="variable">$builder</span> <span class="operator">=</span> <span class="variable">Your::Class</span><span class="operator">-&gt;</span><span class="variable">builder</span><span class="operator">;</span>
+  
+      <span class="keyword">return</span> <span class="variable">$builder</span><span class="operator">-&gt;</span><span class="variable">ok</span><span class="operator">(</span><span class="variable">@_</span><span class="operator">);</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

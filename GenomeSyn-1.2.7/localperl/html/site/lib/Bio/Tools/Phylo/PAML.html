@@ -1,0 +1,237 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#TO-DO">TO DO</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Jason-Stajich-Aaron-Mackey">AUTHOR - Jason Stajich, Aaron Mackey</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#Implement-Bio::AnalysisParserI-interface">Implement Bio::AnalysisParserI interface</a></li>
+      <li><a href="#next_result">next_result</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Phylo::PAML - Parses output from the PAML programs codeml, baseml, basemlg, codemlsites and yn00</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment">#!/usr/bin/perl -Tw</span>
+  <span class="keyword">use</span> <span class="variable">strict</span><span class="operator">;</span>
+  
+  <span class="keyword">use</span> <span class="variable">Bio::Tools::Phylo::PAML</span><span class="operator">;</span>
+  
+  <span class="comment"># need to specify the output file name (or a fh) (defaults to</span>
+  <span class="comment"># -file =&gt; "codeml.mlc"); also, optionally, the directory in which</span>
+  <span class="comment"># the other result files (rst, 2ML.dS, etc) may be found (defaults</span>
+  <span class="comment"># to "./")</span>
+  <span class="keyword">my</span> <span class="variable">$parser</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Phylo::PAML</span><span class="operator">-&gt;</span><span class="variable">new</span>
+    <span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">"./results/mlc"</span><span class="operator">,</span> <span class="string">-dir</span> <span class="operator">=&gt;</span> <span class="string">"./results/"</span><span class="operator">);</span>
+  
+  <span class="comment"># get the first/next result; a Bio::Tools::Phylo::PAML::Result object,</span>
+  <span class="comment"># which isa Bio::SeqAnalysisResultI object.</span>
+  <span class="keyword">my</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$parser</span><span class="operator">-&gt;</span><span class="variable">next_result</span><span class="operator">();</span>
+  
+  <span class="comment"># get the sequences used in the analysis; returns Bio::PrimarySeq</span>
+  <span class="comment"># objects (OTU = Operational Taxonomic Unit).</span>
+  <span class="keyword">my</span> <span class="variable">@otus</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_seqs</span><span class="operator">();</span>
+  
+  <span class="comment"># codon summary: codon usage of each sequence [ arrayref of {</span>
+  <span class="comment"># hashref of counts for each codon } for each sequence and the</span>
+  <span class="comment"># overall sum ], and positional nucleotide distribution [ arrayref</span>
+  <span class="comment"># of { hashref of frequencies for each nucleotide } for each</span>
+  <span class="comment"># sequence and overall frequencies ]:</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$codonusage</span><span class="operator">,</span> <span class="variable">$ntdist</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_codon_summary</span><span class="operator">();</span>
+  
+  <span class="comment"># example manipulations of $codonusage and $ntdist:</span>
+  <span class="keyword">printf</span> <span class="string">"There were %d %s codons in the first seq (%s)\n"</span><span class="operator">,</span>
+    <span class="variable">$codonusage</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">AAA</span><span class="operator">}</span><span class="operator">,</span> <span class="string">'AAA'</span><span class="operator">,</span> <span class="variable">$otus</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">();</span>
+  <span class="keyword">printf</span> <span class="string">"There were %d %s codons used in all the sequences\n"</span><span class="operator">,</span>
+    <span class="variable">$codonusage</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="variable">$#</span><span class="operator">{</span><span class="variable">$codonusage</span><span class="operator">}]</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">AAA</span><span class="operator">}</span><span class="operator">,</span> <span class="string">'AAA'</span><span class="operator">;</span>
+  <span class="keyword">printf</span> <span class="string">"Nucleotide %c was present %g of the time in seq %s\n"</span><span class="operator">,</span>
+    <span class="string">'A'</span><span class="operator">,</span> <span class="variable">$ntdist</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">A</span><span class="operator">}</span><span class="operator">,</span> <span class="variable">$otus</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">();</span>
+  
+  <span class="comment"># get Nei &amp; Gojobori dN/dS matrix:</span>
+  <span class="keyword">my</span> <span class="variable">$NGmatrix</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_NGmatrix</span><span class="operator">();</span>
+  
+  <span class="comment"># get ML-estimated dN/dS matrix, if calculated; this corresponds to</span>
+  <span class="comment"># the runmode = -2, pairwise comparison usage of codeml</span>
+  <span class="keyword">my</span> <span class="variable">$MLmatrix</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_MLmatrix</span><span class="operator">();</span>
+  
+  <span class="comment"># These matrices are length(@otu) x length(@otu) "strict lower</span>
+  <span class="comment"># triangle" 2D-matrices, which means that the diagonal and</span>
+  <span class="comment"># everything above it is undefined.  Each of the defined cells is a</span>
+  <span class="comment"># hashref of estimates for "dN", "dS", "omega" (dN/dS ratio), "t",</span>
+  <span class="comment"># "S" and "N".  If a ML matrix, "lnL" and "kappa" will also be defined.</span>
+  <span class="keyword">printf</span> <span class="string">"The omega ratio for sequences %s vs %s was: %g\n"</span><span class="operator">,</span>
+    <span class="variable">$otus</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">,</span> <span class="variable">$otus</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">,</span> <span class="variable">$MLmatrix</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">1</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">omega</span><span class="operator">}</span><span class="operator">;</span>
+  
+  <span class="comment"># with a little work, these matrices could also be passed to</span>
+  <span class="comment"># Bio::Tools::Run::Phylip::Neighbor, or other similar tree-building</span>
+  <span class="comment"># method that accepts a matrix of "distances" (using the LOWTRI</span>
+  <span class="comment"># option):</span>
+  <span class="keyword">my</span> <span class="variable">$distmat</span> <span class="operator">=</span> <span class="operator">[</span> <span class="keyword">map</span> <span class="operator">{</span> <span class="operator">[</span> <span class="keyword">map</span> <span class="operator">{</span> <span class="variable">$$_</span><span class="operator">{</span><span class="string">omega</span><span class="operator">}</span> <span class="operator">}</span> <span class="variable">@$_</span> <span class="operator">]</span> <span class="operator">}</span> <span class="variable">@$MLmatrix</span> <span class="operator">]</span><span class="operator">;</span>
+  
+  <span class="comment"># for runmode's other than -2, get tree topology with estimated</span>
+  <span class="comment"># branch lengths; returns a Bio::Tree::TreeI-based tree object with</span>
+  <span class="comment"># added PAML parameters at each node</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$tree</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_trees</span><span class="operator">();</span>
+  <span class="keyword">for</span> <span class="keyword">my</span> <span class="variable">$node</span> <span class="operator">(</span><span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">get_nodes</span><span class="operator">())</span> <span class="operator">{</span>
+     <span class="comment"># inspect the tree: the "t" (time) parameter is available via</span>
+     <span class="comment"># $node-&gt;branch_length(); all other branch-specific parameters</span>
+     <span class="comment"># ("omega", "dN", etc.) are available via </span>
+     <span class="comment"># ($omega) = $node-&gt;get_tag_values('omega');</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># if you are using model based Codeml then trees are stored in each </span>
+  <span class="comment"># modelresult object</span>
+  <span class="keyword">for</span> <span class="keyword">my</span> <span class="variable">$modelresult</span> <span class="operator">(</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_NSSite_results</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># model M0, M1, etc</span>
+    <span class="keyword">print</span> <span class="string">"model is "</span><span class="operator">,</span> <span class="variable">$modelresult</span><span class="operator">-&gt;</span><span class="variable">model_num</span><span class="operator">,</span> <span class="string">"\n"</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$tree</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$modelresult</span><span class="operator">-&gt;</span><span class="variable">get_trees</span><span class="operator">();</span>
+    <span class="keyword">for</span> <span class="keyword">my</span> <span class="variable">$node</span> <span class="operator">(</span><span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">get_nodes</span><span class="operator">())</span> <span class="operator">{</span>
+     <span class="comment"># inspect the tree: the "t" (time) parameter is available via</span>
+     <span class="comment"># $node-&gt;branch_length(); all other branch-specific parameters</span>
+     <span class="comment"># ("omega", "dN", etc.) are available via </span>
+     <span class="comment"># ($omega) = $node-&gt;get_tag_values('omega');</span>
+   <span class="operator">}</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># get any general model parameters: kappa (the</span>
+  <span class="comment"># transition/transversion ratio), NSsites model parameters ("p0",</span>
+  <span class="comment"># "p1", "w0", "w1", etc.), etc.</span>
+  <span class="keyword">my</span> <span class="variable">$params</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_model_params</span><span class="operator">();</span>
+  <span class="keyword">printf</span> <span class="string">"M1 params: p0 = %g\tp1 = %g\n"</span><span class="operator">,</span> <span class="variable">$params</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">p0</span><span class="operator">}</span><span class="operator">,</span> <span class="variable">$params</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">p1</span><span class="operator">}</span><span class="operator">;</span>
+  
+  <span class="comment"># parse AAML result files</span>
+  <span class="keyword">my</span> <span class="variable">$aamat</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_AADistMatrix</span><span class="operator">();</span>
+  <span class="keyword">my</span> <span class="variable">$aaMLmat</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_AAMLDistMatrix</span><span class="operator">();</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module is used to parse the output from the PAML programs codeml, baseml, basemlg, codemlsites and yn00. You can use the Bio::Tools::Run::Phylo::PAML::* modules to actually run some of the PAML programs, but this module is only useful to parse the output.</p>
+
+<p>This module has fledgling support for PAML version 4.3a (October 2009). Please report any problems to the mailing list (see FEEDBACK below).</p>
+
+<h1 id="TO-DO">TO DO</h1>
+
+<p>Implement get_posteriors(). For NSsites models, obtain arrayrefs of posterior probabilities for membership in each class for every position; probabilities correspond to classes w0, w1, ... etc.</p>
+
+<pre><code><code>  <span class="keyword">my</span> <span class="variable">@probs</span> <span class="operator">=</span> <span class="variable">$result</span><span class="operator">-&gt;</span><span class="variable">get_posteriors</span><span class="operator">();</span>
+  
+  <span class="comment"># find, say, positively selected sites!</span>
+  <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$params</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">w2</span><span class="operator">}</span> <span class="operator">&gt;</span> <span class="number">1</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="keyword">for</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$i</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span> <span class="variable">$i</span> <span class="operator">&lt;</span> <span class="variable">@probs</span> <span class="operator">;</span> <span class="variable">$i</span><span class="operator">++)</span> <span class="operator">{</span>
+      <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$probs</span><span class="operator">[</span><span class="variable">$i</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">2</span><span class="operator">]</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="operator">.</span><span class="number">5</span><span class="operator">)</span> <span class="operator">{</span>
+         <span class="comment"># assumes model M1: three w's, w0, w1 and w2 (positive selection)</span>
+         <span class="keyword">printf</span> <span class="string">"position %d: (%g prob, %g omega, %g mean w)\n"</span><span class="operator">,</span>
+           <span class="variable">$i</span><span class="operator">,</span> <span class="variable">$probs</span><span class="operator">[</span><span class="variable">$i</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">2</span><span class="operator">]</span><span class="operator">,</span> <span class="variable">$params</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">w2</span><span class="operator">}</span><span class="operator">,</span> <span class="variable">$probs</span><span class="operator">[</span><span class="variable">$i</span><span class="operator">]</span><span class="operator">-&gt;</span><span class="operator">[</span><span class="number">3</span><span class="operator">]</span><span class="operator">;</span>
+      <span class="operator">}</span>
+    <span class="operator">}</span>
+  <span class="operator">}</span> <span class="keyword">else</span> <span class="operator">{</span> <span class="keyword">print</span> <span class="string">"No positive selection found!\n"</span><span class="operator">;</span> <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to the Bioperl mailing list. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track of the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Jason-Stajich-Aaron-Mackey">AUTHOR - Jason Stajich, Aaron Mackey</h1>
+
+<p>Email jason-at-bioperl.org Email amackey-at-virginia.edu</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Albert Vilella avilella-AT-gmail-DOT-com Sendu Bala bix@sendu.me.uk Dave Messina dmessina@cpan.org</p>
+
+<h1 id="TODO">TODO</h1>
+
+<p>RST parsing -- done, Avilella contributions bug#1506, added by jason 1.29 -- still need to parse in joint probability and non-syn changes at site table</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="new">new</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">new</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$obj</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Phylo::PAML</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">%args</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Builds</span> <span class="variable">a</span> <span class="variable">new</span> <span class="variable">Bio::Tools::Phylo::PAML</span> <span class="variable">object</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Tools::Phylo::PAML</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Hash</span> <span class="variable">of</span> <span class="variable">options</span><span class="operator">:</span> <span class="operator">-</span><span class="variable">file</span><span class="operator">,</span> <span class="operator">-</span><span class="variable">fh</span><span class="operator">,</span> <span class="operator">-</span><span class="variable">dir</span>
+           <span class="operator">-</span><span class="variable">file</span> <span class="operator">(</span><span class="keyword">or</span> <span class="operator">-</span><span class="variable">fh</span><span class="operator">)</span> <span class="variable">should</span> <span class="variable">contain</span> <span class="variable">the</span> <span class="variable">contents</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">PAML</span>
+                 <span class="variable">outfile</span><span class="operator">;</span> 
+           <span class="operator">-</span><span class="variable">dir</span> <span class="variable">is</span> <span class="variable">the</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span> <span class="variable">name</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">directory</span> <span class="variable">in</span>
+                <span class="variable">which</span> <span class="variable">the</span> <span class="variable">PAML</span> <span class="variable">program</span> <span class="variable">was</span> <span class="variable">run</span> <span class="operator">(</span><span class="keyword">and</span> <span class="variable">includes</span> <span class="variable">other</span>
+                <span class="variable">PAML</span><span class="operator">-</span><span class="variable">generated</span> <span class="variable">files</span> <span class="variable">from</span> <span class="variable">which</span> <span class="variable">we</span> <span class="variable">can</span> <span class="variable">try</span> <span class="variable">to</span> <span class="variable">gather</span> <span class="variable">data</span><span class="operator">)</span>
+</code></code></pre>
+
+<h2 id="Implement-Bio::AnalysisParserI-interface">Implement Bio::AnalysisParserI interface</h2>
+
+<h2 id="next_result">next_result</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">next_result</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$result</span> <span class="operator">=</span> <span class="variable">$obj</span><span class="operator">-&gt;</span><span class="variable">next_result</span><span class="operator">();</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">the</span> <span class="keyword">next</span> <span class="variable">result</span> <span class="variable">available</span> <span class="variable">from</span> <span class="variable">the</span> <span class="variable">input</span><span class="operator">,</span> <span class="keyword">or</span>
+           <span class="keyword">undef</span> <span class="keyword">if</span> <span class="variable">there</span> <span class="variable">are</span> <span class="keyword">no</span> <span class="variable">more</span> <span class="variable">results</span><span class="operator">.</span>
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio::Tools::Phylo::PAML::Result</span> <span class="variable">object</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">none</span>
+</code></code></pre>
+
+
+</body>
+
+</html>
+
+

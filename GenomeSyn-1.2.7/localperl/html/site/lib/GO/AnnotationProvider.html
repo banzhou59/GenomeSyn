@@ -1,0 +1,362 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#Constructor">Constructor</a></li>
+  <li><a href="#Public-instance-methods">Public instance methods</a></li>
+  <li><a href="#Some-methods-dealing-with-ambiguous-names">Some methods dealing with ambiguous names</a>
+    <ul>
+      <li><a href="#nameIsAmbiguous">nameIsAmbiguous</a></li>
+      <li><a href="#databaseIdsForAmbiguousName">databaseIdsForAmbiguousName</a></li>
+      <li><a href="#ambiguousNames">ambiguousNames</a></li>
+    </ul>
+  </li>
+  <li><a href="#Methods-for-retrieving-GO-annotations-for-entities">Methods for retrieving GO annotations for entities</a>
+    <ul>
+      <li><a href="#goIdsByDatabaseId">goIdsByDatabaseId</a></li>
+      <li><a href="#goIdsByStandardName">goIdsByStandardName</a></li>
+      <li><a href="#goIdsByName">goIdsByName</a></li>
+    </ul>
+  </li>
+  <li><a href="#Methods-for-mapping-different-types-of-name-to-each-other">Methods for mapping different types of name to each other</a>
+    <ul>
+      <li><a href="#standardNameByDatabaseId">standardNameByDatabaseId</a></li>
+      <li><a href="#databaseIdByStandardName">databaseIdByStandardName</a></li>
+      <li><a href="#databaseIdByName">databaseIdByName</a></li>
+      <li><a href="#standardNameByName">standardNameByName</a></li>
+    </ul>
+  </li>
+  <li><a href="#Other-methods-relating-to-names">Other methods relating to names</a>
+    <ul>
+      <li><a href="#nameIsStandardName">nameIsStandardName</a></li>
+      <li><a href="#nameIsDatabaseId">nameIsDatabaseId</a></li>
+      <li><a href="#nameIsAnnotated">nameIsAnnotated</a></li>
+    </ul>
+  </li>
+  <li><a href="#Other-public-methods">Other public methods</a>
+    <ul>
+      <li><a href="#databaseName">databaseName</a></li>
+      <li><a href="#numAnnotatedGenes">numAnnotatedGenes</a></li>
+      <li><a href="#allDatabaseIds">allDatabaseIds</a></li>
+      <li><a href="#allStandardNames">allStandardNames</a></li>
+    </ul>
+  </li>
+  <li><a href="#Protected-Methods">Protected Methods</a>
+    <ul>
+      <li><a href="#handleMissingArgument">_handleMissingArgument</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>GO::AnnotationProvider - abstract base class defining interface for how Annotation information should be provided</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>GO::AnnotationProvider is an interface that defines an API that should be implemented by specific subclasses, which may read GO annotation from databases, flatfiles, XML files etc.</p>
+
+<p>GO (Gene Ontology) is a project of the Gene Ontology Consortium (http://www.geneontology.org). The GO project has 3 &#39;aspects&#39; :</p>
+
+<pre><code><code>    Biological Process
+    Molecular Function
+    Cellular Component</code></code></pre>
+
+<p>When a method requires the client to refer to an aspect, it is simply by a shorthand, namely P, F and C, respectively.</p>
+
+<p>In GO associations, annotated entities may be identified by many different names. Firstly, they should have a database identifier, which should be unique for an entity. Secondly, they should have a standard name. Standard names should be unique among standard names, but it is possible that a standard name of one entity may be used as an alias of another. An entity may have many aliases, and an alias may be used for many entities. Hence, a name (drawn from databaseIds, standard names, and aliases) may be ambiguous in the entity to which it refers. This is an important concept for clients of concrete subclasses to take into consideration, so that unexpected results are avoided.</p>
+
+<h1 id="TODO">TODO</h1>
+
+<p>Currently this interface dictates that clients can retrieve GOIDs that have been used to annotated genes. In future, this interface is likely to change, such that instead of GOIDs, GO::Annotation objects are instead returned, which will be richer in the terms of information they can give about a given annotation. Such objects would contain a GO::AnnotatedGene object, one or more GO::Reference objects, and an evidence code. The retrieval of annotations for a given database id could then be extended to allow filtering by evidence codes, to either include or exclude certain codes.</p>
+
+<p>This interface also currently only allows retrieval of GOIDs for genes, in future, it will be extended such that the genes can be retrieved by GOID.</p>
+
+<h1 id="Constructor">Constructor</h1>
+
+<p>Because this is an abstract class, there is no constructor. A constructor must be implemented by concrete subclasses.</p>
+
+<h1 id="Public-instance-methods">Public instance methods</h1>
+
+<p>All of these public instance methods must be implemented by concrete subclasses.</p>
+
+<h1 id="Some-methods-dealing-with-ambiguous-names">Some methods dealing with ambiguous names</h1>
+
+<p>Because there are many names by which an annotated entity may be referred to, that are non-unique, this interface defines a set of methods for determining whether a name is ambiguous, and to what database identifiers such ambiguous names may refer.</p>
+
+<p>Note, that the AnnotationProvider subclasses should now be case insensitive, though there are some caveats. For instance, you can use &#39;cdc6&#39; to retrieve data for CDC6. However, This if gene has been referred to as abc1, and another referred to as ABC1, then these are treated as different, and unambiguous. However, the text &#39;Abc1&#39; would be considered ambiguous, because it could refer to either. On the other hand, if a single gene is referred to as XYZ1 and xyz1, and no other genes have that name (in any casing), then Xyz1 would still be considered unambiguous.</p>
+
+<h2 id="nameIsAmbiguous">nameIsAmbiguous</h2>
+
+<p>NB: API change:</p>
+
+<p>nameIsAmbiguous is now case insensitive - that is, if there is a name that is used twice using different casing, that will be treated as ambiguous. Previous versions would have not treated these as ambiguous. In the case that a name is provided in a certain casing, which was encountered only once, then it will be treated as unambiguous. This is the price of wanting a case insensitive annotation provider...</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">nameIsAmbiguous</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">)){</span>
+    
+        <span class="keyword">do</span> <span class="variable">something</span> <span class="variable">useful</span><span class="operator">....</span><span class="keyword">or</span> <span class="keyword">not</span><span class="operator">....</span>
+    
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="databaseIdsForAmbiguousName">databaseIdsForAmbiguousName</h2>
+
+<p>This public method returns an array of database identifiers for an ambiguous name. If the name is not ambiguous, an empty list will be returned.</p>
+
+<p>B: API change:</p>
+
+<p>databaseIdsForAmbiguousName is now case insensitive - that is, if there is a name that is used twice using different casing, that will be treated as ambiguous. Previous versions would have not treated these as ambiguous. However, if the name provided is of the exact casing as a name that appeared only once with that exact casing, then it is treated as unambiguous. This is the price of wanting a case insensitive annotation provider...</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@databaseIds</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">databaseIdsForAmbiguousName</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="ambiguousNames">ambiguousNames</h2>
+
+<p>This method returns an array of names, which from the annotation source have been deemed to be ambiguous.</p>
+
+<p>Note - even though this is now case insensitive, if something is called both BLAH1 and blah1, we would not deem either of these to be ambiguous. However, if it appeared as blah1 twice, referring to two different genes, then blah1 would be ambiguous.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@ambiguousNames</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">ambiguousNames</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="Methods-for-retrieving-GO-annotations-for-entities">Methods for retrieving GO annotations for entities</h1>
+
+<h2 id="goIdsByDatabaseId">goIdsByDatabaseId</h2>
+
+<p>This public method returns a reference to an array of GOIDs that are associated with the supplied databaseId for a specific aspect. If no annotations are associated with that databaseId in that aspect, then a reference to an empty array will be returned. If the databaseId is not recognized, then undef will be returned.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$goidsRef</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">goIdsByDatabaseId</span><span class="operator">(</span><span class="string">databaseId</span><span class="operator">=&gt;</span><span class="variable">$databaseId</span><span class="operator">,</span>
+                                                          <span class="string">aspect</span><span class="operator">=&gt;&lt;</span><span class="variable">P</span><span class="operator">|</span><span class="variable">F</span><span class="operator">|</span><span class="variable">C</span><span class="operator">&gt;);</span>
+</code></code></pre>
+
+<h2 id="goIdsByStandardName">goIdsByStandardName</h2>
+
+<p>This public method returns a reference to an array of GOIDs that are associated with the supplied standardName for a specific aspect. If no annotations are associated with the entity with that standard name in that aspect, then a a reference to an empty list will be returned. If the supplied name is not used as a standard name, then undef will be returned.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$goidsRef</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">goIdsByStandardName</span><span class="operator">(</span><span class="string">standardName</span><span class="operator">=&gt;</span><span class="variable">$databaseId</span><span class="operator">,</span>
+                                                            <span class="string">aspect</span><span class="operator">=&gt;&lt;</span><span class="variable">P</span><span class="operator">|</span><span class="variable">F</span><span class="operator">|</span><span class="variable">C</span><span class="operator">&gt;);</span>
+</code></code></pre>
+
+<h2 id="goIdsByName">goIdsByName</h2>
+
+<p>This public method returns a reference to an array of GO IDs that are associated with the supplied name for a specific aspect. If there are no GO associations for the entity corresponding to the supplied name in the provided aspect, then a reference to an empty list will be returned. If the supplied name does not correspond to any entity, then undef will be returned. Because the name can be any of the databaseId, the standard name, or any of the aliases, it is possible that the name might be ambiguous. Clients of this object should first test whether the name they are using is ambiguous, using the nameIsAmbiguous() method, and handle it accordingly. If an ambiguous name is supplied, then it will die.</p>
+
+<p>NB: API change:</p>
+
+<p>goIdsByName is now case insensitive - that is, if there is a name that is used twice using different casing, that will be treated as ambiguous. Previous versions would have not treated these as ambiguous. This is the price of wanting a case insensitive annotation provider. In the event that a name is provided that is ambiguous because of case, if it matches exactly the case of one of the possible matches, it will be treated unambiguously.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$goidsRef</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">goIdsByName</span><span class="operator">(</span><span class="string">name</span><span class="operator">=&gt;</span><span class="variable">$name</span><span class="operator">,</span>
+                                                    <span class="string">aspect</span><span class="operator">=&gt;&lt;</span><span class="variable">P</span><span class="operator">|</span><span class="variable">F</span><span class="operator">|</span><span class="variable">C</span><span class="operator">&gt;);</span>
+</code></code></pre>
+
+<h1 id="Methods-for-mapping-different-types-of-name-to-each-other">Methods for mapping different types of name to each other</h1>
+
+<h2 id="standardNameByDatabaseId">standardNameByDatabaseId</h2>
+
+<p>This method returns the standard name for a database id.</p>
+
+<p>NB: API change</p>
+
+<p>standardNameByDatabaseId is now case insensitive - that is, if there is a databaseId that is used twice (or more) using different casing, it will be treated as ambiguous. Previous versions would have not treated these as ambiguous. This is the price of wanting a case insensitive annotation provider. In the event that a name is provided that is ambiguous because of case, if it matches exactly the case of one of the possible matches, it will be treated unambiguously.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$standardName</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">standardNameByDatabaseId</span><span class="operator">(</span><span class="variable">$databaseId</span><span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="databaseIdByStandardName">databaseIdByStandardName</h2>
+
+<p>This method returns the database id for a standard name.</p>
+
+<p>NB: API change</p>
+
+<p>databaseIdByStandardName is now case insensitive - that is, if there is a standard name that is used twice (or more) using different casing, it will be treated as ambiguous. Previous versions would have not treated these as ambiguous. This is the price of wanting a case insensitive annotation provider. In the event that a name is provided that is ambiguous because of case, if it matches exactly the case of one of the possible matches, it will be treated unambiguously.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$databaseId</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">databaseIdByStandardName</span><span class="operator">(</span><span class="variable">$standardName</span><span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="databaseIdByName">databaseIdByName</h2>
+
+<p>This method returns the database id for any identifier for a gene (e.g. by databaseId itself, by standard name, or by alias). If the used name is ambiguous, then the program will die. Thus clients should call the nameIsAmbiguous() method, prior to using this method. If the name does not map to any databaseId, then undef will be returned.</p>
+
+<p>NB: API change</p>
+
+<p>databaseIdByName is now case insensitive - that is, if there is a name that is used twice using different casing, that will be treated as ambiguous. Previous versions would have not treated these as ambiguous. This is the price of wanting a case insensitive annotation provider. In the event that a name is provided that is ambiguous because of case, if it matches exactly the case of one of the possible matches, it will be treated unambiguously.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$databaseId</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">databaseIdByName</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="standardNameByName">standardNameByName</h2>
+
+<p>This public method returns the standard name for the the gene specified by the given name. Because a name may be ambiguous, the nameIsAmbiguous() method should be called first. If an ambiguous name is supplied, then it will die with an appropriate error message. If the name does not map to a standard name, then undef will be returned.</p>
+
+<p>NB: API change</p>
+
+<p>standardNameByName is now case insensitive - that is, if there is a name that is used twice using different casing, that will be treated as ambiguous. Previous versions would have not treated these as ambiguous. This is the price of wanting a case insensitive annotation provider.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$standardName</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">standardNameByName</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">);</span>
+     
+</code></code></pre>
+
+<h1 id="Other-methods-relating-to-names">Other methods relating to names</h1>
+
+<h2 id="nameIsStandardName">nameIsStandardName</h2>
+
+<p>This method returns a boolean to indicate whether the supplied name is used as a standard name.</p>
+
+<p>NB : API change.</p>
+
+<p>This is now case insensitive. If you provide abC1, and ABc1 is a standard name, then it will return true.</p>
+
+<p>Usage :</p>
+
+<pre><code><code>    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">nameIsStandardName</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">)){</span>
+    
+        <span class="comment"># do something</span>
+    
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="nameIsDatabaseId">nameIsDatabaseId</h2>
+
+<p>This method returns a boolean to indicate whether the supplied name is used as a database id.</p>
+
+<p>NB : API change.</p>
+
+<p>This is now case insensitive. If you provide abC1, and ABc1 is a database id, then it will return true.</p>
+
+<p>Usage :</p>
+
+<pre><code><code>    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">nameIsDatabaseId</span><span class="operator">(</span><span class="variable">$name</span><span class="operator">)){</span>
+    
+        <span class="comment"># do something</span>
+    
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h2 id="nameIsAnnotated">nameIsAnnotated</h2>
+
+<p>This method returns a boolean to indicate whether the supplied name has any annotations, either when considered as a databaseId, a standardName, or an alias. If an aspect is also supplied, then it indicates whether that name has any annotations in that aspect only.</p>
+
+<p>NB: API change.</p>
+
+<p>This is now case insensitive. If you provide abC1, and ABc1 has annotation, then it will return true.</p>
+
+<p>Usage :</p>
+
+<pre><code><code>    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">nameIsAnnotated</span><span class="operator">(</span><span class="string">name</span> <span class="operator">=&gt;</span> <span class="variable">$name</span><span class="operator">)){</span>
+    
+        <span class="comment"># blah</span>
+    
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>or:</p>
+
+<pre><code><code>    <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">nameIsAnnotated</span><span class="operator">(</span><span class="string">name</span>   <span class="operator">=&gt;</span> <span class="variable">$name</span><span class="operator">,</span>
+                                           <span class="string">aspect</span> <span class="operator">=&gt;</span> <span class="variable">$aspect</span><span class="operator">)){</span>
+    
+        <span class="comment"># blah</span>
+    
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="Other-public-methods">Other public methods</h1>
+
+<h2 id="databaseName">databaseName</h2>
+
+<p>This method returns the name of the annotating authority of the annotations.</p>
+
+<p>Usage :</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$databaseName</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">databaseName</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="numAnnotatedGenes">numAnnotatedGenes</h2>
+
+<p>This method returns the number of entities in the annotation file that have annotations in the supplied aspect. If no aspect is provided, then it will return the number of genes with an annotation in at least one aspect of GO.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$numAnnotatedGenes</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">numAnnotatedGenes</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$numAnnotatedGenes</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">numAnnotatedGenes</span><span class="operator">(</span><span class="variable">$aspect</span><span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="allDatabaseIds">allDatabaseIds</h2>
+
+<p>This public method returns an array of all the database identifiers</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@databaseIds</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">allDatabaseIds</span><span class="operator">;</span>
+</code></code></pre>
+
+<h2 id="allStandardNames">allStandardNames</h2>
+
+<p>This public method returns an array of all standard names.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">@standardNames</span> <span class="operator">=</span> <span class="variable">$annotationProvider</span><span class="operator">-&gt;</span><span class="variable">allStandardNames</span><span class="operator">;</span>
+</code></code></pre>
+
+<h1 id="Protected-Methods">Protected Methods</h1>
+
+<h2 id="handleMissingArgument">_handleMissingArgument</h2>
+
+<p>This protected method simply provides a simple way for concrete subclasses to deal with missing arguments from method calls. It will die with an appropriate error message.</p>
+
+<p>Usage:</p>
+
+<pre><code><code>    <span class="variable">$self</span><span class="operator">-&gt;</span><span class="variable">_handleMissingArgument</span><span class="operator">(</span><span class="string">argument</span><span class="operator">=&gt;</span><span class="string">'blah'</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Gavin Sherlock, sherlock@genome.stanford.edu</p>
+
+
+</body>
+
+</html>
+
+

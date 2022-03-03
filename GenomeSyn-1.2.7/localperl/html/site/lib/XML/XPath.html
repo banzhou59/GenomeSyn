@@ -1,0 +1,173 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DETAILS">DETAILS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#new-">new()</a></li>
+      <li><a href="#nodeset-find-path-context-">nodeset = find($path, [$context])</a></li>
+      <li><a href="#findnodes-path-context-">findnodes($path, [$context])</a></li>
+      <li><a href="#findnodes_as_string-path-context-">findnodes_as_string($path, [$context])</a></li>
+      <li><a href="#findvalue-path-context-">findvalue($path, [$context])</a></li>
+      <li><a href="#exists-path-context-">exists($path, [$context])</a></li>
+      <li><a href="#matches-node-path-context-">matches($node, $path, [$context])</a></li>
+      <li><a href="#getNodeText-path-">getNodeText($path)</a></li>
+      <li><a href="#setNodeText-path-text-">setNodeText($path, $text)</a></li>
+      <li><a href="#createNode-path-">createNode($path)</a></li>
+      <li><a href="#set_namespace-prefix-uri-">set_namespace($prefix, $uri)</a></li>
+      <li><a href="#clear_namespaces-">clear_namespaces()</a></li>
+      <li><a href="#XML::XPath::Namespaces">$XML::XPath::Namespaces</a></li>
+    </ul>
+  </li>
+  <li><a href="#Node-Object-Model">Node Object Model</a></li>
+  <li><a href="#On-Garbage-Collection">On Garbage Collection</a></li>
+  <li><a href="#Example">Example</a></li>
+  <li><a href="#Support-Author">Support/Author</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>XML::XPath - a set of modules for parsing and evaluating XPath statements</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module aims to comply exactly to the XPath specification at http://www.w3.org/TR/xpath and yet allow extensions to be added in the form of functions. Modules such as XSLT and XPointer may need to do this as they support functionality beyond XPath.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>    <span class="keyword">use</span> <span class="variable">XML::XPath</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">XML::XPath::XMLParser</span><span class="operator">;</span>
+    
+    <span class="keyword">my</span> <span class="variable">$xp</span> <span class="operator">=</span> <span class="variable">XML::XPath</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">filename</span> <span class="operator">=&gt;</span> <span class="string">'test.xhtml'</span><span class="operator">);</span>
+    
+    <span class="keyword">my</span> <span class="variable">$nodeset</span> <span class="operator">=</span> <span class="variable">$xp</span><span class="operator">-&gt;</span><span class="variable">find</span><span class="operator">(</span><span class="string">'/html/body/p'</span><span class="operator">);</span> <span class="comment"># find all paragraphs</span>
+    
+    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$node</span> <span class="operator">(</span><span class="variable">$nodeset</span><span class="operator">-&gt;</span><span class="variable">get_nodelist</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="keyword">print</span> <span class="string">"FOUND\n\n"</span><span class="operator">,</span> 
+            <span class="variable">XML::XPath::XMLParser::as_string</span><span class="operator">(</span><span class="variable">$node</span><span class="operator">),</span>
+            <span class="string">"\n\n"</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DETAILS">DETAILS</h1>
+
+<p>There&#39;s an awful lot to all of this, so bear with it - if you stick it out it should be worth it. Please get a good understanding of XPath by reading the spec before asking me questions. All of the classes and parts herein are named to be synonimous with the names in the specification, so consult that if you don&#39;t understand why I&#39;m doing something in the code.</p>
+
+<h1 id="API">API</h1>
+
+<p>The API of XML::XPath itself is extremely simple to allow you to get going almost immediately. The deeper API&#39;s are more complex, but you shouldn&#39;t have to touch most of that.</p>
+
+<h2 id="new-">new()</h2>
+
+<p>This constructor follows the often seen named parameter method call. Parameters you can use are: filename, parser, xml, ioref and context. The filename parameter specifies an XML file to parse. The xml parameter specifies a string to parse, and the ioref parameter specifies an ioref to parse. The context option allows you to specify a context node. The context node has to be in the format of a node as specified in <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/XMLParser.html">XML::XPath::XMLParser</a>. The 4 parameters filename, xml, ioref and context are mutually exclusive - you should only specify one (if you specify anything other than context, the context node is the root of your document). The parser option allows you to pass in an already prepared XML::Parser object, to save you having to create more than one in your application (if, for example, you&#39;re doing more than just XPath).</p>
+
+<pre><code><code>    <span class="keyword">my</span> <span class="variable">$xp</span> <span class="operator">=</span> <span class="variable">XML::XPath</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span> <span class="string">context</span> <span class="operator">=&gt;</span> <span class="variable">$node</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>It is very much recommended that you use only 1 XPath object throughout the life of your application. This is because the object (and it&#39;s sub-objects) maintain certain bits of state information that will be useful (such as XPath variables) to later calls to find(). It&#39;s also a good idea because you&#39;ll use less memory this way.</p>
+
+<h2 id="nodeset-find-path-context-"><i>nodeset</i> = find($path, [$context])</h2>
+
+<p>The find function takes an XPath expression (a string) and returns either an XML::XPath::NodeSet object containing the nodes it found (or empty if no nodes matched the path), or one of XML::XPath::Literal (a string), XML::XPath::Number, or XML::XPath::Boolean. It should always return something - and you can use -&gt;isa() to find out what it returned. If you need to check how many nodes it found you should check $nodeset-&gt;size. See <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/NodeSet.html">XML::XPath::NodeSet</a>. An optional second parameter of a context node allows you to use this method repeatedly, for example XSLT needs to do this.</p>
+
+<h2 id="findnodes-path-context-">findnodes($path, [$context])</h2>
+
+<p>Returns a list of nodes found by $path, optionally in context $context. In scalar context returns an XML::XPath::NodeSet object.</p>
+
+<h2 id="findnodes_as_string-path-context-">findnodes_as_string($path, [$context])</h2>
+
+<p>Returns the nodes found reproduced as XML. The result is not guaranteed to be valid XML though.</p>
+
+<h2 id="findvalue-path-context-">findvalue($path, [$context])</h2>
+
+<p>Returns either a <code><code>XML::XPath::Literal</code></code>, a <code><code>XML::XPath::Boolean</code></code> or a <code><code>XML::XPath::Number</code></code> object. If the path returns a NodeSet, $nodeset-&gt;to_literal is called automatically for you (and thus a <code><code>XML::XPath::Literal</code></code> is returned). Note that for each of the objects stringification is overloaded, so you can just print the value found, or manipulate it in the ways you would a normal perl value (e.g. using regular expressions).</p>
+
+<h2 id="exists-path-context-">exists($path, [$context])</h2>
+
+<p>Returns true if the given path exists.</p>
+
+<h2 id="matches-node-path-context-">matches($node, $path, [$context])</h2>
+
+<p>Returns true if the node matches the path (optionally in context $context).</p>
+
+<h2 id="getNodeText-path-">getNodeText($path)</h2>
+
+<p>Returns the text string for a particular XML node. Returns a string, or undef if the node doesn&#39;t exist.</p>
+
+<h2 id="setNodeText-path-text-">setNodeText($path, $text)</h2>
+
+<p>Sets the text string for a particular XML node. The node can be an element or an attribute. If the node to be set is an attribute, and the attribute node does not exist, it will be created automatically.</p>
+
+<h2 id="createNode-path-">createNode($path)</h2>
+
+<p>Creates the node matching the path given. If part of the path given, or all of the path do not exist, the necessary nodes will be created automatically.</p>
+
+<h2 id="set_namespace-prefix-uri-">set_namespace($prefix, $uri)</h2>
+
+<p>Sets the namespace prefix mapping to the uri.</p>
+
+<p>Normally in XML::XPath the prefixes in XPath node tests take their context from the current node. This means that foo:bar will always match an element &lt;foo:bar&gt; regardless of the namespace that the prefix foo is mapped to (which might even change within the document, resulting in unexpected results). In order to make prefixes in XPath node tests actually map to a real URI, you need to enable that via a call to the set_namespace method of your XML::XPath object.</p>
+
+<h2 id="clear_namespaces-">clear_namespaces()</h2>
+
+<p>Clears all previously set namespace mappings.</p>
+
+<h2 id="XML::XPath::Namespaces">$XML::XPath::Namespaces</h2>
+
+<p>Set this to 0 if you <i>don&#39;t</i> want namespace processing to occur. This will make everything a little (tiny) bit faster, but you&#39;ll suffer for it, probably.</p>
+
+<h1 id="Node-Object-Model">Node Object Model</h1>
+
+<p>See <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/Node.html">XML::XPath::Node</a>, <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/Node/Element.html">XML::XPath::Node::Element</a>, <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/Node/Text.html">XML::XPath::Node::Text</a>, <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/Node/Comment.html">XML::XPath::Node::Comment</a>, <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/Node/Attribute.html">XML::XPath::Node::Attribute</a>, <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/Node/Namespace.html">XML::XPath::Node::Namespace</a>, and <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/Node/PI.html">XML::XPath::Node::PI</a>.</p>
+
+<h1 id="On-Garbage-Collection">On Garbage Collection</h1>
+
+<p>XPath nodes work in a special way that allows circular references, and yet still lets Perl&#39;s reference counting garbage collector to clean up the nodes after use. This should be totally transparent to the user, with one caveat: <b>If you free your tree before letting go of a sub-tree, consider that playing with fire and you may get burned</b>. What does this mean to the average user? Not much. Provided you don&#39;t free (or let go out of scope) either the tree you passed to XML::XPath-&gt;new, or if you didn&#39;t pass a tree, and passed a filename or IO-ref, then provided you don&#39;t let the XML::XPath object go out of scope before you let results of find() and its friends go out of scope, then you&#39;ll be fine. Even if you <b>do</b> let the tree go out of scope before results, you&#39;ll probably still be fine. The only case where you may get stung is when the last part of your path/query is either an ancestor or parent axis. In that case the worst that will happen is you&#39;ll end up with a circular reference that won&#39;t get cleared until interpreter destruction time. You can get around that by explicitly calling $node-&gt;DESTROY on each of your result nodes, if you really need to do that.</p>
+
+<p>Mail me direct if that&#39;s not clear. Note that it&#39;s not doom and gloom. It&#39;s by no means perfect, but the worst that will happen is a long running process could leak memory. Most long running processes will therefore be able to explicitly be careful not to free the tree (or XML::XPath object) before freeing results. AxKit, an application that uses XML::XPath, does this and I didn&#39;t have to make any changes to the code - it&#39;s already sensible programming.</p>
+
+<p>If you <i>really</i> don&#39;t want all this to happen, then set the variable $XML::XPath::SafeMode, and call $xp-&gt;cleanup() on the XML::XPath object when you&#39;re finished, or $tree-&gt;dispose() if you have a tree instead.</p>
+
+<h1 id="Example">Example</h1>
+
+<p>Please see the test files in t/ for examples on how to use XPath.</p>
+
+<h1 id="Support-Author">Support/Author</h1>
+
+<p>This module is copyright 2000 AxKit.com Ltd. This is free software, and as such comes with NO WARRANTY. No dates are used in this module. You may distribute this module under the terms of either the Gnu GPL, or the Artistic License (the same terms as Perl itself).</p>
+
+<p>For support, please subscribe to the Perl-XML mailing list at the URL http://listserv.activestate.com/mailman/listinfo/perl-xml</p>
+
+<p>Matt Sergeant, matt@sergeant.org</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/Literal.html">XML::XPath::Literal</a>, <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/Boolean.html">XML::XPath::Boolean</a>, <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/Number.html">XML::XPath::Number</a>, <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/XMLParser.html">XML::XPath::XMLParser</a>, <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/NodeSet.html">XML::XPath::NodeSet</a>, <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/PerlSAX.html">XML::XPath::PerlSAX</a>, <a href="../../../../.cpan/build/XML-XPath-1.13-X7brjt/blib/lib/XML/XPath/Builder.html">XML::XPath::Builder</a>.</p>
+
+
+</body>
+
+</html>
+
+

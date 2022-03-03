@@ -1,0 +1,1630 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Harnesses">Harnesses</a></li>
+      <li><a href="#run-vs.-start-pump-finish-">run() vs. start(); pump(); finish();</a></li>
+      <li><a href="#Using-regexps-to-match-output">Using regexps to match output</a></li>
+      <li><a href="#Timeouts-and-Timers">Timeouts and Timers</a></li>
+      <li><a href="#Spawning-synchronization-child-exception-propagation">Spawning synchronization, child exception propagation</a></li>
+      <li><a href="#Syntax">Syntax</a></li>
+    </ul>
+  </li>
+  <li><a href="#OBSTINATE-CHILDREN">OBSTINATE CHILDREN</a></li>
+  <li><a href="#PSEUDO-TERMINALS">PSEUDO TERMINALS</a>
+    <ul>
+      <li><a href="#CAVEATS">CAVEATS</a></li>
+      <li><a href="#Redirection-Operators">Redirection Operators</a></li>
+      <li><a href="#Just-doing-I-O">Just doing I/O</a></li>
+      <li><a href="#Options">Options</a></li>
+    </ul>
+  </li>
+  <li><a href="#RETURN-VALUES">RETURN VALUES</a></li>
+  <li><a href="#ROUTINES">ROUTINES</a></li>
+  <li><a href="#FILTERS">FILTERS</a></li>
+  <li><a href="#FILTER-IMPLEMENTATION-FUNCTIONS">FILTER IMPLEMENTATION FUNCTIONS</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#Win32-LIMITATIONS">Win32 LIMITATIONS</a></li>
+  <li><a href="#LIMITATIONS">LIMITATIONS</a></li>
+  <li><a href="#TODO1">TODO</a></li>
+  <li><a href="#INSPIRATION">INSPIRATION</a></li>
+  <li><a href="#SUPPORT">SUPPORT</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>   <span class="comment">## First,a command to run:</span>
+      <span class="keyword">my</span> <span class="variable">@cat</span> <span class="operator">=</span> <span class="string">qw( cat )</span><span class="operator">;</span>
+   
+   <span class="comment">## Using run() instead of system():</span>
+      <span class="keyword">use</span> <span class="variable">IPC::Run</span> <span class="string">qw( run timeout )</span><span class="operator">;</span>
+   
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$err</span><span class="operator">,</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">10</span> <span class="operator">)</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"cat: $?"</span>
+   
+      <span class="comment"># Can do I/O to sub refs and filenames, too:</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="string">"in.txt"</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">out</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">err</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"cat: $?"</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="string">"in.txt"</span><span class="operator">,</span> <span class="string">'&gt;&gt;'</span><span class="operator">,</span> <span class="string">"out.txt"</span><span class="operator">,</span> <span class="string">'2&gt;&gt;'</span><span class="operator">,</span> <span class="string">"err.txt"</span><span class="operator">;</span>
+   
+   
+      <span class="comment"># Redirecting using psuedo-terminals instad of pipes.</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'&lt;pty&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span>  <span class="string">'&gt;pty&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out_and_err</span><span class="operator">;</span>
+   
+   <span class="comment">## Scripting subprocesses (like Expect):</span>
+   
+      <span class="keyword">use</span> <span class="variable">IPC::Run</span> <span class="string">qw( start pump finish timeout )</span><span class="operator">;</span>
+   
+      <span class="comment"># Incrementally read from / write to scalars. </span>
+      <span class="comment"># $in is drained as it is fed to cat's stdin,</span>
+      <span class="comment"># $out accumulates cat's stdout</span>
+      <span class="comment"># $err accumulates cat's stderr</span>
+      <span class="comment"># $h is for "harness".</span>
+      <span class="keyword">my</span> <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$err</span><span class="operator">,</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">10</span> <span class="operator">);</span>
+   
+      <span class="variable">$in</span> <span class="operator">.=</span> <span class="string">"some input\n"</span><span class="operator">;</span>
+      <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/input\n/g</span><span class="operator">;</span>
+   
+      <span class="variable">$in</span> <span class="operator">.=</span> <span class="string">"some more input\n"</span><span class="operator">;</span>
+      <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/\G.*more input\n/</span><span class="operator">;</span>
+   
+      <span class="variable">$in</span> <span class="operator">.=</span> <span class="string">"some final input\n"</span><span class="operator">;</span>
+      <span class="variable">finish</span> <span class="variable">$h</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"cat returned $?"</span><span class="operator">;</span>
+   
+      <span class="keyword">warn</span> <span class="variable">$err</span> <span class="keyword">if</span> <span class="variable">$err</span><span class="operator">;</span> 
+      <span class="keyword">print</span> <span class="variable">$out</span><span class="operator">;</span>         <span class="comment">## All of cat's output</span>
+   
+   <span class="comment"># Piping between children</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'|'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@gzip</span><span class="operator">;</span>
+   
+   <span class="comment"># Multiple children simultaneously (run() blocks until all</span>
+   <span class="comment"># children exit, use start() for background execution):</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@foo1</span><span class="operator">,</span> <span class="string">'&amp;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@foo2</span><span class="operator">;</span>
+   
+   <span class="comment"># Calling \&amp;set_up_child in the child before it executes the</span>
+   <span class="comment"># command (only works on systems with true fork() &amp; exec())</span>
+   <span class="comment"># exceptions thrown in set_up_child() will be propagated back</span>
+   <span class="comment"># to the parent and thrown from run().</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span>
+         <span class="string">init</span> <span class="operator">=&gt;</span> <span class="operator">\&amp;</span><span class="variable">set_up_child</span><span class="operator">;</span>
+   
+   <span class="comment"># Read from / write to file handles you open and close</span>
+      <span class="keyword">open</span> <span class="variable">IN</span><span class="operator">,</span>  <span class="string">'&lt;in.txt'</span>  <span class="keyword">or</span> <span class="keyword">die</span> <span class="variable">$!</span><span class="operator">;</span>
+      <span class="keyword">open</span> <span class="variable">OUT</span><span class="operator">,</span> <span class="string">'&gt;out.txt'</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="variable">$!</span><span class="operator">;</span>
+      <span class="keyword">print</span> <span class="variable">OUT</span> <span class="string">"preamble\n"</span><span class="operator">;</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*IN</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*OUT</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"cat returned $?"</span><span class="operator">;</span>
+      <span class="keyword">print</span> <span class="variable">OUT</span> <span class="string">"postamble\n"</span><span class="operator">;</span>
+      <span class="keyword">close</span> <span class="variable">IN</span><span class="operator">;</span>
+      <span class="keyword">close</span> <span class="variable">OUT</span><span class="operator">;</span>
+   
+   <span class="comment"># Create pipes for you to read / write (like IPC::Open2 &amp; 3).</span>
+      <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span>
+         <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span>
+            <span class="string">'&lt;pipe'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*IN</span><span class="operator">,</span>
+            <span class="string">'&gt;pipe'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*OUT</span><span class="operator">,</span>
+            <span class="string">'2&gt;pipe'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*ERR</span> 
+         <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"cat returned $?"</span><span class="operator">;</span>
+      <span class="keyword">print</span> <span class="variable">IN</span> <span class="string">"some input\n"</span><span class="operator">;</span>
+      <span class="keyword">close</span> <span class="variable">IN</span><span class="operator">;</span>
+      <span class="keyword">print</span> <span class="operator">&lt;</span><span class="variable">OUT</span><span class="operator">&gt;,</span> <span class="operator">&lt;</span><span class="variable">ERR</span><span class="operator">&gt;;</span>
+      <span class="variable">finish</span> <span class="variable">$h</span><span class="operator">;</span>
+   
+   <span class="comment"># Mixing input and output modes</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'in.txt'</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">catch_some_out</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*ERR_LOG</span> <span class="operator">);</span>
+   
+   <span class="comment"># Other redirection constructs</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'&gt;&amp;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out_and_err</span><span class="operator">;</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'2&gt;&amp;1'</span><span class="operator">;</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'0&lt;&amp;3'</span><span class="operator">;</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'&lt;&amp;-'</span><span class="operator">;</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'3&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in3</span><span class="operator">;</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'4&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out4</span><span class="operator">;</span>
+      <span class="comment"># etc.</span>
+   
+   <span class="comment"># Passing options:</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'in.txt'</span><span class="operator">,</span> <span class="string">debug</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">;</span>
+   
+   <span class="comment"># Call this system's shell, returns TRUE on 0 exit code</span>
+   <span class="comment"># THIS IS THE OPPOSITE SENSE OF system()'s RETURN VALUE</span>
+      <span class="variable">run</span> <span class="string">"cat a b c"</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"cat returned $?"</span><span class="operator">;</span>
+   
+   <span class="comment"># Launch a sub process directly, no shell.  Can't do redirection</span>
+   <span class="comment"># with this form, it's here to behave like system() with an</span>
+   <span class="comment"># inverted result.</span>
+      <span class="variable">$r</span> <span class="operator">=</span> <span class="variable">run</span> <span class="string">"cat a b c"</span><span class="operator">;</span>
+   
+   <span class="comment"># Read from a file in to a scalar</span>
+      <span class="variable">run</span> <span class="variable">io</span><span class="operator">(</span> <span class="string">"filename"</span><span class="operator">,</span> <span class="string">'r'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$recv</span> <span class="operator">);</span>
+      <span class="variable">run</span> <span class="variable">io</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">*HANDLE</span><span class="operator">,</span>   <span class="string">'r'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$recv</span> <span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>IPC::Run allows you to run and interact with child processes using files, pipes, and pseudo-ttys. Both system()-style and scripted usages are supported and may be mixed. Likewise, functional and OO API styles are both supported and may be mixed.</p>
+
+<p>Various redirection operators reminiscent of those seen on common Unix and DOS command lines are provided.</p>
+
+<p>Before digging in to the details a few LIMITATIONS are important enough to be mentioned right up front:</p>
+
+<dl>
+
+<dt id="Win32-Support">Win32 Support</dt>
+<dd>
+
+<p>Win32 support is working but <b>EXPERIMENTAL</b>, but does pass all relevant tests on NT 4.0. See <a href="#Win32-LIMITATIONS">&quot;Win32 LIMITATIONS&quot;</a>.</p>
+
+</dd>
+<dt id="pty-Support">pty Support</dt>
+<dd>
+
+<p>If you need pty support, IPC::Run should work well enough most of the time, but IO::Pty is being improved, and IPC::Run will be improved to use IO::Pty&#39;s new features when it is release.</p>
+
+<p>The basic problem is that the pty needs to initialize itself before the parent writes to the master pty, or the data written gets lost. So IPC::Run does a sleep(1) in the parent after forking to (hopefully) give the child a chance to run. This is a kludge that works well on non heavily loaded systems :(.</p>
+
+<p>ptys are not supported yet under Win32, but will be emulated...</p>
+
+</dd>
+<dt id="Debugging-Tip">Debugging Tip</dt>
+<dd>
+
+<p>You may use the environment variable <code><code>IPCRUNDEBUG</code></code> to see what&#39;s going on under the hood:</p>
+
+<pre><code><code>   $ IPCRUNDEBUG=basic   myscript     # prints minimal debugging
+   $ IPCRUNDEBUG=data    myscript     # prints all data reads/writes
+   $ IPCRUNDEBUG=details myscript     # prints lots of low-level details
+   $ IPCRUNDEBUG=gory    myscript     # (Win32 only) prints data moving through
+                                      # the helper processes.</code></code></pre>
+
+</dd>
+</dl>
+
+<p>We now return you to your regularly scheduled documentation.</p>
+
+<h2 id="Harnesses">Harnesses</h2>
+
+<p>Child processes and I/O handles are gathered in to a harness, then started and run until the processing is finished or aborted.</p>
+
+<h2 id="run-vs.-start-pump-finish-">run() vs. start(); pump(); finish();</h2>
+
+<p>There are two modes you can run harnesses in: run() functions as an enhanced system(), and start()/pump()/finish() allow for background processes and scripted interactions with them.</p>
+
+<p>When using run(), all data to be sent to the harness is set up in advance (though one can feed subprocesses input from subroutine refs to get around this limitation). The harness is run and all output is collected from it, then any child processes are waited for:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\&lt;&lt;</span><span class="default">IN</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span><span class="string">
+   blah
+   </span><span class="default">IN</span>
+   
+   <span class="comment">## To precompile harnesses and run them later:</span>
+   <span class="keyword">my</span> <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">harness</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\&lt;&lt;</span><span class="default">IN</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span><span class="string">
+   blah
+   </span><span class="default">IN</span>
+   
+   <span class="variable">run</span> <span class="variable">$h</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The background and scripting API is provided by start(), pump(), and finish(): start() creates a harness if need be (by calling harness()) and launches any subprocesses, pump() allows you to poll them for activity, and finish() then monitors the harnessed activities until they complete.</p>
+
+<pre><code><code>   <span class="comment">## Build the harness, open all pipes, and launch the subprocesses</span>
+   <span class="keyword">my</span> <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"first input\n"</span><span class="operator">;</span>
+   
+   <span class="comment">## Now do I/O.  start() does no I/O.</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">while</span> <span class="keyword">length</span> <span class="variable">$in</span><span class="operator">;</span>  <span class="comment">## Wait for all input to go</span>
+   
+   <span class="comment">## Now do some more I/O.</span>
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"second input\n"</span><span class="operator">;</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/second input/</span><span class="operator">;</span>
+   
+   <span class="comment">## Clean up</span>
+   <span class="variable">finish</span> <span class="variable">$h</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"cat returned $?"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>You can optionally compile the harness with harness() prior to start()ing or run()ing, and you may omit start() between harness() and pump(). You might want to do these things if you compile your harnesses ahead of time.</p>
+
+<h2 id="Using-regexps-to-match-output">Using regexps to match output</h2>
+
+<p>As shown in most of the scripting examples, the read-to-scalar facility for gathering subcommand&#39;s output is often used with regular expressions to detect stopping points. This is because subcommand output often arrives in dribbles and drabs, often only a character or line at a time. This output is input for the main program and piles up in variables like the <code><code>$out</code></code> and <code><code>$err</code></code> in our examples.</p>
+
+<p>Regular expressions can be used to wait for appropriate output in several ways. The <code><code>cat</code></code> example in the previous section demonstrates how to pump() until some string appears in the output. Here&#39;s an example that uses <code><code>smb</code></code> to fetch files from a remote server:</p>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">harness</span> <span class="operator">\</span><span class="variable">@smbclient</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"cd /src\n"</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">pump</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/^smb.*&gt; \Z/m</span><span class="operator">;</span>
+   <span class="keyword">die</span> <span class="string">"error cding to /src:\n</span><span class="variable">$out</span><span class="string">"</span> <span class="keyword">if</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="string">"ERR"</span><span class="operator">;</span>
+   <span class="variable">$out</span> <span class="operator">=</span> <span class="string">''</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"mget *\n"</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">pump</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/^smb.*&gt; \Z/m</span><span class="operator">;</span>
+   <span class="keyword">die</span> <span class="string">"error retrieving files:\n</span><span class="variable">$out</span><span class="string">"</span> <span class="keyword">if</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="string">"ERR"</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"quit\n"</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Notice that we carefully clear $out after the first command/response cycle? That&#39;s because IPC::Run does not delete $out when we continue, and we don&#39;t want to trip over the old output in the second command/response cycle.</p>
+
+<p>Say you want to accumulate all the output in $out and analyze it afterwards. Perl offers incremental regular expression matching using the <code><code>m//gc</code></code> and pattern matching idiom and the <code><code>\G</code></code> assertion. IPC::Run is careful not to disturb the current <code><code>pos()</code></code> value for scalars it appends data to, so we could modify the above so as not to destroy $out by adding a couple of <code><code>/gc</code></code> modifiers. The <code><code>/g</code></code> keeps us from tripping over the previous prompt and the <code><code>/c</code></code> keeps us from resetting the prior match position if the expected prompt doesn&#39;t materialize immediately:</p>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">harness</span> <span class="operator">\</span><span class="variable">@smbclient</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"cd /src\n"</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">pump</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/^smb.*&gt; \Z/mgc</span><span class="operator">;</span>
+   <span class="keyword">die</span> <span class="string">"error cding to /src:\n</span><span class="variable">$out</span><span class="string">"</span> <span class="keyword">if</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="string">"ERR"</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"mget *\n"</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">pump</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/^smb.*&gt; \Z/mgc</span><span class="operator">;</span>
+   <span class="keyword">die</span> <span class="string">"error retrieving files:\n</span><span class="variable">$out</span><span class="string">"</span> <span class="keyword">if</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="string">"ERR"</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"quit\n"</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+   
+   <span class="variable">analyze</span><span class="operator">(</span> <span class="variable">$out</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>When using this technique, you may want to preallocate $out to have plenty of memory or you may find that the act of growing $out each time new input arrives causes an <code><code>O(length($out)^2)</code></code> slowdown as $out grows. Say we expect no more than 10,000 characters of input at the most. To preallocate memory to $out, do something like:</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$out</span> <span class="operator">=</span> <span class="string">"x"</span> <span class="operator">x</span> <span class="number">10_000</span><span class="operator">;</span>
+   <span class="variable">$out</span> <span class="operator">=</span> <span class="string">""</span><span class="operator">;</span>
+</code></code></pre>
+
+<p><code><code>perl</code></code> will allocate at least 10,000 characters&#39; worth of space, then mark the $out as having 0 length without freeing all that yummy RAM.</p>
+
+<h2 id="Timeouts-and-Timers">Timeouts and Timers</h2>
+
+<p>More than likely, you don&#39;t want your subprocesses to run forever, and sometimes it&#39;s nice to know that they&#39;re going a little slowly. Timeouts throw exceptions after a some time has elapsed, timers merely cause pump() to return after some time has elapsed. Neither is reset/restarted automatically.</p>
+
+<p>Timeout objects are created by calling timeout( $interval ) and passing the result to run(), start() or harness(). The timeout period starts ticking just after all the child processes have been fork()ed or spawn()ed, and are polled for expiration in run(), pump() and finish(). If/when they expire, an exception is thrown. This is typically useful to keep a subprocess from taking too long.</p>
+
+<p>If a timeout occurs in run(), all child processes will be terminated and all file/pipe/ptty descriptors opened by run() will be closed. File descriptors opened by the parent process and passed in to run() are not closed in this event.</p>
+
+<p>If a timeout occurs in pump(), pump_nb(), or finish(), it&#39;s up to you to decide whether to kill_kill() all the children or to implement some more graceful fallback. No I/O will be closed in pump(), pump_nb() or finish() by such an exception (though I/O is often closed down in those routines during the natural course of events).</p>
+
+<p>Often an exception is too harsh. timer( $interval ) creates timer objects that merely prevent pump() from blocking forever. This can be useful for detecting stalled I/O or printing a soothing message or &quot;.&quot; to pacify an anxious user.</p>
+
+<p>Timeouts and timers can both be restarted at any time using the timer&#39;s start() method (this is not the start() that launches subprocesses). To restart a timer, you need to keep a reference to the timer:</p>
+
+<pre><code><code>   <span class="comment">## Start with a nice long timeout to let smbclient connect.  If</span>
+   <span class="comment">## pump or finish take too long, an exception will be thrown.</span>
+   
+    <span class="keyword">my</span> <span class="variable">$h</span><span class="operator">;</span>
+    <span class="keyword">eval</span> <span class="operator">{</span>
+   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">harness</span> <span class="operator">\</span><span class="variable">@smbclient</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$err</span><span class="operator">,</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timeout</span> <span class="number">30</span> <span class="operator">);</span>
+   <span class="keyword">sleep</span> <span class="number">11</span><span class="operator">;</span>  <span class="comment"># No effect: timer not running yet</span>
+   
+   <span class="variable">start</span> <span class="variable">$h</span><span class="operator">;</span>
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"cd /src\n"</span><span class="operator">;</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="operator">!</span> <span class="keyword">length</span> <span class="variable">$in</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"ls\n"</span><span class="operator">;</span>
+   <span class="comment">## Now use a short timeout, since this should be faster</span>
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">);</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="operator">!</span> <span class="keyword">length</span> <span class="variable">$in</span><span class="operator">;</span>
+   
+   <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(</span> <span class="number">10</span> <span class="operator">);</span>  <span class="comment">## Give smbclient a little while to shut down.</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+    <span class="operator">};</span>
+    <span class="keyword">if</span> <span class="operator">(</span> <span class="variable">$@</span> <span class="operator">)</span> <span class="operator">{</span>
+   <span class="keyword">my</span> <span class="variable">$x</span> <span class="operator">=</span> <span class="variable">$@</span><span class="operator">;</span>    <span class="comment">## Preserve $@ in case another exception occurs</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">kill_kill</span><span class="operator">;</span> <span class="comment">## kill it gently, then brutally if need be, or just</span>
+                   <span class="comment">## brutally on Win32.</span>
+   <span class="keyword">die</span> <span class="variable">$x</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<p>Timeouts and timers are <i>not</i> checked once the subprocesses are shut down; they will not expire in the interval between the last valid process and when IPC::Run scoops up the processes&#39; result codes, for instance.</p>
+
+<h2 id="Spawning-synchronization-child-exception-propagation">Spawning synchronization, child exception propagation</h2>
+
+<p>start() pauses the parent until the child executes the command or CODE reference and propagates any exceptions thrown (including exec() failure) back to the parent. This has several pleasant effects: any exceptions thrown in the child, including exec() failure, come flying out of start() or run() as though they had ocurred in the parent.</p>
+
+<p>This includes exceptions your code thrown from init subs. In this example:</p>
+
+<pre><code><code>   <span class="keyword">eval</span> <span class="operator">{</span>
+      <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">init</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">die</span> <span class="string">"blast it! foiled again!"</span> <span class="operator">};</span>
+   <span class="operator">};</span>
+   <span class="keyword">print</span> <span class="variable">$@</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>the exception &quot;blast it! foiled again&quot; will be thrown from the child process (preventing the exec()) and printed by the parent.</p>
+
+<p>In situations like</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd1</span><span class="operator">,</span> <span class="string">"|"</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cmd2</span><span class="operator">,</span> <span class="string">"|"</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cmd3</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>@cmd1 will be initted and exec()ed before @cmd2, and @cmd2 before @cmd3. This can save time and prevent oddball errors emitted by later commands when earlier commands fail to execute. Note that IPC::Run doesn&#39;t start any commands unless it can find the executables referenced by all commands. These executables must pass both the <code><code>-f</code></code> and <code><code>-x</code></code> tests described in <a href="../../../lib/pod/perlfunc.html">perlfunc</a>.</p>
+
+<p>Another nice effect is that init() subs can take their time doing things and there will be no problems caused by a parent continuing to execute before a child&#39;s init() routine is complete. Say the init() routine needs to open a socket or a temp file that the parent wants to connect to; without this synchronization, the parent will need to implement a retry loop to wait for the child to run, since often, the parent gets a lot of things done before the child&#39;s first timeslice is allocated.</p>
+
+<p>This is also quite necessary for pseudo-tty initialization, which needs to take place before the parent writes to the child via pty. Writes that occur before the pty is set up can get lost.</p>
+
+<p>A final, minor, nicety is that debugging output from the child will be emitted before the parent continues on, making for much clearer debugging output in complex situations.</p>
+
+<p>The only drawback I can conceive of is that the parent can&#39;t continue to operate while the child is being initted. If this ever becomes a problem in the field, we can implement an option to avoid this behavior, but I don&#39;t expect it to.</p>
+
+<p><b>Win32</b>: executing CODE references isn&#39;t supported on Win32, see <a href="#Win32-LIMITATIONS">&quot;Win32 LIMITATIONS&quot;</a> for details.</p>
+
+<h2 id="Syntax">Syntax</h2>
+
+<p>run(), start(), and harness() can all take a harness specification as input. A harness specification is either a single string to be passed to the systems&#39; shell:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="string">"echo 'hi there'"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>or a list of commands, io operations, and/or timers/timeouts to execute. Consecutive commands must be separated by a pipe operator &#39;|&#39; or an &#39;&amp;&#39;. External commands are passed in as array references, and, on systems supporting fork(), Perl code may be passed in as subs:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd1</span><span class="operator">,</span> <span class="string">'|'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cmd2</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd1</span><span class="operator">,</span> <span class="string">'&amp;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cmd2</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\&amp;</span><span class="variable">sub1</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\&amp;</span><span class="variable">sub1</span><span class="operator">,</span> <span class="string">'|'</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">sub2</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\&amp;</span><span class="variable">sub1</span><span class="operator">,</span> <span class="string">'&amp;'</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">sub2</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>&#39;|&#39; pipes the stdout of \@cmd1 the stdin of \@cmd2, just like a shell pipe. &#39;&amp;&#39; does not. Child processes to the right of a &#39;&amp;&#39; will have their stdin closed unless it&#39;s redirected-to.</p>
+
+<p><a href="../../../../.cpan/build/IPC-Run-0.92-NBkBoa/blib/lib/IPC/Run/IO.html">IPC::Run::IO</a> objects may be passed in as well, whether or not child processes are also specified:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="variable">io</span><span class="operator">(</span> <span class="string">"infile"</span><span class="operator">,</span> <span class="string">"&gt;"</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span> <span class="operator">),</span> <span class="variable">io</span><span class="operator">(</span> <span class="string">"outfile"</span><span class="operator">,</span> <span class="string">"&lt;"</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span> <span class="operator">);</span>
+      
+</code></code></pre>
+
+<p>as can <a href="../../../../.cpan/build/IPC-Run-0.92-NBkBoa/blib/lib/IPC/Run/Timer.html">IPC::Run::Timer</a> objects:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="variable">io</span><span class="operator">(</span> <span class="string">"outfile"</span><span class="operator">,</span> <span class="string">"&lt;"</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span> <span class="operator">),</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">10</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>Commands may be followed by scalar, sub, or i/o handle references for redirecting child process input &amp; output:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span>  <span class="operator">\</span><span class="keyword">undef</span><span class="operator">,</span>            <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span>  <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span>              <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd1</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">in</span><span class="operator">,</span> <span class="string">'|'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cmd2</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*OUT</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd1</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*IN</span><span class="operator">,</span> <span class="string">'|'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cmd2</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">out</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This is known as succinct redirection syntax, since run(), start() and harness(), figure out which file descriptor to redirect and how. File descriptor 0 is presumed to be an input for the child process, all others are outputs. The assumed file descriptor always starts at 0, unless the command is being piped to, in which case it starts at 1.</p>
+
+<p>To be explicit about your redirects, or if you need to do more complex things, there&#39;s also a redirection operator syntax:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="keyword">undef</span><span class="operator">,</span> <span class="string">'&gt;'</span><span class="operator">,</span>  <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="keyword">undef</span><span class="operator">,</span> <span class="string">'&gt;&amp;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out_and_err</span><span class="operator">;</span>
+   <span class="variable">run</span><span class="operator">(</span>
+      <span class="operator">\</span><span class="variable">@cmd1</span><span class="operator">,</span>
+         <span class="string">'&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span>
+      <span class="string">'|'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cmd2</span><span class="operator">,</span>
+         <span class="operator">\</span><span class="variable">$out</span>
+   <span class="operator">);</span>
+</code></code></pre>
+
+<p>Operator syntax is required if you need to do something other than simple redirection to/from scalars or subs, like duping or closing file descriptors or redirecting to/from a named file. The operators are covered in detail below.</p>
+
+<p>After each \@cmd (or \&amp;foo), parsing begins in succinct mode and toggles to operator syntax mode when an operator (ie plain scalar, not a ref) is seen. Once in operator syntax mode, parsing only reverts to succinct mode when a &#39;|&#39; or &#39;&amp;&#39; is seen.</p>
+
+<p>In succinct mode, each parameter after the \@cmd specifies what to do with the next highest file descriptor. These File descriptor start with 0 (stdin) unless stdin is being piped to (<code><code>&#39;|&#39;, \@cmd</code></code>), in which case they start with 1 (stdout). Currently, being on the left of a pipe (<code><code>\@cmd, \$out, \$err, &#39;|&#39;</code></code>) does <i>not</i> cause stdout to be skipped, though this may change since it&#39;s not as DWIMerly as it could be. Only stdin is assumed to be an input in succinct mode, all others are assumed to be outputs.</p>
+
+<p>If no piping or redirection is specified for a child, it will inherit the parent&#39;s open file handles as dictated by your system&#39;s close-on-exec behavior and the $^F flag, except that processes after a &#39;&amp;&#39; will not inherit the parent&#39;s stdin. Also note that $^F does not affect file desciptors obtained via POSIX, since it only applies to full-fledged Perl file handles. Such processes will have their stdin closed unless it has been redirected-to.</p>
+
+<p>If you want to close a child processes stdin, you may do any of:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="keyword">undef</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="string">""</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&lt;&amp;-'</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'0&lt;&amp;-'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Redirection is done by placing redirection specifications immediately after a command or child subroutine:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd1</span><span class="operator">,</span>      <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="string">'|'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cmd2</span><span class="operator">,</span>      <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd1</span><span class="operator">,</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="string">'|'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cmd2</span><span class="operator">,</span> <span class="string">'&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>If you omit the redirection operators, descriptors are counted starting at 0. Descriptor 0 is assumed to be input, all others are outputs. A leading &#39;|&#39; consumes descriptor 0, so this works as expected.</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd1</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="string">'|'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cmd2</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The parameter following a redirection operator can be a scalar ref, a subroutine ref, a file name, an open filehandle, or a closed filehandle.</p>
+
+<p>If it&#39;s a scalar ref, the child reads input from or sends output to that variable:</p>
+
+<pre><code><code>   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"Hello World.\n"</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>
+   <span class="keyword">print</span> <span class="variable">$out</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Scalars used in incremental (start()/pump()/finish()) applications are treated as queues: input is removed from input scalers, resulting in them dwindling to &#39;&#39;, and output is appended to output scalars. This is not true of harnesses run() in batch mode.</p>
+
+<p>It&#39;s usually wise to append new input to be sent to the child to the input queue, and you&#39;ll often want to zap output queues to &#39;&#39; before pumping.</p>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">;</span>
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"line 1\n"</span><span class="operator">;</span>
+   <span class="variable">pump</span> <span class="variable">$h</span><span class="operator">;</span>
+   <span class="variable">$in</span> <span class="operator">.=</span> <span class="string">"line 2\n"</span><span class="operator">;</span>
+   <span class="variable">pump</span> <span class="variable">$h</span><span class="operator">;</span>
+   <span class="variable">$in</span> <span class="operator">.=</span> <span class="string">"line 3\n"</span><span class="operator">;</span>
+   <span class="variable">finish</span> <span class="variable">$h</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The final call to finish() must be there: it allows the child process(es) to run to completion and waits for their exit values.</p>
+
+<h1 id="OBSTINATE-CHILDREN">OBSTINATE CHILDREN</h1>
+
+<p>Interactive applications are usually optimized for human use. This can help or hinder trying to interact with them through modules like IPC::Run. Frequently, programs alter their behavior when they detect that stdin, stdout, or stderr are not connected to a tty, assuming that they are being run in batch mode. Whether this helps or hurts depends on which optimizations change. And there&#39;s often no way of telling what a program does in these areas other than trial and error and, occasionally, reading the source. This includes different versions and implementations of the same program.</p>
+
+<p>All hope is not lost, however. Most programs behave in reasonably tractable manners, once you figure out what it&#39;s trying to do.</p>
+
+<p>Here are some of the issues you might need to be aware of.</p>
+
+<ul>
+
+<li><p>fflush()ing stdout and stderr</p>
+
+<p>This lets the user see stdout and stderr immediately. Many programs undo this optimization if stdout is not a tty, making them harder to manage by things like IPC::Run.</p>
+
+<p>Many programs decline to fflush stdout or stderr if they do not detect a tty there. Some ftp commands do this, for instance.</p>
+
+<p>If this happens to you, look for a way to force interactive behavior, like a command line switch or command. If you can&#39;t, you will need to use a pseudo terminal (&#39;&lt;pty&lt;&#39; and &#39;&gt;pty&gt;&#39;).</p>
+
+</li>
+<li><p>false prompts</p>
+
+<p>Interactive programs generally do not guarantee that output from user commands won&#39;t contain a prompt string. For example, your shell prompt might be a &#39;$&#39;, and a file named &#39;$&#39; might be the only file in a directory listing.</p>
+
+<p>This can make it hard to guarantee that your output parser won&#39;t be fooled into early termination of results.</p>
+
+<p>To help work around this, you can see if the program can alter it&#39;s prompt, and use something you feel is never going to occur in actual practice.</p>
+
+<p>You should also look for your prompt to be the only thing on a line:</p>
+
+<pre><code><code>   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/^&lt;SILLYPROMPT&gt;\s?\z/m</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>(use <code><code>(?!\n)\Z</code></code> in place of <code><code>\z</code></code> on older perls).</p>
+
+<p>You can also take the approach that IPC::ChildSafe takes and emit a command with known output after each &#39;real&#39; command you issue, then look for this known output. See new_appender() and new_chunker() for filters that can help with this task.</p>
+
+<p>If it&#39;s not convenient or possibly to alter a prompt or use a known command/response pair, you might need to autodetect the prompt in case the local version of the child program is different then the one you tested with, or if the user has control over the look &amp; feel of the prompt.</p>
+
+</li>
+<li><p>Refusing to accept input unless stdin is a tty.</p>
+
+<p>Some programs, for security reasons, will only accept certain types of input from a tty. su, notable, will not prompt for a password unless it&#39;s connected to a tty.</p>
+
+<p>If this is your situation, use a pseudo terminal (&#39;&lt;pty&lt;&#39; and &#39;&gt;pty&gt;&#39;).</p>
+
+</li>
+<li><p>Not prompting unless connected to a tty.</p>
+
+<p>Some programs don&#39;t prompt unless stdin or stdout is a tty. See if you can turn prompting back on. If not, see if you can come up with a command that you can issue after every real command and look for it&#39;s output, as IPC::ChildSafe does. There are two filters included with IPC::Run that can help with doing this: appender and chunker (see new_appender() and new_chunker()).</p>
+
+</li>
+<li><p>Different output format when not connected to a tty.</p>
+
+<p>Some commands alter their formats to ease machine parsability when they aren&#39;t connected to a pipe. This is actually good, but can be surprising.</p>
+
+</li>
+</ul>
+
+<h1 id="PSEUDO-TERMINALS">PSEUDO TERMINALS</h1>
+
+<p>On systems providing pseudo terminals under /dev, IPC::Run can use IO::Pty (available on CPAN) to provide a terminal environment to subprocesses. This is necessary when the subprocess really wants to think it&#39;s connected to a real terminal.</p>
+
+<h2 id="CAVEATS">CAVEATS</h2>
+
+<p>Psuedo-terminals are not pipes, though they are similar. Here are some differences to watch out for.</p>
+
+<dl>
+
+<dt id="Echoing">Echoing</dt>
+<dd>
+
+<p>Sending to stdin will cause an echo on stdout, which occurs before each line is passed to the child program. There is currently no way to disable this, although the child process can and should disable it for things like passwords.</p>
+
+</dd>
+<dt id="Shutdown">Shutdown</dt>
+<dd>
+
+<p>IPC::Run cannot close a pty until all output has been collected. This means that it is not possible to send an EOF to stdin by half-closing the pty, as we can when using a pipe to stdin.</p>
+
+<p>This means that you need to send the child process an exit command or signal, or run() / finish() will time out. Be careful not to expect a prompt after sending the exit command.</p>
+
+</dd>
+<dt id="Command-line-editing">Command line editing</dt>
+<dd>
+
+<p>Some subprocesses, notable shells that depend on the user&#39;s prompt settings, will reissue the prompt plus the command line input so far once for each character.</p>
+
+</dd>
+<dt id="pty-means-pty-not-1pty">&#39;&gt;pty&gt;&#39; means &#39;&amp;&gt;pty&gt;&#39;, not &#39;1&gt;pty&gt;&#39;</dt>
+<dd>
+
+<p>The pseudo terminal redirects both stdout and stderr unless you specify a file descriptor. If you want to grab stderr separately, do this:</p>
+
+<pre><code><code>   <span class="variable">start</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&lt;pty&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="string">'&gt;pty&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span> <span class="string">'2&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$err</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="stdin-stdout-and-stderr-not-inherited">stdin, stdout, and stderr not inherited</dt>
+<dd>
+
+<p>Child processes harnessed to a pseudo terminal have their stdin, stdout, and stderr completely closed before any redirection operators take effect. This casts of the bonds of the controlling terminal. This is not done when using pipes.</p>
+
+<p>Right now, this affects all children in a harness that has a pty in use, even if that pty would not affect a particular child. That&#39;s a bug and will be fixed. Until it is, it&#39;s best not to mix-and-match children.</p>
+
+</dd>
+</dl>
+
+<h2 id="Redirection-Operators">Redirection Operators</h2>
+
+<pre><code><code>   Operator       SHNP   Description
+   ========       ====   ===========
+   &lt;, N&lt;          SHN    Redirects input to a child&#39;s fd N (0 assumed)
+
+   &gt;, N&gt;          SHN    Redirects output from a child&#39;s fd N (1 assumed)
+   &gt;&gt;, N&gt;&gt;        SHN    Like &#39;&gt;&#39;, but appends to scalars or named files
+   &gt;&amp;, &amp;&gt;         SHN    Redirects stdout &amp; stderr from a child process
+
+   &lt;pty, N&lt;pty    S      Like &#39;&lt;&#39;, but uses a pseudo-tty instead of a pipe
+   &gt;pty, N&gt;pty    S      Like &#39;&gt;&#39;, but uses a pseudo-tty instead of a pipe
+
+   N&lt;&amp;M                  Dups input fd N to input fd M
+   M&gt;&amp;N                  Dups output fd N to input fd M
+   N&lt;&amp;-                  Closes fd N
+
+   &lt;pipe, N&lt;pipe     P   Pipe opens H for caller to read, write, close.
+   &gt;pipe, N&gt;pipe     P   Pipe opens H for caller to read, write, close.
+                      </code></code></pre>
+
+<p>&#39;N&#39; and &#39;M&#39; are placeholders for integer file descriptor numbers. The terms &#39;input&#39; and &#39;output&#39; are from the child process&#39;s perspective.</p>
+
+<p>The SHNP field indicates what parameters an operator can take:</p>
+
+<pre><code><code>   S: \$scalar or \&amp;function references.  Filters may be used with
+      these operators (and only these).
+   H: \*HANDLE or IO::Handle for caller to open, and close
+   N: &quot;file name&quot;.
+   P: \*HANDLE opened by IPC::Run as the parent end of a pipe, but read
+      and written to and closed by the caller (like IPC::Open3).</code></code></pre>
+
+<dl>
+
+<dt id="Redirecting-input:-n-n-pipe">Redirecting input: [n]&lt;, [n]&lt;pipe</dt>
+<dd>
+
+<p>You can input the child reads on file descriptor number n to come from a scalar variable, subroutine, file handle, or a named file. If stdin is not redirected, the parent&#39;s stdin is inherited.</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="keyword">undef</span>          <span class="comment">## Closes child's stdin immediately</span>
+      <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"cat returned $?"</span><span class="operator">;</span> 
+   
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">;</span>
+   
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\&lt;&lt;</span><span class="default">TOHERE</span><span class="operator">;</span><span class="string">
+   blah
+   </span><span class="default">TOHERE</span>
+   
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">input</span><span class="operator">;</span>       <span class="comment">## Calls &amp;input, feeding data returned</span>
+                              <span class="comment">## to child's.  Closes child's stdin</span>
+                              <span class="comment">## when undef is returned.</span>
+</code></code></pre>
+
+<p>Redirecting from named files requires you to use the input redirection operator:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'&lt;.profile'</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="string">'.profile'</span><span class="operator">;</span>
+   
+   <span class="keyword">open</span> <span class="variable">IN</span><span class="operator">,</span> <span class="string">"&lt;foo"</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*IN</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="variable">*IN</span><span class="operator">{</span><span class="string">IO</span><span class="operator">}</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The form used second example here is the safest, since filenames like &quot;0&quot; and &quot;&amp;more\n&quot; won&#39;t confuse &amp;run:</p>
+
+<p>You can&#39;t do either of</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@a</span><span class="operator">,</span> <span class="variable">*IN</span><span class="operator">;</span>      <span class="comment">## INVALID</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@a</span><span class="operator">,</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="variable">*IN</span><span class="operator">;</span> <span class="comment">## BUGGY: Reads file named like "*main::A"</span>
+</code></code></pre>
+
+<p>because perl passes a scalar containing a string that looks like &quot;*main::A&quot; to &amp;run, and &amp;run can&#39;t tell the difference between that and a redirection operator or a file name. &amp;run guarantees that any scalar you pass after a redirection operator is a file name.</p>
+
+<p>If your child process will take input from file descriptors other than 0 (stdin), you can use a redirection operator with any of the valid input forms (scalar ref, sub ref, etc.):</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'3&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in3</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>When redirecting input from a scalar ref, the scalar ref is used as a queue. This allows you to use &amp;harness and pump() to feed incremental bits of input to a coprocess. See <a href="#Coprocesses">&quot;Coprocesses&quot;</a> below for more information.</p>
+
+<p>The &lt;pipe operator opens the write half of a pipe on the filehandle glob reference it takes as an argument:</p>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'&lt;pipe'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*IN</span><span class="operator">;</span>
+   <span class="keyword">print</span> <span class="variable">IN</span> <span class="string">"hello world\n"</span><span class="operator">;</span>
+   <span class="variable">pump</span> <span class="variable">$h</span><span class="operator">;</span>
+   <span class="keyword">close</span> <span class="variable">IN</span><span class="operator">;</span>
+   <span class="variable">finish</span> <span class="variable">$h</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Unlike the other &#39;&lt;&#39; operators, IPC::Run does nothing further with it: you are responsible for it. The previous example is functionally equivalent to:</p>
+
+<pre><code><code>   <span class="keyword">pipe</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">*R</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*IN</span> <span class="operator">)</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="variable">$!</span><span class="operator">;</span>
+   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*IN</span><span class="operator">;</span>
+   <span class="keyword">print</span> <span class="variable">IN</span> <span class="string">"hello world\n"</span><span class="operator">;</span>
+   <span class="variable">pump</span> <span class="variable">$h</span><span class="operator">;</span>
+   <span class="keyword">close</span> <span class="variable">IN</span><span class="operator">;</span>
+   <span class="variable">finish</span> <span class="variable">$h</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>This is like the behavior of IPC::Open2 and IPC::Open3.</p>
+
+<p><b>Win32</b>: The handle returned is actually a socket handle, so you can use select() on it.</p>
+
+</dd>
+<dt id="Redirecting-output:-n-n-n-m-n-pipe">Redirecting output: [n]&gt;, [n]&gt;&gt;, [n]&gt;&amp;[m], [n]&gt;pipe</dt>
+<dd>
+
+<p>You can redirect any output the child emits to a scalar variable, subroutine, file handle, or file name. You can have &amp;run truncate or append to named files or scalars. If you are redirecting stdin as well, or if the command is on the receiving end of a pipeline (&#39;|&#39;), you can omit the redirection operator:</p>
+
+<pre><code><code>   <span class="variable">@ls</span> <span class="operator">=</span> <span class="operator">(</span> <span class="string">'ls'</span> <span class="operator">);</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@ls</span><span class="operator">,</span> <span class="operator">\</span><span class="keyword">undef</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span>
+      <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"ls returned $?"</span><span class="operator">;</span> 
+   
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@ls</span><span class="operator">,</span> <span class="operator">\</span><span class="keyword">undef</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">out</span><span class="operator">;</span>  <span class="comment">## Calls &amp;out each time some output</span>
+                              <span class="comment">## is received from the child's </span>
+                              <span class="comment">## when undef is returned.</span>
+   
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@ls</span><span class="operator">,</span> <span class="operator">\</span><span class="keyword">undef</span><span class="operator">,</span> <span class="string">'2&gt;ls.err'</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@ls</span><span class="operator">,</span> <span class="string">'2&gt;'</span><span class="operator">,</span> <span class="string">'ls.err'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>The two parameter form guarantees that the filename will not be interpreted as a redirection operator:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@ls</span><span class="operator">,</span> <span class="string">'&gt;'</span><span class="operator">,</span> <span class="string">"&amp;more"</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@ls</span><span class="operator">,</span> <span class="string">'2&gt;'</span><span class="operator">,</span> <span class="string">"&gt;foo\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>You can pass file handles you&#39;ve opened for writing:</p>
+
+<pre><code><code>   <span class="keyword">open</span><span class="operator">(</span> <span class="variable">*OUT</span><span class="operator">,</span> <span class="string">"&gt;out.txt"</span> <span class="operator">);</span>
+   <span class="keyword">open</span><span class="operator">(</span> <span class="variable">*ERR</span><span class="operator">,</span> <span class="string">"&gt;err.txt"</span> <span class="operator">);</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*OUT</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*ERR</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Passing a scalar reference and a code reference requires a little more work, but allows you to capture all of the output in a scalar or each piece of output by a callback:</p>
+
+<p>These two do the same things:</p>
+
+<pre><code><code>   <span class="variable">run</span><span class="operator">(</span> <span class="operator">[</span> <span class="string">'ls'</span> <span class="operator">]</span><span class="operator">,</span> <span class="string">'2&gt;'</span><span class="operator">,</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$err_out</span> <span class="operator">.=</span> <span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span> <span class="operator">}</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>does the same basic thing as:</p>
+
+<pre><code><code>   <span class="variable">run</span><span class="operator">(</span> <span class="operator">[</span> <span class="string">'ls'</span> <span class="operator">]</span><span class="operator">,</span> <span class="string">'2&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$err_out</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>The subroutine will be called each time some data is read from the child.</p>
+
+<p>The &gt;pipe operator is different in concept than the other &#39;&gt;&#39; operators, although it&#39;s syntax is similar:</p>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="variable">$in</span><span class="operator">,</span> <span class="string">'&gt;pipe'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*OUT</span><span class="operator">,</span> <span class="string">'2&gt;pipe'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">*ERR</span><span class="operator">;</span>
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"hello world\n"</span><span class="operator">;</span>
+   <span class="variable">finish</span> <span class="variable">$h</span><span class="operator">;</span>
+   <span class="keyword">print</span> <span class="operator">&lt;</span><span class="variable">OUT</span><span class="operator">&gt;;</span>
+   <span class="keyword">print</span> <span class="operator">&lt;</span><span class="variable">ERR</span><span class="operator">&gt;;</span>
+   <span class="keyword">close</span> <span class="variable">OUT</span><span class="operator">;</span>
+   <span class="keyword">close</span> <span class="variable">ERR</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>causes two pipe to be created, with one end attached to cat&#39;s stdout and stderr, respectively, and the other left open on OUT and ERR, so that the script can manually read(), select(), etc. on them. This is like the behavior of IPC::Open2 and IPC::Open3.</p>
+
+<p><b>Win32</b>: The handle returned is actually a socket handle, so you can use select() on it.</p>
+
+</dd>
+<dt id="Duplicating-output-descriptors:-m-nm">Duplicating output descriptors: &gt;&amp;m, n&gt;&amp;m</dt>
+<dd>
+
+<p>This duplicates output descriptor number n (default is 1 if n is omitted) from descriptor number m.</p>
+
+</dd>
+<dt id="Duplicating-input-descriptors:-m-nm">Duplicating input descriptors: &lt;&amp;m, n&lt;&amp;m</dt>
+<dd>
+
+<p>This duplicates input descriptor number n (default is 0 if n is omitted) from descriptor number m</p>
+
+</dd>
+<dt id="Closing-descriptors:---3-">Closing descriptors: &lt;&amp;-, 3&lt;&amp;-</dt>
+<dd>
+
+<p>This closes descriptor number n (default is 0 if n is omitted). The following commands are equivalent:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="keyword">undef</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&lt;&amp;-'</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&lt;in.txt'</span><span class="operator">,</span> <span class="string">'&lt;&amp;-'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Doing</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="string">'&lt;&amp;-'</span><span class="operator">;</span>    <span class="comment">## SIGPIPE recipe.</span>
+</code></code></pre>
+
+<p>is dangerous: the parent will get a SIGPIPE if $in is not empty.</p>
+
+</dd>
+<dt id="Redirecting-both-stdout-and-stderr:-pipe-pipe">Redirecting both stdout and stderr: &amp;&gt;, &gt;&amp;, &amp;&gt;pipe, &gt;pipe&amp;</dt>
+<dd>
+
+<p>The following pairs of commands are equivalent:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&gt;&amp;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>       <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span>     <span class="string">'2&gt;&amp;1'</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&gt;&amp;'</span><span class="operator">,</span> <span class="string">'out.txt'</span><span class="operator">;</span>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&gt;'</span><span class="operator">,</span> <span class="string">'out.txt'</span><span class="operator">,</span> <span class="string">'2&gt;&amp;1'</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>etc.</p>
+
+<p>File descriptor numbers are not permitted to the left or the right of these operators, and the &#39;&amp;&#39; may occur on either end of the operator.</p>
+
+<p>The &#39;&amp;&gt;pipe&#39; and &#39;&gt;pipe&amp;&#39; variants behave like the &#39;&gt;pipe&#39; operator, except that both stdout and stderr write to the created pipe.</p>
+
+</dd>
+<dt id="Redirection-Filters">Redirection Filters</dt>
+<dd>
+
+<p>Both input redirections and output redirections that use scalars or subs as endpoints may have an arbitrary number of filter subs placed between them and the child process. This is useful if you want to receive output in chunks, or if you want to massage each chunk of data sent to the child. To use this feature, you must use operator syntax:</p>
+
+<pre><code><code>   <span class="variable">run</span><span class="operator">(</span>
+      <span class="operator">\</span><span class="variable">@cmd</span>
+         <span class="string">'&lt;'</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">in_filter_2</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">in_filter_1</span><span class="operator">,</span> <span class="variable">$in</span><span class="operator">,</span>
+         <span class="string">'&gt;'</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">out_filter_1</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">in_filter_2</span><span class="operator">,</span> <span class="variable">$out</span><span class="operator">,</span>
+   <span class="operator">);</span>
+</code></code></pre>
+
+<p>This capability is not provided for IO handles or named files.</p>
+
+<p>Two filters are provided by IPC::Run: appender and chunker. Because these may take an argument, you need to use the constructor functions new_appender() and new_chunker() rather than using \&amp; syntax:</p>
+
+<pre><code><code>   <span class="variable">run</span><span class="operator">(</span>
+      <span class="operator">\</span><span class="variable">@cmd</span>
+         <span class="string">'&lt;'</span><span class="operator">,</span> <span class="variable">new_appender</span><span class="operator">(</span> <span class="string">"\n"</span> <span class="operator">),</span> <span class="variable">$in</span><span class="operator">,</span>
+         <span class="string">'&gt;'</span><span class="operator">,</span> <span class="variable">new_chunker</span><span class="operator">,</span> <span class="variable">$out</span><span class="operator">,</span>
+   <span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+</dl>
+
+<h2 id="Just-doing-I-O">Just doing I/O</h2>
+
+<p>If you just want to do I/O to a handle or file you open yourself, you may specify a filehandle or filename instead of a command in the harness specification:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="variable">io</span><span class="operator">(</span> <span class="string">"filename"</span><span class="operator">,</span> <span class="string">'&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$recv</span> <span class="operator">);</span>
+   
+   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span> <span class="variable">io</span><span class="operator">(</span> <span class="variable">$io</span><span class="operator">,</span> <span class="string">'&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$recv</span> <span class="operator">);</span>
+   
+   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">harness</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&amp;'</span><span class="operator">,</span> <span class="variable">io</span><span class="operator">(</span> <span class="string">"file"</span><span class="operator">,</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$send</span> <span class="operator">);</span>
+</code></code></pre>
+
+<h2 id="Options">Options</h2>
+
+<p>Options are passed in as name/value pairs:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="string">debug</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>If you pass the debug option, you may want to pass it in first, so you can see what parsing is going on:</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="string">debug</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cat</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">;</span>
+</code></code></pre>
+
+<dl>
+
+<dt id="debug">debug</dt>
+<dd>
+
+<p>Enables debugging output in parent and child. Debugging info is emitted to the STDERR that was present when IPC::Run was first <code><code>use()</code></code>ed (it&#39;s <code><code>dup()</code></code>ed out of the way so that it can be redirected in children without having debugging output emitted on it).</p>
+
+</dd>
+</dl>
+
+<h1 id="RETURN-VALUES">RETURN VALUES</h1>
+
+<p>harness() and start() return a reference to an IPC::Run harness. This is blessed in to the IPC::Run package, so you may make later calls to functions as members if you like:</p>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">harness</span><span class="operator">(</span> <span class="operator">...</span> <span class="operator">);</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">pump</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+   
+   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span><span class="operator">(</span> <span class="operator">....</span> <span class="operator">);</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">pump</span><span class="operator">;</span>
+   <span class="operator">...</span>
+</code></code></pre>
+
+<p>Of course, using method call syntax lets you deal with any IPC::Run subclasses that might crop up, but don&#39;t hold your breath waiting for any.</p>
+
+<p>run() and finish() return TRUE when all subcommands exit with a 0 result code. <b>This is the opposite of perl&#39;s system() command</b>.</p>
+
+<p>All routines raise exceptions (via die()) when error conditions are recognized. A non-zero command result is not treated as an error condition, since some commands are tests whose results are reported in their exit codes.</p>
+
+<h1 id="ROUTINES">ROUTINES</h1>
+
+<ul>
+
+<dl>
+
+<dt id="run">run</dt>
+<dd>
+
+<p>Run takes a harness or harness specification and runs it, pumping all input to the child(ren), closing the input pipes when no more input is available, collecting all output that arrives, until the pipes delivering output are closed, then waiting for the children to exit and reaping their result codes.</p>
+
+<p>You may think of <code><code>run( ... )</code></code> as being like</p>
+
+<pre><code><code>   <span class="variable">start</span><span class="operator">(</span> <span class="operator">...</span> <span class="operator">)-&gt;</span><span class="variable">finish</span><span class="operator">();</span>
+</code></code></pre>
+
+<p>, though there is one subtle difference: run() does not set \$input_scalars to &#39;&#39; like finish() does. If an exception is thrown from run(), all children will be killed off &quot;gently&quot;, and then &quot;annihilated&quot; if they do not go gently (in to that dark night. sorry).</p>
+
+<p>If any exceptions are thrown, this does a <a href="#kill_kill">&quot;kill_kill&quot;</a> before propogating them.</p>
+
+</dd>
+<dt id="signal">signal</dt>
+<dd>
+
+<pre><code><code>   <span class="comment">## To send it a specific signal by name ("USR1"):</span>
+   <span class="variable">signal</span> <span class="variable">$h</span><span class="operator">,</span> <span class="string">"USR1"</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">signal</span> <span class="operator">(</span> <span class="string">"USR1"</span> <span class="operator">);</span>
+</code></code></pre>
+
+<p>If $signal is provided and defined, sends a signal to all child processes. Try not to send numeric signals, use <code><code>&quot;KILL&quot;</code></code> instead of <code><code>9</code></code>, for instance. Numeric signals aren&#39;t portable.</p>
+
+<p>Throws an exception if $signal is undef.</p>
+
+<p>This will <i>not</i> clean up the harness, <code><code>finish</code></code> it if you kill it.</p>
+
+<p>Normally TERM kills a process gracefully (this is what the command line utility <code><code>kill</code></code> does by default), INT is sent by one of the keys <code><code>^C</code></code>, <code><code>Backspace</code></code> or <code><code>&lt;Del&gt;</code></code>, and <code><code>QUIT</code></code> is used to kill a process and make it coredump.</p>
+
+<p>The <code><code>HUP</code></code> signal is often used to get a process to &quot;restart&quot;, rereading config files, and <code><code>USR1</code></code> and <code><code>USR2</code></code> for really application-specific things.</p>
+
+<p>Often, running <code><code>kill -l</code></code> (that&#39;s a lower case &quot;L&quot;) on the command line will list the signals present on your operating system.</p>
+
+<p><b>WARNING</b>: The signal subsystem is not at all portable. We *may* offer to simulate <code><code>TERM</code></code> and <code><code>KILL</code></code> on some operating systems, submit code to me if you want this.</p>
+
+<p><b>WARNING 2</b>: Up to and including perl v5.6.1, doing almost anything in a signal handler could be dangerous. The most safe code avoids all mallocs and system calls, usually by preallocating a flag before entering the signal handler, altering the flag&#39;s value in the handler, and responding to the changed value in the main system:</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$got_usr1</span> <span class="operator">=</span> <span class="number">0</span><span class="operator">;</span>
+   <span class="keyword">sub</span><span class="variable"> usr1_handler </span><span class="operator">{</span> <span class="operator">++</span><span class="variable">$got_signal</span> <span class="operator">}</span>
+   
+   <span class="variable">$SIG</span><span class="operator">{</span><span class="string">USR1</span><span class="operator">}</span> <span class="operator">=</span> <span class="operator">\&amp;</span><span class="variable">usr1_handler</span><span class="operator">;</span>
+   <span class="keyword">while</span> <span class="operator">()</span> <span class="operator">{</span> <span class="keyword">sleep</span> <span class="number">1</span><span class="operator">;</span> <span class="keyword">print</span> <span class="string">"GOT IT"</span> <span class="keyword">while</span> <span class="variable">$got_usr1</span><span class="operator">--;</span> <span class="operator">}</span>
+</code></code></pre>
+
+<p>Even this approach is perilous if ++ and -- aren&#39;t atomic on your system (I&#39;ve never heard of this on any modern CPU large enough to run perl).</p>
+
+</dd>
+<dt id="kill_kill">kill_kill</dt>
+<dd>
+
+<pre><code><code>   <span class="comment">## To kill off a process:</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">kill_kill</span><span class="operator">;</span>
+   <span class="variable">kill_kill</span> <span class="variable">$h</span><span class="operator">;</span>
+   
+   <span class="comment">## To specify the grace period other than 30 seconds:</span>
+   <span class="variable">kill_kill</span> <span class="variable">$h</span><span class="operator">,</span> <span class="string">grace</span> <span class="operator">=&gt;</span> <span class="number">5</span><span class="operator">;</span>
+   
+   <span class="comment">## To send QUIT instead of KILL if a process refuses to die:</span>
+   <span class="variable">kill_kill</span> <span class="variable">$h</span><span class="operator">,</span> <span class="string">coup_d_grace</span> <span class="operator">=&gt;</span> <span class="string">"QUIT"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Sends a <code><code>TERM</code></code>, waits for all children to exit for up to 30 seconds, then sends a <code><code>KILL</code></code> to any that survived the <code><code>TERM</code></code>.</p>
+
+<p>Will wait for up to 30 more seconds for the OS to successfully <code><code>KILL</code></code> the processes.</p>
+
+<p>The 30 seconds may be overridden by setting the <code><code>grace</code></code> option, this overrides both timers.</p>
+
+<p>The harness is then cleaned up.</p>
+
+<p>The doubled name indicates that this function may kill again and avoids colliding with the core Perl <code><code>kill</code></code> function.</p>
+
+<p>Returns a 1 if the <code><code>TERM</code></code> was sufficient, or a 0 if <code><code>KILL</code></code> was required. Throws an exception if <code><code>KILL</code></code> did not permit the children to be reaped.</p>
+
+<p><b>NOTE</b>: The grace period is actually up to 1 second longer than that given. This is because the granularity of <code><code>time</code></code> is 1 second. Let me know if you need finer granularity, we can leverage Time::HiRes here.</p>
+
+<p><b>Win32</b>: Win32 does not know how to send real signals, so <code><code>TERM</code></code> is a full-force kill on Win32. Thus all talk of grace periods, etc. do not apply to Win32.</p>
+
+</dd>
+<dt id="harness">harness</dt>
+<dd>
+
+<p>Takes a harness specification and returns a harness. This harness is blessed in to IPC::Run, allowing you to use method call syntax for run(), start(), et al if you like.</p>
+
+<p>harness() is provided so that you can pre-build harnesses if you would like to, but it&#39;s not required..</p>
+
+<p>You may proceed to run(), start() or pump() after calling harness() (pump() calls start() if need be). Alternatively, you may pass your harness specification to run() or start() and let them harness() for you. You can&#39;t pass harness specifications to pump(), though.</p>
+
+</dd>
+<dt id="close_terminal">close_terminal</dt>
+<dd>
+
+<p>This is used as (or in) an init sub to cast off the bonds of a controlling terminal. It must precede all other redirection ops that affect STDIN, STDOUT, or STDERR to be guaranteed effective.</p>
+
+</dd>
+<dt id="start">start</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span><span class="operator">(</span>
+      <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span> <span class="operator">...,</span>
+      <span class="variable">timeout</span><span class="operator">(</span> <span class="number">30</span><span class="operator">,</span> <span class="string">name</span> <span class="operator">=&gt;</span> <span class="string">"process timeout"</span> <span class="operator">),</span>
+      <span class="variable">$stall_timeout</span> <span class="operator">=</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">10</span><span class="operator">,</span> <span class="string">name</span> <span class="operator">=&gt;</span> <span class="string">"stall timeout"</span>   <span class="operator">),</span>
+   <span class="operator">);</span>
+   
+   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="string">'|'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">@cmd2</span><span class="operator">,</span> <span class="operator">...;</span>
+</code></code></pre>
+
+<p>start() accepts a harness or harness specification and returns a harness after building all of the pipes and launching (via fork()/exec(), or, maybe someday, spawn()) all the child processes. It does not send or receive any data on the pipes, see pump() and finish() for that.</p>
+
+<p>You may call harness() and then pass it&#39;s result to start() if you like, but you only need to if it helps you structure or tune your application. If you do call harness(), you may skip start() and proceed directly to pump.</p>
+
+<p>start() also starts all timers in the harness. See <a href="../../../../.cpan/build/IPC-Run-0.92-NBkBoa/blib/lib/IPC/Run/Timer.html">IPC::Run::Timer</a> for more information.</p>
+
+<p>start() flushes STDOUT and STDERR to help you avoid duplicate output. It has no way of asking Perl to flush all your open filehandles, so you are going to need to flush any others you have open. Sorry.</p>
+
+<p>Here&#39;s how if you don&#39;t want to alter the state of $| for your filehandle:</p>
+
+<pre><code><code>   <span class="variable">$ofh</span> <span class="operator">=</span> <span class="keyword">select</span> <span class="variable">HANDLE</span><span class="operator">;</span> <span class="variable">$of</span> <span class="operator">=</span> <span class="variable">$|</span><span class="operator">;</span> <span class="variable">$|</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span> <span class="variable">$|</span> <span class="operator">=</span> <span class="variable">$of</span><span class="operator">;</span> <span class="keyword">select</span> <span class="variable">$ofh</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>If you don&#39;t mind leaving output unbuffered on HANDLE, you can do the slightly shorter</p>
+
+<pre><code><code>   <span class="variable">$ofh</span> <span class="operator">=</span> <span class="keyword">select</span> <span class="variable">HANDLE</span><span class="operator">;</span> <span class="variable">$|</span> <span class="operator">=</span> <span class="number">1</span><span class="operator">;</span> <span class="keyword">select</span> <span class="variable">$ofh</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Or, you can use IO::Handle&#39;s flush() method:</p>
+
+<pre><code><code>   <span class="keyword">use</span> <span class="variable">IO::Handle</span><span class="operator">;</span>
+   <span class="variable">flush</span> <span class="variable">HANDLE</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Perl needs the equivalent of C&#39;s fflush( (FILE *)NULL ).</p>
+
+</dd>
+<dt id="adopt">adopt</dt>
+<dd>
+
+<p>Experimental feature. NOT FUNCTIONAL YET, NEED TO CLOSE FDS BETTER IN CHILDREN. SEE t/adopt.t for a test suite.</p>
+
+</dd>
+<dt id="pump">pump</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">pump</span> <span class="variable">$h</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">pump</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Pump accepts a single parameter harness. It blocks until it delivers some input or recieves some output. It returns TRUE if there is still input or output to be done, FALSE otherwise.</p>
+
+<p>pump() will automatically call start() if need be, so you may call harness() then proceed to pump() if that helps you structure your application.</p>
+
+<p>If pump() is called after all harnessed activities have completed, a &quot;process ended prematurely&quot; exception to be thrown. This allows for simple scripting of external applications without having to add lots of error handling code at each step of the script:</p>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">harness</span> <span class="operator">\</span><span class="variable">@smbclient</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span> <span class="variable">$err</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"cd /foo\n"</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">pump</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/^smb.*&gt; \Z/m</span><span class="operator">;</span>
+   <span class="keyword">die</span> <span class="string">"error cding to /foo:\n</span><span class="variable">$out</span><span class="string">"</span> <span class="keyword">if</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="string">"ERR"</span><span class="operator">;</span>
+   <span class="variable">$out</span> <span class="operator">=</span> <span class="string">''</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"mget *\n"</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">pump</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/^smb.*&gt; \Z/m</span><span class="operator">;</span>
+   <span class="keyword">die</span> <span class="string">"error retrieving files:\n</span><span class="variable">$out</span><span class="string">"</span> <span class="keyword">if</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="string">"ERR"</span><span class="operator">;</span>
+   
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+   
+   <span class="keyword">warn</span> <span class="variable">$err</span> <span class="keyword">if</span> <span class="variable">$err</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="pump_nb">pump_nb</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">pump_nb</span> <span class="variable">$h</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">pump_nb</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>&quot;pump() non-blocking&quot;, pumps if anything&#39;s ready to be pumped, returns immediately otherwise. This is useful if you&#39;re doing some long-running task in the foreground, but don&#39;t want to starve any child processes.</p>
+
+</dd>
+<dt id="pumpable">pumpable</dt>
+<dd>
+
+<p>Returns TRUE if calling pump() won&#39;t throw an immediate &quot;process ended prematurely&quot; exception. This means that there are open I/O channels or active processes. May yield the parent processes&#39; time slice for 0.01 second if all pipes are to the child and all are paused. In this case we can&#39;t tell if the child is dead, so we yield the processor and then attempt to reap the child in a nonblocking way.</p>
+
+</dd>
+<dt id="reap_nb">reap_nb</dt>
+<dd>
+
+<p>Attempts to reap child processes, but does not block.</p>
+
+<p>Does not currently take any parameters, one day it will allow specific children to be reaped.</p>
+
+<p>Only call this from a signal handler if your <code><code>perl</code></code> is recent enough to have safe signal handling (5.6.1 did not, IIRC, but it was beign discussed on perl5-porters). Calling this (or doing any significant work) in a signal handler on older <code><code>perl</code></code>s is asking for seg faults.</p>
+
+</dd>
+<dt id="finish">finish</dt>
+<dd>
+
+<p>This must be called after the last start() or pump() call for a harness, or your system will accumulate defunct processes and you may &quot;leak&quot; file descriptors.</p>
+
+<p>finish() returns TRUE if all children returned 0 (and were not signaled and did not coredump, ie ! $?), and FALSE otherwise (this is like run(), and the opposite of system()).</p>
+
+<p>Once a harness has been finished, it may be run() or start()ed again, including by pump()s auto-start.</p>
+
+<p>If this throws an exception rather than a normal exit, the harness may be left in an unstable state, it&#39;s best to kill the harness to get rid of all the child processes, etc.</p>
+
+<p>Specifically, if a timeout expires in finish(), finish() will not kill all the children. Call <code><code>&lt;$h-</code></code>kill_kill&gt;&gt; in this case if you care. This differs from the behavior of <a href="#run">&quot;run&quot;</a>.</p>
+
+</dd>
+<dt id="result">result</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Returns the first non-zero result code (ie $? &gt;&gt; 8). See <a href="#full_result">&quot;full_result&quot;</a> to get the $? value for a child process.</p>
+
+<p>To get the result of a particular child, do:</p>
+
+<pre><code><code>   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">(</span> <span class="number">0</span> <span class="operator">);</span>  <span class="comment"># first child's $? &gt;&gt; 8</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">result</span><span class="operator">(</span> <span class="number">1</span> <span class="operator">);</span>  <span class="comment"># second child</span>
+</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>   ($h-&gt;results)[0]
+   ($h-&gt;results)[1]</code></code></pre>
+
+<p>Returns undef if no child processes were spawned and no child number was specified. Throws an exception if an out-of-range child number is passed.</p>
+
+</dd>
+<dt id="results">results</dt>
+<dd>
+
+<p>Returns a list of child exit values. See <a href="#full_results">&quot;full_results&quot;</a> if you want to know if a signal killed the child.</p>
+
+<p>Throws an exception if the harness is not in a finished state.</p>
+
+</dd>
+<dt id="full_result">full_result</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">full_result</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Returns the first non-zero $?. See <a href="#result">&quot;result&quot;</a> to get the first $? &gt;&gt; 8 value for a child process.</p>
+
+<p>To get the result of a particular child, do:</p>
+
+<pre><code><code>   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">full_result</span><span class="operator">(</span> <span class="number">0</span> <span class="operator">);</span>  <span class="comment"># first child's $? &gt;&gt; 8</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">full_result</span><span class="operator">(</span> <span class="number">1</span> <span class="operator">);</span>  <span class="comment"># second child</span>
+</code></code></pre>
+
+<p>or</p>
+
+<pre><code><code>   ($h-&gt;full_results)[0]
+   ($h-&gt;full_results)[1]</code></code></pre>
+
+<p>Returns undef if no child processes were spawned and no child number was specified. Throws an exception if an out-of-range child number is passed.</p>
+
+</dd>
+<dt id="full_results">full_results</dt>
+<dd>
+
+<p>Returns a list of child exit values as returned by <code><code>wait</code></code>. See <a href="#results">&quot;results&quot;</a> if you don&#39;t care about coredumps or signals.</p>
+
+<p>Throws an exception if the harness is not in a finished state.</p>
+
+</dd>
+</dl>
+
+</ul>
+
+<h1 id="FILTERS">FILTERS</h1>
+
+<p>These filters are used to modify input our output between a child process and a scalar or subroutine endpoint.</p>
+
+<dl>
+
+<dt id="binary">binary</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">"&gt;"</span><span class="operator">,</span> <span class="variable">binary</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">"&gt;"</span><span class="operator">,</span> <span class="variable">binary</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>  <span class="comment">## Any TRUE value to enable</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">"&gt;"</span><span class="operator">,</span> <span class="variable">binary</span> <span class="number">0</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">;</span>  <span class="comment">## Any FALSE value to disable</span>
+</code></code></pre>
+
+<p>This is a constructor for a &quot;binmode&quot; &quot;filter&quot; that tells IPC::Run to keep the carriage returns that would ordinarily be edited out for you (binmode is usually off). This is not a real filter, but an option masquerading as a filter.</p>
+
+<p>It&#39;s not named &quot;binmode&quot; because you&#39;re likely to want to call Perl&#39;s binmode in programs that are piping binary data around.</p>
+
+</dd>
+<dt id="new_chunker">new_chunker</dt>
+<dd>
+
+<p>This breaks a stream of data in to chunks, based on an optional scalar or regular expression parameter. The default is the Perl input record separator in $/, which is a newline be default.</p>
+
+<pre><code><code>   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&gt;'</span><span class="operator">,</span> <span class="variable">new_chunker</span><span class="operator">,</span> <span class="operator">\&amp;</span><span class="variable">lines_handler</span><span class="operator">;</span>
+   <span class="variable">run</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="string">'&gt;'</span><span class="operator">,</span> <span class="variable">new_chunker</span><span class="operator">(</span> <span class="string">"\r\n"</span> <span class="operator">),</span> <span class="operator">\&amp;</span><span class="variable">lines_handler</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Because this uses $/ by default, you should always pass in a parameter if you are worried about other code (modules, etc) modifying $/.</p>
+
+<p>If this filter is last in a filter chain that dumps in to a scalar, the scalar must be set to &#39;&#39; before a new chunk will be written to it.</p>
+
+<p>As an example of how a filter like this can be written, here&#39;s a chunker that splits on newlines:</p>
+
+<pre><code><code>   <span class="keyword">sub</span><span class="variable"> line_splitter </span><span class="operator">{</span>
+      <span class="keyword">my</span> <span class="operator">(</span> <span class="variable">$in_ref</span><span class="operator">,</span> <span class="variable">$out_ref</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+   
+      <span class="keyword">return</span> <span class="number">0</span> <span class="keyword">if</span> <span class="keyword">length</span> <span class="variable">$$out_ref</span><span class="operator">;</span>
+   
+      <span class="keyword">return</span> <span class="variable">input_avail</span> <span class="operator">&amp;&amp;</span> <span class="keyword">do</span> <span class="operator">{</span>
+         <span class="keyword">while</span> <span class="operator">(</span><span class="number">1</span><span class="operator">)</span> <span class="operator">{</span>
+            <span class="keyword">if</span> <span class="operator">(</span> <span class="variable">$$in_ref</span> <span class="operator">=~</span> <span class="regex">s/\A(.*?\n)//</span> <span class="operator">)</span> <span class="operator">{</span>
+               <span class="variable">$$out_ref</span> <span class="operator">.=</span> <span class="variable">$1</span><span class="operator">;</span>
+               <span class="keyword">return</span> <span class="number">1</span><span class="operator">;</span>
+            <span class="operator">}</span>
+            <span class="keyword">my</span> <span class="variable">$hmm</span> <span class="operator">=</span> <span class="variable">get_more_input</span><span class="operator">;</span>
+            <span class="keyword">unless</span> <span class="operator">(</span> <span class="keyword">defined</span> <span class="variable">$hmm</span> <span class="operator">)</span> <span class="operator">{</span>
+               <span class="variable">$$out_ref</span> <span class="operator">=</span> <span class="variable">$$in_ref</span><span class="operator">;</span>
+               <span class="variable">$$in_ref</span> <span class="operator">=</span> <span class="string">''</span><span class="operator">;</span>
+               <span class="keyword">return</span> <span class="keyword">length</span> <span class="variable">$$out_ref</span> <span class="operator">?</span> <span class="number">1</span> <span class="operator">:</span> <span class="number">0</span><span class="operator">;</span>
+            <span class="operator">}</span>
+            <span class="keyword">return</span> <span class="number">0</span> <span class="keyword">if</span> <span class="variable">$hmm</span> <span class="keyword">eq</span> <span class="number">0</span><span class="operator">;</span>
+         <span class="operator">}</span>
+      <span class="operator">}</span>
+   <span class="operator">};</span>
+</code></code></pre>
+
+</dd>
+<dt id="new_appender">new_appender</dt>
+<dd>
+
+<p>This appends a fixed string to each chunk of data read from the source scalar or sub. This might be useful if you&#39;re writing commands to a child process that always must end in a fixed string, like &quot;\n&quot;:</p>
+
+<pre><code><code>   <span class="variable">run</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span>
+      <span class="string">'&lt;'</span><span class="operator">,</span> <span class="variable">new_appender</span><span class="operator">(</span> <span class="string">"\n"</span> <span class="operator">),</span> <span class="operator">\&amp;</span><span class="variable">commands</span><span class="operator">,</span>
+   <span class="operator">);</span>
+</code></code></pre>
+
+<p>Here&#39;s a typical filter sub that might be created by new_appender():</p>
+
+<pre><code><code>   <span class="keyword">sub</span><span class="variable"> newline_appender </span><span class="operator">{</span>
+      <span class="keyword">my</span> <span class="operator">(</span> <span class="variable">$in_ref</span><span class="operator">,</span> <span class="variable">$out_ref</span> <span class="operator">)</span> <span class="operator">=</span> <span class="variable">@_</span><span class="operator">;</span>
+   
+      <span class="keyword">return</span> <span class="variable">input_avail</span> <span class="operator">&amp;&amp;</span> <span class="keyword">do</span> <span class="operator">{</span>
+         <span class="variable">$$out_ref</span> <span class="operator">=</span> <span class="keyword">join</span><span class="operator">(</span> <span class="string">''</span><span class="operator">,</span> <span class="variable">$$out_ref</span><span class="operator">,</span> <span class="variable">$$in_ref</span><span class="operator">,</span> <span class="string">"\n"</span> <span class="operator">);</span>
+         <span class="variable">$$in_ref</span> <span class="operator">=</span> <span class="string">''</span><span class="operator">;</span>
+         <span class="number">1</span><span class="operator">;</span>
+      <span class="operator">}</span>
+   <span class="operator">};</span>
+</code></code></pre>
+
+</dd>
+<dt id="new_string_source">new_string_source</dt>
+<dd>
+
+<p>TODO: Needs confirmation. Was previously undocumented. in this module.</p>
+
+<p>This is a filter which is exportable. Returns a sub which appends the data passed in to the output buffer and returns 1 if data was appended. 0 if it was an empty string and undef if no data was passed.</p>
+
+<p>NOTE: Any additional variables passed to new_string_source will be passed to the sub every time it&#39;s called and appended to the output.</p>
+
+</dd>
+<dt id="new_string_sink">new_string_sink</dt>
+<dd>
+
+<p>TODO: Needs confirmation. Was previously undocumented.</p>
+
+<p>This is a filter which is exportable. Returns a sub which pops the data out of the input stream and pushes it onto the string.</p>
+
+</dd>
+<dt id="io">io</dt>
+<dd>
+
+<p>Takes a filename or filehandle, a redirection operator, optional filters, and a source or destination (depends on the redirection operator). Returns an IPC::Run::IO object suitable for harness()ing (including via start() or run()).</p>
+
+<p>This is shorthand for</p>
+
+<pre><code><code>   <span class="keyword">require</span> <span class="variable">IPC::Run::IO</span><span class="operator">;</span>
+   
+      <span class="operator">...</span> <span class="variable">IPC::Run::IO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(...)</span> <span class="operator">...</span>
+</code></code></pre>
+
+</dd>
+<dt id="timer">timer</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span> <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timer</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">)</span> <span class="operator">);</span>
+   
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/expected stuff/</span> <span class="operator">||</span> <span class="variable">$t</span><span class="operator">-&gt;</span><span class="variable">is_expired</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Instantiates a non-fatal timer. pump() returns once each time a timer expires. Has no direct effect on run(), but you can pass a subroutine to fire when the timer expires.</p>
+
+<p>See <a href="#timeout">&quot;timeout&quot;</a> for building timers that throw exceptions on expiration.</p>
+
+<p>See <a href="../../../../.cpan/build/IPC-Run-0.92-NBkBoa/blib/lib/IPC/Run/Timer.html#timer">&quot;timer&quot; in IPC::Run::Timer</a> for details.</p>
+
+</dd>
+<dt id="timeout">timeout</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span><span class="operator">(</span> <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span> <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">)</span> <span class="operator">);</span>
+   
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/expected stuff/</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>Instantiates a timer that throws an exception when it expires. If you don&#39;t provide an exception, a default exception that matches /^IPC::Run: .*timed out/ is thrown by default. You can pass in your own exception scalar or reference:</p>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span><span class="operator">(</span>
+      <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span>
+      <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">5</span><span class="operator">,</span> <span class="string">exception</span> <span class="operator">=&gt;</span> <span class="string">'slowpoke'</span> <span class="operator">),</span>
+   <span class="operator">);</span>
+</code></code></pre>
+
+<p>or set the name used in debugging message and in the default exception string:</p>
+
+<pre><code><code>   <span class="variable">$h</span> <span class="operator">=</span> <span class="variable">start</span><span class="operator">(</span>
+      <span class="operator">\</span><span class="variable">@cmd</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">,</span>
+      <span class="variable">timeout</span><span class="operator">(</span> <span class="number">50</span><span class="operator">,</span> <span class="string">name</span> <span class="operator">=&gt;</span> <span class="string">'process timer'</span> <span class="operator">),</span>
+      <span class="variable">$stall_timer</span> <span class="operator">=</span> <span class="variable">timeout</span><span class="operator">(</span> <span class="number">5</span><span class="operator">,</span> <span class="string">name</span> <span class="operator">=&gt;</span> <span class="string">'stall timer'</span> <span class="operator">),</span>
+   <span class="operator">);</span>
+   
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/started/</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">'command 1'</span><span class="operator">;</span>
+   <span class="variable">$stall_timer</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">;</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/command 1 finished/</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">'command 2'</span><span class="operator">;</span>
+   <span class="variable">$stall_timer</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">;</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/command 2 finished/</span><span class="operator">;</span>
+   
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">'very slow command 3'</span><span class="operator">;</span>
+   <span class="variable">$stall_timer</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(</span> <span class="number">10</span> <span class="operator">);</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/command 3 finished/</span><span class="operator">;</span>
+   
+   <span class="variable">$stall_timer</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(</span> <span class="number">5</span> <span class="operator">);</span>
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">'command 4'</span><span class="operator">;</span>
+   <span class="variable">pump</span> <span class="variable">$h</span> <span class="keyword">until</span> <span class="variable">$out</span> <span class="operator">=~</span> <span class="regex">/command 4 finished/</span><span class="operator">;</span>
+   
+   <span class="variable">$stall_timer</span><span class="operator">-&gt;</span><span class="variable">reset</span><span class="operator">;</span> <span class="comment"># Prevent restarting or expirng</span>
+   <span class="variable">finish</span> <span class="variable">$h</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>See <a href="#timer">&quot;timer&quot;</a> for building non-fatal timers.</p>
+
+<p>See <a href="../../../../.cpan/build/IPC-Run-0.92-NBkBoa/blib/lib/IPC/Run/Timer.html#timer">&quot;timer&quot; in IPC::Run::Timer</a> for details.</p>
+
+</dd>
+</dl>
+
+<h1 id="FILTER-IMPLEMENTATION-FUNCTIONS">FILTER IMPLEMENTATION FUNCTIONS</h1>
+
+<p>These functions are for use from within filters.</p>
+
+<dl>
+
+<dt id="input_avail">input_avail</dt>
+<dd>
+
+<p>Returns TRUE if input is available. If none is available, then &amp;get_more_input is called and its result is returned.</p>
+
+<p>This is usually used in preference to &amp;get_more_input so that the calling filter removes all data from the $in_ref before more data gets read in to $in_ref.</p>
+
+<p><code><code>input_avail</code></code> is usually used as part of a return expression:</p>
+
+<pre><code><code>   <span class="keyword">return</span> <span class="variable">input_avail</span> <span class="operator">&amp;&amp;</span> <span class="keyword">do</span> <span class="operator">{</span>
+      <span class="comment">## process the input just gotten</span>
+      <span class="number">1</span><span class="operator">;</span>
+   <span class="operator">};</span>
+</code></code></pre>
+
+<p>This technique allows input_avail to return the undef or 0 that a filter normally returns when there&#39;s no input to process. If a filter stores intermediate values, however, it will need to react to an undef:</p>
+
+<pre><code><code>   <span class="keyword">my</span> <span class="variable">$got</span> <span class="operator">=</span> <span class="variable">input_avail</span><span class="operator">;</span>
+   <span class="keyword">if</span> <span class="operator">(</span> <span class="operator">!</span> <span class="keyword">defined</span> <span class="variable">$got</span> <span class="operator">)</span> <span class="operator">{</span>
+      <span class="comment">## No more input ever, flush internal buffers to $out_ref</span>
+   <span class="operator">}</span>
+   <span class="keyword">return</span> <span class="variable">$got</span> <span class="keyword">unless</span> <span class="variable">$got</span><span class="operator">;</span>
+   <span class="comment">## Got some input, move as much as need be</span>
+   <span class="keyword">return</span> <span class="number">1</span> <span class="keyword">if</span> <span class="variable">$added_to_out_ref</span><span class="operator">;</span>
+</code></code></pre>
+
+</dd>
+<dt id="get_more_input">get_more_input</dt>
+<dd>
+
+<p>This is used to fetch more input in to the input variable. It returns undef if there will never be any more input, 0 if there is none now, but there might be in the future, and TRUE if more input was gotten.</p>
+
+<p><code><code>get_more_input</code></code> is usually used as part of a return expression, see <a href="#input_avail">&quot;input_avail&quot;</a> for more information.</p>
+
+</dd>
+</dl>
+
+<h1 id="TODO">TODO</h1>
+
+<p>These will be addressed as needed and as time allows.</p>
+
+<p>Stall timeout.</p>
+
+<p>Expose a list of child process objects. When I do this, each child process is likely to be blessed into IPC::Run::Proc.</p>
+
+<p>$kid-&gt;abort(), $kid-&gt;kill(), $kid-&gt;signal( $num_or_name ).</p>
+
+<p>Write tests for /(full_)?results?/ subs.</p>
+
+<p>Currently, pump() and run() only work on systems where select() works on the filehandles returned by pipe(). This does *not* include ActiveState on Win32, although it does work on cygwin under Win32 (thought the tests whine a bit). I&#39;d like to rectify that, suggestions and patches welcome.</p>
+
+<p>Likewise start() only fully works on fork()/exec() machines (well, just fork() if you only ever pass perl subs as subprocesses). There&#39;s some scaffolding for calling Open3::spawn_with_handles(), but that&#39;s untested, and not that useful with limited select().</p>
+
+<p>Support for <code><code>\@sub_cmd</code></code> as an argument to a command which gets replaced with /dev/fd or the name of a temporary file containing foo&#39;s output. This is like &lt;(sub_cmd ...) found in bash and csh (IIRC).</p>
+
+<p>Allow multiple harnesses to be combined as independent sets of processes in to one &#39;meta-harness&#39;.</p>
+
+<p>Allow a harness to be passed in place of an \@cmd. This would allow multiple harnesses to be aggregated.</p>
+
+<p>Ability to add external file descriptors w/ filter chains and endpoints.</p>
+
+<p>Ability to add timeouts and timing generators (i.e. repeating timeouts).</p>
+
+<p>High resolution timeouts.</p>
+
+<h1 id="Win32-LIMITATIONS">Win32 LIMITATIONS</h1>
+
+<dl>
+
+<dt id="Fails-on-Win9X">Fails on Win9X</dt>
+<dd>
+
+<p>If you want Win9X support, you&#39;ll have to debug it or fund me because I don&#39;t use that system any more. The Win32 subsysem has been extended to use temporary files in simple run() invocations and these may actually work on Win9X too, but I don&#39;t have time to work on it.</p>
+
+</dd>
+<dt id="May-deadlock-on-Win2K-but-not-WinNT4-or-WinXPPro-">May deadlock on Win2K (but not WinNT4 or WinXPPro)</dt>
+<dd>
+
+<p>Spawning more than one subprocess on Win2K causes a deadlock I haven&#39;t figured out yet, but simple uses of run() often work. Passes all tests on WinXPPro and WinNT.</p>
+
+</dd>
+<dt id="no-support-yet-for-pty-and-pty">no support yet for &lt;pty&lt; and &gt;pty&gt;</dt>
+<dd>
+
+<p>These are likely to be implemented as &quot;&lt;&quot; and &quot;&gt;&quot; with binmode on, not sure.</p>
+
+</dd>
+<dt id="no-support-for-file-descriptors-higher-than-2-stderr-">no support for file descriptors higher than 2 (stderr)</dt>
+<dd>
+
+<p>Win32 only allows passing explicit fds 0, 1, and 2. If you really, really need to pass file handles, us Win32API:: GetOsFHandle() or ::FdGetOsFHandle() to get the integer handle and pass it to the child process using the command line, environment, stdin, intermediary file, or other IPC mechnism. Then use that handle in the child (Win32API.pm provides ways to reconstitute Perl file handles from Win32 file handles).</p>
+
+</dd>
+<dt id="no-support-for-subroutine-subprocesses-CODE-refs-">no support for subroutine subprocesses (CODE refs)</dt>
+<dd>
+
+<p>Can&#39;t fork(), so the subroutines would have no context, and closures certainly have no meaning</p>
+
+<p>Perhaps with Win32 fork() emulation, this can be supported in a limited fashion, but there are other very serious problems with that: all parent fds get dup()ed in to the thread emulating the forked process, and that keeps the parent from being able to close all of the appropriate fds.</p>
+
+</dd>
+<dt id="no-support-for-init-sub-routines.">no support for init =&gt; sub {} routines.</dt>
+<dd>
+
+<p>Win32 processes are created from scratch, there is no way to do an init routine that will affect the running child. Some limited support might be implemented one day, do chdir() and %ENV changes can be made.</p>
+
+</dd>
+<dt id="signals">signals</dt>
+<dd>
+
+<p>Win32 does not fully support signals. signal() is likely to cause errors unless sending a signal that Perl emulates, and <code><code>kill_kill()</code></code> is immediately fatal (there is no grace period).</p>
+
+</dd>
+<dt id="helper-processes">helper processes</dt>
+<dd>
+
+<p>IPC::Run uses helper processes, one per redirected file, to adapt between the anonymous pipe connected to the child and the TCP socket connected to the parent. This is a waste of resources and will change in the future to either use threads (instead of helper processes) or a WaitForMultipleObjects call (instead of select). Please contact me if you can help with the WaitForMultipleObjects() approach; I haven&#39;t figured out how to get at it without C code.</p>
+
+</dd>
+<dt id="shutdown-pause">shutdown pause</dt>
+<dd>
+
+<p>There seems to be a pause of up to 1 second between when a child program exits and the corresponding sockets indicate that they are closed in the parent. Not sure why.</p>
+
+</dd>
+<dt id="binmode">binmode</dt>
+<dd>
+
+<p>binmode is not supported yet. The underpinnings are implemented, just ask if you need it.</p>
+
+</dd>
+<dt id="IPC::Run::IO">IPC::Run::IO</dt>
+<dd>
+
+<p>IPC::Run::IO objects can be used on Unix to read or write arbitrary files. On Win32, they will need to use the same helper processes to adapt from non-select()able filehandles to select()able ones (or perhaps WaitForMultipleObjects() will work with them, not sure).</p>
+
+</dd>
+<dt id="startup-race-conditions">startup race conditions</dt>
+<dd>
+
+<p>There seems to be an occasional race condition between child process startup and pipe closings. It seems like if the child is not fully created by the time CreateProcess returns and we close the TCP socket being handed to it, the parent socket can also get closed. This is seen with the Win32 pumper applications, not the &quot;real&quot; child process being spawned.</p>
+
+<p>I assume this is because the kernel hasn&#39;t gotten around to incrementing the reference count on the child&#39;s end (since the child was slow in starting), so the parent&#39;s closing of the child end causes the socket to be closed, thus closing the parent socket.</p>
+
+<p>Being a race condition, it&#39;s hard to reproduce, but I encountered it while testing this code on a drive share to a samba box. In this case, it takes t/run.t a long time to spawn it&#39;s chile processes (the parent hangs in the first select for several seconds until the child emits any debugging output).</p>
+
+<p>I have not seen it on local drives, and can&#39;t reproduce it at will, unfortunately. The symptom is a &quot;bad file descriptor in select()&quot; error, and, by turning on debugging, it&#39;s possible to see that select() is being called on a no longer open file descriptor that was returned from the _socket() routine in Win32Helper. There&#39;s a new confess() that checks for this (&quot;PARENT_HANDLE no longer open&quot;), but I haven&#39;t been able to reproduce it (typically).</p>
+
+</dd>
+</dl>
+
+<h1 id="LIMITATIONS">LIMITATIONS</h1>
+
+<p>On Unix, requires a system that supports <code><code>waitpid( $pid, WNOHANG )</code></code> so it can tell if a child process is still running.</p>
+
+<p>PTYs don&#39;t seem to be non-blocking on some versions of Solaris. Here&#39;s a test script contributed by Borislav Deianov &lt;borislav@ensim.com&gt; to see if you have the problem. If it dies, you have the problem.</p>
+
+<pre><code><code>   <span class="comment">#!/usr/bin/perl</span>
+   
+   <span class="keyword">use</span> <span class="variable">IPC::Run</span> <span class="string">qw(run)</span><span class="operator">;</span>
+   <span class="keyword">use</span> <span class="variable">Fcntl</span><span class="operator">;</span>
+   <span class="keyword">use</span> <span class="variable">IO::Pty</span><span class="operator">;</span>
+   
+   <span class="keyword">sub</span><span class="variable"> makecmd </span><span class="operator">{</span>
+       <span class="keyword">return</span> <span class="operator">[</span><span class="string">'perl'</span><span class="operator">,</span> <span class="string">'-e'</span><span class="operator">,</span> 
+               <span class="string">'&lt;STDIN&gt;, print "\n" x '</span><span class="operator">.</span><span class="variable">$_</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">.</span><span class="string">'; while(&lt;STDIN&gt;){last if /end/}'</span><span class="operator">]</span><span class="operator">;</span>
+   <span class="operator">}</span>
+   
+   <span class="comment">#pipe R, W;</span>
+   <span class="comment">#fcntl(W, F_SETFL, O_NONBLOCK);</span>
+   <span class="comment">#while (syswrite(W, "\n", 1)) { $pipebuf++ };</span>
+   <span class="comment">#print "pipe buffer size is $pipebuf\n";</span>
+   <span class="keyword">my</span> <span class="variable">$pipebuf</span><span class="operator">=</span><span class="number">4096</span><span class="operator">;</span>
+   <span class="keyword">my</span> <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"\n"</span> <span class="operator">x</span> <span class="operator">(</span><span class="variable">$pipebuf</span> <span class="operator">*</span> <span class="number">2</span><span class="operator">)</span> <span class="operator">.</span> <span class="string">"end\n"</span><span class="operator">;</span>
+   <span class="keyword">my</span> <span class="variable">$out</span><span class="operator">;</span>
+   
+   <span class="variable">$SIG</span><span class="operator">{</span><span class="string">ALRM</span><span class="operator">}</span> <span class="operator">=</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="keyword">die</span> <span class="string">"Never completed!\n"</span> <span class="operator">};</span>
+   
+   <span class="keyword">print</span> <span class="string">"reading from scalar via pipe..."</span><span class="operator">;</span>
+   <span class="keyword">alarm</span><span class="operator">(</span> <span class="number">2</span> <span class="operator">);</span>
+   <span class="variable">run</span><span class="operator">(</span><span class="variable">makecmd</span><span class="operator">(</span><span class="variable">$pipebuf</span> <span class="operator">*</span> <span class="number">2</span><span class="operator">),</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="string">'&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">);</span>
+   <span class="keyword">alarm</span><span class="operator">(</span> <span class="number">0</span> <span class="operator">);</span>
+   <span class="keyword">print</span> <span class="string">"done\n"</span><span class="operator">;</span>
+   
+   <span class="keyword">print</span> <span class="string">"reading from code via pipe... "</span><span class="operator">;</span>
+   <span class="keyword">alarm</span><span class="operator">(</span> <span class="number">2</span> <span class="operator">);</span>
+   <span class="variable">run</span><span class="operator">(</span><span class="variable">makecmd</span><span class="operator">(</span><span class="variable">$pipebuf</span> <span class="operator">*</span> <span class="number">3</span><span class="operator">),</span> <span class="string">'&lt;'</span><span class="operator">,</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> <span class="variable">$t</span> <span class="operator">=</span> <span class="variable">$in</span><span class="operator">;</span> <span class="keyword">undef</span> <span class="variable">$in</span><span class="operator">;</span> <span class="variable">$t</span><span class="operator">},</span> <span class="string">'&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">);</span>
+   <span class="keyword">alarm</span><span class="operator">(</span> <span class="number">0</span> <span class="operator">);</span>
+   <span class="keyword">print</span> <span class="string">"done\n"</span><span class="operator">;</span>
+   
+   <span class="variable">$pty</span> <span class="operator">=</span> <span class="variable">IO::Pty</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+   <span class="variable">$pty</span><span class="operator">-&gt;</span><span class="variable">blocking</span><span class="operator">(</span><span class="number">0</span><span class="operator">);</span>
+   <span class="variable">$slave</span> <span class="operator">=</span> <span class="variable">$pty</span><span class="operator">-&gt;</span><span class="variable">slave</span><span class="operator">();</span>
+   <span class="keyword">while</span> <span class="operator">(</span><span class="variable">$pty</span><span class="operator">-&gt;</span><span class="variable">syswrite</span><span class="operator">(</span><span class="string">"\n"</span><span class="operator">,</span> <span class="number">1</span><span class="operator">))</span> <span class="operator">{</span> <span class="variable">$ptybuf</span><span class="operator">++</span> <span class="operator">};</span>
+   <span class="keyword">print</span> <span class="string">"pty buffer size is </span><span class="variable">$ptybuf</span><span class="string">\n"</span><span class="operator">;</span>
+   <span class="variable">$in</span> <span class="operator">=</span> <span class="string">"\n"</span> <span class="operator">x</span> <span class="operator">(</span><span class="variable">$ptybuf</span> <span class="operator">*</span> <span class="number">3</span><span class="operator">)</span> <span class="operator">.</span> <span class="string">"end\n"</span><span class="operator">;</span>
+   
+   <span class="keyword">print</span> <span class="string">"reading via pty... "</span><span class="operator">;</span>
+   <span class="keyword">alarm</span><span class="operator">(</span> <span class="number">2</span> <span class="operator">);</span>
+   <span class="variable">run</span><span class="operator">(</span><span class="variable">makecmd</span><span class="operator">(</span><span class="variable">$ptybuf</span> <span class="operator">*</span> <span class="number">3</span><span class="operator">),</span> <span class="string">'&lt;pty&lt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$in</span><span class="operator">,</span> <span class="string">'&gt;'</span><span class="operator">,</span> <span class="operator">\</span><span class="variable">$out</span><span class="operator">);</span>
+   <span class="keyword">alarm</span><span class="operator">(</span><span class="number">0</span><span class="operator">);</span>
+   <span class="keyword">print</span> <span class="string">"done\n"</span><span class="operator">;</span>
+</code></code></pre>
+
+<p>No support for &#39;;&#39;, &#39;&amp;&amp;&#39;, &#39;||&#39;, &#39;{ ... }&#39;, etc: use perl&#39;s, since run() returns TRUE when the command exits with a 0 result code.</p>
+
+<p>Does not provide shell-like string interpolation.</p>
+
+<p>No support for <code><code>cd</code></code>, <code><code>setenv</code></code>, or <code><code>export</code></code>: do these in an init() sub</p>
+
+<pre><code><code>   <span class="variable">run</span><span class="operator">(</span>
+      <span class="operator">\</span><span class="variable">cmd</span><span class="operator">,</span>
+         <span class="operator">...</span>
+         <span class="string">init</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span>
+            <span class="keyword">chdir</span> <span class="variable">$dir</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="variable">$!</span><span class="operator">;</span>
+            <span class="variable">$ENV</span><span class="operator">{</span><span class="string">FOO</span><span class="operator">}</span><span class="operator">=</span><span class="string">'BAR'</span>
+         <span class="operator">}</span>
+   <span class="operator">);</span>
+</code></code></pre>
+
+<p>Timeout calculation does not allow absolute times, or specification of days, months, etc.</p>
+
+<p><b>WARNING:</b> Function coprocesses (<code><code>run \&amp;foo, ...</code></code>) suffer from two limitations. The first is that it is difficult to close all filehandles the child inherits from the parent, since there is no way to scan all open FILEHANDLEs in Perl and it both painful and a bit dangerous to close all open file descriptors with <code><code>POSIX::close()</code></code>. Painful because we can&#39;t tell which fds are open at the POSIX level, either, so we&#39;d have to scan all possible fds and close any that we don&#39;t want open (normally <code><code>exec()</code></code> closes any non-inheritable but we don&#39;t <code><code>exec()</code></code> for &amp;sub processes.</p>
+
+<p>The second problem is that Perl&#39;s DESTROY subs and other on-exit cleanup gets run in the child process. If objects are instantiated in the parent before the child is forked, the the DESTROY will get run once in the parent and once in the child. When coprocess subs exit, POSIX::exit is called to work around this, but it means that objects that are still referred to at that time are not cleaned up. So setting package vars or closure vars to point to objects that rely on DESTROY to affect things outside the process (files, etc), will lead to bugs.</p>
+
+<p>I goofed on the syntax: &quot;&lt;pipe&quot; vs. &quot;&lt;pty&lt;&quot; and &quot;&gt;filename&quot; are both oddities.</p>
+
+<h1 id="TODO1">TODO</h1>
+
+<dl>
+
+<dt id="Allow-one-harness-to-adopt-another:">Allow one harness to &quot;adopt&quot; another:</dt>
+<dd>
+
+<pre><code><code>   <span class="variable">$new_h</span> <span class="operator">=</span> <span class="variable">harness</span> <span class="operator">\</span><span class="variable">@cmd2</span><span class="operator">;</span>
+   <span class="variable">$h</span><span class="operator">-&gt;</span><span class="variable">adopt</span><span class="operator">(</span> <span class="variable">$new_h</span> <span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="Close-all-filehandles-not-explicitly-marked-to-stay-open.">Close all filehandles not explicitly marked to stay open.</dt>
+<dd>
+
+<p>The problem with this one is that there&#39;s no good way to scan all open FILEHANDLEs in Perl, yet you don&#39;t want child processes inheriting handles willy-nilly.</p>
+
+</dd>
+</dl>
+
+<h1 id="INSPIRATION">INSPIRATION</h1>
+
+<p>Well, select() and waitpid() badly needed wrapping, and open3() isn&#39;t open-minded enough for me.</p>
+
+<p>The shell-like API inspired by a message Russ Allbery sent to perl5-porters, which included:</p>
+
+<pre><code><code>   <span class="variable">I've</span> <span class="variable">thought</span> <span class="keyword">for</span> <span class="variable">some</span> <span class="keyword">time</span> <span class="variable">that</span> <span class="variable">it</span> <span class="variable">would</span> <span class="variable">be</span>
+   <span class="variable">nice</span> <span class="variable">to</span> <span class="variable">have</span> <span class="variable">a</span> <span class="variable">module</span> <span class="variable">that</span> <span class="variable">could</span> <span class="variable">handle</span> <span class="variable">full</span> <span class="variable">Bourne</span> <span class="variable">shell</span> <span class="keyword">pipe</span> <span class="variable">syntax</span>
+   <span class="variable">internally</span><span class="operator">,</span> <span class="variable">with</span> <span class="keyword">fork</span> <span class="keyword">and</span> <span class="keyword">exec</span><span class="operator">,</span> <span class="variable">without</span> <span class="variable">ever</span> <span class="variable">invoking</span> <span class="variable">a</span> <span class="variable">shell</span><span class="operator">.</span>  <span class="variable">Something</span>
+   <span class="variable">that</span> <span class="variable">you</span> <span class="variable">could</span> <span class="variable">give</span> <span class="variable">things</span> <span class="variable">like</span><span class="operator">:</span>
+   
+   <span class="variable">pipeopen</span> <span class="operator">(</span><span class="variable">PIPE</span><span class="operator">,</span> <span class="operator">[</span> <span class="string">qw/cat file/</span> <span class="operator">]</span><span class="operator">,</span> <span class="string">'|'</span><span class="operator">,</span> <span class="operator">[</span> <span class="string">'analyze'</span><span class="operator">,</span> <span class="variable">@args</span> <span class="operator">]</span><span class="operator">,</span> <span class="string">'&gt;&amp;3'</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>Message ylln51p2b6.fsf@windlord.stanford.edu, on 2000/02/04.</p>
+
+<h1 id="SUPPORT">SUPPORT</h1>
+
+<p>Bugs should always be submitted via the CPAN bug tracker</p>
+
+<p><a href="http://rt.cpan.org/NoAuth/ReportBug.html?Queue=IPC-Run">http://rt.cpan.org/NoAuth/ReportBug.html?Queue=IPC-Run</a></p>
+
+<p>For other issues, contact the maintainer (the first listed author)</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Adam Kennedy &lt;adamk@cpan.org&gt;</p>
+
+<p>Barrie Slaymaker &lt;barries@slaysys.com&gt;</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Some parts copyright 2008 - 2009 Adam Kennedy.</p>
+
+<p>Copyright 1999 Barrie Slaymaker.</p>
+
+<p>You may distribute under the terms of either the GNU General Public License or the Artistic License, as specified in the README file.</p>
+
+
+</body>
+
+</html>
+
+

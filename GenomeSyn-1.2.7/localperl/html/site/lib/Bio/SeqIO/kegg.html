@@ -1,0 +1,196 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Mapping-of-record-properties-to-object-properties">Mapping of record properties to object properties</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Allen-Day">AUTHOR - Allen Day</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#next_seq">next_seq</a></li>
+      <li><a href="#write_seq">write_seq</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::SeqIO::kegg - KEGG sequence input/output stream</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># It is probably best not to use this object directly, but</span>
+  <span class="comment"># rather go through the SeqIO handler system. Go:</span>
+  
+  <span class="keyword">use</span> <span class="variable">Bio::SeqIO</span><span class="operator">;</span>
+  
+  <span class="variable">$stream</span> <span class="operator">=</span> <span class="variable">Bio::SeqIO</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-file</span> <span class="operator">=&gt;</span> <span class="variable">$filename</span><span class="operator">,</span> <span class="string">-format</span> <span class="operator">=&gt;</span> <span class="string">'KEGG'</span><span class="operator">);</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span> <span class="keyword">my</span> <span class="variable">$seq</span> <span class="operator">=</span> <span class="variable">$stream</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">()</span> <span class="operator">)</span> <span class="operator">{</span>
+        <span class="comment"># do something with $seq</span>
+  <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This class transforms KEGG gene records into Bio::Seq objects.</p>
+
+<h2 id="Mapping-of-record-properties-to-object-properties">Mapping of record properties to object properties</h2>
+
+<p>This section is supposed to document which sections and properties of a KEGG databank record end up where in the Bioperl object model. It is far from complete and presently focuses only on those mappings which may be non-obvious. $seq in the text refers to the Bio::Seq::RichSeqI implementing object returned by the parser for each record.</p>
+
+<dl>
+
+<dt id="ENTRY">&#39;ENTRY&#39;</dt>
+<dd>
+
+<pre><code><code> $seq-&gt;primary_id</code></code></pre>
+
+</dd>
+<dt id="NAME1">&#39;NAME&#39;</dt>
+<dd>
+
+<pre><code><code> $seq-&gt;display_id</code></code></pre>
+
+</dd>
+<dt id="DEFINITION">&#39;DEFINITION&#39;</dt>
+<dd>
+
+<pre><code><code> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">annotation</span><span class="operator">-&gt;</span><span class="variable">get_Annotations</span><span class="operator">(</span><span class="string">'description'</span><span class="operator">);</span>
+</code></code></pre>
+
+</dd>
+<dt id="ORTHOLOG">&#39;ORTHOLOG&#39;</dt>
+<dd>
+
+<pre><code><code> <span class="keyword">grep</span> <span class="operator">{</span><span class="variable">$_</span><span class="operator">-&gt;</span><span class="variable">database</span> <span class="keyword">eq</span> <span class="string">'KO'</span><span class="operator">}</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">annotation</span><span class="operator">-&gt;</span><span class="variable">get_Annotations</span><span class="operator">(</span><span class="string">'dblink'</span><span class="operator">)</span>
+</code></code></pre>
+
+</dd>
+<dt id="CLASS">&#39;CLASS&#39;</dt>
+<dd>
+
+<pre><code><code> <span class="keyword">grep</span> <span class="operator">{</span><span class="variable">$_</span><span class="operator">-&gt;</span><span class="variable">database</span> <span class="keyword">eq</span> <span class="string">'PATH'</span><span class="operator">}</span>
+          <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">annotation</span><span class="operator">-&gt;</span><span class="variable">get_Annotations</span><span class="operator">(</span><span class="string">'dblink'</span><span class="operator">)</span>
+</code></code></pre>
+
+</dd>
+<dt id="POSITION">&#39;POSITION&#39;</dt>
+<dd>
+
+<p>FIXME, NOT IMPLEMENTED</p>
+
+</dd>
+<dt id="PATHWAY">&#39;PATHWAY&#39;</dt>
+<dd>
+
+<pre><code><code> <span class="keyword">for</span> <span class="keyword">my</span> <span class="variable">$pathway</span> <span class="operator">(</span> <span class="variable">$seq</span><span class="operator">-&gt;</span><span class="variable">annotation</span><span class="operator">-&gt;</span><span class="variable">get_Annotations</span><span class="operator">(</span><span class="string">'pathway'</span><span class="operator">)</span> <span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment">#</span>
+ <span class="operator">}</span>
+</code></code></pre>
+
+</dd>
+<dt id="DBLINKS">&#39;DBLINKS&#39;</dt>
+<dd>
+
+<pre><code><code> $seq-&gt;annotation-&gt;get_Annotations(&#39;dblink&#39;)</code></code></pre>
+
+</dd>
+<dt id="CODON_USAGE">&#39;CODON_USAGE&#39;</dt>
+<dd>
+
+<p>FIXME, NOT IMPLEMENTED</p>
+
+</dd>
+<dt id="AASEQ">&#39;AASEQ&#39;</dt>
+<dd>
+
+<pre><code><code> $seq-&gt;translate-&gt;seq</code></code></pre>
+
+</dd>
+<dt id="NTSEQ">&#39;NTSEQ&#39;</dt>
+<dd>
+
+<pre><code><code> $seq-E&lt;gt&gt;seq</code></code></pre>
+
+</dd>
+</dl>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Allen-Day">AUTHOR - Allen Day</h1>
+
+<p>Email allenday@ucla.edu</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="next_seq">next_seq</h2>
+
+<pre><code><code> Title   : next_seq
+ Usage   : $seq = $stream-&gt;next_seq()
+ Function: returns the next sequence in the stream
+ Returns : Bio::Seq::RichSeq object
+ Args    :</code></code></pre>
+
+<h2 id="write_seq">write_seq</h2>
+
+<pre><code><code> Title   : write_seq
+ Note    : write_seq() is not implemented for KEGG format output.</code></code></pre>
+
+
+</body>
+
+</html>
+
+

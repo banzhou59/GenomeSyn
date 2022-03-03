@@ -1,0 +1,224 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#set_parameters">set_parameters</a></li>
+      <li><a href="#reset_parameters">reset_parameters</a></li>
+      <li><a href="#parameters_changed">parameters_changed</a></li>
+      <li><a href="#available_parameters">available_parameters</a></li>
+      <li><a href="#get_parameters">get_parameters</a></li>
+    </ul>
+  </li>
+  <li><a href="#to-methods">to* methods</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::ParameterBaseI - Simple interface class for any parameter-related data such as IDs, database name, program arguments, and other odds and ends.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment"># Bio::DB::MyParams implements Bio::ParameterBaseI</span>
+  
+  <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">-db</span>   <span class="operator">=&gt;</span> <span class="string">'protein'</span><span class="operator">,</span>
+             <span class="string">-id</span>   <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@ids</span><span class="operator">,</span>
+             <span class="string">-retmax</span> <span class="operator">=&gt;</span> <span class="number">10</span><span class="operator">);</span>
+  
+  <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">Bio::DB::MyDBParams</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">();</span>
+  
+  <span class="comment"># sets only parameters passed; results in a state change if any parameter</span>
+  <span class="comment"># passed is new or differs from previously set value</span>
+  
+  <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">set_params</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="comment"># reset all parameters (sets to undef); results in a state change</span>
+  
+  <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">reset_params</span><span class="operator">();</span>
+  
+  <span class="comment"># resets parameters to those in %param (sets all others to undef); resets the</span>
+  <span class="comment"># object state to indicate change.</span>
+  
+  <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">reset_params</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="comment"># direct get/set; results in a state change if any parameter passed is new or</span>
+  <span class="comment"># differs from previously set value</span>
+  
+  <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">db</span><span class="operator">(</span><span class="string">'nucleotide'</span><span class="operator">);</span>
+  <span class="variable">@ids</span> <span class="operator">=</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">();</span>
+  
+  <span class="comment"># retrieve list containing set defined parameters</span>
+  
+  <span class="variable">%myparams</span> <span class="operator">=</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">get_parameters</span><span class="operator">();</span>
+  
+  <span class="comment"># checks whether the state of the object has changed (i.e. parameter has</span>
+  <span class="comment"># changed, so on)</span>
+  
+  <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">parameters_changed</span><span class="operator">)</span> <span class="operator">{</span>
+     <span class="comment"># run new search</span>
+  <span class="operator">}</span> <span class="keyword">else</span> <span class="operator">{</span>
+     <span class="comment"># return cached search</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># available parameters</span>
+  
+  <span class="variable">@params</span> <span class="operator">=</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">available_parameters</span><span class="operator">();</span>
+  
+  <span class="comment"># retrieve string (URI, query, etc); calling to* methods changes object state</span>
+  <span class="comment"># to indicate data hasn't changed (so future calls to parameters_changed()</span>
+  <span class="comment"># will return FALSE)</span>
+  
+  <span class="variable">$query</span> <span class="operator">=</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">to_string</span><span class="operator">();</span> <span class="comment"># returns raw string</span>
+  <span class="variable">$uri</span> <span class="operator">=</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">to_uri</span><span class="operator">();</span> <span class="comment">#  returns URI-based object</span>
+  <span class="variable">$uri</span> <span class="operator">=</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">to_my_data_struct</span><span class="operator">();</span> <span class="comment">#  returns implemenation-specific data structure</span>
+  <span class="operator">...</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is a class interface which focuses on common parameter-related tasks such as building simple database queries, URI-related requests, program arguments, etc.</p>
+
+<p>Implementing classes use the following ways to set parameters:</p>
+
+<p>1) Create a new instance of a ParameterBaseI-implementing object.</p>
+
+<pre><code><code>  <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">Bio::DB::MyParamClass</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-db</span> <span class="operator">=&gt;</span> <span class="string">'local'</span><span class="operator">,</span> <span class="string">-id</span> <span class="operator">=&gt;</span> <span class="operator">\</span><span class="variable">@ids</span><span class="operator">);</span>
+</code></code></pre>
+
+<p>2) Pass the parameters as a hash or array to set_parameters(), which sets the parameters listed in the hash but leaves all others as is.</p>
+
+<pre><code><code>  <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">set_parameters</span><span class="operator">(</span><span class="string">-retmax</span> <span class="operator">=&gt;</span> <span class="number">100</span><span class="operator">,</span> <span class="string">-retstart</span> <span class="operator">=&gt;</span> <span class="number">20</span><span class="operator">);</span> 
+</code></code></pre>
+
+<p>3) Pass the parameters as a hash or array to reset_parameters(), which sets the parameters listed in the hash and resets everything else.</p>
+
+<pre><code><code>  <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">reset_parameters</span><span class="operator">(</span><span class="string">-term</span> <span class="operator">=&gt;</span> <span class="string">'pyrimidine'</span><span class="operator">);</span> <span class="comment"># sets db and id to undef</span>
+</code></code></pre>
+
+<p>4) Pass values using specific getter/setters.</p>
+
+<pre><code><code>  <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">(\</span><span class="variable">@ids</span><span class="operator">);</span> <span class="comment"># sets IDs</span>
+</code></code></pre>
+
+<p>There is no restriction on what one uses to set up individual parameter getter/setters, though there are some other options implemented in BioPerl (for instance, Bio::Root::RootI::_set_from_args()).</p>
+
+<p>A key requirement is there be a way to detect changes in the state of the ParameterBaseI object so that any object with a Bio::ParameterBaseI can decide whether to submit a new request or return cached data. State changes are revealed by the returned values of the parameters_changed() method, which is a simple boolean set to TRUE when the object is first instantiated or parameters have changed.</p>
+
+<p>When retrieving anything using the implementation-specific to_* methods (such as to_query, to_string, to_uri, to_request, etc), the ParameterBaseI object state is set to FALSE to indicate the data has been accessed and indicate reaccessing will retrieve the same value. The observing object can then independently decide whether to rerun the cached query or return a previously cached result.</p>
+
+<p>One can also use indiviual getter/setters to retrieve single parameter values as well as use parameter_hash() to retrieve all of the parameters in one go as a hash. To check which parameters are available use available_parameters(). Args passed to</p>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@lists.open-bio.org               - General discussion
+  http://www.bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web.</p>
+
+<pre><code><code>  https://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Email cjfields at bioperl dot org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="set_parameters">set_parameters</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">set_parameters</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">set_parameters</span><span class="operator">(</span><span class="variable">%params</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">sets</span> <span class="variable">the</span> <span class="variable">parameters</span> <span class="variable">listed</span> <span class="variable">in</span> <span class="variable">the</span> <span class="variable">hash</span> <span class="keyword">or</span> <span class="variable">array</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">None</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">hash</span> <span class="keyword">or</span> <span class="variable">array</span> <span class="variable">of</span> <span class="variable">parameter</span><span class="operator">/</span><span class="keyword">values</span><span class="operator">.</span>  
+</code></code></pre>
+
+<h2 id="reset_parameters">reset_parameters</h2>
+
+<pre><code><code> Title   : reset_parameters
+ Usage   : resets values
+ Function: resets parameters to either undef or value in passed hash
+ Returns : none
+ Args    : [optional] hash of parameter-value pairs</code></code></pre>
+
+<h2 id="parameters_changed">parameters_changed</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">parameters_changed</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">if</span> <span class="operator">(</span><span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">parameters_changed</span><span class="operator">)</span> <span class="operator">{...}</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">boolean</span> <span class="variable">true</span> <span class="operator">(</span><span class="number">1</span><span class="operator">)</span> <span class="keyword">if</span> <span class="variable">parameters</span> <span class="variable">have</span> <span class="variable">changed</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Boolean</span> <span class="operator">(</span><span class="number">0</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">)</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">Boolean</span>
+</code></code></pre>
+
+<h2 id="available_parameters">available_parameters</h2>
+
+<pre><code><code> Title   : available_parameters
+ Usage   : @params = $pobj-&gt;available_parameters()
+ Function: Returns a list of the available parameters
+ Returns : Array of parameters
+ Args    : [optional, implementation-dependent] string for returning subset of
+           parameters</code></code></pre>
+
+<h2 id="get_parameters">get_parameters</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">get_parameters</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="variable">%params</span> <span class="operator">=</span> <span class="variable">$pobj</span><span class="operator">-&gt;</span><span class="variable">get_parameters</span><span class="operator">;</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">Returns</span> <span class="variable">list</span> <span class="variable">of</span> <span class="variable">key</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span> <span class="variable">of</span> <span class="string">parameter</span> <span class="operator">=&gt;</span> <span class="variable">value</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">List</span> <span class="variable">of</span> <span class="variable">key</span><span class="operator">-</span><span class="variable">value</span> <span class="variable">pairs</span>
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="operator">[</span><span class="variable">optional</span><span class="operator">]</span> <span class="variable">A</span> <span class="variable">string</span> <span class="variable">is</span> <span class="variable">allowed</span> <span class="keyword">if</span> <span class="variable">subsets</span> <span class="variable">are</span> <span class="variable">wanted</span> <span class="keyword">or</span> <span class="operator">(</span><span class="keyword">if</span> <span class="variable">a</span>
+           <span class="variable">parameter</span> <span class="variable">subset</span> <span class="variable">is</span> <span class="keyword">default</span><span class="operator">)</span> <span class="string">'all'</span> <span class="variable">to</span> <span class="keyword">return</span> <span class="variable">all</span> <span class="variable">parameters</span>
+</code></code></pre>
+
+<h1 id="to-methods">to* methods</h1>
+
+<p>All to_* methods are implementation-specific</p>
+
+
+</body>
+
+</html>
+
+

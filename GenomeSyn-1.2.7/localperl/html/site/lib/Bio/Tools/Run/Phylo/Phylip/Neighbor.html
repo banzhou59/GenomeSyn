@@ -1,0 +1,361 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#PARAMTERS-FOR-NEIGHBOR-COMPUTATION">PARAMTERS FOR NEIGHBOR COMPUTATION</a>
+    <ul>
+      <li><a href="#TYPE">TYPE</a></li>
+      <li><a href="#OUTGROUP-ONLY-AVAILABLE-FOR-NEIGHBOR-JOINING-">OUTGROUP (*ONLY AVAILABLE FOR NEIGHBOR JOINING)</a></li>
+      <li><a href="#LOWTRI">LOWTRI</a></li>
+      <li><a href="#UPPTRI">UPPTRI</a></li>
+      <li><a href="#SUBREP">SUBREP</a></li>
+      <li><a href="#JUMBLE">JUMBLE</a></li>
+    </ul>
+  </li>
+  <li><a href="#FEEDBACK">FEEDBACK</a>
+    <ul>
+      <li><a href="#Mailing-Lists">Mailing Lists</a></li>
+      <li><a href="#Support">Support</a></li>
+      <li><a href="#Reporting-Bugs">Reporting Bugs</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</a></li>
+  <li><a href="#CONTRIBUTORS">CONTRIBUTORS</a></li>
+  <li><a href="#APPENDIX">APPENDIX</a>
+    <ul>
+      <li><a href="#program_name">program_name</a></li>
+      <li><a href="#program_dir">program_dir</a></li>
+      <li><a href="#idlength">idlength</a></li>
+      <li><a href="#run">run</a></li>
+      <li><a href="#create_tree">create_tree</a></li>
+      <li><a href="#run1">_run</a></li>
+      <li><a href="#setinput-">_setinput()</a></li>
+      <li><a href="#names-">names()</a></li>
+      <li><a href="#setparams-">_setparams()</a></li>
+      <li><a href="#outfile">outfile</a></li>
+      <li><a href="#treefile">treefile</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::Tools::Run::Phylo::Phylip::Neighbor - Wrapper for the phylip program neighbor by Joseph Felsenstein for creating a phylogenetic tree(either through Neighbor or UPGMA) based on protein distances based on amino substitution rate.</p>
+
+<p>14 Nov 2002 Shawn Works with Phylip version 3.6</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="comment">#Create a SimpleAlign object</span>
+  <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'ktuple'</span> <span class="operator">=&gt;</span> <span class="number">2</span><span class="operator">,</span> <span class="string">'matrix'</span> <span class="operator">=&gt;</span> <span class="string">'BLOSUM'</span><span class="operator">);</span>
+  <span class="variable">$factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Alignment::Clustalw</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  <span class="variable">$inputfilename</span> <span class="operator">=</span> <span class="string">'t/data/cysprot.fa'</span><span class="operator">;</span>
+  <span class="variable">$aln</span> <span class="operator">=</span> <span class="variable">$factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$inputfilename</span><span class="operator">);</span> <span class="comment"># $aln is a SimpleAlign object.</span>
+  
+  <span class="comment"># Create the Distance Matrix</span>
+  <span class="comment"># using a default PAM matrix and id name lengths limit of 30 note to</span>
+  <span class="comment"># use id name length greater than the standard 10 in neighbor, you</span>
+  <span class="comment"># will need to modify the neighbor source code</span>
+  
+  <span class="variable">$protdist_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::ProtDist</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$matrix</span>  <span class="operator">=</span> <span class="variable">$protdist_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+  
+  <span class="comment">#Create the tree passing in the distance matrix</span>
+  <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'type'</span><span class="operator">=&gt;</span><span class="string">'NJ'</span><span class="operator">,</span><span class="string">'outgroup'</span><span class="operator">=&gt;</span><span class="number">2</span><span class="operator">,</span><span class="string">'lowtri'</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">,</span>
+             <span class="string">'upptri'</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">,</span><span class="string">'subrep'</span><span class="operator">=&gt;</span><span class="number">1</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="variable">$neighbor_factory</span> <span class="operator">=</span> 
+     <span class="variable">Bio::Tools::Run::Phylo::Phylip::Neighbor</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  
+  <span class="comment">#you can set your outgroup using either a number specifying</span>
+  <span class="comment">#the rank in the matrix or you can just use the name of the</span>
+  <span class="comment">#species</span>
+  
+  <span class="variable">$neighbor_factory</span><span class="operator">-&gt;</span><span class="variable">outgroup</span><span class="operator">(</span><span class="string">'ENSP00001'</span><span class="operator">);</span>
+  <span class="comment">#or</span>
+  <span class="variable">$neighbor_factory</span><span class="operator">-&gt;</span><span class="variable">outgroup</span><span class="operator">(</span><span class="number">1</span><span class="operator">);</span>
+  
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$tree</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$neighbor_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$matrix</span><span class="operator">);</span>
+  
+  <span class="comment"># Alternatively, one can create the tree by passing in a file name </span>
+  <span class="comment"># containing a phylip formatted distance matrix(using protdist)</span>
+  <span class="keyword">my</span> <span class="variable">$neighbor_factory</span> <span class="operator">=</span> 
+    <span class="variable">Bio::Tools::Run::Phylo::Phylip::Neighbor</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$tree</span><span class="operator">)</span> <span class="operator">=</span> <span class="variable">$neighbor_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="string">'/home/shawnh/prot.dist'</span><span class="operator">);</span>
+  
+  <span class="comment"># To prevent PHYLIP from truncating sequence names:</span>
+  <span class="comment"># Step 1. Shelf the original names:</span>
+    <span class="keyword">my</span> <span class="operator">(</span><span class="variable">$aln_safe</span><span class="operator">,</span> <span class="variable">$ref_name</span><span class="operator">)=</span>                    <span class="comment">#   $aln_safe has serial names</span>
+               <span class="variable">$aln</span><span class="operator">-&gt;</span><span class="variable">set_displayname_safe</span><span class="operator">();</span>      <span class="comment">#   $ref_name holds original names</span>
+  <span class="comment"># Step 2. Run ProtDist and Neighbor:</span>
+    <span class="variable">$matrix</span>  <span class="operator">=</span> <span class="variable">$protdist_factory</span><span class="operator">-&gt;</span>
+                <span class="variable">creat_distance_matrix</span><span class="operator">(</span><span class="variable">$aln_safe</span><span class="operator">);</span> <span class="comment">#  Use $aln_safe instead of $aln</span>
+    <span class="variable">$tree</span> <span class="operator">=</span> <span class="variable">$neighbor_factory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$matrix</span><span class="operator">);</span>
+  <span class="comment"># Step 3. Retrieve orgininal OTU names:</span>
+    <span class="keyword">use</span> <span class="variable">Bio::Tree::Tree</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">@nodes</span><span class="operator">=</span><span class="variable">$tree</span><span class="operator">-&gt;</span><span class="variable">get_nodes</span><span class="operator">();</span>
+    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$nd</span> <span class="operator">(</span><span class="variable">@nodes</span><span class="operator">){</span>
+       <span class="variable">$nd</span><span class="operator">-&gt;</span><span class="variable">id</span><span class="operator">(</span><span class="variable">$ref_name</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="variable">$nd</span><span class="operator">-&gt;</span><span class="variable">id_output</span><span class="operator">}</span><span class="operator">)</span> <span class="keyword">if</span> <span class="variable">$nd</span><span class="operator">-&gt;</span><span class="variable">is_Leaf</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</code></code></pre>
+
+<h1 id="PARAMTERS-FOR-NEIGHBOR-COMPUTATION">PARAMTERS FOR NEIGHBOR COMPUTATION</h1>
+
+<h2 id="TYPE">TYPE</h2>
+
+<pre><code><code>  <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">TYPE</span>
+  <span class="variable">Description</span>   <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+                  <span class="variable">This</span> <span class="variable">sets</span> <span class="variable">the</span> <span class="variable">type</span> <span class="variable">of</span> <span class="variable">tree</span> <span class="variable">to</span> <span class="variable">construct</span><span class="operator">,</span> <span class="variable">using</span>
+                  <span class="variable">neighbor</span> <span class="variable">joining</span> <span class="keyword">or</span> <span class="variable">UPGMA</span><span class="operator">.</span>
+  
+                  <span class="variable">NJ</span>    <span class="variable">Neighbor</span> <span class="variable">Joining</span>
+                  <span class="variable">UPGMA</span> <span class="variable">UPGMA</span>
+  
+  <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'type'</span><span class="operator">=&gt;</span><span class="string">'X'</span><span class="operator">);</span><span class="comment">#where X is one of the values above</span>
+                  <span class="variable">Defaults</span> <span class="variable">to</span> <span class="variable">NJ</span> 
+  
+                  <span class="variable">For</span> <span class="variable">more</span> <span class="variable">information</span> <span class="variable">on</span> <span class="variable">the</span> <span class="variable">usage</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">different</span>
+                  <span class="variable">models</span><span class="operator">,</span> <span class="variable">please</span> <span class="variable">refer</span> <span class="variable">to</span> <span class="variable">the</span> <span class="variable">documentation</span> <span class="variable">found</span> <span class="variable">in</span>
+                  <span class="variable">the</span> <span class="variable">phylip</span> <span class="keyword">package</span><span class="operator">.</span>
+</code></code></pre>
+
+<h2 id="OUTGROUP-ONLY-AVAILABLE-FOR-NEIGHBOR-JOINING-">OUTGROUP (*ONLY AVAILABLE FOR NEIGHBOR JOINING)</h2>
+
+<pre><code><code>  <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">OUTGROUP</span> 
+  <span class="variable">Description</span>   <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+                  <span class="variable">This</span> <span class="variable">option</span> <span class="variable">selects</span> <span class="variable">the</span> <span class="variable">species</span> <span class="variable">to</span> <span class="variable">be</span> <span class="variable">used</span> <span class="variable">as</span> <span class="variable">the</span> <span class="variable">outgroup</span>
+  <span class="variable">Acceptable</span> <span class="variable">Values</span><span class="operator">:</span> <span class="variable">integer</span> 
+  <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'outgroup'</span><span class="operator">=&gt;</span><span class="string">'X'</span><span class="operator">);</span> 
+                  <span class="variable">where</span> <span class="variable">X</span> <span class="variable">is</span> <span class="variable">an</span> <span class="variable">positive</span> <span class="variable">integer</span> <span class="keyword">not</span> <span class="variable">more</span> <span class="variable">than</span> <span class="variable">the</span> 
+                  <span class="variable">number</span> <span class="variable">of</span> <span class="variable">sequences</span> 
+                  <span class="variable">Defaults</span> <span class="variable">to</span> <span class="number">1</span>
+</code></code></pre>
+
+<h2 id="LOWTRI">LOWTRI</h2>
+
+<pre><code><code>  <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">LOWTRI</span>
+  <span class="variable">Description</span>   <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+                  <span class="variable">This</span> <span class="variable">indicates</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">distance</span> <span class="variable">matrix</span> <span class="variable">is</span> 
+                  <span class="variable">input</span>  <span class="variable">in</span>  <span class="variable">Lower</span><span class="operator">-</span><span class="variable">triangular</span> <span class="variable">form</span>  <span class="operator">(</span><span class="variable">the</span>  <span class="variable">lower</span><span class="operator">-</span><span class="variable">left</span> 
+                  <span class="variable">half</span> <span class="variable">of</span> <span class="variable">the</span> <span class="variable">distance</span> <span class="variable">matrix</span> <span class="variable">only</span><span class="operator">,</span> <span class="variable">without</span> <span class="variable">the</span> <span class="variable">zero</span> 
+                  <span class="variable">diagonal</span> <span class="variable">elements</span><span class="operator">)</span>
+  <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'lowtri'</span><span class="operator">=&gt;</span><span class="string">'X'</span><span class="operator">);</span> <span class="variable">where</span> <span class="variable">X</span> <span class="variable">is</span> <span class="variable">either</span> <span class="number">1</span> <span class="keyword">or</span> <span class="number">0</span> 
+                  <span class="variable">Defaults</span> <span class="variable">to</span> <span class="number">0</span> 
+</code></code></pre>
+
+<h2 id="UPPTRI">UPPTRI</h2>
+
+<pre><code><code>  <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">UPPTRI</span> 
+  <span class="variable">Description</span>   <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+                  <span class="variable">This</span> <span class="variable">indicates</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">distance</span> <span class="variable">matrix</span> <span class="variable">is</span> <span class="variable">input</span>  <span class="variable">in</span>  
+                  <span class="variable">upper</span><span class="operator">-</span><span class="variable">triangular</span> <span class="variable">form</span>  <span class="operator">(</span><span class="variable">the</span>  <span class="variable">upper</span><span class="operator">-</span><span class="variable">right</span> <span class="variable">half</span> <span class="variable">of</span> <span class="variable">the</span> 
+                  <span class="variable">distance</span> <span class="variable">matrix</span> <span class="variable">only</span><span class="operator">,</span> <span class="variable">without</span> <span class="variable">the</span> <span class="variable">zero</span> <span class="variable">diagonal</span> <span class="variable">elements</span><span class="operator">.)</span>
+  <span class="variable">Usage</span>           <span class="operator">:</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'upptri'</span><span class="operator">=&gt;</span><span class="string">'X'</span><span class="operator">);</span> <span class="variable">where</span> <span class="variable">X</span> <span class="variable">is</span> <span class="variable">either</span> <span class="number">1</span> <span class="keyword">or</span> <span class="number">0</span> 
+                  <span class="variable">Defaults</span> <span class="variable">to</span> <span class="number">0</span> 
+</code></code></pre>
+
+<h2 id="SUBREP">SUBREP</h2>
+
+<pre><code><code>  <span class="variable">Title</span>         <span class="operator">:</span> <span class="variable">SUBREP</span> 
+  <span class="variable">Description</span>   <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+                  <span class="variable">This</span> <span class="variable">is</span> <span class="variable">the</span> <span class="variable">Subreplication</span> <span class="variable">option</span><span class="operator">.</span>  
+  
+                  <span class="variable">It</span> <span class="variable">informs</span> <span class="variable">the</span> <span class="variable">program</span> <span class="variable">that</span> <span class="variable">after</span> <span class="keyword">each</span> <span class="variable">distance</span> <span class="variable">will</span>
+                  <span class="variable">be</span> <span class="variable">provided</span> <span class="variable">an</span> <span class="variable">integer</span> <span class="variable">indicating</span> <span class="variable">that</span> <span class="variable">the</span> <span class="variable">distance</span>
+                  <span class="variable">is</span> <span class="variable">a</span> <span class="variable">mean</span> <span class="variable">of</span> <span class="variable">that</span> <span class="variable">many</span> <span class="variable">replicates</span><span class="operator">.</span>
+  
+  <span class="variable">Usage</span>         <span class="operator">:</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'subrep'</span><span class="operator">=&gt;</span><span class="string">'X'</span><span class="operator">);</span> <span class="variable">where</span> <span class="variable">X</span> <span class="variable">is</span> <span class="variable">either</span> <span class="number">1</span> <span class="keyword">or</span> <span class="number">0</span> 
+                  <span class="variable">Defaults</span> <span class="variable">to</span> <span class="number">0</span> 
+</code></code></pre>
+
+<h2 id="JUMBLE">JUMBLE</h2>
+
+<pre><code><code>  <span class="variable">Title</span>        <span class="operator">:</span> <span class="variable">JUMBLE</span> 
+  <span class="variable">Description</span>  <span class="operator">:</span> <span class="operator">(</span><span class="variable">optional</span><span class="operator">)</span>
+  
+                 <span class="variable">This</span> <span class="variable">enables</span> <span class="variable">you</span> <span class="variable">to</span> <span class="keyword">tell</span> <span class="variable">the</span> <span class="variable">program</span> <span class="variable">to</span> <span class="keyword">use</span> <span class="variable">a</span> <span class="variable">random</span>
+                 <span class="variable">number</span> <span class="variable">generator</span> <span class="variable">to</span> <span class="variable">choose</span> <span class="variable">the</span> <span class="variable">input</span> <span class="variable">order</span> <span class="variable">of</span>
+                 <span class="variable">species</span><span class="operator">.</span>  <span class="variable">seed</span><span class="operator">:</span> <span class="variable">an</span> <span class="variable">integer</span> <span class="variable">between</span> <span class="number">1</span> <span class="keyword">and</span> <span class="number">32767</span> <span class="keyword">and</span> <span class="variable">of</span>
+                 <span class="variable">the</span> <span class="variable">form</span> <span class="number">4</span><span class="variable">n</span><span class="operator">+</span><span class="number">1</span> <span class="variable">which</span> <span class="variable">means</span> <span class="variable">that</span> <span class="variable">it</span> <span class="variable">must</span> <span class="variable">give</span> <span class="variable">a</span>
+                 <span class="variable">remainder</span> <span class="variable">of</span> <span class="number">1</span> <span class="keyword">when</span> <span class="variable">divided</span> <span class="variable">by</span> <span class="number">4.</span>  <span class="variable">Each</span> <span class="variable">different</span>
+                 <span class="variable">seed</span> <span class="variable">leads</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">different</span> <span class="variable">sequence</span> <span class="variable">of</span> <span class="variable">addition</span> <span class="variable">of</span>
+                 <span class="variable">species</span><span class="operator">.</span>  <span class="variable">By</span> <span class="variable">simply</span> <span class="variable">changing</span> <span class="variable">the</span> <span class="variable">random</span> <span class="variable">number</span> <span class="variable">seed</span>
+                 <span class="keyword">and</span> <span class="variable">re</span><span class="operator">-</span><span class="variable">running</span> <span class="variable">programs</span> <span class="variable">one</span> <span class="variable">can</span> <span class="variable">look</span> <span class="keyword">for</span> <span class="variable">other</span><span class="operator">,</span> <span class="keyword">and</span>
+                 <span class="variable">better</span> <span class="variable">trees</span><span class="operator">.</span>  <span class="variable">iterations</span><span class="operator">:</span>
+  
+  <span class="variable">Usage</span>        <span class="operator">:</span> <span class="variable">@params</span> <span class="operator">=</span> <span class="operator">(</span><span class="string">'jumble'</span><span class="operator">=&gt;</span><span class="string">'17); where 17 is the random seed
+                 Defaults to no jumble
+  </span>
+</code></code></pre>
+
+<h1 id="FEEDBACK">FEEDBACK</h1>
+
+<h2 id="Mailing-Lists">Mailing Lists</h2>
+
+<p>User feedback is an integral part of the evolution of this and other Bioperl modules. Send your comments and suggestions preferably to one of the Bioperl mailing lists. Your participation is much appreciated.</p>
+
+<pre><code><code>  bioperl-l@bioperl.org                  - General discussion
+  http://bioperl.org/wiki/Mailing_lists  - About the mailing lists</code></code></pre>
+
+<h2 id="Support">Support</h2>
+
+<p>Please direct usage questions or support issues to the mailing list:</p>
+
+<p><i>bioperl-l@bioperl.org</i></p>
+
+<p>rather than to the module maintainer directly. Many experienced and reponsive experts will be able look at the problem and quickly address it. Please include a thorough description of the problem with code and data examples if at all possible.</p>
+
+<h2 id="Reporting-Bugs">Reporting Bugs</h2>
+
+<p>Report bugs to the Bioperl bug tracking system to help us keep track the bugs and their resolution. Bug reports can be submitted via the web:</p>
+
+<pre><code><code>  http://redmine.open-bio.org/projects/bioperl/</code></code></pre>
+
+<h1 id="AUTHOR---Shawn-Hoon">AUTHOR - Shawn Hoon</h1>
+
+<p>Email shawnh@fugu-sg.org</p>
+
+<h1 id="CONTRIBUTORS">CONTRIBUTORS</h1>
+
+<p>Email:jason-at-bioperl.org</p>
+
+<h1 id="APPENDIX">APPENDIX</h1>
+
+<p>The rest of the documentation details each of the object methods. Internal methods are usually preceded with a _</p>
+
+<h2 id="program_name">program_name</h2>
+
+<pre><code><code> Title   : program_name
+ Usage   : &gt;program_name()
+ Function: holds the program name
+ Returns:  string
+ Args    : None</code></code></pre>
+
+<h2 id="program_dir">program_dir</h2>
+
+<pre><code><code> Title   : program_dir
+ Usage   : -&gt;program_dir()
+ Function: returns the program directory, obtained from ENV variable.
+ Returns:  string
+ Args    :</code></code></pre>
+
+<h2 id="idlength">idlength</h2>
+
+<pre><code><code> Title   : idlength 
+ Usage   : $obj-&gt;idlength ($newval)
+ Function: 
+ Returns : value of idlength 
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="run">run</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">run</span> 
+ <span class="variable">Usage</span>   <span class="operator">:</span>
+        <span class="variable">$inputfilename</span> <span class="operator">=</span> <span class="string">'t/data/prot.dist'</span><span class="operator">;</span>
+        <span class="variable">$tree</span> <span class="operator">=</span> <span class="variable">$neighborfactory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$inputfilename</span><span class="operator">);</span>
+ <span class="keyword">or</span>
+        <span class="variable">$protdist_factory</span> <span class="operator">=</span> <span class="variable">Bio::Tools::Run::Phylo::Phylip::ProtDist</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="variable">@params</span><span class="operator">);</span>
+        <span class="variable">$matrix</span>  <span class="operator">=</span> <span class="variable">$protdist_factory</span><span class="operator">-&gt;</span><span class="variable">create_distance_matrix</span><span class="operator">(</span><span class="variable">$aln</span><span class="operator">);</span>
+        <span class="variable">$tree</span><span class="operator">=</span> <span class="variable">$neighborfactory</span><span class="operator">-&gt;</span><span class="variable">run</span><span class="operator">(</span><span class="variable">$matrix</span><span class="operator">);</span>
+ 
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">a</span> <span class="variable">Bio</span><span class="operator">:</span><span class="variable">Tree</span> <span class="variable">from</span> <span class="variable">a</span> <span class="variable">protein</span> <span class="variable">distance</span> <span class="variable">matrix</span> <span class="variable">created</span> <span class="variable">by</span> <span class="variable">protidst</span> 
+ <span class="variable">Example</span> <span class="operator">:</span>
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">Bio::Tree</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">Name</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">file</span> <span class="variable">containing</span> <span class="variable">a</span> <span class="variable">protein</span> <span class="variable">distance</span> <span class="variable">matrix</span> <span class="variable">in</span> <span class="variable">Phylip</span> <span class="keyword">format</span>
+           <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">hash</span> <span class="keyword">ref</span> <span class="variable">to</span> <span class="variable">a</span> <span class="variable">matrix</span> 
+ 
+ <span class="variable">Throws</span> <span class="variable">an</span> <span class="variable">exception</span> <span class="keyword">if</span> <span class="variable">argument</span> <span class="variable">is</span> <span class="keyword">not</span> <span class="variable">either</span> <span class="variable">a</span> <span class="variable">string</span> <span class="operator">(</span><span class="variable">eg</span> <span class="variable">a</span>
+ <span class="variable">filename</span><span class="operator">)</span> <span class="keyword">or</span> <span class="variable">a</span> <span class="variable">Hash</span><span class="operator">.</span> <span class="variable">If</span> <span class="variable">argument</span> <span class="variable">is</span> <span class="variable">string</span><span class="operator">,</span> <span class="variable">throws</span> <span class="variable">exception</span> 
+ <span class="keyword">if</span> <span class="variable">file</span> <span class="variable">corresponding</span> <span class="variable">to</span> <span class="variable">string</span> <span class="variable">name</span> <span class="variable">can</span> <span class="keyword">not</span> <span class="variable">be</span> <span class="variable">found</span><span class="operator">.</span> 
+</code></code></pre>
+
+<h2 id="create_tree">create_tree</h2>
+
+<pre><code><code> <span class="variable">Title</span>   <span class="operator">:</span> <span class="variable">create_tree</span>
+ <span class="variable">Usage</span>   <span class="operator">:</span> <span class="keyword">my</span> <span class="variable">$file</span> <span class="operator">=</span> <span class="variable">$app</span><span class="operator">-&gt;</span><span class="variable">create_tree</span><span class="operator">(</span><span class="variable">$treefile</span><span class="operator">);</span>
+ <span class="variable">Function</span><span class="operator">:</span> <span class="variable">This</span> <span class="variable">method</span> <span class="variable">is</span> <span class="variable">deprecated</span><span class="operator">.</span> <span class="variable">Please</span> <span class="keyword">use</span> <span class="variable">run</span> <span class="variable">method</span><span class="operator">.</span> 
+ <span class="variable">Returns</span> <span class="operator">:</span> <span class="variable">File</span> <span class="variable">containing</span> <span class="variable">the</span> <span class="variable">rendered</span> <span class="variable">tree</span> 
+ <span class="variable">Args</span>    <span class="operator">:</span> <span class="variable">either</span> <span class="variable">a</span> <span class="variable">Bio::Tree::TreeI</span> 
+            <span class="variable">OR</span>
+           <span class="variable">filename</span> <span class="variable">of</span> <span class="variable">a</span> <span class="variable">tree</span> <span class="variable">in</span> <span class="variable">newick</span> <span class="keyword">format</span>
+</code></code></pre>
+
+<h2 id="run1">_run</h2>
+
+<pre><code><code> Title   :  _run
+ Usage   :  Internal function, not to be called directly        
+ Function:   makes actual system call to neighbor program
+ Example :
+ Returns : Bio::Tree object
+ Args    : Name of a file containing protein distances in Phylip format 
+           and a parameter string to be passed to neighbor</code></code></pre>
+
+<h2 id="setinput-">_setinput()</h2>
+
+<pre><code><code> Title   : _setinput
+ Usage   : Internal function, not to be called directly 
+ Function: Create input file for neighbor program
+ Example :
+ Returns : name of file containing the protein distance matrix in Phylip format 
+ Args    : name of file created by protdist or ref to hash created by 
+           Bio::Tools:Run::Phylo::Phylip::ProtDist </code></code></pre>
+
+<h2 id="names-">names()</h2>
+
+<pre><code><code> Title   :  names
+ Usage   :  $tree-&gt;names(\%names)
+ Function:  get/set for a hash ref for storing names in matrix
+            with rank as values.
+ Example :
+ Returns : hash reference 
+ Args    : hash reference </code></code></pre>
+
+<h2 id="setparams-">_setparams()</h2>
+
+<pre><code><code> Title   :  _setparams
+ Usage   :  Internal function, not to be called directly        
+ Function:   Create parameter inputs for neighbor program
+ Example :
+ Returns : parameter string to be passed to neighbor
+ Args    : name of calling object</code></code></pre>
+
+<h2 id="outfile">outfile</h2>
+
+<pre><code><code> Title   : outfile
+ Usage   : $obj-&gt;outfile($newval)
+ Function: Get/Set default PHYLIP outfile name (&#39;outfile&#39; usually)
+ Returns : value of outfile
+ Args    : newvalue (optional)</code></code></pre>
+
+<h2 id="treefile">treefile</h2>
+
+<pre><code><code> Title   : treefile
+ Usage   : $obj-&gt;treefile($newval)
+ Function: Get/Set the default PHYLIP treefile name (&#39;treefile&#39; usually)
+ Returns : value of treefile
+ Args    : newvalue (optional)</code></code></pre>
+
+
+</body>
+
+</html>
+
+

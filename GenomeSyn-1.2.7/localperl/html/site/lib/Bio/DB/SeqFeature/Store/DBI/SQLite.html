@@ -1,0 +1,187 @@
+<?xml version="1.0" ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<!-- saved from url=(0017)http://localhost/ -->
+<script language="JavaScript" src="../../../../../../../displayToc.js"></script>
+<script language="JavaScript" src="../../../../../../../tocParas.js"></script>
+<script language="JavaScript" src="../../../../../../../tocTab.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../../../../../scineplex.css">
+<title></title>
+<link rel="stylesheet" href="../../../../../../../Active.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:support@ActiveState.com" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Using-the-SQLite-adaptor">Using the SQLite adaptor</a></li>
+      <li><a href="#toplevel_types">toplevel_types</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Bio::DB::SeqFeature::Store::DBI::SQLite -- SQLite implementation of Bio::DB::SeqFeature::Store</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code><code>  <span class="keyword">use</span> <span class="variable">Bio::DB::SeqFeature::Store</span><span class="operator">;</span>
+  
+  <span class="comment"># Open the sequence database</span>
+  <span class="keyword">my</span> <span class="variable">$db</span> <span class="operator">=</span> <span class="variable">Bio::DB::SeqFeature::Store</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(</span><span class="string">-adaptor</span> <span class="operator">=&gt;</span> <span class="string">'DBI::SQLite'</span><span class="operator">,</span>
+                                           <span class="string">-dsn</span>     <span class="operator">=&gt;</span> <span class="string">'/path/to/database.db'</span><span class="operator">);</span>
+  
+  <span class="comment"># get a feature from somewhere</span>
+  <span class="keyword">my</span> <span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">Bio::SeqFeature::Generic</span><span class="operator">-&gt;</span><span class="variable">new</span><span class="operator">(...);</span>
+  
+  <span class="comment"># store it</span>
+  <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">store</span><span class="operator">(</span><span class="variable">$feature</span><span class="operator">)</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Couldn't store!"</span><span class="operator">;</span>
+  
+  <span class="comment"># primary ID of the feature is changed to indicate its primary ID</span>
+  <span class="comment"># in the database...</span>
+  <span class="keyword">my</span> <span class="variable">$id</span> <span class="operator">=</span> <span class="variable">$feature</span><span class="operator">-&gt;</span><span class="variable">primary_id</span><span class="operator">;</span>
+  
+  <span class="comment"># get the feature back out</span>
+  <span class="keyword">my</span> <span class="variable">$f</span>  <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">fetch</span><span class="operator">(</span><span class="variable">$id</span><span class="operator">);</span>
+  
+  <span class="comment"># change the feature and update it</span>
+  <span class="variable">$f</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(</span><span class="number">100</span><span class="operator">);</span>
+  <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">update</span><span class="operator">(</span><span class="variable">$f</span><span class="operator">)</span> <span class="keyword">or</span> <span class="keyword">die</span> <span class="string">"Couldn't update!"</span><span class="operator">;</span>
+  
+  <span class="comment"># searching...</span>
+  <span class="comment"># ...by id</span>
+  <span class="keyword">my</span> <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">fetch_many</span><span class="operator">(</span><span class="variable">@list_of_ids</span><span class="operator">);</span>
+  
+  <span class="comment"># ...by name</span>
+  <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_features_by_name</span><span class="operator">(</span><span class="string">'ZK909'</span><span class="operator">);</span>
+  
+  <span class="comment"># ...by alias</span>
+  <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_features_by_alias</span><span class="operator">(</span><span class="string">'sma-3'</span><span class="operator">);</span>
+  
+  <span class="comment"># ...by type</span>
+  <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_features_by_name</span><span class="operator">(</span><span class="string">'gene'</span><span class="operator">);</span>
+  
+  <span class="comment"># ...by location</span>
+  <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_features_by_location</span><span class="operator">(</span><span class="string">-seq_id</span><span class="operator">=&gt;</span><span class="string">'Chr1'</span><span class="operator">,</span><span class="string">-start</span><span class="operator">=&gt;</span><span class="number">4000</span><span class="operator">,</span><span class="string">-end</span><span class="operator">=&gt;</span><span class="number">600000</span><span class="operator">);</span>
+  
+  <span class="comment"># ...by attribute</span>
+  <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_features_by_attribute</span><span class="operator">(</span><span class="operator">{</span><span class="string">description</span> <span class="operator">=&gt;</span> <span class="string">'protein kinase'</span><span class="operator">}</span><span class="operator">)</span>
+  
+  <span class="comment"># ...by the GFF "Note" field</span>
+  <span class="variable">@result_list</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">search_notes</span><span class="operator">(</span><span class="string">'kinase'</span><span class="operator">);</span>
+  
+  <span class="comment"># ...by arbitrary combinations of selectors</span>
+  <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="variable">$name</span><span class="operator">,</span>
+                            <span class="string">-type</span> <span class="operator">=&gt;</span> <span class="variable">$types</span><span class="operator">,</span>
+                            <span class="string">-seq_id</span> <span class="operator">=&gt;</span> <span class="variable">$seqid</span><span class="operator">,</span>
+                            <span class="string">-start</span>  <span class="operator">=&gt;</span> <span class="variable">$start</span><span class="operator">,</span>
+                            <span class="string">-end</span>    <span class="operator">=&gt;</span> <span class="variable">$end</span><span class="operator">,</span>
+                            <span class="string">-attributes</span> <span class="operator">=&gt;</span> <span class="variable">$attributes</span><span class="operator">);</span>
+  
+  <span class="comment"># ...using an iterator</span>
+  <span class="keyword">my</span> <span class="variable">$iterator</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">get_seq_stream</span><span class="operator">(</span><span class="string">-name</span> <span class="operator">=&gt;</span> <span class="variable">$name</span><span class="operator">,</span>
+                                     <span class="string">-type</span> <span class="operator">=&gt;</span> <span class="variable">$types</span><span class="operator">,</span>
+                                     <span class="string">-seq_id</span> <span class="operator">=&gt;</span> <span class="variable">$seqid</span><span class="operator">,</span>
+                                     <span class="string">-start</span>  <span class="operator">=&gt;</span> <span class="variable">$start</span><span class="operator">,</span>
+                                     <span class="string">-end</span>    <span class="operator">=&gt;</span> <span class="variable">$end</span><span class="operator">,</span>
+                                     <span class="string">-attributes</span> <span class="operator">=&gt;</span> <span class="variable">$attributes</span><span class="operator">);</span>
+  
+  <span class="keyword">while</span> <span class="operator">(</span><span class="keyword">my</span> <span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$iterator</span><span class="operator">-&gt;</span><span class="variable">next_seq</span><span class="operator">)</span> <span class="operator">{</span>
+    <span class="comment"># do something with the feature</span>
+  <span class="operator">}</span>
+  
+  <span class="comment"># ...limiting the search to a particular region</span>
+  <span class="keyword">my</span> <span class="variable">$segment</span>  <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">segment</span><span class="operator">(</span><span class="string">'Chr1'</span><span class="operator">,</span><span class="number">5000</span><span class="operator">=&gt;</span><span class="number">6000</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">@features</span> <span class="operator">=</span> <span class="variable">$segment</span><span class="operator">-&gt;</span><span class="variable">features</span><span class="operator">(</span><span class="string">-type</span><span class="operator">=&gt;</span><span class="operator">[</span><span class="string">'mRNA'</span><span class="operator">,</span><span class="string">'match'</span><span class="operator">]</span><span class="operator">);</span>
+  
+  <span class="comment"># getting &amp; storing sequence information</span>
+  <span class="comment"># Warning: this returns a string, and not a PrimarySeq object</span>
+  <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">insert_sequence</span><span class="operator">(</span><span class="string">'Chr1'</span><span class="operator">,</span><span class="string">'GATCCCCCGGGATTCCAAAA...'</span><span class="operator">);</span>
+  <span class="keyword">my</span> <span class="variable">$sequence</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">fetch_sequence</span><span class="operator">(</span><span class="string">'Chr1'</span><span class="operator">,</span><span class="number">5000</span><span class="operator">=&gt;</span><span class="number">6000</span><span class="operator">);</span>
+  
+  <span class="comment"># what feature types are defined in the database?</span>
+  <span class="keyword">my</span> <span class="variable">@types</span>    <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">types</span><span class="operator">;</span>
+  
+  <span class="comment"># create a new feature in the database</span>
+  <span class="keyword">my</span> <span class="variable">$feature</span> <span class="operator">=</span> <span class="variable">$db</span><span class="operator">-&gt;</span><span class="variable">new_feature</span><span class="operator">(</span><span class="string">-primary_tag</span> <span class="operator">=&gt;</span> <span class="string">'mRNA'</span><span class="operator">,</span>
+                                 <span class="string">-seq_id</span>      <span class="operator">=&gt;</span> <span class="string">'chr3'</span><span class="operator">,</span>
+                                 <span class="string">-start</span>      <span class="operator">=&gt;</span> <span class="number">10000</span><span class="operator">,</span>
+                                 <span class="string">-end</span>        <span class="operator">=&gt;</span> <span class="number">11000</span><span class="operator">);</span>
+</code></code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Bio::DB::SeqFeature::Store::SQLite is the SQLite adaptor for Bio::DB::SeqFeature::Store. You will not create it directly, but instead use Bio::DB::SeqFeature::Store-&gt;new() to do so.</p>
+
+<p>See <a href="../../../../../../../../.cpan/build/BioPerl-1.6.901-ghKY8U/blib/lib/Bio/DB/SeqFeature/Store.html">Bio::DB::SeqFeature::Store</a> for complete usage instructions.</p>
+
+<h2 id="Using-the-SQLite-adaptor">Using the SQLite adaptor</h2>
+
+<p>To establish a connection to the database, call Bio::DB::SeqFeature::Store-&gt;new(-adaptor=&gt;&#39;DBI::SQLite&#39;,@more_args). The additional arguments are as follows:</p>
+
+<pre><code><code>  Argument name       Description
+  -------------       -----------
+
+ -dsn              The path to the SQLite database file.
+
+ -namespace        A prefix to attach to each table. This allows you
+                   to have several virtual databases in the same
+                   physical database.
+
+ -temp             Boolean flag. If true, a temporary database
+                   will be created and destroyed as soon as
+                   the Store object goes out of scope. (synonym -temporary)
+
+ -autoindex        Boolean flag. If true, features in the database will be
+                   reindexed every time they change. This is the default.
+
+
+ -tmpdir           Directory in which to place temporary files during &quot;fast&quot; loading.
+                   Defaults to File::Spec-&gt;tmpdir(). (synonyms -dump_dir, -dumpdir, -tmp)
+
+ -dbi_options      A hashref to pass to DBI-&gt;connect&#39;s 4th argument, the &quot;attributes.&quot;
+                   (synonyms -options, -dbi_attr)
+
+ -write            Pass true to open database for writing or updating.</code></code></pre>
+
+<p>If successful, a new instance of Bio::DB::SeqFeature::Store::DBI::SQLite will be returned.</p>
+
+<p>In addition to the standard methods supported by all well-behaved Bio::DB::SeqFeature::Store databases, several following adaptor-specific methods are provided. These are described in the next sections.</p>
+
+<h2 id="toplevel_types">toplevel_types</h2>
+
+<pre><code><code> Title   : toplevel_types
+ Usage   : @type_list = $db-&gt;toplevel_types
+ Function: Get the toplevel types in the database
+ Returns : array of Bio::DB::GFF::Typename objects
+ Args    : none
+ Status  : public</code></code></pre>
+
+<p>This is similar to types() but only returns the types of INDEXED (toplevel) features.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Nathan Weeks - Nathan.Weeks@ars.usda.gov</p>
+
+<p>Copyright (c) 2009 Nathan Weeks</p>
+
+<p>Modified 2010 to support cumulative statistics by Lincoln Stein &lt;lincoln.stein@gmail.com&gt;.</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself. See the Bioperl license for more details.</p>
+
+
+</body>
+
+</html>
+
+
