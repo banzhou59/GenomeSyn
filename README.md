@@ -1,6 +1,13 @@
 # [GenomeSyn](http://cbi.gxu.edu.cn/GenomeSyn/)
 We developed GenomeSyn as a new tool for constructing and visualizing genome synteny, its novel design and implementation can serve as a necessary complement to the study of genomic synteny and structural variation and its visualization tools.
 
+
+
+```
+#Download the data for test GenomeSyn
+$ wget https://cbi.gxu.edu.cn/zwzhou/GenomeSyn/examples/rice_examples.zip
+```
+
 An online service of GenomeSyn at: http://cbi.gxu.edu.cn/GenomeSyn/. 
 
 ![figure1-v9](https://user-images.githubusercontent.com/84839565/156312609-722f68de-4fc6-419f-9080-8072692ec0a1.png)
